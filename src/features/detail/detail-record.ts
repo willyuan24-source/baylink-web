@@ -20,12 +20,22 @@ export type RailEvent = Pick<MonthlyEvent, 'id' | 'title' | 'startDate' | 'endDa
   & Pick<EventEditorial, 'shortTitle' | 'venueShort' | 'price' | 'sessions' | 'iconKey'> & {
     /** The listing image when it can be a cover candidate (never an AI illustration); `getCover` still judges it. */
     image?: CoverAsset;
+    /**
+     * UI9-IMG-A1b (DECISIONS 21/22): when the card's own image cannot be its cover, the key of the candidate it shows instead
+     * (② venue, ③ stock, ④ approved AI; `image` is then that picture), chosen at build time so the page's cards differ.
+     */
+    coverKey?: string;
   };
 
 export type DetailRecord = {
   item: LocalDiscovery;
   /** The listing's registry image (posters and photos; never an AI illustration). */
   image?: CoverAsset;
+  /**
+   * UI9-IMG-A1b (DECISIONS 21/22): the hero's picture when the listing's own image cannot be its cover: its next candidate in
+   * the owner's order (② venue → ③ stock → ④ approved AI), never an information card.
+   */
+  hero?: { key: string; image: CoverAsset };
   /** An opening's planner place, for the action bar's "加入计划". */
   placeId?: string;
   /** Upcoming events nearby, nearest first within each group; pages filter them by the reader's own day. */

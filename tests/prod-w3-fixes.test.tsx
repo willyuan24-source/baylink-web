@@ -22,8 +22,7 @@ const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { setLocale, loadLocale } = await import('../src/i18n/locale');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuideCover } = await import('../src/features/guides/GuideCover');
-const { GuideTypeCover } = await import('../src/components/ui/cover-guide');
-const { offerBrandLine, OfferTypeCover } = await import('../src/components/ui');
+const { offerBrandLine } = await import('../src/components/ui');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
@@ -79,18 +78,12 @@ test('pillar-guide headlines wrap between words: H1, cover title, slide titles a
   }
 });
 
-test('a coded guide card does not repeat the caption: no title and no source count on the cover', () => {
+test('a guide card cover is its picture: no title, hook or source count drawn on it (UI9-IMAGES DECISIONS 21)', () => {
   const html = renderToStaticMarkup(<GuideCover guide={{ slug: SENIOR, category: 'family', title: '湾区中文长者服务：餐食、日间照护', sourceCount: 6, hook: { zh: '先打 800-510-2020', en: 'Call 800-510-2020' } }}
-    cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />);
+    cover={{ tier: 'type', reason: 'no-image' } as never} />);
   const cover = JSDOM.fragment(html);
-  // UI9-C: the pilot answer is a phone number, so it prints on the number plate, held together by non-breaking hyphens (U+2011).
-  assert.equal(cover.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'number');
-  assert.doesNotMatch(cover.textContent!, /官方来源|湾区中文长者服务/);
-  assert.equal(cover.querySelector('[data-phone]')!.textContent, `800${String.fromCharCode(0x2011)}510${String.fromCharCode(0x2011)}2020`);
-  // Without an answer the cover prints the title after its colon; the head stays in the caption.
-  const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />));
-  assert.equal(plain.querySelector('[data-cover="type"]')?.getAttribute('data-key'), '副标题');
-  assert.doesNotMatch(plain.textContent!, /某篇指南|官方来源/);
+  assert.equal(cover.querySelector('[data-cover="type"]'), null);
+  assert.equal(cover.textContent, '', 'nothing printed on the frame');
 });
 
 test('a described offer brand reads in the page language; a store name keeps its case and is never translated', async () => {
@@ -105,75 +98,38 @@ test('a described offer brand reads in the page language; a store name keeps its
   assert.equal(offerBrandLine('SFMTA · SAN FRANCISCO', 'en'), 'SFMTA · San Francisco');
 });
 
-test('an offer cover carries the value and the brand, not the title its card caption already shows', async () => {
+test('an offer card prints its brand once, in the meta line under the picture', async () => {
   const taco = localDiscoveries.find(row => row.kind === 'offer' && /taco-trail/.test(discoveryShare(row).id));
   assert.ok(taco && taco.kind === 'offer');
-  const cover = JSDOM.fragment(renderToStaticMarkup(<OfferTypeCover offer={taco.offer} today="2026-10-12" />));
-  assert.doesNotMatch(cover.textContent!, /Stamp Challenge|集章/);
-  // On the card, the TypeCover prints the brand; the meta line under it keeps the brand for screen readers only.
   const { OfferFeedCard } = await import('../src/features/events/BoardCards');
-  const card = (tier: 'type' | 'image') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events">
-    <OfferFeedCard offer={taco.offer as never} cover={(tier === 'type' ? { tier, reason: 'no-image' } : { tier, image: { src: '/x.jpg', alt: '', credit: 'x' }, label: { zh: '图', en: 'Photo' } }) as never} today="2026-10-12" />
+  const card = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events">
+    <OfferFeedCard offer={taco.offer as never} cover={{ tier: 'official', key: 'x', image: { src: '/x.jpg', alt: '', credit: 'x', caption: '', width: 1200, height: 900 }, label: { zh: '图', en: 'Photo' }, fit: 'cover', focal: [50, 40] } as never} today="2026-10-12" />
   </StaticRouter>));
-  const typed = card('type');
   const brand = offerBrandLine(taco.offer.brand, 'zh-Hans');
   // UI9-FREE: line 2 is [status] · condition · brand (the condition replaces 商家活动 / 免费福利); one brand per card.
-  const meta = typed.querySelector('.ui-feed-card__meta')!;
-  assert.equal(meta.querySelector('.sr-only')!.textContent, `\u00a0· ${brand}`);
-  meta.querySelector('.sr-only')!.remove();
-  assert.ok(!meta.textContent!.includes(brand), 'the visible meta has no brand');
+  const meta = card.querySelector('.ui-feed-card__meta')!;
+  assert.equal(meta.querySelector('.sr-only'), null);
+  assert.ok(meta.textContent!.endsWith(`\u00a0· ${brand}`), 'the meta line names the brand');
   assert.doesNotMatch(meta.textContent!, /商家活动|免费福利/);
-  assert.equal(typed.querySelector('.tc-eyebrow')!.textContent, brand, 'the brand shows once, on the cover');
-  const photo = card('image').querySelector('.ui-feed-card__meta')!;
-  assert.equal(photo.querySelector('.sr-only'), null);
-  assert.ok(photo.textContent!.endsWith(`\u00a0· ${brand}`), 'a photo cover keeps the brand in the meta');
+  assert.doesNotMatch(card.querySelector('[data-cover]')!.textContent!, /Taco|Stamp|集章/, 'the picture carries no words but its badge');
 });
 
-test('an offer, opening or event without an image opens on its family cover, which never repeats the header (UI9-C)', async () => {
-  for (const key of ['offer:sfmta-free-muni-seniors', 'opening:old-post-office-burlingame']) {
+test('every offer, opening and event detail opens on a picture, never an information card (UI9-IMAGES DECISIONS 21)', async () => {
+  const { heroCover } = await import('../src/features/detail/hero-cover');
+  for (const key of ['offer:sfmta-free-muni-seniors', 'opening:old-post-office-burlingame', 'event:san-francisco-fleet-week-2026']) {
     const doc = detail(key);
     const hero = doc.querySelector('.detail-hero')!;
-    if (hero.getAttribute('data-tier') !== 'type') continue; // an item that has a photo keeps it
-    assert.equal(hero.hasAttribute('data-compact'), false, `${key}: no band (the cover fills the 16:9 frame)`);
-    assert.equal(hero.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9', key);
-    const h1 = doc.querySelector('h1')!.textContent!;
-    assert.ok(!hero.textContent!.includes(h1), `${key}: the cover does not repeat the H1`);
-    assert.equal(hero.querySelector('.ui-sticker'), null, key);
+    assert.notEqual(hero.getAttribute('data-tier'), 'type', key);
+    assert.equal(hero.querySelectorAll('[data-cover="image"] img').length, 1, key);
+    assert.equal(hero.querySelector('[data-cover="type"],.ui-sticker'), null, key);
   }
-  const muni = detail('offer:sfmta-free-muni-seniors');
-  assert.equal(muni.querySelector('.detail-hero')!.getAttribute('data-tier'), 'type', 'SFMTA free Muni has no image');
-  assert.equal(muni.querySelector('.detail-hero .tc-ticket__value')!.textContent, '免费');
-  // The kind is the first chip right below, so the cover does not say it again (PROD-W3 re-review: 免费福利 twice).
-  assert.equal(muni.querySelector('.detail-chips')!.textContent!.includes('免费福利'), true);
-  assert.doesNotMatch(muni.querySelector('.detail-hero')!.textContent!, /免费福利/);
-  // An image-less offer with no stated value leads with its deadline day or what it asks of you, never a blank strip.
-  const { heroCover } = await import('../src/features/detail/hero-cover');
-  const { offerValue } = await import('../src/lib/event-facts');
-  const bare = localDiscoveries.find(row => row.kind === 'offer' && !offerValue(row.offer) && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
-  assert.ok(bare, 'the catalog has an image-less offer without a value');
-  const band = detail(`offer:${discoveryShare(bare).id}`).querySelector('.detail-hero')!;
-  assert.equal(band.hasAttribute('data-slim'), false);
-  assert.ok(band.querySelector('[data-cover="type"]')!.getAttribute('data-key')!.trim(), 'a key fact');
+  // The kind is the first chip right below the picture.
+  assert.equal(detail('offer:sfmta-free-muni-seniors').querySelector('.detail-chips')!.textContent!.includes('免费福利'), true);
+  // Every listing in the catalog: its hero resolves to a picture.
+  const typed = localDiscoveries.filter(row => row.kind !== 'place' && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type').map(row => discoveryShare(row).id);
+  assert.deepEqual(typed, []);
   // "想约人一起去？" belongs to places to go, not to a public benefit you apply for.
-  assert.equal(muni.querySelector('.outing-inspiration-link'), null);
-  // Events with a photo keep their photo.
-  assert.notEqual(detail('event:san-francisco-fleet-week-2026').querySelector('.detail-hero')!.getAttribute('data-tier'), 'type');
-  // An image-less event opens on the date family: the day and weekday (and the time bar for one day with a window), never
-  // the H1 or the price sticker.
-  const { eventDateChip, formatDateChip } = await import('../src/lib/event-facts');
-  const typeEvents = localDiscoveries.filter(row => row.kind === 'event' && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
-  const bigDate = (row: (typeof typeEvents)[number]) => formatDateChip(eventDateChip((row as { event: Parameters<typeof eventDateChip>[0] }).event, '2026-10-12'), false).big;
-  const dated = typeEvents.find(bigDate);
-  assert.ok(dated, 'the catalog has an image-less event with dates');
-  const page = detail(`event:${discoveryShare(dated).id}`);
-  const eventHero = page.querySelector('.detail-hero')!;
-  assert.equal(eventHero.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date');
-  assert.equal(eventHero.querySelector('.tc-cal__day')!.textContent!.length > 0, true);
-  assert.equal(eventHero.querySelector('.ui-sticker'), null);
-  assert.equal(eventHero.textContent!.includes(page.querySelector('h1')!.textContent!), false);
-  const { TypeCover } = await import('../src/components/ui');
-  const unknown = JSDOM.fragment(renderToStaticMarkup(<TypeCover family="event" tone="outdoors" label="" date={formatDateChip({ kind: 'unknown' }, false)} />));
-  assert.equal(unknown.querySelector('.tc-cal'), null, 'unknown dates draw no calendar page');
+  assert.equal(detail('offer:sfmta-free-muni-seniors').querySelector('.outing-inspiration-link'), null);
 });
 
 test('the Fleet Week facts card says where in Chinese on zh-Hans, keeping the place names', () => {

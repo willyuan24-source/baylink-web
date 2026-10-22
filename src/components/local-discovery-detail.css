@@ -15,11 +15,10 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 
 /* Hero: full-bleed on a phone, square corners; the provenance chip is C's. The credit line sits under a photo (G13). */
 .local-discovery-detail .detail-hero { margin:0; }
-.local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
+.local-discovery-detail .detail-hero .ui-cover { width:100%; border-radius:0; }
 .local-discovery-detail :is(.detail-hero,.detail-photo) figcaption { padding:var(--sp-2) var(--page-gutter) 0; }
 .local-discovery-detail .detail-credit { display:block; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
 .local-discovery-detail .detail-credit>*+* { margin-left:var(--sp-2); }
-.local-discovery-detail .detail-credit__label { color:var(--color-ink-2); }
 .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
 /* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
@@ -179,7 +178,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .site-detail-actions.detail-actions { position:sticky; top:5.5rem; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:0; }
   .local-discovery-detail .detail-hero figcaption { padding-inline:0; }
-  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
+  .local-discovery-detail .detail-hero .ui-cover { border-radius:var(--r-lg); }
   .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
   .site-detail-actions.detail-actions>.detail-actions__primary { grid-column:1 / -1; order:-1; }
   /* Six tracks: three cells take two each, two cells three each (a waiting event has no 收藏), a lone cell the row. */

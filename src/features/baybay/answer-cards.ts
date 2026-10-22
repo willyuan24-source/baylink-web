@@ -4,7 +4,8 @@ import { getLocalDiscovery } from '../../data/local-discoveries';
 import { guides, type Guide } from '../../data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../../data/guide-media';
 import { canonicalEventId } from '../../lib/event-id';
-import { coverItemFor, createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
+import { coverItemFor, createCoverPage, getCover, isAiIllustration, type CoverAsset, type CoverKind, type CoverPage, type ResolvedCover } from '../../lib/cover';
+import { coverCandidates, type CandidateRecord } from '../../lib/cover-candidates';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { SeptemberOpening } from '../../data/september-openings';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
@@ -25,6 +26,12 @@ export type BayBayCardModel =
 export const BAYBAY_MAX_CARDS = 5;
 const ENDED = new Set(['past', 'inactive', 'ended']);
 
+/**
+ * A listing with its candidates in the owner's order (UI9-IMG-A1b, DECISIONS 21/22: ① own → ② venue → ③ stock → ④ approved
+ * AI), so an answer card shows a picture, never an information card.
+ */
+const withCandidates = <T extends CandidateRecord>(kind: CoverKind, record: T) => coverItemFor(kind, { ...record, imageKeys: coverCandidates(kind, record) });
+
 /** The listing behind one card, with its cover resolved on the shared page (no image twice in one answer). */
 function cardModel(card: BayBayQuickCard, today: string, page: CoverPage): BayBayCardModel | null {
   const base = { key: `${card.kind}:${card.id}`, id: card.id, url: card.url, title: card.title, temporalStatus: card.temporalStatus, ended: ENDED.has(card.temporalStatus || '') };
@@ -32,18 +39,21 @@ function cardModel(card: BayBayQuickCard, today: string, page: CoverPage): BayBa
   if (card.kind === 'event') {
     const event = PLANNER_EVENTS.find(item => item.id === canonicalEventId(card.id));
     if (!event) return null;
-    return { ...base, kind: 'event', event, day: card.date, cover: getCover(coverItemFor('event', event), ctx) };
+    return { ...base, kind: 'event', event, day: card.date, cover: getCover(withCandidates('event', event), ctx) };
   }
   if (card.kind === 'offer' || card.kind === 'opening') {
     const item = getLocalDiscovery(card.kind, card.id);
-    if (item?.kind === 'offer') return { ...base, kind: 'offer', offer: item.offer, cover: getCover(coverItemFor('offer', item.offer), ctx) };
-    if (item?.kind === 'opening') return { ...base, kind: 'opening', shop: item.shop, cover: getCover(coverItemFor('opening', item.shop), ctx) };
+    if (item?.kind === 'offer') return { ...base, kind: 'offer', offer: item.offer, cover: getCover(withCandidates('offer', item.offer), ctx) };
+    if (item?.kind === 'opening') return { ...base, kind: 'opening', shop: item.shop, cover: getCover(withCandidates('opening', item.shop), ctx) };
     return null;
   }
   const guide = guides.find(item => item.slug === card.id);
   if (!guide) return null;
   const image = getGuideMedia(guide).cover;
-  return { ...base, kind: 'guide', guide, cover: getCover({ kind: 'guide', id: guide.slug, imageKey: 'cover' }, { ...ctx, images: key => key === 'cover' ? image : undefined }) };
+  // Its own cover, then its category's stock pictures (an own AI illustration after them, ④).
+  const stock = coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category });
+  const keys = isAiIllustration(image as CoverAsset) ? [...stock, 'cover'] : ['cover', ...stock];
+  return { ...base, kind: 'guide', guide, cover: getCover({ kind: 'guide', id: guide.slug, imageKey: 'cover', imageKeys: keys }, { ...ctx, images: key => key === 'cover' ? image : GUIDE_IMAGES[key] }) };
 }
 
 /** Cards in the server's order (chosen first, then cited), at most five, each listing once. Unknown ids are skipped. */

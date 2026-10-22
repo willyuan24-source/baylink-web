@@ -13,7 +13,15 @@ import type { GuideRegionId } from './guide-facts';
  */
 
 /** The covers a guide card shows: 简体's, and the 繁體 / English variants of a localized service picture when they differ. */
-export type GuideCovers = { 'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage };
+export type GuideCovers = {
+  'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage;
+  /**
+   * UI9-IMG-A1b (DECISIONS 21/22): the guide's next ③ stock picture, so a page that already shows its cover (①② once per
+   * page; a ③ not within ADJACENT_CARDS cards) gives the card this picture instead of a repeat. A guide
+   * page's "Read next" cards carry it only when the page shows their cover (scripts/generate-guide-data.ts distinctRelated).
+   */
+  stock?: Omit<GuideCovers, 'stock'>;
+};
 
 /** What a guide card renders (index feed, rails, "Read next"): no article body. */
 export type GuideCard = {
@@ -55,6 +63,26 @@ export type GuidesIndex = {
   categoryTabs: { id: 'all' | GuideCategory; label: string }[];
 };
 
+/**
+ * An index card as guides-index.json ships it (UI9-IMG-A1b, CI fix 2 for the /guides route budget): a picture more than one
+ * card shows sits once in the file's `images` and the card names it by file; expandGuidesIndex puts it back on `covers`.
+ */
+export type GuideIndexFileCard = Omit<GuideIndexCard, 'covers'> & {
+  /** Its own cover, when no other card ships the same picture record. */
+  covers?: Omit<GuideCovers, 'stock'>;
+  /** The file of its own cover in `images`, when other cards show the same picture. */
+  coverSrc?: string;
+  /**
+   * The file of its second (③) picture in `images`: only on a card /guides can move to it, one whose own picture another
+   * card also shows (scripts/generate-guide-data.ts secondPictureCards). Every other card's picture is unique on the page,
+   * so guideCover never needs a second for it.
+   */
+  stockSrc?: string;
+};
+
+/** guides-index.json: the cards, and the pictures more than one card shows, once each by file (3 languages per entry). */
+export type GuidesIndexFile = Omit<GuidesIndex, 'guides'> & { guides: GuideIndexFileCard[]; images: Record<string, Omit<GuideCovers, 'stock'>> };
+
 /** One inline picture of the article and where it goes (getGuideMedia's `inline`), already filtered by keepInlineImage. */
 export type GuideInlineImage = { afterHeading: number; image: GuideImage };
 
@@ -92,4 +120,18 @@ export const coverFor = (covers: GuideCovers, locale: 'zh-Hans' | 'zh-Hant' | 'e
 export function relatedForToday(related: readonly GuideCard[], today: string, count = 4): GuideCard[] {
   const month = today.slice(0, 7);
   return related.filter(card => !card.editionMonth || card.editionMonth >= month).slice(0, count);
+}
+
+/** The index's cards with their pictures back on `covers` (own) and `covers.stock` (second): the file ships each shared one once. */
+export function expandGuidesIndex(file: GuidesIndexFile): GuidesIndex {
+  const { images, guides, ...rest } = file;
+  const picture = (slug: string, src: string) => {
+    const covers = images[src];
+    if (!covers) throw new Error(`guides-index.json: ${slug} names ${src}, which its images do not ship`);
+    return covers;
+  };
+  return { ...rest, guides: guides.map(({ covers, coverSrc, stockSrc, ...card }) => {
+    const own = covers ?? picture(card.slug, coverSrc ?? '');
+    return { ...card, covers: stockSrc ? { ...own, stock: picture(card.slug, stockSrc) } : own };
+  }) };
 }

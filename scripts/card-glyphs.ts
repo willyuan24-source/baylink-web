@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { create as createFont } from 'fontkit';
-import type { TextDrawer } from '../src/lib/share-card-svg';
+import { CARD_INK, type TextDrawer } from '../src/lib/share-card-svg';
 
 /**
  * Text → glyph outlines from the bundled Noto Sans SC (both weights), shared by the share cards and the weekly cards.
@@ -38,7 +38,10 @@ export async function createGlyphOutliner() {
 }
 
 type Job = { svg: string; out: string };
-/** A small pool of rasterizing workers (scripts/share-card-worker.mjs): the PNG work runs in parallel with the layout. */
+/**
+ * A small pool of rasterizing workers (scripts/share-card-worker.mjs): the PNG work runs in parallel with the layout.
+ * Every card is drawn on the paper token, and the worker keeps that paper exact through the palette (cardPng).
+ */
 export function createRasterPool(size = Math.max(1, Math.min(4, availableParallelism() - 1))) {
   const workers = Array.from({ length: size }, () => new Worker(new URL('./share-card-worker.mjs', import.meta.url)));
   const idle = [...workers];
@@ -56,7 +59,7 @@ export function createRasterPool(size = Math.max(1, Math.min(4, availableParalle
     while (!idle.length) await new Promise<void>(resolve => waiting.push(resolve));
     const worker = idle.pop()!;
     const id = next++;
-    return new Promise((resolve, reject) => { pending.set(id, { resolve, reject, worker }); worker.postMessage({ id, ...job }); });
+    return new Promise((resolve, reject) => { pending.set(id, { resolve, reject, worker }); worker.postMessage({ id, paper: CARD_INK.paper, ...job }); });
   };
   const close = () => Promise.all(workers.map(worker => worker.terminate()));
   return { run, close, size };

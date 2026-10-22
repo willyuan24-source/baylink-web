@@ -68,9 +68,11 @@ export function englishScopesForFeature(feature: EnglishFeature): string[] {
     // 行程's workspace (WEB-PLAN-DATA): the generated planner catalog's text, loaded with the catalog after the first paint.
     : feature === 'plan' ? ['ui', 'plan-catalog']
     // The events column past its first screens (WEB-PERF-2): the text of events-later.json, loaded with it.
-    : feature === 'events-later' ? ['ui', 'events-list', 'events-later'] : [];
+    : feature === 'events-later' ? ['ui', 'events-list', 'events-later']
+    // The 免费与优惠 and 新店 boards (UI9-IMG-A1b): the text of events-boards.json, loaded with it.
+    : feature === 'events-boards' ? ['ui', 'events-list', 'events-boards'] : [];
 }
-export type EnglishFeature = 'search' | 'guide-search' | 'baybay' | 'plan' | 'events-later';
+export type EnglishFeature = 'search' | 'guide-search' | 'baybay' | 'plan' | 'events-later' | 'events-boards';
 
 /**
  * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset), the community board,

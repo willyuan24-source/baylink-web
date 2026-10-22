@@ -9,9 +9,9 @@ import { getGuideBySlug } from '../src/data/guides';
 import elderEnglish from '../src/data/guides-refresh-2026-10-14-en.json';
 
 /**
- * CNT-SIGNBOARD (2026-10-19/20 PT reads, docs/source-reads-2026-10.md "CNT-SIGNBOARD"): the new-shop sign (UI9-C's shop
- * cover, src/components/ui/cover-shop.tsx) prints an opening's `category` — what the shop sells — in English from the
- * dictionary. Each category was written from the shop's own page (or, for press-only records, the report) read that night.
+ * CNT-SIGNBOARD (2026-10-19/20 PT reads, docs/source-reads-2026-10.md "CNT-SIGNBOARD"): a new shop's card prints its
+ * `category` — what the shop sells — in line 2 (BoardCards.tsx OpeningMeta; the UI9-C shop sign cover is gone, UI9-IMAGES
+ * DECISIONS 21), in English from the dictionary. Each category was written from the shop's own page (or, for press-only records, the report) read that night.
  */
 const english = readEnglishSources(path => readFileSync(path, 'utf8'));
 const opening = (id: string) => { const found = currentOpenings.find(item => item.id === id); assert.ok(found, id); return found; };

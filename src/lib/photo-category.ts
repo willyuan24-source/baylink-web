@@ -117,7 +117,7 @@ export type EventFields = {
   id: string; title: string; venue?: string; category?: string; kind?: string; audience?: readonly string[];
   planning?: { setting?: string };
 };
-export type OfferFields = { id: string; brand?: string; title: string };
+export type OfferFields = { id: string; brand?: string; title: string; kind?: string };
 export type OpeningFields = { id: string; name: string; category?: string; openingType?: string };
 export type GuideFields = { slug: string; title?: string; category?: string };
 export type BulletinFields = { id: string; title: string; label?: string };
@@ -254,7 +254,11 @@ export function eventPhotoCategory(event: EventFields): PhotoCategoryId | undefi
   if (event.category === 'outdoors') return kidsish ? 'family-outdoor' : 'nature-walk';
   if (event.category === 'food') return 'food-festival';
   if (event.category === 'family') return setting === 'outdoor' || PARK_VENUE.test(venue) ? 'family-outdoor' : 'kids-play';
-  return undefined;
+  // UI9-IMG-A1b: every event has a ③ category (DECISIONS 21: no information card, past listings' detail pages included):
+  // the rest by what they are — music or a night out, else a community gathering.
+  if (/音乐|音樂|music|party|派对|派對|夜生活|nightlife|dj\b/i.test(`${text} ${(event.audience ?? []).join(' ')}`)) return 'concert';
+  if (event.category === 'seniors') return 'seniors';
+  return 'community-festival';
 }
 
 const OFFER_RULES: readonly Rule[] = [
@@ -282,9 +286,17 @@ const OFFER_RULES: readonly Rule[] = [
   ['shopping', /ikea|target|world market|sephora|ulta|safeway|lowe|staples|registry|eos|购物|折|volvo|赠品|会员/i],
 ];
 
+/** UI9-IMG-A1b: the offers OFFER_RULES leave out still get a picture of what they are (DECISIONS 21), never none. */
+const OFFER_FALLBACK_RULES: readonly Rule[] = [
+  ['dining', /便当|bento|餐|饭|寿司|拉面|onigil/i],
+  ['swap-meet', /换装|換裝|交换|交換|swap|exchange/i],
+  ['green-volunteer', /粉碎|shred|回收|recycl/i],
+];
 /** An offer's photo category: transit and birthday perks by what they are, then by brand and title. */
 export function offerPhotoCategory(offer: OfferFields): PhotoCategoryId | undefined {
-  return override('offer', offer.id) ?? firstMatch(OFFER_RULES, `${offer.brand ?? ''} | ${offer.title}`);
+  const text = `${offer.brand ?? ''} | ${offer.title}`;
+  return override('offer', offer.id) ?? firstMatch(OFFER_RULES, text) ?? firstMatch(OFFER_FALLBACK_RULES, text)
+    ?? (offer.kind === 'purchase' ? 'shopping' : 'community-festival');
 }
 
 const OPENING_RULES: readonly Rule[] = [
@@ -347,6 +359,32 @@ const BULLETIN_RULES: readonly Rule[] = [
   ['museum', /sfmoma|博物馆|美术馆|museum/i],
   ['guide-safety', /停电|预警|安全|诈骗|空气|火/],
 ];
+
+/**
+ * UI9-IMG-A1b: a planner place's photo category, for a place with no picture of its own and no 3D postcard (its row then
+ * shows a ③ 示意图 of the kind of place, never an information card): a library or museum by its name, else a restaurant,
+ * café or shop by its planner category. A landmark gets none (city-sights shows real landmarks: never on a specific venue).
+ */
+export function placePhotoCategory(place: { id: string; title?: string; category?: string }): PhotoCategoryId | undefined {
+  const text = `${place.id} ${place.title ?? ''}`.toLowerCase();
+  if (/library|图书馆|圖書館/.test(text)) return 'library';
+  if (/museum|moma|sjma|omca|exploratorium|博物馆|博物館|美术馆|美術館/.test(text)) return 'museum';
+  if (place.category === 'restaurant') return 'dining';
+  if (place.category === 'cafe') return 'cafe-tea';
+  if (place.category === 'shop' || /ferry-building/.test(text)) return 'shopping';
+  return undefined;
+}
+
+/** The neighbourhood board's categories (community-copy.ts CATEGORY_NAMES) by the kind of picture that fits them. */
+const POST_CATEGORIES: Readonly<Record<string, PhotoCategoryId>> = {
+  租屋: 'guide-housing', 搬家: 'guide-housing', 维修: 'guide-housing', 清洁: 'guide-housing', 闲置: 'swap-meet', 接送: 'transit', 翻译: 'guide-documents',
+};
+
+/**
+ * A neighbourhood post's photo category (UI9-IMG-A1b, captain 10-22 02:50): a saved post carries no photo of its own, so
+ * its 我的收藏 row shows a ③ 示意图 of its kind (a home for 租屋, a ride for 接送), else the newcomer basics, never an empty frame.
+ */
+export const postPhotoCategory = (category?: string): PhotoCategoryId => POST_CATEGORIES[category ?? ''] ?? 'guide-newcomer';
 
 /** A regional bulletin's photo category (most are route changes or library services). */
 export function bulletinPhotoCategory(bulletin: BulletinFields): PhotoCategoryId | undefined {

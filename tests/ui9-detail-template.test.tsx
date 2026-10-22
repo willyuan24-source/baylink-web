@@ -88,7 +88,10 @@ test('first screen order: back link, hero (+ credit under a photo), chips, H1, s
     assert.ok(main.firstElementChild!.matches('figure.detail-hero'), key);
     const hero = main.firstElementChild!;
     const photo = hero.getAttribute('data-tier') !== 'type';
-    assert.equal(!!hero.querySelector('figcaption .detail-credit .detail-credit__label'), photo, `${key}: a credit line under a photo only`);
+    assert.equal(!!hero.querySelector('figcaption .detail-credit'), photo, `${key}: a credit line under a photo only`);
+    // G13 / DECISIONS 23 (captain 10-22 02:50): the badge on the picture carries the tier words; the credit line does not repeat them.
+    const badge = hero.querySelector('[data-provenance]')?.textContent;
+    if (photo && badge) assert.ok(!hero.querySelector('figcaption')!.textContent!.startsWith(badge), `${key}: the credit line does not repeat ${badge}`);
     const chips = doc.querySelector('.detail-chips')!;
     assert.ok(chips.querySelectorAll('.ui-status:not(.detail-cat)').length <= 2, `${key}: at most two status chips`);
     if (!key.startsWith('opening:')) assert.ok(chips.firstElementChild!.matches('.detail-cat[data-cat]'), `${key}: the category chip first`);

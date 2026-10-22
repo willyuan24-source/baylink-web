@@ -31,7 +31,20 @@ const { getGuideBySlug, guides } = await import('../src/data/guides');
 const { keepInlineImage } = await import('../src/features/guides/guide-data');
 // The deals board is a chunk the article loads with its record (WEB-DATA-SPLIT); the page waits for it, so do the tests.
 await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
-const { getGuideMedia } = await import('../src/data/guide-media');
+const { getGuideMedia, GUIDE_IMAGES, AI_COVER_APPROVALS } = await import('../src/data/guide-media');
+/**
+ * ③④ pool pictures (the owner's category photos and approved AI covers, 2026-10-21): cover.ts lets one come back on a page
+ * (ADJACENT_CARDS apart, or the farthest when a card has no other candidate; never an information card).
+ */
+const poolSrcs = new Set([...AI_COVER_APPROVALS.map(approval => GUIDE_IMAGES[approval.key].src),
+  ...Object.values(GUIDE_IMAGES).filter(image => typeof image.rights === 'object' && image.rights?.basis === 'stock').map(image => image.src)]);
+const articleImages = (slug: string) => {
+  const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} {...guideProps} /></StaticRouter>);
+  // "Read next" renders three rows for a phone and four covers for a desktop; CSS shows one of the two (UI9-GUIDES).
+  const page = new JSDOM(html).window.document;
+  page.querySelectorAll('.gd-related__rows').forEach(rows => rows.remove());
+  return page;
+};
 
 afterEach(() => { cleanup(); document.body.style.overflow = ''; });
 
@@ -189,10 +202,13 @@ test('complete guide places kept inline media after the selected section and pre
   assert.ok(view.getByRole('heading', { name: '官方来源' }));
   assert.equal(view.getByRole('link', { name: '返回湾区指南' }).getAttribute('href'), '/guides?q=海边');
   assert.equal(view.getAllByRole('tabpanel').length, 1, 'the real article route is interactive');
-  // Credits for every picture shown on the page are listed once, under the sources.
+  // Credits for every picture shown on the page are listed once, under the sources: the hero, the inline pictures and the
+  // 接下来 cards' pictures (UI9-IMG-A1b review, DECISIONS 23).
   const credits = view.container.querySelector('.gd-credits');
   assert.ok(credits);
-  assert.equal(credits.querySelectorAll('li').length, new Set([getGuideMedia(guide).cover.src, ...kept.map(item => item.image.src)]).size);
+  const related = [...view.container.querySelectorAll('.gd-related__grid img')].map(img => img.getAttribute('src'));
+  assert.ok(related.length > 0);
+  assert.equal(credits.querySelectorAll('li').length, new Set([getGuideMedia(guide).cover.src, ...kept.map(item => item.image.src), ...related]).size);
 });
 
 test('off-topic inline pictures are hidden: the stock laptop photo and shared AI theme illustrations', () => {
@@ -256,12 +272,10 @@ test('legacy poster remains expandable and full guide server rendering retains e
 test('no article shows the same picture twice: a related guide, an inline figure or the legacy poster never repeats a picture already on the page', () => {
   const repeats: string[] = [];
   for (const guide of guides) {
-    const html = renderToStaticMarkup(<StaticRouter location={`/guides/${guide.slug}`}><GuideDetail slug={guide.slug} {...guideProps} /></StaticRouter>);
     // Posters letterbox on a blurred copy of themselves (one picture, two <img>); count the picture once.
-    // "Read next" renders three rows for a phone and four covers for a desktop; CSS shows one of the two (UI9-GUIDES).
-    const page = new JSDOM(html).window.document;
-    page.querySelectorAll('.gd-related__rows').forEach(rows => rows.remove());
-    const images = Array.from(page.querySelectorAll('img:not(.ui-cover__backdrop)'));
+    const page = articleImages(guide.slug);
+    // A ③④ pool picture may come back (cover.ts); the todo test below tracks where it does.
+    const images = Array.from(page.querySelectorAll('img:not(.ui-cover__backdrop)')).filter(image => !poolSrcs.has(image.getAttribute('src') ?? ''));
     // The deals board (FreebieBoard, WEB-EVENTS) reuses an offer picture across offers and shows the lead offer's photo,
     // which the deals guides keep as their cover (monthly-deals-ui); every other picture appears once on the page.
     const inBoard = (image: Element) => !!image.closest('[id^="freebie-board-"]');
@@ -275,4 +289,42 @@ test('no article shows the same picture twice: a related guide, an inline figure
     }
   }
   assert.deepEqual(repeats, []);
+});
+
+// UI9-IMG-A1b: guide cards now show their ③ category photos (DECISIONS 22: ③ before ④; the four 'everyday' AI repeats are
+// gone), and the build gives each 接下来 card a pool picture the page does not show yet (generate-guide-data.ts
+// distinctRelated). These pages still repeat one, because their category's pool is smaller than the page's same-category
+// cards (guide-school 3, guide-housing 3, shopping 7 with the deals board's offers): B2 adds pictures (owner approval), then
+// this list shrinks to []. Pinned, so any other ③④ repeat fails here.
+const KNOWN_POOL_REPEATS = [
+  'bay-area-city-utilities-internet-phone-directory: /guides/category-stock/stock-guide-housing-4.webp',
+  'bay-area-first-7-30-days-action-plan-october-2026: /guides/category-stock/stock-guide-housing-4.webp',
+  'bay-area-first-rental-process: /guides/category-stock/stock-guide-housing-2.webp',
+  'bay-area-rental-scam-guide: /guides/category-stock/stock-guide-housing-1.webp',
+  'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'local-service-safety-guide: /guides/category-stock/stock-guide-housing-4.webp',
+  'move-in-move-out-checklist: /guides/category-stock/stock-guide-housing-4.webp',
+  'north-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'north-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
+  'peninsula-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'peninsula-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
+  'rental-lease-checklist-before-signing: /guides/category-stock/stock-guide-housing-2.webp',
+  'sf-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'sf-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'south-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'south-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
+];
+test('no article repeats a ③④ pool picture either, beyond the known repeats of categories with too few pictures', () => {
+  const repeats: string[] = [];
+  for (const guide of guides) {
+    const seen = new Set<string>();
+    for (const image of articleImages(guide.slug).querySelectorAll('img:not(.ui-cover__backdrop)')) {
+      const src = image.getAttribute('src') ?? '';
+      if (!poolSrcs.has(src)) continue;
+      if (seen.has(src)) repeats.push(`${guide.slug}: ${src}`);
+      seen.add(src);
+    }
+  }
+  assert.deepEqual([...repeats].sort(), [...KNOWN_POOL_REPEATS].sort());
 });

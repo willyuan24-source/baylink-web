@@ -4,6 +4,7 @@ import { Disclosure } from '../../components/ui/Disclosure';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { GuideImage } from '../../data/guide-media';
 import { getImageProvenance } from '../../lib/image-provenance';
+import { creditAfterLabel } from '../../components/ui/CoverImage';
 
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
@@ -30,14 +31,15 @@ export function GuidePageImageCredits({ images }: { images: readonly GuideImage[
 }
 
 /**
- * G13: the one 13 px credit line under a guide's lead photo — kind (with the year when the picture has one) · credit · licence.
+ * G13: the one 13 px credit line under a guide's title picture — credit · licence. The kind (示意图, 照片 · 年份) is the
+ * picture's own badge (`label`, DECISIONS 23: one label per picture; captain 10-22 02:50), so the line does not repeat it.
  * Never on a 3D postcard (owner decision 1: those keep their own label, no credit line): the caller leaves it out for scene3d.
  */
-export function GuideCoverCredit({ image }: { image: GuideImage }) {
-  const { t, english } = useUiCopy();
+export function GuideCoverCredit({ image, label }: { image: GuideImage; label: string }) {
+  const { t } = useUiCopy();
+  const credit = creditAfterLabel(label, image.credit);
   return <figcaption className="gd-credit">
-    <span>{getImageProvenance(image, english)}</span>
-    <span>{isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : image.credit}</span>
+    <span>{isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : credit}</span>
     {isWebLink(image.licenseUrl) && <span><a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'License')}</a></span>}
   </figcaption>;
 }

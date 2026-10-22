@@ -74,8 +74,13 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // English packs leave captions out (scripts/events-index-images.ts captionSignal), so /events measured 271.9 / 316.6 / 442.9
 // and /calendar 276.0 / 320.7 / 447.0 KiB (below the 4bf714a45 base with CNT-MEDIA-5's 43 images); both rows go to measured
 // + 2%: /events 283.2 / 328.1 / 468.6 → 277.4 / 322.9 / 451.8, /calendar 287.0 / 331.8 / 472.3 → 281.6 / 327.1 / 456.0.
+// UI9-IMG-A1b, owner-approved budget raise (DECISIONS 29, 2026-10-21 21:24 PT, the owner's words in chat: 「沒問題，首頁預算提高到
+// 210 KiB ，該優化優化，該不省的地方不要省，先要UI，介面高級好看」): every card on the home page shows a picture, and its
+// candidates (own → venue → ③ stock) ride in the home catalog, so the home ceiling and hard cap go to 210 KiB (zh-Hans) and the
+// other two locales by the same 16.8 KiB (239.9 → 256.7, 317.0 → 333.8; the English hard cap stays 340). Only the home row.
+const HOME_HARD_CAP_KIB = 210;
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 193.2, 'zh-Hant': 239.9, en: 317.0 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 210.0, 'zh-Hant': 256.7, en: 333.8 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 281.6, 'zh-Hant': 327.1, en: 456.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 218.4, 'zh-Hant': 264.0, en: 349.8 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
@@ -99,7 +104,7 @@ const bytes=await Promise.all([...files].map(async file=>({file,gzip:gzipSync(aw
 const total=bytes.reduce((sum,item)=>sum+item.gzip,0);
 const shell=bytes.filter(item=>initialFiles.includes(item.file)).reduce((sum,item)=>sum+item.gzip,0);
 // A route graph budget includes the real homepage, not just a tiny loader that imports a large bundle.
-if(total>200*1024) throw new Error(`Homepage JS exceeds 200 KiB gzip: ${(total/1024).toFixed(1)} KiB`);
+if(total>HOME_HARD_CAP_KIB*1024) throw new Error(`Homepage JS exceeds ${HOME_HARD_CAP_KIB} KiB gzip: ${(total/1024).toFixed(1)} KiB`);
 for(const scope of ['ui','home']) visit(`src/data/generated/english-scopes/${scope}.json`);
 const englishTotal=(await Promise.all([...files].map(async file=>gzipSync(await readFile(`dist/${file}`)).length))).reduce((sum,value)=>sum+value,0);
 if(englishTotal>340*1024) throw new Error(`English homepage including dictionaries exceeds 340 KiB gzip: ${(englishTotal/1024).toFixed(1)} KiB`);

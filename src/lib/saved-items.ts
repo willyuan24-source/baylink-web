@@ -5,7 +5,8 @@ import { currentFreebies } from '../data/october-offers';
 import { currentOpenings } from '../data/local-discoveries';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { SeptemberOpening } from '../data/september-openings';
-import type { CoverItem } from './cover';
+import { isAiIllustration, type CoverAsset, type CoverItem } from './cover';
+import { coverCandidates, postStockKeys } from './cover-candidates';
 import { brandCase, type Copy } from './event-facts';
 import type { SavedEntry } from './saves';
 
@@ -27,7 +28,7 @@ export type SavedItemView = {
   meta: string[];
   /** Pieces of the meta line written by a member (a listing's city and budget): shown as written, never translated. */
   userMeta?: string[];
-  /** For `resolveCovers`; absent for posts (they get a TypeCover). */
+  /** For `resolveCovers`; a post (no photo of its own in the saved snapshot) takes its board category's ③ pictures. */
   cover?: CoverItem;
   event?: PlannerEvent;
   place?: PlannerPlace;
@@ -51,6 +52,16 @@ const offersById = new Map(currentFreebies.map(offer => [offer.id, offer]));
 const openingsById = new Map(currentOpenings.map(shop => [shop.id, shop]));
 const GUIDE_COVER = 'guide-cover:';
 
+/**
+ * A saved guide's cover: its own, then its category's stock pictures (an own AI illustration after them, ④; UI9-IMG-A1b,
+ * DECISIONS 21/22), so a saved row shows a picture, never an information card.
+ */
+function guideSavedCover(guide: Guide): CoverItem {
+  const own = `${GUIDE_COVER}${guide.slug}`;
+  const stock = coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category });
+  return { kind: 'guide', id: guide.slug, imageKey: own, imageKeys: isAiIllustration(getGuideMedia(guide).cover as CoverAsset) ? [...stock, own] : [own, ...stock] };
+}
+
 /** Resolve one saved entry against today's catalogs. */
 export function savedItemView(entry: SavedEntry): SavedItemView {
   const kindLabel = SAVED_KIND_LABELS[entry.kind];
@@ -59,7 +70,7 @@ export function savedItemView(entry: SavedEntry): SavedItemView {
   switch (entry.kind) {
     case 'event': {
       const event = eventFor(entry.id);
-      return event ? { ...base, event, title: event.title, path: `/events/${encodeURIComponent(event.id)}`, meta: parts(event.city, event.dateLabel), cover: { kind: 'event', id: event.id, imageKey: event.imageKey } } : base;
+      return event ? { ...base, event, title: event.title, path: `/events/${encodeURIComponent(event.id)}`, meta: parts(event.city, event.dateLabel), cover: { kind: 'event', id: event.id, imageKey: event.imageKey, imageKeys: coverCandidates('event', event) } } : base;
     }
     case 'place': {
       const place = placeFor(entry.id);
@@ -69,21 +80,22 @@ export function savedItemView(entry: SavedEntry): SavedItemView {
     }
     case 'guide': {
       const guide = getGuideBySlug(entry.id);
-      return guide ? { ...base, guide, title: guide.title, path: `/guides/${encodeURIComponent(guide.slug)}`, meta: parts(guide.categoryLabel), cover: { kind: 'guide', id: guide.slug, imageKey: `${GUIDE_COVER}${guide.slug}` } } : base;
+      return guide ? { ...base, guide, title: guide.title, path: `/guides/${encodeURIComponent(guide.slug)}`, meta: parts(guide.categoryLabel), cover: guideSavedCover(guide) } : base;
     }
     case 'offer': {
       // The deal is the title; the brand (in its display casing, "SFMTA · San Francisco") leads the meta line.
       const offer = offersById.get(entry.id);
-      return offer ? { ...base, offer, title: offer.title, path: `/offers/${encodeURIComponent(offer.id)}`, meta: parts(brandCase(offer.brand), offer.dateLabel), cover: { kind: 'offer', id: offer.id, imageKey: offer.imageKey } } : base;
+      return offer ? { ...base, offer, title: offer.title, path: `/offers/${encodeURIComponent(offer.id)}`, meta: parts(brandCase(offer.brand), offer.dateLabel), cover: { kind: 'offer', id: offer.id, imageKey: offer.imageKey, imageKeys: coverCandidates('offer', offer) } } : base;
     }
     case 'opening': {
       const opening = openingsById.get(entry.id);
-      return opening ? { ...base, opening, title: opening.name, path: `/openings/${encodeURIComponent(opening.id)}`, meta: parts(opening.city, opening.dateLabel), cover: { kind: 'opening', id: opening.id, imageKey: opening.imageKey } } : base;
+      return opening ? { ...base, opening, title: opening.name, path: `/openings/${encodeURIComponent(opening.id)}`, meta: parts(opening.city, opening.dateLabel), cover: { kind: 'opening', id: opening.id, imageKey: opening.imageKey, imageKeys: coverCandidates('opening', opening) } } : base;
     }
     case 'post': {
       const post = entry.post;
       // The category is the board's own label (translated like on the board); city and budget are the member's words.
-      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category), userMeta: parts(post?.city, post?.budget) };
+      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category), userMeta: parts(post?.city, post?.budget),
+        cover: { kind: 'bulletin', id: `post-${entry.id}`, imageKeys: postStockKeys({ id: entry.id, category: post?.category }) } };
     }
   }
 }

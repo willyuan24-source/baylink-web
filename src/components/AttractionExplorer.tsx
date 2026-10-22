@@ -3,10 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Check, Clock3, Compass, Copy, MapPin, Plus, Rotate3d, Search, Share2, Sparkles, Ticket, X } from 'lucide-react';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, type Attraction } from '../data/attractions';
 import { getGuideBySlug } from '../data/guides';
-import { getGuideMedia, type GuideImage } from '../data/guide-media';
+import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../data/guide-media';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../data/scene3d-postcards';
 import { attractionMapUrl, filterAttractions, loadOuting, MAX_OUTING_STOPS, outingShareUrl, outingText, parseSharedOuting, saveOuting } from '../lib/attraction-plan';
-import { getCover } from '../lib/cover';
+import { createCoverPage, getCover } from '../lib/cover';
+import { attractionStockKeys } from '../lib/cover-candidates';
 import { getBayAreaToday } from '../lib/monthly';
 import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
@@ -17,7 +18,6 @@ import { ChipRow, FilterChip } from './ui/Chip';
 import { Cover } from './ui/Cover';
 import { EmptyState } from './ui/States';
 import { PageContainer, PageHeader } from './ui/HeroCard';
-import { TypeCover } from './ui/TypeCover';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 /**
@@ -125,19 +125,23 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   const planDisclosure = <details className="xp-plan" open={plan.length > 0 || shared}><summary>{'我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>;
   const planOnTop = plan.length > 0 || shared;
 
+  // One page for the ③ pictures of places without their own (a stock picture is not repeated within ADJACENT_CARDS cards).
+  const stockPage = createCoverPage();
   const card = (item: Attraction): ReactNode => {
     const guide = getGuideBySlug(item.slug)!;
     const image = getGuideMedia(guide).cover;
-    const cover = getCover({ kind: 'place', id: item.id, imageKey: 'guide', postcardKey: SCENE3D_POSTCARD_FOR[item.id] }, {
+    const own = getCover({ kind: 'place', id: item.id, imageKey: 'guide', postcardKey: SCENE3D_POSTCARD_FOR[item.id] }, {
       images: key => key === 'guide' ? image : SCENE3D_POSTCARD_IMAGES[key], today,
     });
+    // UI9-IMAGES DECISIONS 21/22: a place with no usable picture of its own and no 3D postcard shows a ③ 示意图 of its
+    // kind (never an information card); a postcard keeps its place exactly (DECISIONS 1).
+    const cover = own.tier !== 'type' ? own : getCover({ kind: 'place', id: item.id, imageKeys: attractionStockKeys(guide) }, { images: GUIDE_IMAGES, today, page: stockPage });
     const added = plan.includes(item.id);
     const worldEntry = opusBayAttractionEntry(item.id, locale);
     const regionLabel = ATTRACTION_REGIONS.find(entry => entry.id === item.region)!.label;
     return <article key={item.id} className="attraction-card">
       <div className="xp-card__media">
-        <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 380px"
-          fallback={<TypeCover tone="outdoors" family="guide" label={translateText(regionLabel, locale)} title={translateText(item.title, locale)} seed={item.id} ratio="3:2" ratioLock ariaHidden />} />
+        <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 380px" />
         <div className="xp-card__caption"><h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p><MapPin size={16} aria-hidden="true" /><span>{english && translateText(regionLabel, locale) === item.city ? item.city : `${item.city} · ${regionLabel}`}</span></p></div>
       </div>
       <div className="xp-card__body">
@@ -165,7 +169,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         const asset: GuideImage = english ? { ...postcard, alt: postcard.en.alt, caption: postcard.en.caption, credit: postcard.en.credit } : postcard;
         const cover = getCover({ kind: 'place', id, postcardKey: key }, { images: { [key]: asset }, today });
         return <li key={id}><Link className="xp-3d__item" to={fromExplore(entry.href)} reloadDocument>
-          <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) 70vw, 220px" fallback={null} />
+          <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) 70vw, 220px" />
           <span className="xp-3d__name">{english ? postcard.shows.en : translateText(postcard.shows.zh, locale)}</span>
           <span className="xp-3d__go">{translateText(entry.label, locale)}</span>
         </Link></li>;

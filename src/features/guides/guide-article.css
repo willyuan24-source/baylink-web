@@ -40,10 +40,10 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 .gd-about p { margin:0 0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); }
 .gd-about a { color:var(--color-brand); }
 
-/* Lead: the carousel (pilot guides) or the cover photo with its credit line, then 30 秒看懂 or the summary. */
+/* Lead: the title picture with its credit line (and under it a pilot guide's carousel), then 30 秒看懂 or the summary. */
 .gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-5); }
 .gd-lead__side { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
-.gd-lead__visual { min-width:0; }
+.gd-lead__visual { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
 .gd-lead .bl-freebie-jump { align-self:flex-start; }
 .gd-cover-figure { margin:0; }
 /* G13: one 13 px credit line under a guide photo — kind · credit · licence (never on a 3D postcard). */
@@ -215,7 +215,7 @@ html[data-reading=extra-large]:not([data-simple]) .gd-carousel .gd-slide { min-h
 html[data-reading=extra-large]:not([data-simple]) .gd-carousel__all { display:flex; }
 /* 简洁显示 (and 家人版): no carousel; its facts are in 30 秒看懂, which comes first (UI9-GUIDES arrangement). */
 html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:var(--sp-3); margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
-html[data-simple] .gd-page[data-pilot] .gd-lead__visual { display:none; }
+html[data-simple] .gd-page[data-pilot] .gd-lead__visual>.gd-carousel { display:none; }
 
 /* 查: "30 秒看懂". Labels at --fs-meta, values at reading size; weight 600 only on a number or an action in a value. */
 .gd-keyfacts { padding:var(--inset-panel); border-radius:var(--r-lg); background:var(--color-surface-2); }
@@ -576,7 +576,7 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   .gd-lead { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); column-gap:var(--grid-gutter); row-gap:var(--sp-4); align-items:stretch; margin-top:var(--sp-5); }
   .gd-lead__visual { grid-column:1 / span 4; }
   .gd-lead__side { grid-column:5 / -1; }
-  .gd-lead:not([data-visual]) .gd-lead__side,html[data-simple] .gd-page[data-pilot] .gd-lead__side { grid-column:1 / -1; }
+  .gd-lead:not([data-visual]) .gd-lead__side { grid-column:1 / -1; }
   .gd-lead__side>.gd-keyfacts { flex:1 1 auto; }
   .gd-carousel .ui-carousel__track { margin:0; padding:0; }
   .gd-carousel .ui-carousel__slide { flex-basis:100%; }

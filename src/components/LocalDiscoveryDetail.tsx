@@ -101,7 +101,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   // The hero's photo is never repeated in the page's rails (VISUAL-10).
   const coverPage = createCoverPage();
   if (cover.tier !== 'type') coverPage.claims.set(cover.image.src, `${item.kind}:${share.id}`);
-  const venuePhoto = placePhoto(record, cover, today);
+  const venuePhoto = placePhoto(record, today);
   if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
   const title = item.kind === 'offer' ? item.offer.title : share.title;
   // H57: the age chip already says 21+; the H1 drops the same prefix ("21+ · Napa Harvest After Dark"). The prefix comes off

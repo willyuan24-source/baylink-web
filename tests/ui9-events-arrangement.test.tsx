@@ -20,6 +20,7 @@ const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const model = await import('../src/features/events/events-model');
 const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES, leadImageKey } = await import('../src/features/events/weekend-lead');
+const { RELEASED_CLOSE_UPS } = await import('../src/lib/close-up-faces');
 const { dayWhenLine } = await import('../src/features/events/event-lines');
 const { ImageCredits } = await import('../src/features/events/ImageCredits');
 const { FeedGrid } = await import('../src/components/ui/FeedGrid');
@@ -30,6 +31,7 @@ const { READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } = await import('../src/lib/readin
 const { TrustLine, EventFeedCard } = await import('../src/features/events/EventCards');
 const { isPressSource } = await import('../src/features/events/source-kind');
 const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
@@ -54,10 +56,18 @@ test('the index carries home\'s lead per day, and the /events lead and pick rows
   assert.notEqual(lead!.event.id, home, 'never home\'s lead');
   assert.ok(!rows.some(item => item.event.id === home), 'home\'s lead is no pick row');
   assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead!.event.imageKey), 'no close-up face leads');
-  // A pick whose photo shows close-up faces never leads, even when it is first.
-  const face = { ...picks[0], event: { ...picks[0].event, id: 'x-face', imageKey: [...CLOSE_UP_FACE_IMAGES][0] } };
-  assert.equal(canLead(face.event, today), false);
-  assert.notEqual(arrangePicks([face, ...picks.slice(1)], today, 'none').lead?.event.id, 'x-face');
+  // A pick whose photo shows close-up faces never leads, even when it is first. None is left unreleased since 2026-10-21,
+  // so flag the lead's own photo as one the owner has not released, for this check only (the pages read the shared list).
+  const face = { ...lead!, event: { ...lead!.event, id: 'x-face' } };
+  assert.equal(canLead(face.event, today), true, 'as it ships, the photo leads');
+  assert.equal(canLead(face.event, today, new Set([face.event.imageKey!])), false, 'flagged, it cannot lead');
+  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  flagged.add(face.event.imageKey!);
+  try {
+    assert.equal(canLead(face.event, today), false);
+    assert.notEqual(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'the next pick that can lead leads');
+  } finally { flagged.delete(face.event.imageKey!); }
+  assert.equal(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'released, it leads');
   // With no entry for the day, the first weekend pick is home's lead.
   assert.equal(homeLeadFor('2099-01-01', picks, {}), picks[0].event.id);
 });
@@ -234,7 +244,7 @@ test('a press report never says 官网核对: the index flags it from the source
   } else assert.match(facts, /每条附官方链接/);
 });
 
-test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook and the coded-cover note', () => {
+test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook', () => {
   const view = page('/events');
   const end = view.container.querySelector('nav.ev-end')!;
   const links = [...end.querySelectorAll('a.ev-end__item')].map(link => link.textContent);
@@ -242,21 +252,17 @@ test('page end: alerts in the shared Disclosure, one quiet list of links, 本页
   const credits = view.container.querySelector('#page-credits')!;
   assert.ok(credits.hasAttribute('data-credits-at-end'));
   assert.equal(Number(credits.getAttribute('data-count')), credits.querySelectorAll('li').length);
-  assert.equal(view.container.querySelectorAll('.ui-cover-credit').length, 0, 'the feed does not repeat the note');
-  if (view.container.querySelector('.ev-feed [data-cover="type"]')) assert.match(credits.textContent!, /没有照片的条目用 BAYLINK 信息卡/);
+  assert.equal(view.container.querySelectorAll('.ui-cover-credit, [data-cover="type"]').length, 0, 'every card is a picture (UI9-IMAGES DECISIONS 21)');
+  assert.doesNotMatch(credits.textContent!, /BAYLINK 信息卡/);
   const alerts = view.container.querySelector('.ev-alerts');
   if (alerts) assert.ok(alerts.querySelector('details.ui-disclosure'));
 });
 
-test('ImageCredits and FeedGrid: the note is said once, and FeedGrid can leave its own line out', () => {
+test('ImageCredits credits each picture once and says nothing for a frame without one; FeedGrid prints no note', () => {
   const credits = render(<ImageCredits covers={[{ tier: 'type' } as never]} />);
-  assert.equal(credits.container.querySelector('#page-credits')!.getAttribute('data-count'), '0');
-  assert.match(credits.container.textContent!, /没有照片的条目用 BAYLINK 信息卡/);
+  assert.equal(credits.container.querySelector('#page-credits'), null);
   cleanup();
-  const grid = render(<FeedGrid label="x" coverCredit={false}><li>a</li></FeedGrid>);
-  assert.equal(grid.container.querySelector('.ui-cover-credit'), null);
-  cleanup();
-  assert.ok(render(<FeedGrid label="x"><li>a</li></FeedGrid>).container.querySelector('.ui-cover-credit'), 'the default stays');
+  assert.equal(render(<FeedGrid label="x"><li>a</li></FeedGrid>).container.querySelector('.ui-cover-credit'), null);
 });
 
 test('DayChips: a radio group on the chip look, none checked gives the first the tab stop, arrows select, a click never unchecks; `part` wraps the later radios in the same group', () => {
@@ -336,7 +342,9 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
 });
 
 test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferry Plaza vendor led 10/20, 10/22, 10/27, 10/29)', () => {
-  assert.ok(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'));
+  // The owner released the Ferry Plaza photo with the other five flagged close-ups in chat on 2026-10-21 (「圖片全部批准」).
+  assert.ok(RELEASED_CLOSE_UPS.has('official-ferry-plaza-farmers-market-2026-autumn'));
+  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'), false);
   const byId = new Map(model.INDEX_EVENTS.map(event => [event.id, event]));
   let faceDays = 0;
   for (let offset = 0; offset < 7; offset++) {
@@ -353,9 +361,34 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
     if (lead && CLOSE_UP_FACE_IMAGES.has(lead.imageKey)) assert.equal(card!.querySelector('img'), null, `${day}: ${lead.id} leads with its face photo`);
     cleanup();
   }
-  // Ferry Plaza runs Tuesday, Thursday and Saturday through the autumn, so the week from the gate day holds face days.
-  if (today <= '2026-10-29') assert.ok(faceDays > 0, 'the week tested has a day with a face photo on it');
-  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), undefined, 'a face photo leads as the type cover');
+  // Released close-ups count as no face days: the list of unreleased ones is empty since 2026-10-21.
+  assert.equal(faceDays, 0, 'no unreleased close-up runs in the week tested');
+  // The rule still binds the next close-up flagged: flag the first day's lead photo as one the owner has not released, for
+  // this check only (the page reads the shared list), and that photo leaves the day's lead.
+  const leadOf = (day: string) => {
+    const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
+    const card = view.container.querySelector('.ev-calendar__lead');
+    const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
+    const result = { event: href ? byId.get(href.replace(/^\/events\/|\?.*$/g, '')) : undefined, html: card?.innerHTML ?? '' };
+    cleanup();
+    return result;
+  };
+  const flagDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offset)).find(day => {
+    const { event } = leadOf(day);
+    return !!event?.imageKey && canLead(event, today);
+  });
+  assert.ok(flagDay, 'a day in the week leads with a photo');
+  const before = leadOf(flagDay);
+  const key = before.event!.imageKey!;
+  // The photo's file stem: the lead's <img> is one of its sized files.
+  const stem = (GUIDE_IMAGES[key]?.src ?? '').replace(/\.webp$/, '');
+  assert.ok(stem && before.html.includes(stem), `${flagDay}: ${before.event!.id} leads with ${key}`);
+  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  flagged.add(key);
+  try {
+    assert.equal(leadOf(flagDay).html.includes(stem), false, `${flagDay}: flagged, ${key} never leads the day`);
+  } finally { flagged.delete(key); }
+  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), 'official-ferry-plaza-farmers-market-2026-autumn', 'a released photo leads as itself');
   assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
 });
 

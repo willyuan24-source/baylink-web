@@ -35,12 +35,9 @@ test('one stylesheet draws the cover ♡ circle: saves.css', () => {
   assert.ok(order.indexOf(slot) > order.indexOf('.saves-control[data-compact]'), 'the reset comes after the compact margin');
 });
 
-test('a type cover keeps its top-right corner clear for the ♡ on FeedCard and HeroCard covers (UI9-C)', () => {
-  // The top line of every type cover (the eyebrow: venue, brand or topic) stops 48px short of the right edge, so the 44px ♡
-  // (FeedCard at 4px, HeroCard at 8px) never sits on text; the facts anchor to the bottom.
-  const eyebrow = new Map<string, string>();
-  postcss.parse(readFileSync('src/components/ui/covers.css', 'utf8')).walkRules('.tc-eyebrow', rule => rule.walkDecls(declaration => { eyebrow.set(declaration.prop, declaration.value); }));
-  assert.equal(eyebrow.get('padding-inline-end'), 'var(--sp-7)');
-  assert.match(readFileSync('src/tokens.css', 'utf8'), /--sp-7:48px;/);
+test('the ♡ sits in a cover’s top-right corner, clear of its one bottom-left badge (UI9-IMAGES DECISIONS 23)', () => {
+  // A picture carries only the ♡ (top-right, the card's) and its badge (bottom-left): the two never meet.
+  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-provenance\[data-chip\] \{ top:auto; bottom:var\(--sp-2\); left:var\(--sp-2\);/);
   assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-hero-card__save \{ position:absolute; top:8px; right:8px;/);
+  assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-feed-card__save \{ position:absolute; top:var\(--sp-1\); right:var\(--sp-1\);/);
 });

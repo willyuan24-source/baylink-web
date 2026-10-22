@@ -4,6 +4,13 @@
 export const IMAGE_BUDGETS = { medium: 90_000, large: 150_000 };
 /** Home first viewport at DPR 3: the images a 390 px phone requests before any scroll. */
 export const HOME_FIRST_VIEW_BUDGET = 450_000;
+/**
+ * The home's eight entry-tile photos (UI9-IMAGES DECISIONS 27): lazy 480 w files outside the first-view budget, so each is at
+ * most 15 KB, or the eight together at most 120 KB.
+ */
+export const HOME_TILE_BUDGET = { each: 15_000, total: 120_000 };
+export const HOME_TILES_PATH = 'src/data/home-tile-photos.json';
+export const HOME_TILE_RECORDS_PATH = 'src/data/home-tile-stock-photos.json';
 
 export const MANIFEST_PATH = 'src/data/generated/image-manifest.json';
 export const LADDER_PATH = 'src/data/generated/image-ladder.json';

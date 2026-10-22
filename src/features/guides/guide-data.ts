@@ -1,5 +1,9 @@
 import { guides, GUIDE_CATEGORY_TABS, type Guide } from '../../data/guides';
-import { getGuideMedia, type GuideImage } from '../../data/guide-media';
+import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../../data/guide-media';
+import { getCover } from '../../lib/cover';
+import { coverCandidates } from '../../lib/cover-candidates';
+import { getLocale, translateText } from '../../i18n/locale';
+import { getBayAreaToday } from '../../lib/monthly';
 import { ATTRACTIONS } from '../../data/attractions';
 import { getGuideEditorial } from '../../data/guide-editorial';
 import { guideSlugsForTopic, guideTopicOf } from '../../data/guide-topics';
@@ -62,7 +66,33 @@ export function keepInlineImage(image: GuideImage, guide: Guide, all: readonly G
  * getGuideMedia's cover in the current language. Only public-service pictures have 繁體 / English variants (guide-media.ts
  * localizedServiceImage reads the current language), so the generator calls this once per language.
  */
-export const coverInCurrentLanguage = (guide: Guide): GuideImage => getGuideMedia(guide).cover;
+/**
+ * A guide's listing cover in the current language (UI9-IMG-A1b, DECISIONS 21/22): its own cover when that is a ① or kept
+ * photo; else the first ③ stock picture of its photo category (coverCandidates, rotated by slug, labelled 示意图), never an
+ * information card and, ahead of ④, never its own AI illustration. `offTopic` names own covers a listing must not use.
+ */
+export function guideListingCover(guide: Guide, today: string, offTopic: ReadonlySet<string> = new Set()): GuideImage {
+  const own = getGuideMedia(guide).cover;
+  const judged = (image: GuideImage) => getCover({ kind: 'guide', id: guide.slug, imageKey: image.src }, { images: () => image, today }).tier;
+  const ownTier = offTopic.has(own.src) ? 'type' : judged(own);
+  if (ownTier !== 'type' && ownTier !== 'ai') return own;
+  return guideStockCover(guide, today) ?? own;
+}
+
+/** A guide's ③ stock pictures (its photo category's pool, rotated by slug), in the current language. */
+export function guideStockPool(guide: Guide, today: string): GuideImage[] {
+  const own = getGuideMedia(guide).cover;
+  const locale = getLocale();
+  return coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category })
+    .map(key => GUIDE_IMAGES[key]).filter((image): image is GuideImage => !!image && image.src !== own.src
+      && getCover({ kind: 'guide', id: guide.slug, imageKey: image.src }, { images: () => image, today }).tier === 'stock')
+    .map(stock => locale === 'zh-Hans' ? stock : { ...stock, alt: translateText(stock.alt, locale), caption: translateText(stock.caption, locale), credit: translateText(stock.credit, locale) });
+}
+
+/** A guide's first ③ stock picture, in the current language. */
+export const guideStockCover = (guide: Guide, today: string): GuideImage | undefined => guideStockPool(guide, today)[0];
+
+export const coverInCurrentLanguage = (guide: Guide): GuideImage => guideListingCover(guide, getBayAreaToday());
 
 /** Same pictures in 简体 drop out of the per-language covers. */
 export function mergeCovers(zhHans: GuideImage, zhHant: GuideImage, en: GuideImage): GuideCovers {

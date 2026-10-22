@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCoverPage, getCover, resolveCovers, rightsBasisOf, type CoverAsset, type CoverItem } from '../src/lib/cover';
 import * as coverModule from '../src/lib/cover';
+import { coverCandidates } from '../src/lib/cover-candidates';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -39,7 +40,7 @@ const contextPhotos = {
 const ctx = { images, today, contextPhotos };
 const event = (id: string, imageKey?: string): CoverItem => ({ kind: 'event', id, imageKey });
 
-test('the honesty ladder: official → dated photo → approved venue → 3D postcard → TypeCover', () => {
+test('the honesty ladder: official → dated photo → approved venue → 3D postcard → no picture (type)', () => {
   assert.equal(getCover(event('e1', 'poster'), ctx).tier, 'official');
   assert.equal(getCover(event('e1', 'pressKit'), ctx).tier, 'official', 'a recorded press-kit basis is official');
   assert.equal(getCover(event('e1', 'recent'), ctx).tier, 'photo');
@@ -119,7 +120,7 @@ test('labels come only from getImageProvenance, and posters are letterboxed, nev
   assert.deepEqual(getCover(event('e1', 'recent'), ctx).tier !== 'type' && getCover(event('e1', 'recent'), ctx).focal, [50, 40]);
 });
 
-test('the same image appears once per page; the second item falls back to a TypeCover', () => {
+test('the same image appears once per page; the second item with no other candidate resolves to no picture (type)', () => {
   const shared = { ...images, twin: { ...images.recent } };
   const covers = resolveCovers([event('a', 'recent'), event('b', 'twin'), event('c', 'recent')], { ...ctx, images: shared });
   assert.deepEqual(covers.map(cover => cover.tier === 'type' ? cover.reason : cover.tier), ['photo', 'duplicate', 'duplicate'], 'same file under another key is still a duplicate');
@@ -142,17 +143,24 @@ test('rights basis reads today’s registry fields', () => {
   assert.equal(rightsBasisOf(GUIDE_IMAGES['dvids-blue-angels-sffw-2024']), 'public-domain');
 });
 
-test('the live catalog: no AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
+test('the live catalog: no unapproved AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
   const live = MONTHLY_EVENTS.filter(item => item.endDate >= today);
-  const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey })), { images: GUIDE_IMAGES, today });
+  // Each event with the candidates the build writes for it (coverCandidates: ① own → ② venue → ③ category photos → ④), as
+  // the listings resolve them.
+  const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey, imageKeys: coverCandidates('event', item) })), { images: GUIDE_IMAGES, today });
   // 官方图 · 2025 往届: an official photo whose caption names the earlier edition it shows (the 2027 parade's 2025 photo).
-  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届)$/;
+  // An AI illustration covers a card only when the owner approved it (④, src/data/ai-cover-approvals.json, 2026-10-21).
+  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届|AI 示意图|示意图)$/;
   covers.forEach((cover, index) => {
-    if (cover.tier !== 'type') assert.notEqual(cover.image.kind, 'illustration', live[index].id);
+    if (cover.tier !== 'type' && cover.image.kind === 'illustration') assert.ok(cover.tier === 'ai' && cover.image.aiCoverApproved, live[index].id);
     assert.match(cover.label.zh, vocabulary, live[index].id);
   });
-  const sources = covers.flatMap(cover => cover.tier === 'type' ? [] : [cover.image.src]);
+  // ①② files once per page; a ③④ pool picture may repeat (cover.ts). Its ADJACENT_CARDS spacing is checked on the pages
+  // themselves (home-discovery, events-shell): a category's pool is sized for one screen (CATEGORIES.json), not for every
+  // live event in one list.
+  const sources = covers.flatMap(cover => cover.tier === 'type' || cover.tier === 'ai' || cover.tier === 'stock' ? [] : [cover.image.src]);
   assert.equal(new Set(sources).size, sources.length, 'one page, no repeated file');
+  assert.ok(covers.some(cover => cover.tier === 'stock'), 'the owner\'s category photos (③) cover live events');
   const fleetWeek = live.find(item => item.imageKey === 'dvids-blue-angels-sffw-2024');
   assert.ok(fleetWeek, 'the Fleet Week event is live');
   const cover = getCover({ kind: 'event', id: fleetWeek.id, imageKey: fleetWeek.imageKey }, { images: GUIDE_IMAGES, today });
@@ -160,11 +168,28 @@ test('the live catalog: no AI or theme photo on any event, offer or opening; Fle
   assert.equal(cover.label.zh, '资料图 · 2024');
   for (const offer of currentFreebies) {
     const resolved = getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today });
-    // The brand's own image, or its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a).
-    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue', `${offer.id}: ${resolved.tier}`);
+    // The brand's own image, its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a) or an owner-approved AI cover (④).
+    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue' || (resolved.tier === 'ai' && resolved.image.aiCoverApproved), `${offer.id}: ${resolved.tier}`);
   }
   for (const opening of currentOpenings) {
     const resolved = getCover({ kind: 'opening', id: opening.id, imageKey: opening.imageKey }, { images: GUIDE_IMAGES, today });
-    if (resolved.tier !== 'type') assert.notEqual(resolved.image.kind, 'illustration', opening.id);
+    if (resolved.tier !== 'type' && resolved.image.kind === 'illustration') assert.ok(resolved.tier === 'ai' && resolved.image.aiCoverApproved, opening.id);
   }
+});
+
+test('a fresh page takes a ③ picture new to it before one shown ADJACENT_CARDS away; a board deals the pool round (UI9-IMG-A1b round 2)', () => {
+  const stock = (n: number) => asset({ src: `/guides/test/stock-${n}.webp`, rights: { basis: 'stock' } as never, credit: 'Unsplash', caption: '示意图' });
+  const pool: Record<string, CoverAsset> = { s1: stock(1), s2: stock(2), s3: stock(3) };
+  const items: CoverItem[] = [
+    { kind: 'event', id: 'first', imageKeys: ['s1'] },
+    ...Array.from({ length: coverModule.ADJACENT_CARDS }, (_, i) => ({ kind: 'event' as const, id: `own-${i}`, imageKey: 'recent' })),
+    { kind: 'event', id: 'last', imageKeys: ['s1', 's2', 's3'] },
+  ];
+  const srcOf = (page: ReturnType<typeof createCoverPage>) => {
+    const covers = resolveCovers(items, { images: { ...images, ...pool }, today, page });
+    const last = covers[covers.length - 1];
+    return last.tier === 'stock' ? last.image.src : last.tier;
+  };
+  assert.equal(srcOf(createCoverPage()), pool.s1.src, 'a board: s1 is ADJACENT_CARDS cards away, so it may show again');
+  assert.equal(srcOf(createCoverPage({ fresh: true })), pool.s2.src, 'a fresh page (the home, /events): the next picture new to the page');
 });

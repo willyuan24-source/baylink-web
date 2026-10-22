@@ -56,13 +56,18 @@ const textWidth = (text: string, px: number) => [...text].reduce((sum, char) => 
 /** The chip on an 88 px thumbnail (cards.css .ui-row-card__thumb .ui-provenance) spans it with 4 px (--sp-1) each side. */
 const THUMB_TEXT = 88 - 2 * 4;
 
-test('the short English labels fit an 88 px thumbnail on one line at the 12 px chip A1 sets (not at 13 px)', () => {
-  const shorts = [TIER_LABELS.official.enShort, TIER_LABELS.officialEdition('2025').enShort, TIER_LABELS.officialProduct.enShort,
-    TIER_LABELS.venue(2023).enShort, TIER_LABELS.venue().enShort, TIER_LABELS.stock.enShort, TIER_LABELS.ai.enShort, TIER_LABELS.scene3d.enShort];
-  for (const label of shorts) assert.ok(textWidth(label, 12) <= THUMB_TEXT, `${label}: ${textWidth(label, 12).toFixed(1)} px`);
-  // Today's chip is 13 px (--fs-badge): the dated labels would overflow it, so A1 sets the thumbnail chip to 12 px (A1-FILES.md).
-  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').enShort, 13) > THUMB_TEXT);
-  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').en, 12) > THUMB_TEXT, 'the full version is the hero’s, not the thumbnail’s');
+test('on an 88 px thumbnail the ③④ chips fit one line at the site’s 13 px floor; a dated ①② chip wraps, never cut', async () => {
+  // UI9-IMG-A1b: the A0 handoff proposed a 12 px thumbnail chip, but the site's text guard (scripts/check-editorial-styles.mjs,
+  // tests/type-cover.test.tsx) keeps every text at 13 px or more. The chips that stay on a thumbnail in every mode — ③ 示意图 /
+  // ④ AI 示意图 (DECISIONS 23) — fit at 13 px; a ①② picture's words move into the row's 13 px credit line where the row has
+  // one (covers.css), and otherwise wrap onto a second line (cards.css white-space:normal), never an ellipsis.
+  for (const label of [TIER_LABELS.stock.enShort, TIER_LABELS.ai.enShort, TIER_LABELS.official.enShort, TIER_LABELS.officialProduct.enShort, TIER_LABELS.venue().enShort, TIER_LABELS.scene3d.enShort]) {
+    assert.ok(textWidth(label, 13) <= THUMB_TEXT, `${label}: ${textWidth(label, 13).toFixed(1)} px`);
+  }
+  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').enShort, 13) > THUMB_TEXT, 'the dated official label wraps at 13 px');
+  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').en, 13) > THUMB_TEXT, 'the full version is the hero’s, not the thumbnail’s');
+  const { readFileSync } = await import('node:fs');
+  assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-row-card__thumb \.ui-provenance\[data-chip\] \{ line-height:var\(--lh-snug\); white-space:normal; \}/);
 });
 
 test('④ only with the owner’s approval and never on a lead; ③④ pictures repeat only 8 cards apart, never an info card', () => {

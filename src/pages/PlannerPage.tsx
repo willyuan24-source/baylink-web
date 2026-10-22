@@ -5,7 +5,7 @@ import { useApp } from '../app/context';
 import { useLocale, translateText } from '../i18n/locale';
 import { setPageMetadata } from '../lib/seo';
 import { PLAN_METADATA } from '../lib/planner-core';
-import { createCoverPage } from '../lib/cover';
+import { createCoverPage, type ResolvedCover } from '../lib/cover';
 import { Button } from '../components/ui/Button';
 import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
@@ -39,6 +39,8 @@ function PlannerShell() {
   const [planOpen, setPlanOpen] = useState(() => opensPlan(search));
   // One cover registry for the page: a photo the picks show is not shown again in the workspace below (VISUAL-10).
   const coverPage = useMemo(() => createCoverPage(), []);
+  // The picks' pictures, listed first in the workspace's 本页图片来源 (every picture on the page is credited, DECISIONS 23).
+  const [pickCovers, setPickCovers] = useState<readonly ResolvedCover[]>([]);
   // 问 BayBay with the current plan, once the workspace is in; a tap before that waits for it.
   const askPlan = useRef<{ ask?: () => void; waiting: boolean }>({ waiting: false });
   const registerAsk = useCallback((ask?: () => void) => {
@@ -58,7 +60,7 @@ function PlannerShell() {
     <PageHeader title={t('行程', 'Plans')}
       lede={t('把想去的活动和地点排进一天：时间、门票和路线一起看，存好后发给家人。', 'Put the events and places you want into one day, with times, tickets and routes in view. Save it and send it to family.')}
       actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={ask}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
-    {!planOpen && <PlanWeekendPicks coverPage={coverPage} />}
-    <PlanWorkspaceSlot><PlanWorkspace onBusy={setBusy} registerAsk={registerAsk} onPlanOpen={setPlanOpen} coverPage={coverPage} /></PlanWorkspaceSlot>
+    {!planOpen && <PlanWeekendPicks coverPage={coverPage} onCovers={setPickCovers} />}
+    <PlanWorkspaceSlot><PlanWorkspace onBusy={setBusy} registerAsk={registerAsk} onPlanOpen={setPlanOpen} coverPage={coverPage} creditsFirst={planOpen ? undefined : pickCovers} /></PlanWorkspaceSlot>
   </fieldset></PageContainer>;
 }

@@ -8,7 +8,7 @@ import { HOME_GENERATED_AT, HOME_WEEKENDS } from '../src/lib/home-catalog';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 
-type CardPick = { id: string; date: string; verifiedAt: string; editorial?: { rank: number; reason: { zh: string; en: string } } };
+type CardPick = { id: string; date: string; verifiedAt: string; editorial?: { rank: number; reason: { zh: string; en: string } }; photo?: string };
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[] }>;
 const stale = new Map<string, string[]>();
 const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_EVENTS, day?: string) => {
@@ -29,6 +29,9 @@ const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_E
     assert.ok(buildCanLead(byId.get(picks[0].id)!, card.day), `${name}: ${picks[0].id} leads with a ① or ② picture`);
     assert.ok(picks.filter(pick => pick.editorial).every(pick => !buildCanLead(byId.get(pick.id)!, card.day)), `${name}: no editor pick could lead`);
   }
+  // UI9-IMG-A1b (DECISIONS 21): 0 information-card tiles — every tile is a photo, each file once on the card.
+  assert.deepEqual(picks.filter(pick => !pick.photo).map(pick => pick.id), [], `${name}: every tile is a photo`);
+  assert.equal(new Set(picks.map(pick => pick.photo)).size, picks.length, `${name}: no photo twice`);
   const rest = ledByRanking ? picks.slice(1) : picks;
   assert.ok(rest.every((pick, index) => !pick.editorial || rest.slice(0, index).every(before => before.editorial)), `${name}: editor picks come first`);
   for (const pick of picks) {
@@ -38,6 +41,11 @@ const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_E
   }
   // card v2: one image per language, each QR (≥300 px) opening the region's list in that language
   for (const prefix of ['', 'zh-Hant/', 'en/']) {
+    // The Bay Area cards' preview for the home's 发到家庭群 panel (UI9-IMG-A1b): a WebP of at most 30 KB.
+    if (region === 'all') {
+      const thumb = await readFile(`public/weekly/${prefix}${name}-thumb.webp`);
+      assert.ok(thumb.length <= 30 * 1024, `${prefix}${name}-thumb.webp: ${thumb.length} B > 30 KB`);
+    }
     const png = PNG.sync.read(await readFile(`public/weekly/${prefix}${name}.png`));
     assert.equal(png.width, 1080); assert.equal(png.height, 1440);
     const qr = jsQR(new Uint8ClampedArray(png.data), png.width, png.height, { inversionAttempts: 'dontInvert' });

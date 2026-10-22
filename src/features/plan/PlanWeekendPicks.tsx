@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { EventCover, EventWhen } from '../../components/ui/cover-date';
+import { EventCover, EventWhen } from '../../components/ui/Cover';
 import { FeedCard } from '../../components/ui/Card';
 import { FeedGrid, FeedItem } from '../../components/ui/FeedGrid';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import { coverItemFor, createCoverPage, getCover, type CoverPage } from '../../lib/cover';
+import { coverItemFor, createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import { eventPlace, eventPriceChip, readerDayRange, readerMonthDay, type EventFactsInput } from '../../lib/event-facts';
 import { getBayAreaToday } from '../../lib/monthly';
 import snapshot from '../../data/generated/plan-weekend.json';
@@ -32,7 +32,7 @@ function shown(event: PlanWeekendEvent, english: boolean): EventFactsInput {
  * weeks): the planner then starts at once. The block is a `weekend` date scope (lib/date-guard.ts), written out here so the
  * page does not share a chunk with the home page for one attribute.
  */
-export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
+export function PlanWeekendPicks({ coverPage, onCovers }: { coverPage?: CoverPage; onCovers?: (covers: readonly ResolvedCover[]) => void }) {
   const { t, pick, locale, english } = useUiCopy();
   const [today] = useState(getBayAreaToday);
   const picks = useMemo(() => {
@@ -53,10 +53,12 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
   const photos = useMemo(() => picks?.entries.flatMap(({ cover }) => cover.tier === 'type' ? [] : [cover.image.src]) ?? [], [picks]);
   if (coverPage) for (const src of photos) if (!coverPage.claims.has(src)) coverPage.claims.set(src, CLAIMANT);
   useEffect(() => () => { if (coverPage) for (const src of photos) if (coverPage.claims.get(src) === CLAIMANT) coverPage.claims.delete(src); }, [coverPage, photos]);
+  // The page's 本页图片来源 lists these pictures too (PlannerPage hands them to the workspace's credits).
+  useEffect(() => { onCovers?.(picks?.entries.map(({ cover }) => cover) ?? []); return () => onCovers?.([]); }, [picks, onCovers]);
   if (!picks) return null;
   // "10/17–18" / "Oct 17–18", as the home's weekend heading (features/home/home-model.ts weekendRange) and the cards' stickers.
   const range = picks.start === picks.end ? readerMonthDay(picks.start, english) : readerDayRange(picks.start, picks.end, english);
-  // The page's one eager image is the first photo cover (a first pick in its type cover does not take the priority).
+  // The page's one eager image is the first pick's picture.
   const eager = picks.entries.findIndex(({ cover }) => cover.tier !== 'type');
   return <section className="plan-weekend" aria-labelledby="plan-weekend-title" data-date-scope="weekend">
     <div className="home-section-head">

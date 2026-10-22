@@ -1,12 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import { ChevronRight, Heart, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
 import { searchGuides } from '../lib/guide-search';
 import guidesIndex from '../data/generated/guides-index.json';
-import { GUIDE_BAND_SIZE as BAND_SIZE, telOf, type GuideIndexCard, type GuidesIndex } from '../features/guides/guide-records';
-import { createCoverPage, type ResolvedCover } from '../lib/cover';
+import { GUIDE_BAND_SIZE as BAND_SIZE, expandGuidesIndex, telOf, type GuideIndexCard, type GuidesIndexFile } from '../features/guides/guide-records';
+import { createCoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
@@ -18,17 +18,14 @@ import { Button } from './ui/Button';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
-import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { DeferredGuideTypeCover, preloadCoverFamilies } from './ui/cover-defer';
+import { GuideCover } from '../features/guides/GuideCover';
+import { creditAfterLabel, useRowCredit, useTierLabel } from './ui/CoverImage';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
 import { settleChunk } from '../lib/chunk-recovery';
 import { editionState, GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
-
-// /guides draws the headline / number family on its first screen: start its chunk as this page loads (UI9-IMG-A0).
-void preloadCoverFamilies(['guide']);
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
@@ -48,7 +45,7 @@ type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const PREVIEW_SIZE = 4;
 // The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
-const INDEX = guidesIndex as GuidesIndex;
+const INDEX = expandGuidesIndex(guidesIndex as GuidesIndexFile);
 const guides = INDEX.guides;
 const GUIDE_CATEGORY_TABS = INDEX.categoryTabs;
 const cardsBySlug = new Map(guides.map(guide => [guide.slug, guide]));
@@ -155,7 +152,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     });
   }, [elderBand, today]);
 
-  // One cover page in reading order, so an image never appears twice; each coded cover keeps its own family (cover-family.ts).
+  // One cover page in reading order, so a ①② picture never appears twice and a ③ picture not within ADJACENT_CARDS cards.
   const covers = useMemo(() => {
     const coverPage = createCoverPage();
     const order: GuideIndexCard[] = browse ? [...elderBand, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
@@ -164,18 +161,19 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const photo = (guide: GuideIndexCard) => { const cover = covers.get(guide.slug); return !!cover && cover.tier !== 'type'; };
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
-  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
-  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
+  // A ①② thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard and a ③④ picture keep their badge on it.
+  const credit = useRowCredit();
+  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'scene3d' ? credit(cover) : undefined;
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
   const lines = (guide: GuideIndexCard) => { const { when, meta } = guideCardLines(guide, today); return { when: pick(when), meta: meta && pick(meta) }; };
-  /** A row: C's mini cover (its key fact only), the full title (never clamped), the time line and the sources line. */
+  /** A row: the 88 px picture, the full title (never clamped), the time line and the sources line. */
   const row = (guide: GuideIndexCard, options: { snippet?: string; section?: string; call?: boolean } = {}) => {
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
@@ -183,22 +181,26 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
         {t('拨打', 'Call')} <span className="gl-call__number">{guide.call.number}</span></Button>}
     </>;
   };
-  /** A cover card (desktop, and 2-up photo cards on a phone): 3:2, C's hook sentence on a coded cover. */
+  /** A cover card (desktop, and 2-up photo cards on a phone): the 3:2 picture. */
   const feed = (guide: GuideIndexCard, priority = false) => {
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
-    return <FeedCard title={guideTitle(guide)} titleShown={cover ? guideCaption(guide, locale, cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+    return <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
   /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
    *  4-guide preview; three quarters of a longer list). */
-  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
-    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}</FeedGrid>
+  // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell over the rest of the row
+  // (captain 10-21 18:30: no empty cells); guide-library.css draws it from 1024 px only.
+  const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
+    ? <li className="gl-all-cell" style={{ '--gl-rest': 4 - shown, '--gl-ratio': (4 - shown) * 1.5 } as CSSProperties}><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
+  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
+    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
     : <>
       <div className="gl-view" data-view="phone">{rows(items, label)}</div>
-      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}</FeedGrid></div>
+      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid></div>
     </>;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
@@ -218,7 +220,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id={`gl-topic-${item.id}`}>{pick(item)}</h2><p>{pick(item.summary)}</p></div>
       <Button variant="quiet" onClick={() => update({ topic: item.id })}>{t(`看全部 ${total} 篇`, `All ${total}`)}</Button>
     </div>
-    {list(preview, pick(item))}
+    {list(preview, pick(item), false, { total, open: () => update({ topic: item.id }) })}
   </section>);
 
   return <div className="gl-page" data-testid="guides-home">
@@ -281,6 +283,28 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <Button variant="quiet" className="gl-directory__toggle" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}</Button>
       <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
     </div>}
+    <GuidesImageCredits covers={[...covers.values()]} />
     <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about#about-method-title">{t('了解核验方法', 'How we check sources')}</Link></footer>
   </div>;
 };
+
+/**
+ * 本页图片来源 for /guides (DECISIONS 23: every picture the page shows is credited): the tier words, the credit and the licence
+ * of each picture the cards show, once each. A native <details> (no Disclosure on this route: route JS ≤ base); #page-credits
+ * with data-count is what NAV's footer link reads (G12).
+ */
+function GuidesImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
+  const { t, locale } = useUiCopy();
+  const label = useTierLabel();
+  const seen = new Set<string>();
+  const images = covers.filter((cover): cover is ImageCover => cover.tier !== 'type' && !seen.has(cover.image.src) && !!seen.add(cover.image.src));
+  if (!images.length) return null;
+  return <details id="page-credits" className="gl-credits" data-count={images.length} data-credits-at-end="">
+    <summary>{t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)}</summary>
+    <ul>{images.map(cover => { const words = label(cover), credit = creditAfterLabel(words, translateText(cover.image.credit, locale)); return <li key={cover.image.src}>
+      <span>{words}</span>
+      {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>}
+      {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
+    </li>; })}</ul>
+  </details>;
+}

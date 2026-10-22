@@ -168,6 +168,8 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   // adds nothing to the English /events and /calendar either. Each event's compact schedule note goes with its event.
   const eventsIndex = JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')) as { events: { id: string }[] };
   const eventsLater = JSON.parse(await readFile('src/data/generated/events-later.json', 'utf8')) as { events: { id: string }[] };
+  // UI9-IMG-A1b: the boards' offers and new shops (events-boards.json) have their own pack, loaded with the board.
+  const eventsBoards = JSON.parse(await readFile('src/data/generated/events-boards.json', 'utf8')) as unknown;
   const notesFor = (list: { id: string }[]) => list.flatMap(event => Object.hasOwn(EVENT_SCHEDULE_NOTES, event.id) ? [EVENT_SCHEDULE_NOTES[event.id]] : []);
   const listed = new Set([...eventsIndex.events, ...eventsLater.events].map(event => event.id));
   // No list page prints an image caption (cards and the credits line read the alt text and the credit; the index carries a
@@ -182,6 +184,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     // (tests/octnov-metadata-i18n.test.tsx)
     notesFor(eventsIndex.events), Object.entries(EVENT_SCHEDULE_NOTES).filter(([id]) => !listed.has(id)).map(([, note]) => note)]);
   const eventsLaterValues = withoutCaptions([eventsLater, notesFor(eventsLater.events)]);
+  const eventsBoardsValues = withoutCaptions([eventsBoards]);
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
@@ -190,6 +193,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     'guide-list': [guideData.index, guides.map(guide => guide.categoryLabel)],
     'events-list': eventsList,
     'events-later': eventsLaterValues,
+    'events-boards': eventsBoardsValues,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
@@ -208,7 +212,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   for (const [scope, values] of Object.entries(scopeValues)) {
     registry[scope] = `${scope}.json`;
     const pack = remaining(values);
-    if (scope === 'events-later') for (const key of Object.keys(eventsListKeys)) delete pack[key];
+    if (scope === 'events-later' || scope === 'events-boards') for (const key of Object.keys(eventsListKeys)) delete pack[key];
     const serialized = JSON.stringify(pack);
     sizes[scope] = gzipSync(serialized).length;
     await writeFile(`${directory}/${scope}.json`, serialized);

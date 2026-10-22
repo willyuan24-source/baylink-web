@@ -147,5 +147,7 @@
   "src/data/weekend-1128-2026-10-17-en.json",
   "src/data/lny-2027-2026-10-17-en.json",
   "src/data/official-opening-media-en.json",
-  "src/data/guide-photos-2026-10-19-en.json"
+  "src/data/guide-photos-2026-10-19-en.json",
+  "src/data/category-stock-photos-en.json",
+  "src/data/home-tile-stock-photos-en.json"
 ]

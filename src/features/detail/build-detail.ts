@@ -5,7 +5,9 @@ import { EVENT_DATE_OVERRIDES } from '../../data/event-calendar-dates';
 import { GUIDE_IMAGES } from '../../data/guide-media';
 import { getDiscoveryMetadata } from '../../lib/discovery-metadata';
 import { placeFor } from '../../lib/planner';
-import type { CoverAsset } from '../../lib/cover';
+import { coverItemFor, getCover, type CoverAsset, type CoverKind } from '../../lib/cover';
+import { coverCandidates, type CandidateRecord } from '../../lib/cover-candidates';
+import { slimListingImage } from '../../lib/listing-image';
 import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent } from './detail-record';
 
 /**
@@ -29,9 +31,29 @@ const listingImage = (key: string): CoverAsset | undefined => {
   return image && image.kind !== 'illustration' ? image : undefined;
 };
 
+/**
+ * UI9-IMG-A1b (DECISIONS 21/22): the picture a detail hero or rail card shows when its own image cannot be its cover: the
+ * first of its candidates (② venue → ③ stock → ④ approved AI) the ladder accepts whose file the page does not show yet
+ * (`claimed`), else the first it accepts. Undefined when its own image is the cover.
+ */
+function nextCandidate(kind: CoverKind, record: CandidateRecord, claimed: Set<string>): { key: string; image: CoverAsset } | undefined {
+  const own = getCover({ kind, id: record.id, imageKey: record.imageKey }, { images: GUIDE_IMAGES, today: cutoff });
+  // An own AI illustration is ④: the pages' listing image leaves it out (listingImage), so a stock picture comes first.
+  // An own ①② picture another card on the page already shows (①② once per page) also moves on to the next candidate.
+  if (own.tier !== 'type' && own.tier !== 'ai' && !claimed.has(own.image.src)) { claimed.add(own.image.src); return undefined; }
+  // An own AI illustration stays in the list: after the stock pictures (coverCandidates), the last resort before none.
+  const accepted = coverCandidates(kind, record).filter(key => key !== record.imageKey || own.tier === 'ai')
+    .map(key => ({ key, cover: getCover(coverItemFor(kind, { id: record.id, imageKey: key }), { images: GUIDE_IMAGES, today: cutoff }) }))
+    .filter(({ cover }) => cover.tier !== 'type');
+  const pick = accepted.find(({ cover }) => cover.tier !== 'type' && !claimed.has(cover.image.src)) ?? accepted[0];
+  if (!pick || pick.cover.tier === 'type') return undefined;
+  claimed.add(pick.cover.image.src);
+  return { key: pick.key, image: slimListingImage(pick.cover.image, 'keep') };
+}
+
 const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') === b.trim().toLocaleLowerCase('en-US');
 
-function railFor(event: MonthlyEvent, region: string, city: string, events: readonly MonthlyEvent[]): RailEvent[] {
+function railFor(event: MonthlyEvent, region: string, city: string, events: readonly MonthlyEvent[], claimed: Set<string> = new Set()): RailEvent[] {
   const candidates = [...new Map(events.map(candidate => [candidate.id, withOverrides(candidate)])).values()]
     .filter(candidate => candidate.id !== event.id && candidate.endDate >= cutoff && candidate.occurrenceDates?.length !== 0
       && (candidate.region === region || sameText(candidate.city, city)));
@@ -43,7 +65,10 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
   const others = sorted.filter(candidate => candidate.category !== event.category).slice(0, RAIL_SIZE - same.length);
   return [...same, ...others]
     .map(candidate => {
-      const image = listingImage(candidate.imageKey);
+      const next = nextCandidate('event', candidate, claimed);
+      // A rail card prints no caption: its picture carries the caption's signal (UI9-IMG-A1b, listing-image.ts).
+      const own = next?.image ?? listingImage(candidate.imageKey);
+      const image = own && slimListingImage(own);
       return {
         id: candidate.id, title: candidate.title, startDate: candidate.startDate, endDate: candidate.endDate,
         // A card states the day only: session days become the confirmed days, their times stay on the event's own page.
@@ -58,6 +83,7 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
         ...(candidate.verifiedAt ? { verifiedAt: candidate.verifiedAt } : {}),
         ...(candidate.sourceLabel ? { sourceLabel: candidate.sourceLabel } : {}),
         ...(image ? { image } : {}),
+        ...(next ? { coverKey: next.key } : {}),
       };
     });
 }
@@ -66,10 +92,15 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
 export function buildDetailRecord(item: LocalDiscovery, events: readonly MonthlyEvent[] = MONTHLY_EVENTS): DetailRecord {
   const resolved: LocalDiscovery = item.kind === 'event' ? { kind: 'event', event: withOverrides(item.event) } : item;
   const imageKey = resolved.kind === 'event' ? resolved.event.imageKey : resolved.kind === 'offer' ? resolved.offer.imageKey : resolved.shop.imageKey;
-  const image = listingImage(imageKey);
+  const own = listingImage(imageKey);
+  // The page prints its hero's caption (PageCredits HeroCaption), so the record keeps it; the rights prose stays in the registry.
+  const image = own && slimListingImage(own, 'keep');
   const placeId = resolved.kind === 'opening' ? placeFor(`opening-${resolved.shop.id}`)?.id : undefined;
-  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events) : [];
-  return { item: resolved, ...(image ? { image } : {}), ...(placeId ? { placeId } : {}), rail, metadata: getDiscoveryMetadata(item) };
+  const claimed = new Set<string>();
+  const record: CandidateRecord = resolved.kind === 'event' ? resolved.event : resolved.kind === 'offer' ? resolved.offer : resolved.shop;
+  const hero = nextCandidate(resolved.kind, record, claimed);
+  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events, claimed) : [];
+  return { item: resolved, ...(image ? { image } : {}), ...(hero ? { hero } : {}), ...(placeId ? { placeId } : {}), rail, metadata: getDiscoveryMetadata(item) };
 }
 
 /** Every published detail, keyed `kind:id` (the id in the page URL). */

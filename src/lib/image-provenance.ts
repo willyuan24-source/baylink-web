@@ -38,13 +38,16 @@ const officialEdition = (caption: string) => caption.match(/((?:19|20)\d{2}) ?�
 /**
  * Provenance describes the asset, never whether the depicted event is current. The labels are one closed
  * vocabulary (plan D7): 官方图 (官方图 · 年份 往届 for a dated earlier edition) · 照片 · 年份 · 资料图 · 年份 ·
- * BAYLINK 实拍 · 日期 · AI 示意图 (UI9-IMAGES DECISIONS 23) · 3D 场景插图, plus BAYLINK 信息卡 for coded covers (`typeCoverProvenance`).
+ * BAYLINK 实拍 · 日期 · 示意图 and AI 示意图 (UI9-IMAGES DECISIONS 23) · 3D 场景插图, plus BAYLINK 信息卡 for a share card
+ * without a picture (`typeCoverProvenance`).
  */
 export function getImageProvenance(image: ProvenanceInput, english = false, today?: string): string {
   if (image.scene3d) return english ? '3D scene illustration' : '3D 场景插图';
   if (image.kind === 'illustration') return english ? 'AI illustration' : 'AI 示意图';
   if (image.ownShot) return `${english ? 'BAYLINK photo' : 'BAYLINK 实拍'}${shotDate(image.shotAt, english, today)}`;
   const basis = rightsBasis(image);
+  // ③ a category stock photo (rights basis 'stock', the owner's 2026-10-21 approvals): 示意图, never "照片" of the listing.
+  if (basis === 'stock') return english ? 'Illustrative photo' : '示意图';
   if (image.kind === 'poster' || (basis && OFFICIAL_BASES.has(basis)) || /官方|official/i.test(image.credit)) {
     const edition = officialEdition(image.caption);
     if (edition) return english ? `Official image · ${edition}` : `官方图 · ${edition} 往届`;
@@ -58,6 +61,6 @@ export function getImageProvenance(image: ProvenanceInput, english = false, toda
   return withYear(english ? 'Photo' : '照片');
 }
 
-/** A coded cover (`<TypeCover>`) is an information card set from the listing's own facts, not a picture. English is short
- * ("Info card") so the badge fits a 173px card beside the ♡. */
+/** A share card with no picture its promotion allows (verify:share-cards keeps that at zero since UI9-IMG-A1b; the
+ * information cards left the pages, DECISIONS 21) names itself plainly. English is short ("Info card"). */
 export const typeCoverProvenance = (english = false) => english ? 'Info card' : 'BAYLINK 信息卡';

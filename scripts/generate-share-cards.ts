@@ -6,7 +6,7 @@ import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-
 import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
 import { guideShare, shareCardPath } from '../src/lib/editorial-share';
 import { PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
-import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
+import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, promoPhoto, sharePicture, type CardLocale } from '../src/lib/share-card-model';
 import type { CoverAsset } from '../src/lib/cover';
 import { hubCardPath } from '../src/lib/hub-cards';
 import { SITE_URL } from '../src/lib/seo';
@@ -18,9 +18,9 @@ import { hubCardData } from './share-card-data';
 /**
  * Share cards v2 (I18N-SEO-05) and hub cards (I18N-SEO-03), 1200 × 630, one per language: zh-Hans at the original
  * /share-cards/<kind>-<id>.png (links already shared keep working), zh-Hant and English under /share-cards/zh-Hant/ and
- * /share-cards/en/. Each card's QR opens the page in the card's language. A photo appears only when the card may carry
- * it (share-card-model.ts cardPhoto / promoPhoto), as a band across the top 55% (H45); otherwise the listing's TypeCover
- * facts fill the cover.
+ * /share-cards/en/. Each card's QR opens the page in the card's language. Every listing card fronts a picture the card
+ * may carry (share-card-model.ts sharePicture: its own (cardPhoto / promoPhoto), else its venue's or a ③ stock picture that
+ * promotion allows; never AI art), as a band across the top 55% (H45; UI9-IMAGES DECISIONS 21).
  */
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
 // H41: English cards are the site's English, with US-style times and dates (as i18n/metadata.ts switches the site on)
@@ -79,8 +79,9 @@ const queue = async (svg: string, out: string) => {
 
 for (const item of localDiscoveries) {
   const share = discoveryShare(item);
-  const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-  const image = cardPhoto(item, GUIDE_IMAGES[imageKey], today);
+  const record = item.kind === 'event' ? item.event : item.kind === 'offer' ? item.offer : item.shop;
+  // UI9-IMG-A1b: every card fronts a picture (sharePicture: own → venue → ③ stock, promotion-cleared, never AI).
+  const image = sharePicture(item.kind, record, cardPhoto(item, GUIDE_IMAGES[record.imageKey], today), GUIDE_IMAGES);
   const photo = await photoFor(image);
   if (photo) photoCards++;
   for (const locale of LOCALES) {
@@ -92,7 +93,7 @@ for (const item of localDiscoveries) {
 }
 for (const guide of guides) {
   const share = guideShare(guide);
-  const image = promoPhoto(getGuideMedia(guide).cover);
+  const image = sharePicture('guide', { id: guide.slug, title: guide.title, category: guide.category }, promoPhoto(getGuideMedia(guide).cover), GUIDE_IMAGES);
   const photo = await photoFor(image);
   if (photo) photoCards++;
   for (const locale of LOCALES) {

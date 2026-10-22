@@ -6,6 +6,7 @@ import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 import { getCover, coverItemFor, type CoverKind } from '../src/lib/cover';
 import { leadsWithPicture } from '../src/lib/lead-rule';
+import { CLOSE_UP_FACE_IMAGES } from '../src/lib/close-up-faces';
 import { venuesFor, type CandidateRecord } from '../src/lib/cover-candidates';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
@@ -46,8 +47,13 @@ test('every venue photo traces to its approval and is a photograph the table alo
 test('a venue photo serves the records held there, and the index ships every picture it names, no dead key', () => {
   const chase = index.events.find(event => event.id === 'sf-doja-cat-2026');
   if (chase) assert.ok(chase.imageKeys?.includes('roundup-chase-center'), 'a Chase Center concert gets the Chase Center photo');
-  for (const list of [index.events, index.offers, index.openings]) for (const record of list) {
+  // UI9-IMG-A1b: the boards' offers and new shops ship in events-boards.json with the pictures only they use.
+  const boards = JSON.parse(readFileSync('src/data/generated/events-boards.json', 'utf8')) as { offers: typeof index.events; openings: typeof index.events; images: typeof index.images };
+  for (const record of index.events) {
     for (const key of [record.imageKey, ...record.imageKeys ?? []]) if (key) assert.ok(Object.hasOwn(index.images, key), `${record.id}: ${key} is shipped`);
+  }
+  for (const record of [...boards.offers, ...boards.openings]) {
+    for (const key of [record.imageKey, ...record.imageKeys ?? []]) if (key) assert.ok(Object.hasOwn(index.images, key) || Object.hasOwn(boards.images, key), `${record.id}: ${key} is shipped`);
   }
   const offer = { id: 'muir-woods-fee-free-oct27', imageKey: 'region-muir-boardwalk' };
   assert.equal(getCover(coverItemFor('offer', offer), { images: GUIDE_IMAGES, today: '2026-10-21' }).tier, 'venue', 'an offer may show its venue\'s photo (②)');
@@ -67,7 +73,12 @@ test('DECISIONS 26: every day, the home lead = homeLeads[day] = the weekly card\
 
 test('the lead rule refuses a close-up face, AI and an information card, and takes a venue photo', () => {
   const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' }, context), false, 'a close-up face never leads');
+  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): none is left unreleased
+  // (CLOSE_UP_FACE_IMAGES is empty), and LumaFest's photo leads like any ①. Flagged and not released, it never would.
+  assert.equal(CLOSE_UP_FACE_IMAGES.size, 0);
+  const lumaFest = { id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' };
+  assert.equal(leadsWithPicture(lumaFest, context, new Set([lumaFest.imageKey])), false, 'a flagged close-up the owner has not released never leads');
+  assert.equal(leadsWithPicture(lumaFest, context), true, 'a released close-up leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');
@@ -112,7 +123,13 @@ test('/events arrangePicks (DECISIONS 26): the first pick that can lead; else th
 });
 
 test('getBuildWeekend (DECISIONS 26): a later pick, then the next editor pick, then the ranking leads; the last pick returns to the feed', () => {
-  const day = '2026-10-28';
+  // The first weekend from 10/31 whose feed holds three events that cannot lead (the owner's 10-21 close-up release moved the
+  // Goblin Jamboree and Ferry Plaza photos into the 10/31 feed as leaders). The catalog is fixed data, so the day is too.
+  const fixture = (candidate: string) => {
+    const weekend = getBuildWeekend(candidate, MONTHLY_EVENTS, {});
+    return weekend.events.some(entry => buildCanLead(entry.event, candidate)) && weekend.feed.filter(entry => !buildCanLead(entry.event, candidate)).length >= 3;
+  };
+  const day = Array.from({ length: 9 }, (_, week) => new Date(Date.parse('2026-10-28T12:00:00Z') + week * 7 * 86_400_000).toISOString().slice(0, 10)).find(fixture) ?? '2026-10-28';
   const plainWeekend = getBuildWeekend(day, MONTHLY_EVENTS, {});
   const start = plainWeekend.start;
   const events = plainWeekend.events.map(entry => entry.event);

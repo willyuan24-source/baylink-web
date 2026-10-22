@@ -10,10 +10,13 @@
 //      without scrolling at 390 px / DPR 3 (non-lazy <img>) stay within 450 KB. A page that shows an image the manifest
 //      did not mark as shown is a warning only (its srcset is the plain -small + original pair until the next
 //      `npm run images:variants`), never a failure.
+//   6. Home entry tiles (UI9-IMAGES DECISIONS 27): each of the eight tiles' 480 w files is at most 15 KB, or the eight
+//      together at most 120 KB; every tile photo (and spare) is registered as subject 'tile' with coverOk false and sits in
+//      no card pool (category, venue or AI table), so a tile never repeats a card's picture.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { EXCEPTIONS_PATH, HOME_FIRST_VIEW_BUDGET, IMAGE_BUDGETS, LADDER_PATH, MANIFEST_PATH, webpSize } from './image-budgets.mjs';
+import { EXCEPTIONS_PATH, HOME_FIRST_VIEW_BUDGET, HOME_TILE_BUDGET, HOME_TILE_RECORDS_PATH, HOME_TILES_PATH, IMAGE_BUDGETS, LADDER_PATH, MANIFEST_PATH, webpSize } from './image-budgets.mjs';
 
 const problems = [];
 const warnings = [];
@@ -140,6 +143,32 @@ if (existsSync('dist/index.html')) {
   if (homeFirstView.bytes > HOME_FIRST_VIEW_BUDGET) problems.push(`homepage eager images at DPR ${DPR}: ${homeFirstView.bytes} B > ${HOME_FIRST_VIEW_BUDGET} B (${homeFirstView.images.join(', ')})`);
 }
 
+// 6. The home's entry tiles.
+const tileRecords = new Map(JSON.parse(readFileSync(HOME_TILE_RECORDS_PATH, 'utf8')).map(record => [record.key, record]));
+const tiles = Object.entries(JSON.parse(readFileSync(HOME_TILES_PATH, 'utf8')));
+const cardPools = ['src/data/category-photos.json', 'src/data/venue-photos.json', 'src/data/ai-cover-approvals.json'].map(file => readFileSync(file, 'utf8')).join('\n');
+const tileFiles = [];
+if (tiles.length !== 8) problems.push(`${HOME_TILES_PATH}: ${tiles.length} tiles, the home has 8 entries`);
+for (const [tile, { key, spares = [] }] of tiles) {
+  for (const photo of [key, ...spares]) {
+    const record = tileRecords.get(photo);
+    if (!record) { problems.push(`home tile ${tile}: ${photo} is not registered in ${HOME_TILE_RECORDS_PATH}`); continue; }
+    if (record.subject !== 'tile' || record.coverOk !== false) problems.push(`${photo}: a tile photo is registered as subject 'tile' with coverOk false`);
+    if (cardPools.includes(`"${photo}"`)) problems.push(`${photo}: a tile photo is in a card pool (category, venue or AI table)`);
+  }
+  const record = tileRecords.get(key);
+  if (!record) continue;
+  // The 480 w file the manifest lists, else the one images:variants writes next to the original (never the original).
+  const small = manifest.images[record.src]?.variants.find(variant => variant.rung === 480);
+  const smallFile = small?.file ?? record.src.replace(/\.webp$/, '-small.webp');
+  const bytes = small?.bytes ?? readPublic(smallFile)?.length;
+  if (bytes === undefined) { problems.push(`home tile ${tile}: no 480 w file for ${record.src}`); continue; }
+  tileFiles.push({ tile, file: smallFile, bytes });
+}
+const tileBytes = tileFiles.reduce((sum, entry) => sum + entry.bytes, 0);
+const bigTiles = tileFiles.filter(entry => entry.bytes > HOME_TILE_BUDGET.each);
+if (bigTiles.length && tileBytes > HOME_TILE_BUDGET.total) problems.push(`home tiles: ${bigTiles.map(entry => `${entry.file} ${entry.bytes} B`).join(', ')} over ${HOME_TILE_BUDGET.each} B each, and the eight are ${tileBytes} B > ${HOME_TILE_BUDGET.total} B`);
+
 if (unmarked.size) {
   const sample = [...unmarked].sort().slice(0, 6).join(', ');
   warnings.push(`${unmarked.size} images shown on built pages have no 800/1200 rungs yet because the manifest predates that use (${sample}${unmarked.size > 6 ? ', …' : ''}); they render with the plain -small + original srcset. Run npm run images:variants to save those bytes.`);
@@ -151,4 +180,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(`Images verified: ${Object.keys(manifest.images).length} sources, ${rungs} 800/1200 variants (${(rungBytes / 1e6).toFixed(1)} MB), ${exceptions.size} listed budget exceptions`
+  + `; home tiles 480 w: ${(tileBytes / 1000).toFixed(1)} KB for ${tileFiles.length}, largest ${(Math.max(0, ...tileFiles.map(entry => entry.bytes)) / 1000).toFixed(1)} KB`
   + (pages ? `; ${references} image files referenced by ${pages} built pages exist; homepage eager images at DPR 3: ${(homeFirstView.bytes / 1000).toFixed(1)} KB (${homeFirstView.images.join(', ') || 'none'})` : '; no dist/ to check built pages against') + '.');

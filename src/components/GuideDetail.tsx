@@ -27,11 +27,11 @@ import { GuidePhoneText as PhoneText } from '../features/guides/plain-phones';
 import { linkifyGuidePhones, PlainPhonesProvider, usePlainPhones } from '../features/guides/plain-phone-text';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
-import { createCoverPage, type CoverPage } from '../lib/cover';
+import type { ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
 import { SegmentedTitle } from './SegmentedTitle';
-import { CoverImage } from './ui/CoverImage';
+import { CoverImage, useTierLabel } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';
@@ -44,12 +44,11 @@ import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { quickFactsEligible } from '../features/guides/guide-kind';
 import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
-import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { DeferredGuideTypeCover } from './ui/cover-defer';
+import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features/guides/GuidePageParts';
-import { editionState, guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
-import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
+import { editionState, guideCallOf, guideCardLines, guideEnglishDate, guidePageCovers, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
+import type { GuideCard, GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
 import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
@@ -79,13 +78,12 @@ const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | und
 };
 
 /**
- * 接下来 (UI9-GUIDES): related guides, resolved on the article's cover page so no image repeats. Desktop: four covers across the
+ * 接下来 (UI9-GUIDES): related guides, resolved on the article's cover page (guidePageCovers) so no image repeats. Desktop: four covers across the
  * frame (3:2, the crop home's guide grid uses). Phone and tablet: three rows (a mini cover, the full title, the two meta
  * lines). 简洁显示: one link to the guide's topic instead (data-simple).
  */
-function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { related: GuideCard[]; coverPage: CoverPage; today: string; topic: ReturnType<typeof guideTopicOf>; onOpenGuide: (slug: string) => void }) {
+function RelatedGuides({ related, covers, today, topic, onOpenGuide }: { related: GuideCard[]; covers: ResolvedCover[]; today: string; topic: ReturnType<typeof guideTopicOf>; onOpenGuide: (slug: string) => void }) {
   const { t, pick, english, locale } = useUiCopy();
-  const covers = related.map(guide => guideCover(guide, today, coverPage));
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(slug)) : onOpenGuide(slug);
   const lines = related.map(guide => guideCardLines(guide, today));
   return <section className="bl-guide-related gd-related" aria-labelledby="gd-related-title">
@@ -95,12 +93,12 @@ function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { rela
     </div>
     <ul className="gd-related__rows" data-simple="hide" aria-label={t('相关指南', 'Related guides')}>{related.slice(0, 3).map((guide, index) => <li key={guide.slug}>
       <RowCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
+        thumb={<GuideCover guide={guide} cover={covers[index]} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </li>)}</ul>
     <div className="gd-related__grid" data-simple="hide"><FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
-      <FeedCard title={translateText(guide.title, locale)} titleShown={guideCaption(guide, locale, covers[index])} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        cover={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="3:2" sizes={COVER_SIZES.feed} />}
+      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
+        cover={<GuideCover guide={guide} cover={covers[index]} ratio="3:2" sizes={COVER_SIZES.feed} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </FeedItem>)}</FeedGrid></div>
     <p className="gd-related__topic" data-simple="show"><Link to={`/guides?topic=${topic}`}>{t(`更多「${pick(topicCopy(topic))}」指南`, `More ${pick(topicCopy(topic))} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></p>
@@ -137,6 +135,7 @@ const GuideDetailSession = ({
   const record = suppliedRecord ?? peekGuide(slug);
   const guide = record?.guide;
   const { t, english } = useUiCopy();
+  const tierLabel = useTierLabel();
   const today = useBayAreaToday(suppliedToday);
   const editorial: GuideEditorial | undefined = record?.editorial;
   // 简洁显示: each number keeps two tap targets, the bar's 拨打 and its contact's; its other copies print as text.
@@ -148,27 +147,11 @@ const GuideDetailSession = ({
   }, [simple, editorial]);
   const page = useMemo(() => {
     if (!record) return null;
-    const { guide } = record;
-    const coverPage = createCoverPage();
-    const cover = guideCover({ slug: guide.slug, covers: record.covers }, today, coverPage);
-    // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
-    // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
-    // claims its place before the related guides resolve, so their covers fall back to a TypeCover instead of repeating it.
-    // The record's inline pictures already passed keepInlineImage (guide-data.ts) and its board pictures are getOfferImage's.
-    const boardImages = record.boardImages ?? [];
-    const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
-    const inline = record.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
-      && !boardImages.includes(item.image.src));
-    const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
-    for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
-    // The 3D link's postcard (H36) shows only when the page does not already show it, and then claims it like the others.
-    const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
-    if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
+    // Rule 6, one picture once per page (guidePageCovers): the hero, the inline pictures the deals board does not show, the
+    // legacy poster, the 3D postcard, then the "Read next" cards on the same page.
     // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories;
     // QuickFactsBlock, loaded with the record of those guides only).
-    const quickFacts = quickFactsEligible(guide, !!record.editorial);
-    // "Read next" never offers an edition past its last day (editionState; relatedForToday keeps the runtime month rule).
-    return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related.filter(card => editionState(card, today) !== 'past'), today) };
+    return { ...guidePageCovers(record, today), quickFacts: quickFactsEligible(record.guide, !!record.editorial) };
   }, [record, today]);
 
   if (!guide || !page)
@@ -180,7 +163,7 @@ const GuideDetailSession = ({
         <Button variant="primary" onClick={() => onNavigate("/guides")}>返回湾区指南</Button>
       </div>
     );
-  const { cover, related, coverPage } = page;
+  const { cover, related, relatedCovers } = page;
   // Only guides without source marks fold their list (a pilot's ①–⑬ must always land on a visible source).
   const sourcesShown = !editorial && guide.sources.length >= SOURCES_FOLD_AT ? SOURCES_SHOWN : guide.sources.length;
   const prefaceLength = Math.max(0, guide.blocks.findIndex(block => block.type === 'freebies'));
@@ -191,7 +174,9 @@ const GuideDetailSession = ({
     const lastBlock = (headingIndexes[item.afterHeading] ?? guide.blocks.length) - 1;
     inlineAfter.set(lastBlock, [...(inlineAfter.get(lastBlock) || []), item.image]);
   }
-  const shownImages = [...(cover.tier !== 'type' ? [cover.image] : []), ...page.inline.map(item => item.image)];
+  // 本页图片来源 lists every picture the page shows: the hero, the inline pictures and the 接下来 cards' (DECISIONS 23).
+  const shownImages = [...(cover.tier !== 'type' ? [cover.image] : []), ...page.inline.map(item => item.image),
+    ...relatedCovers.flatMap(related => related.tier === 'type' ? [] : [related.image as GuideImage])];
   const headings = guide.blocks.flatMap((block, index) =>
     block.type === "heading"
       ? [{ text: block.text, id: `guide-section-${index}` }]
@@ -259,9 +244,12 @@ const GuideDetailSession = ({
       </li>
     </ol>
   );
-  const visual = editorial ? <GuideCarousel guide={guide} editorial={editorial} />
-    : cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={english ? cover.label.en : translateText(cover.label.zh)} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
-      {!cover.image.scene3d && <GuideCoverCredit image={cover.image} />}</figure> : null;
+  // Every guide opens on its title picture (① / ② / ③, else its category's ③: DECISIONS 21, captain 10-22 02:50); an editorial
+  // guide's coded slides follow under it (simple mode hides the slides, whose facts are in 30 秒看懂).
+  const badge = cover.tier === 'type' ? '' : cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover);
+  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={badge} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
+      {!cover.image.scene3d && <GuideCoverCredit image={cover.image} label={badge} />}</figure> : null;
+  const visual = editorial ? <>{figure}<GuideCarousel guide={guide} editorial={editorial} /></> : figure;
   // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
   const call = guideCallOf(editorial);
   const official = guide.sources[0];
@@ -297,7 +285,7 @@ const GuideDetailSession = ({
         {board && <div className="gd-boards">
           {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map((block, index) => renderBlock(block, index))}</div>}
           {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
-          {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={!editorial && cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
+          {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
         </div>}
         <nav className="bl-guide-toc gd-toc" aria-label={t('文章目录', 'Contents')}>
           <Disclosure className="gd-toc__phone" summary={<>{t('目录', 'Contents')}<span className="gd-toc__count">{t(`${headings.length} 个章节`, `${headings.length} section${headings.length === 1 ? '' : 's'}`)}</span></>}>{contents}</Disclosure>
@@ -336,7 +324,7 @@ const GuideDetailSession = ({
             <p className="bl-guide-source-note">{guide.sourceNote}</p>
           )}
         </div>
-        {related.length > 0 && <RelatedGuides related={related} coverPage={coverPage} today={today} topic={guideTopicOf(guide)} onOpenGuide={onOpenGuide} />}
+        {related.length > 0 && <RelatedGuides related={related} covers={relatedCovers} today={today} topic={guideTopicOf(guide)} onOpenGuide={onOpenGuide} />}
         <GuidePageImageCredits images={shownImages} />
         <Button variant="quiet" to={returnTo} className="bl-guide-return" icon={<ArrowLeft aria-hidden="true" strokeWidth={1.75} />}>
           {t('返回湾区指南', 'Back to guides')}

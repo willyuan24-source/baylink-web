@@ -28,7 +28,6 @@
 /* The coded-cover note prints once per board, under the last section (PerksView / OpeningsView render it when any shown
    cover is coded, in grid and row layouts alike), so each grid's own copy is hidden. Interim until INT-1: EVENTS' FeedGrid
    coverCredit={false} and ImageCredits' note replace both. */
-.fb-board .ui-feed>.ui-cover-credit { display:none; }
 
 /* Rows (phone at 大 / 特大 / 简洁): one list per section, the source line under the meta. */
 .fb-rows { margin:0; padding:0; list-style:none; }
@@ -38,8 +37,6 @@
 /* ♡ on a row is the same 44 px circle as on a card's cover (its name stays "收藏：<title>"), so the text keeps the width. */
 .fb-rows .ui-row-card__trailing .saves-control { margin:0; }
 .fb-rows .ui-row-card__trailing .saves-toggle { gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-radius:var(--r-circle); font-size:0; }
-/* A thumbnail's key fact keeps its words whole ("10/20" / "截止", never "截" / "止"); UI9-INT may move this into covers.css. */
-.fb-rows .tc-thumb { word-break:keep-all; }
 /* A row of cards ends on one line: each card fills its grid cell and its source line sits at the bottom, so a title that
    wraps once more does not leave the row's ✓ lines at different heights. */
 .fb-board .ui-feed-grid>li { display:flex; }

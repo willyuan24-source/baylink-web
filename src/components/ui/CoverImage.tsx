@@ -1,22 +1,26 @@
-import { lazy, Suspense, type ComponentType, type CSSProperties, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import './ui.css';
 import './covers.css';
 import './cards.css';
 import { ProvenanceBadge } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
 import { COVER_SIZES } from './cover-sizes';
-import { chooseCover, type CoverFamily, type CoverListingKind } from '../../lib/cover-family';
-import type { CoverAsset, ResolvedCover } from '../../lib/cover';
-import type { CoverTone } from '../../lib/event-facts';
+import type { CoverAsset, CoverTier, ResolvedCover } from '../../lib/cover';
+import { tierLabelOf } from '../../lib/cover-labels';
 
 /** The feed default is 3:2 (UI9-C, captain decision 20; `5:4` is accepted from older callers and draws that default); `16:10` is the BayBay answer card (264 wide, design.md §4.7.7). */
 export type CoverRatio = '3:4' | '4:5' | '5:4' | '1:1' | '16:9' | '16:10' | '3:2';
+/** The listing a cover belongs to (data-kind): events, offers, new shops, guides, services, places, bulletins. */
+export type CoverListingKind = 'event' | 'offer' | 'opening' | 'guide' | 'service' | 'place' | 'bulletin';
+type Src = Pick<CoverAsset, 'src'> & Partial<Pick<CoverAsset, 'srcSet'>>;
 
 export type CoverImageProps = {
   image: Pick<CoverAsset, 'src' | 'alt' | 'width' | 'height'> & Partial<Pick<CoverAsset, 'srcSet' | 'lqip' | 'scene3d'>>;
-  /** Provenance chip text from getImageProvenance(); omit only where the chip is shown elsewhere. */
+  /** The badge words (DECISIONS 23: tierLabelOf through <Cover>; getImageProvenance for a 3D postcard); omit only where shown elsewhere. */
   label?: string;
-  /** `contain`: a poster or full-frame artwork, shown whole on a solid board with a white mat (the poster family; never blurred or cropped). */
+  /** The tier the badge names (data-tier): a ③ 示意图 or ④ AI 示意图 badge stays on the picture in every size and mode. */
+  tier?: Exclude<CoverTier, 'type'>;
+  /** `contain`: a poster or full-frame artwork, shown whole on a solid board with a white mat (never blurred or cropped). */
   fit?: 'cover' | 'contain';
   focal?: readonly [number, number];
   ratio?: CoverRatio;
@@ -31,36 +35,60 @@ export type CoverImageProps = {
   decorative?: boolean;
   /** The listing kind (data-kind), from <Cover>. */
   kind?: CoverListingKind;
-  /** Overlays other than the provenance chip (none on listing covers since UI9-C: ♡ is the card's). */
+  /** What the picture becomes when its file fails to load (UI9-IMAGES DECISIONS 21): a ③ stock picture of the same kind. */
+  fallback?: Src;
+  /** The ③ badge words the fallback shows (示意图 / Stock photo): a stand-in never keeps the failed picture's ① or ② words. */
+  fallbackLabel?: string;
+  /** Overlays other than the badge (none on listing covers since UI9-C: ♡ is the card's). */
   children?: ReactNode;
   className?: string;
 };
 
 /**
- * One photo or poster cover: srcset/sizes, a dominant-colour placeholder, the focal-point crop (photo family) or the whole
- * flyer on its board (poster family), and the provenance chip. Render through `getCover()`; never pick images here.
- * A listing cover (`kind`, set by EventCover, OfferCover, OpeningCover and the guide covers) is the photo or poster family
- * with the chip; the AI 3D postcards (`image.scene3d`) and the pictures without a kind (/explore, guide and detail photos) keep
- * their frame and badge exactly as before: no family attributes, no chip look. A thumbnail without a kind (plan stops, saved
- * items, My Week) takes the chip look too: the plain badge keeps 56 px for a ♡ and would cut its words to two characters on an
- * 88 px thumb (N22: 0 truncated badges).
+ * Whether an image the browser already gave up on before React attached its handlers (a prerendered page) failed: complete,
+ * no pixels, and a source it chose. A lazy image not yet fetched is not complete, and a test DOM never chooses a source.
  */
-export function CoverImage({ image, label, fit = 'cover', focal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, children, className }: CoverImageProps) {
+const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.complete && !img.naturalWidth && !!img.currentSrc;
+
+/**
+ * One picture cover: srcset/sizes, a dominant-colour ground (LQIP), the focal-point crop (photo) or the whole flyer on its
+ * board (poster), and one badge at its bottom-left (DECISIONS 23). Render through `getCover()` and <Cover>; never pick
+ * images here. A file that fails to load (onError, DECISIONS 21) becomes the cover's `fallback` (a same-category ③
+ * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
+ * (`image.scene3d`) and the pictures outside the listing feeds keep their frame and top-left ink badge (DECISIONS 1, 2).
+ */
+export function CoverImage({ image, label: ownLabel, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, children, className }: CoverImageProps) {
+  // 1: the cover's own file failed and its fallback shows; 2: neither loaded (the LQIP colour shows). Tied to the file: the
+  // same mounted card given another picture (a filter, a list change) starts again from that picture.
+  const [failure, setFailure] = useState<{ src: string; step: 1 | 2 }>();
+  const failed = failure?.src === image.src ? failure.step : 0;
+  const fail = () => setFailure({ src: image.src, step: failed === 0 && fallback && fallback.src !== image.src ? 1 : 2 });
+  const standIn = failed === 1 && !!fallback;
+  const shown: Src = standIn ? fallback : image;
+  // The stand-in is a ③ stock photo: its own badge words and tier, cropped like any photo (never a poster's board).
+  const label = standIn ? fallbackLabel : ownLabel;
+  const tier = standIn ? 'stock' : ownTier;
+  const fit = standIn ? 'cover' : ownFit;
+  const focal = standIn ? [50, 50] as const : ownFocal;
   const style = { '--ui-lqip': image.lqip } as CSSProperties;
   // A poster's own shape (--ui-img-ratio, covers.css) lets the flyer fill its board however narrow `sizes` says the slot is.
   const imgStyle = (fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : { '--ui-img-ratio': image.width / image.height }) as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
-  const choice = kind && !image.scene3d ? chooseCover(kind, { tier: 'photo', fit }, { id: '' }) : undefined;
+  const listing = kind && !image.scene3d;
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}
-    data-family={choice?.family} data-kind={choice && kind} data-mark={choice?.mark} style={style}>
-    <img className="ui-cover__img" src={image.src} srcSet={image.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async" style={imgStyle} {...loading} />
-    {label && <ProvenanceBadge label={label} plain={!choice && (!!image.scene3d || sizes !== COVER_SIZES.thumb)} />}
+    data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} style={style}>
+    {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async" style={imgStyle} {...loading}
+      onError={fail} ref={img => { if (failedBeforeHydration(img)) fail(); }} />}
+    {/* A listing cover's chip sits bottom-left (DECISIONS 23); a picture outside the listing feeds (/explore's attraction
+        cards, whose caption covers the bottom, a guide's title picture, a detail page's venue photo) and the 3D postcards
+        keep the top-left ink badge they had (DECISIONS 1 and 2); an 88 px thumbnail always takes the chip. */}
+    {label && <ProvenanceBadge label={label} tier={tier} plain={!listing && (!!image.scene3d || sizes !== COVER_SIZES.thumb)} />}
     {children}
   </div>;
 }
 
 export type CoverSlot = {
-  /** From `getCover` / `resolveCovers`; a `type` result renders the item's type cover (src/lib/cover-family.ts). */
+  /** From `getCover` / `resolveCovers`. */
   cover: ResolvedCover;
   ratio?: CoverRatio;
   ratioLock?: boolean;
@@ -70,53 +98,53 @@ export type CoverSlot = {
   decorative?: boolean;
 };
 
+/** The DECISIONS 23 badge words for a resolved picture, in the page's language; the short English on an 88 px thumbnail. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useTierLabel() {
+  const { locale, pick } = useUiCopy();
+  return (cover: Parameters<typeof tierLabelOf>[0] & { label?: { zh: string; en: string } }, thumb = false) => {
+    // A kept label (照片 · 年份, 资料图 · 年份, BAYLINK 实拍) is the resolver's own words, dated on the page's day.
+    if (cover.tier === 'photo' && cover.label) return pick(cover.label);
+    const label = tierLabelOf(cover);
+    return locale === 'en' ? thumb ? label.enShort : label.en : locale === 'zh-Hant' ? label.zhHant : label.zh;
+  };
+}
+
 /**
- * A resolved photo or poster cover, or `fallback` (the item's type cover). Labels come from the resolver, i.e. from
- * getImageProvenance. A listing photo carries the provenance chip and nothing else (N22): the ♡ is the card's, and the date,
- * price and deadline live in the caption (Card.tsx `when` and meta lines).
+ * A resolved cover: its picture with one badge (DECISIONS 23, tierLabelOf). A slot whose every picture lost to the page's
+ * de-duplication shows its first picture again (`repeat`); only an item with no picture at all — which
+ * tests/report-cover-coverage.test.ts and tests/ui9-img-a1b.test.ts keep at zero for every listed record — keeps the frame
+ * in its LQIP colour. UI9-IMAGES DECISIONS 21: no date board, ticket, shop sign or title plate. The ♡ is the card's; the
+ * date, price and deadline live in the caption (Card.tsx `when` and meta lines).
  */
-export function Cover({ cover, fallback, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { fallback: ReactNode; ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
-  const { pick } = useUiCopy();
-  if (cover.tier === 'type') return <>{fallback}</>;
-  return <CoverImage image={cover.image} label={pick(cover.label)} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
-    sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind}>{children}</CoverImage>;
+export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
+  const label = useTierLabel();
+  const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
+  if (!cover) return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
+  const thumb = sizes === COVER_SIZES.thumb;
+  return <CoverImage image={cover.image} label={label(cover, thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
+    sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
+    fallbackLabel={cover.fallback ? label({ tier: 'stock', image: cover.image }, thumb) : undefined}>{children}</CoverImage>;
 }
 
-/** A type cover's frame props (the five type families: cover-date, cover-ticket, cover-guide, cover-shop). */
-export type CoverLayout = {
-  ratio?: CoverRatio;
-  ratioLock?: boolean;
-  /** Row thumbnail (≤ 140 px): the key fact only. */
-  size?: 'mini';
-  /** Hide from assistive tech when the surrounding card already reads the same facts. */
-  ariaHidden?: boolean;
-  className?: string;
-  /** Accepted for older callers and ignored: a cover keeps its own category colour (UI9-C removed the neighbour rotation). */
-  tone?: CoverTone;
-};
-
-/** The empty frame a deferred cover shows until its family is in (same box and ground as the family's own frame). */
-export function PendingCover({ family, ratio, ratioLock, size, className }: CoverLayout & { family: CoverFamily }) {
-  return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
+/** The empty picture frame (LQIP ground, same box): what a cover shows while it has no picture to show. */
+export function LqipCover({ ratio, ratioLock, lqip, className }: { ratio?: CoverRatio; ratioLock?: boolean; lqip?: string; className?: string }) {
+  return <div className={cx('ui-cover', className)} data-cover="lqip" data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} style={{ '--ui-lqip': lqip } as CSSProperties} aria-hidden="true" />;
 }
-
 
 /**
- * A cover family whose code loads after the page (UI9-IMG-A0; captain decision 9: route JS ≤ base). `preload()` starts the
- * chunk: a route's `prepare` awaits it (events, calendar), the module that draws it starts it as it loads, and the
- * prerendered page preloads the chunk (scripts/prerender.tsx). Once the chunk is in, the family renders directly, so a
- * page that waited for it, or comes after it, never shows the empty frame; until then the frame stands in (same box, same
- * ground) inside its own boundary; a failed load shows it and lets the next `preload()` (a route's `prepare`) try again. It lives with PendingCover, in a chunk every cover route has.
+ * A row's 13 px provenance line (RowCard `credit`): the badge words of a ①② picture, which leave the 88 px thumbnail for the
+ * line; a ③ 示意图 / ④ AI 示意图 badge stays on the thumbnail in every mode (DECISIONS 23), so the line leaves it out.
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export function deferredFamily<P extends object>(load: () => Promise<ComponentType<P>>, Frame: ComponentType<P>) {
-  let ready: ComponentType<P> | undefined;
-  let pending: Promise<ComponentType<P>> | undefined;
-  const preload = () => pending ??= load().then(face => (ready = face), () => (pending = undefined, Frame));
-  const Lazy = lazy(() => preload().then(face => ({ default: face }))) as unknown as ComponentType<P>;
-  const Family = (props: P) => {
-    const Ready = ready;
-    return Ready ? <Ready {...props} /> : <Suspense fallback={<Frame {...props} />}><Lazy {...props} /></Suspense>;
+export function useRowCredit() {
+  const label = useTierLabel();
+  return (resolved: ResolvedCover) => {
+    const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
+    return !cover || cover.tier === 'stock' || cover.tier === 'ai' ? undefined : label(cover);
   };
-  return { Family, preload };
 }
+
+/** A credit after its badge words: a ③ credit that repeats them ("示意图 · 摄影 … / Unsplash") drops the repeat. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const creditAfterLabel = (label: string, credit: string) => credit.startsWith(`${label} · `) ? credit.slice(label.length + 3) : credit;

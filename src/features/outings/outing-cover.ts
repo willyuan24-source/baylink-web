@@ -61,8 +61,10 @@ export function outingCoverHref(selection: OutingCoverSelection): string | undef
 
 /**
  * The photo an outing may show for its reference, through the site's one cover resolver (WEB-COMMUNITY: covers via
- * getCover, labels via getImageProvenance): an AI illustration, an undated or old third-party photo or a theme photo
- * is refused, and the outing shows its own designed card instead.
+ * getCover, labels via getImageProvenance): an unapproved AI illustration, an undated or old third-party photo or a
+ * theme photo is refused, and the outing shows its own designed card instead. An AI illustration the owner approved as a
+ * ④ cover (2026-10-21) shows, labelled AI 示意图: an outing card is a card on the page, not a share card (promoPhoto and
+ * cardPhoto still refuse AI, UI9-IMAGES DECISIONS 24).
  */
 export function outingCoverImage(choice: OutingCoverChoice, today: string): ImageCover | null {
   const key = choice.imageKey || `outing-cover:${choice.kind}:${choice.id}`;

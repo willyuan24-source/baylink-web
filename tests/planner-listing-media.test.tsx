@@ -26,7 +26,7 @@ beforeEach(context => {
 });
 afterEach(() => { cleanup(); localStorage.clear(); api.request = originalRequest; });
 
-test('new-shop recommendations show known official media and preserve text/source when only AI art exists', () => {
+test('new-shop recommendations show known official media, and a ③ 示意图 (never AI art) when only AI art exists', () => {
   const openings = PLANNER_PLACES.filter(place => place.id.startsWith('opening-'));
   const illustrated = openings.find(place => place.imageKey && GUIDE_IMAGES[place.imageKey]?.kind === 'illustration')!;
   const photographed = openings.find(place => place.imageKey && ['photo', 'poster'].includes(GUIDE_IMAGES[place.imageKey]?.kind))!;
@@ -40,12 +40,19 @@ test('new-shop recommendations show known official media and preserve text/sourc
   const textCard = cards.find(card => card.querySelector('h3')?.textContent === illustrated.title)!;
   const photoCard = cards.find(card => card.querySelector('h3')?.textContent === photographed.title)!;
   assert.ok(textCard.querySelector(`a[href="${illustrated.officialUrl}"]`));
-  assert.equal(textCard.querySelector('img'), null);
+  // UI9-IMAGES DECISIONS 21/22: the shop's own AI art ranks after its category's stock photos, so the card shows a ③ photo
+  // labelled 示意图 — never the AI art and never an information card. (Compare src strings: a failing assert on a jsdom node
+  // makes node:test inspect the whole window and stall.)
+  const textImage = textCard.querySelector('img')?.getAttribute('src') ?? '';
+  assert.match(textImage, /\/category-stock\//);
+  assert.notEqual(textImage, GUIDE_IMAGES[illustrated.imageKey!].src);
+  assert.equal(textCard.querySelector('[data-cover="type"]') === null, true);
+  assert.equal(textCard.querySelector('.ui-provenance')?.textContent, '示意图');
   assert.match(textCard.textContent || '', /费用待确认/);
   assert.equal(photoCard.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES[photographed.imageKey!].src);
 });
 
-test('planner shop catalog never restores an illustration for a text-only new-shop card', async () => {
+test('planner shop catalog shows a picture on every row: own photo or a ③ stock photo, never AI art or an information card', async () => {
   let view!: ReturnType<typeof render>;
   await act(async () => { view = render(<MemoryRouter initialEntries={['/plan?date=2026-10-05']}><PlannerPage /></MemoryRouter>); });
   fireEvent.click(view.getByRole('button', { name: '商店', exact: true }));
@@ -55,8 +62,10 @@ test('planner shop catalog never restores an illustration for a text-only new-sh
   for (const card of cards) {
     for (const image of card.querySelectorAll('img')) assert.ok(!illustratedSources.has(image.getAttribute('src') || ''), card.querySelector('h3')?.textContent || 'shop');
     assert.ok(card.querySelector('h3')?.textContent);
-    // Every row keeps a cover slot: the shop's own photo, or its information card (TypeCover), never AI art.
-    assert.ok(card.querySelector('.ui-row-card__thumb [data-cover]'), card.querySelector('h3')?.textContent || 'shop');
+    // Every row shows a picture (DECISIONS 21): the shop's own photo, else a ③ stock photo of its kind — never AI art and
+    // never an information card.
+    assert.equal(card.querySelectorAll('.ui-row-card__thumb [data-cover="image"] img').length, 1, card.querySelector('h3')?.textContent || 'shop');
+    assert.equal(card.querySelector('[data-cover="type"]') === null, true, card.querySelector('h3')?.textContent || 'shop');
   }
-  assert.ok(cards.some(card => card.querySelector('[data-cover="type"]') && !card.querySelector('img')), 'missing official shop images keep a useful information card');
+  assert.ok(cards.some(card => /\/category-stock\//.test(card.querySelector('img')?.getAttribute('src') ?? '')), 'a shop with no official image shows a ③ stock photo');
 });

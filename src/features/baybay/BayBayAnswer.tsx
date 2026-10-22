@@ -49,7 +49,7 @@ export function BayBayCitedText({ text, sources, onNavigate }: { text: string; s
 }
 
 /**
- * The image cards load as their own chunk (covers, TypeCover and the listing data), started when the panel opens, so the
+ * The image cards load as their own chunk (covers and the listing data), started when the panel opens, so the
  * site's entry does not list their dependencies; until then a fixed-height placeholder keeps the layout still. If the
  * chunk cannot load (offline, or a deploy renamed it), the same listings show as plain links, never an endless placeholder.
  */

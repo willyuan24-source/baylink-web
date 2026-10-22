@@ -1,6 +1,5 @@
 import { Check } from 'lucide-react';
-import { COVER_SIZES, Cover, FeedCard, RowCard, StatusChip, offerBrandLine } from '../../components/ui';
-import { DeferredOfferTypeCover, DeferredOpeningTypeCover } from '../../components/ui/cover-defer';
+import { COVER_SIZES, Cover, FeedCard, RowCard, StatusChip, offerBrandLine, useTierLabel } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText, type Locale } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
@@ -37,6 +36,14 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
   if (!pressSourced(sourceLabel)) return <TrustLine day={day} />;
   return <>{t('媒体报道', 'News report')}{SEP}{t(`${readerMonthDay(day)} 核对`, `checked ${readerMonthDay(day, true)}`)}</>;
 }
+/**
+ * Whether a row's source line names the picture: a ①② photo's words move from the 88 px thumbnail into the line, except in
+ * 简洁 (DECISIONS 16); a ③ 示意图 / ④ AI 示意图 keeps its chip on the thumbnail in every size and mode (DECISIONS 23,
+ * covers.css), so the line never repeats it.
+ */
+const rowProvenance = (cover: ResolvedCover, simple?: boolean) =>
+  cover.tier !== 'type' && cover.tier !== 'stock' && cover.tier !== 'ai' && !simple;
+
 /** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
 function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?: string; sourceLabel?: string }) {
   if (!day && !provenance) return null;
@@ -45,10 +52,9 @@ function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?
 
 /**
  * Line 2 of an offer card: the one status chip (已售罄 / 今天截止 / 还剩 N 天, board-status.ts), what the offer asks of you
- * and the brand. One brand per card (OfferCardMeta's rule): when the ticket cover prints the brand, this line keeps it for
- * screen readers only.
+ * and the brand (a picture never prints it, DECISIONS 21).
  */
-function OfferMeta({ offer, today, brandOnCover }: { offer: IndexOffer; today: string; brandOnCover: boolean }) {
+function OfferMeta({ offer, today }: { offer: IndexOffer; today: string }) {
   const { pick, locale } = useUiCopy();
   // The brand's own " · " ("Muir Woods · Marin") is glued too, so no wrapped line starts with "·" (N06).
   const brand = glueSeparators(offerBrandLine(offer.brand, locale));
@@ -56,35 +62,37 @@ function OfferMeta({ offer, today, brandOnCover }: { offer: IndexOffer; today: s
   return <>
     {chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}
     {pick(offerCondition(offer))}
-    {brand && (brandOnCover ? <span className="sr-only" translate="no">{SEP}{brand}</span> : <>{SEP}<span translate="no">{brand}</span></>)}
+    {brand && <>{SEP}<span translate="no">{brand}</span></>}
   </>;
 }
 
 /**
- * Offer card (1:1): the brand's own image, or C's ticket with the value large. ♡ on the cover saves the offer. `row` lists
- * it as a row instead (phone at 大 / 特大, 简洁显示); `simple` (简洁) drops ♡ and the provenance words there.
+ * Offer card (1:1): its picture (the brand's own image, its venue's photo or a ③ 示意图, DECISIONS 22); the value and the
+ * deadline are the caption's lines. ♡ on the cover saves the offer. `row` lists it as a row instead (phone at 大 / 特大,
+ * 简洁显示); `simple` (简洁) drops ♡ and a ①② photo's provenance words there.
  */
 export function OfferFeedCard({ offer, cover, today, save = true, row, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
   if (row) return <OfferRowCard offer={offer} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`}
-    cover={<Cover cover={cover} kind="offer" ratio="1:1" decorative fallback={<DeferredOfferTypeCover offer={offer} today={today} ratio="1:1" ariaHidden />} />}
-    when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={cover.tier === 'type'} />}
+    cover={<Cover cover={cover} kind="offer" ratio="1:1" decorative />}
+    when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} />}
     trust={<BoardTrust day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
     save={save ? <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} /> : undefined} />;
 }
 
 /**
- * The offer as a row (phone at 大 / 特大, 简洁显示): a 1:1 thumbnail with the key fact only, the same two lines and the
- * source line. 简洁 (`simple`) drops ♡ and the photo's provenance words: saving happens on the detail page (DECISIONS 16).
+ * The offer as a row (phone at 大 / 特大, 简洁显示): a 1:1 picture thumbnail, the same two lines and the source line. 简洁
+ * (`simple`) drops ♡ and a ①② photo's provenance words: saving happens on the detail page (DECISIONS 16). A ③ 示意图 or
+ * ④ AI 示意图 keeps its chip on the thumbnail (rowProvenance).
  */
 export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
-  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="offer"
-    fallback={<DeferredOfferTypeCover offer={offer} today={today} size="mini" ratio="1:1" ariaHidden />} />;
+  const label = useTierLabel();
+  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="offer" />;
   return <RowCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`} thumb={thumb}
-    when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={false} />}
-    credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
+    when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} />}
+    credit={<RowSource provenance={rowProvenance(cover, simple) && cover.tier !== 'type' ? label(cover) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
     trailing={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} />} />;
 }
 
@@ -104,26 +112,26 @@ function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string 
 }
 
 /**
- * New shop card (1:1): the shop's own image, or C's shopfront (what it sells and the opening day, never the name). `row` and
+ * New shop card (1:1): its picture (the shop's own image or storefront, else a ③ 示意图 of what it sells); `row` and
  * `simple` as on the offer card.
  */
 export function OpeningFeedCard({ opening, cover, today, save = true, row, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
   const { locale } = useUiCopy();
   if (row) return <OpeningRowCard opening={opening} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
-    cover={<Cover cover={cover} kind="opening" ratio="1:1" decorative fallback={<DeferredOpeningTypeCover opening={opening} today={today} ratio="1:1" ariaHidden />} />}
+    cover={<Cover cover={cover} kind="opening" ratio="1:1" decorative />}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
     trust={<BoardTrust day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
     save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} /> : undefined} />;
 }
 
-/** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and the provenance words. */
+/** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and a photo's provenance words (not ③④: rowProvenance). */
 export function OpeningRowCard({ opening, cover, today, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; simple?: boolean }) {
-  const { pick, locale } = useUiCopy();
-  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening"
-    fallback={<DeferredOpeningTypeCover opening={opening} today={today} size="mini" ratio="1:1" ariaHidden />} />;
+  const { locale } = useUiCopy();
+  const label = useTierLabel();
+  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening" />;
   return <RowCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
-    credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
+    credit={<RowSource provenance={rowProvenance(cover, simple) && cover.tier !== 'type' ? label(cover) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
     trailing={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} />} />;
 }

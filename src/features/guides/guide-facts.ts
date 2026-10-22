@@ -1,9 +1,9 @@
 import type { Guide } from '../../data/guides';
 import { GUIDE_TOPICS, type GuideTopicId } from '../../data/guide-topics';
-import { getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
+import { createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import type { Copy, CoverTone } from '../../lib/event-facts';
 import { getLocale } from '../../i18n/locale';
-import { coverFor, type GuideCall, type GuideCard } from './guide-records';
+import { coverFor, relatedForToday, type GuideCall, type GuideCard, type GuideRecord } from './guide-records';
 
 /**
  * Guide facts for the index (T2) and the article template (T7), computed from the published guide only: topics come from
@@ -23,7 +23,7 @@ export const GUIDE_REGIONS: readonly { id: GuideRegionId; zh: string; en: string
 export const isGuideRegion = (value: unknown): value is GuideRegionId => GUIDE_REGIONS.some(region => region.id === value);
 export const isGuideTopic = (value: unknown): value is GuideTopicId => GUIDE_TOPICS.some(topic => topic.id === value);
 
-/** Each topic's TypeCover palette and texture icon (keys of TypeCover's closed icon list). */
+/** Each topic's tone and icon key (the UI9-C type covers' palette; kept for the topic chips' data, UI9-IMAGES draws pictures only). */
 export const TOPIC_COVER: Readonly<Record<GuideTopicId, { tone: CoverTone; icon: string }>> = {
   elders: { tone: 'seniors', icon: 'seniors' },
   health: { tone: 'culture', icon: 'book' },
@@ -152,8 +152,34 @@ export const guideEnglishDate = (iso: string): string => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day, 12)));
 };
 
-/** One cover per guide through the honesty ladder: a photo or official image, never an AI illustration (→ TypeCover). */
+/** One cover per guide through the honesty ladder (DECISIONS 22): its own photo or official image, else its ③ stock picture. */
 export function guideCover(card: Pick<GuideCard, 'slug' | 'covers'>, today: string, page?: CoverPage): ResolvedCover {
   const image = coverFor(card.covers, getLocale());
-  return getCover({ kind: 'guide', id: card.slug, imageKey: image.src }, { images: () => image, today, page });
+  // A cover another guide on the page already shows gives way to the guide's ③ stock picture (UI9-IMG-A1b): never a card.
+  const stock = card.covers.stock && coverFor(card.covers.stock, getLocale());
+  const keys = stock && stock.src !== image.src ? { imageKeys: [image.src, stock.src] } : {};
+  return getCover({ kind: 'guide', id: card.slug, imageKey: image.src, ...keys }, { images: key => key === stock?.src ? stock : image, today, page });
+}
+
+/**
+ * A guide page's pictures in the order the page claims them (rule 6, one picture once per page): the hero; the inline
+ * pictures the deals board does not already show (the board shows each offer's own picture); the legacy poster only when it
+ * is not the cover; the 3D link's postcard (H36) only when the page does not already show it; then the "Read next" cards
+ * (never an edition past its last day), each resolved after every picture above, so a card whose cover the page shows takes
+ * its next picture (scripts/generate-guide-data.ts distinctRelated mirrors these claims). GuideDetail and the tests read it.
+ */
+export function guidePageCovers(record: GuideRecord, today: string) {
+  const { guide } = record;
+  const coverPage = createCoverPage();
+  const cover = guideCover({ slug: guide.slug, covers: record.covers }, today, coverPage);
+  const boardImages = record.boardImages ?? [];
+  const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
+  const inline = record.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
+    && !boardImages.includes(item.image.src));
+  const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
+  for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
+  const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
+  if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
+  const related = relatedForToday(record.related.filter(card => editionState(card, today) !== 'past'), today);
+  return { coverPage, cover, inline, poster, opusArt, related, relatedCovers: related.map(card => guideCover(card, today, coverPage)) };
 }

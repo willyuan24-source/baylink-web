@@ -21,8 +21,10 @@ export type HomeGuide = {
   /** Distinct official source URLs. */
   sources: number;
   readMinutes: number;
-  /** The guide's cover image key in `images` (absent: the information card). */
+  /** The guide's cover image key in `images` (absent: its ③ picture through `imageKeys`). */
   imageKey?: string;
+  /** UI9-IMG-A1b: [own cover, ③ stock picture] when another home guide shares the cover file (①② once per page). */
+  imageKeys?: readonly string[];
 };
 /** A weekend event with the facts a home card prints (editorial overlay fields and planning facts when present). */
 export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'>; press?: true; imageKeys?: readonly string[] };
@@ -44,3 +46,6 @@ export const GUIDE_IMAGES = catalog.images as Record<string, GuideImage>;
 export const HOME_SCENE3D = catalog.scene3d as GuideImage;
 /** The weekend feed's 3D strip (H36): another postcard of the same world, so the page never shows one image twice. */
 export const HOME_SCENE3D_STRIP = catalog.scene3dStrip as GuideImage;
+/** The eight entry tiles' photos (DECISIONS 27; home-tile-photos.json): the 480 w file, its alt, credit and LQIP colour. */
+export type HomeTilePhoto = Pick<GuideImage, 'src' | 'width' | 'height' | 'alt' | 'credit'> & Partial<Pick<GuideImage, 'creditUrl' | 'licenseUrl' | 'focal'>> & { lqip?: string };
+export const HOME_TILES = ((catalog as { tiles?: Record<string, HomeTilePhoto> }).tiles ?? {}) as Readonly<Record<string, HomeTilePhoto>>;

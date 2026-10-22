@@ -76,14 +76,14 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
    lead never fit the first screen at 特大 / 简洁 / 家人版, N18), 16:9 on desktop. HeroCard's own rules (home) are unchanged. */
 .ev-lead { gap:var(--sp-1); }
 .ev-lead :is(.ui-hero-card__media,.ui-hero-card__text) { display:contents; }
-.ev-picks .ev-lead :is(.ui-cover,.ui-type-cover) { order:0; aspect-ratio:2 / 1; margin-bottom:var(--sp-2); border-radius:var(--r-lg); }
+.ev-picks .ev-lead .ui-cover { order:0; aspect-ratio:2 / 1; margin-bottom:var(--sp-2); border-radius:var(--r-lg); }
 .ev-lead .ui-hero-card__reason { order:1; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ev-lead .ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
 .ev-lead .ui-hero-card__title { order:2; display:block; overflow:visible; font-size:var(--fs-section); line-height:var(--lh-tight); }
 .ev-lead .ui-card-when { order:3; }
 .ev-lead .ui-hero-card__meta { order:4; margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ev-lead .ui-hero-card__trust { order:5; font-size:var(--fs-meta); }
-@media (min-width:1024px) { .ev-picks .ev-lead :is(.ui-cover,.ui-type-cover) { aspect-ratio:16 / 9; } }
+@media (min-width:1024px) { .ev-picks .ev-lead .ui-cover { aspect-ratio:16 / 9; } }
 
 /* Rows on every events template (the calendar, the share strip, the pick rows, the elder-mode feeds): one 112px 4:3
    thumbnail; two columns of rows from 768px at 大 / 特大 and in 简洁显示. */
@@ -97,7 +97,10 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
 .ev-page .ui-row-card:has(>.ui-row-card__trailing .saves-control) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body"; }
 .ev-page .ui-row-card__trailing:has(.saves-control) { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
 .ev-page .ui-row-card__trailing .saves-control { margin:0; }
-.ev-page .ui-row-card__trailing .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
+/* captain 10-21 18:30: at 特大 the control-height circle (55 px) hid 40% of the thumbnail; the circle is 36 px at every size
+   and its hit area stays 44 px (the ::after ring). */
+.ev-page .ui-row-card__trailing .saves-control .saves-toggle::after { content:""; position:absolute; inset:-4px; }
+.ev-page .ui-row-card__trailing .saves-control .saves-toggle { position:relative; justify-content:center; gap:0; width:36px; height:36px; min-height:36px; padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
 
 /* B · 本周末全部活动: the H2 and "找到 n 场" on one line, then the rails. */
 .ev-feed__head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin:0 0 var(--stack-head); }
@@ -139,7 +142,6 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
    photo and a tile in one row share one cover height and their titles line up. */
 @media (max-width:767px) { :is(.ev-cards,.ev-picks__cards) { --ui-feed-ratio:4 / 3; } }
 @media (min-width:1024px) { .ev-cards .ui-feed-grid { --ui-feed-cols:3; } }
-.ev-page .ui-cover-credit { display:none; }
 .ev-day+.ev-day { margin-top:var(--sp-6); }
 .ev-day__head { margin:0 0 var(--stack-head); padding-top:var(--sp-3); border-top:1px solid var(--color-line); color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:400; font-variant-numeric:tabular-nums; }
 .ev-day:first-child .ev-day__head { padding-top:0; border-top:0; }

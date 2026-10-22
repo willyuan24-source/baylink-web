@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COVER_TABLES, coverCandidates, idSpot, venuesFor, type CoverTables } from '../src/lib/cover-candidates';
+import { COVER_TABLES, DENSE_STOCK, ROUTE_STOCK, categorySpots, coverCandidates, denseCategories, idSpot, postStockKeys, routeStock, venuesFor, type CoverTables } from '../src/lib/cover-candidates';
 import { AI_COVER_APPROVALS, GUIDE_IMAGES } from '../src/data/guide-media';
 import { coverItemFor } from '../src/lib/cover';
 import { isPhotoCategoryId } from '../src/lib/photo-category';
@@ -24,9 +24,13 @@ test('① own → ② venue → ③ category, rotated by id → ④ approved AI'
   assert.deepEqual(venuesFor('offer', { id: 'o-lib', title: '图书证福利' }, tables.venues).map(v => v.id), ['cupertino-library'], 'records add what the words miss');
 });
 
-test('with today’s empty tables every record keeps exactly its own image (A0 changes no page)', () => {
-  assert.deepEqual(coverCandidates('event', story), ['own']);
-  assert.deepEqual(coverCandidates('offer', { id: 'o', brand: 'IKEA', title: '会员咖啡' }), []);
+test('with no table rows every record keeps exactly its own image (A0 changes no page)', () => {
+  const empty: CoverTables = { venues: [], categories: {}, ai: [] };
+  assert.deepEqual(coverCandidates('event', story, empty), ['own']);
+  assert.deepEqual(coverCandidates('offer', { id: 'o', brand: 'IKEA', title: '会员咖啡' }, empty), []);
+  // With the owner-approved category photos (2026-10-21) the record's own image still comes first.
+  assert.equal(coverCandidates('event', story)[0], 'own');
+  assert.ok(coverCandidates('event', story).slice(1).every(key => COVER_TABLES.categories.storytime?.includes(key)), 'then its category pool');
   assert.deepEqual(coverItemFor('event', { id: 'e', imageKey: 'k' }), { kind: 'event', id: 'e', imageKey: 'k' });
   assert.deepEqual(coverItemFor('event', { id: 'e', imageKey: 'face' }, { imageKey: undefined }), { kind: 'event', id: 'e', imageKey: undefined },
     'an explicit undefined (the close-up-face rule) is kept, never replaced by the record’s own image');
@@ -64,4 +68,36 @@ test('a guide record (id = slug) gets the pool of its slug-derived category, and
   const guideTables: CoverTables = { venues: [], categories: { transit: ['T1'], 'guide-documents': ['D1'] }, ai: [{ key: 'ai-t', for: ['category:transit'] }] };
   assert.deepEqual(coverCandidates('guide', { id: 'bart-october-access-parking-update-2026' }, guideTables), ['T1', 'ai-t']);
   assert.deepEqual(coverCandidates('guide', { id: 'some-new-guide', category: 'service' }, guideTables), ['D1'], 'then the guide category');
+});
+
+test('UI9-IMG-A1b: a record whose own image is an approved AI cover ranks it ④, after its category stock (DECISIONS 22)', () => {
+  const keys = coverCandidates('event', { ...story, imageKey: 'ai-2' }, tables);
+  assert.deepEqual([...keys.slice(2, 5)].sort(), ['s1', 's2', 's3'], 'venue photos, then the stock pool');
+  assert.deepEqual(keys.slice(5), ['ai-2', 'ai-1'], 'the own AI image comes after the pool, before other approved AI');
+  // coverItemFor keeps that order (it used to put the own image back in front).
+  const item = coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys });
+  assert.deepEqual(item.imageKeys, keys);
+  assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: undefined }).imageKeys, keys.filter(key => key !== 'ai-2'));
+  assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: 'x' }).imageKeys, ['x', ...keys.filter(key => key !== 'ai-2')]);
+});
+
+test('captain 10-22 02:50: a crowded category ships a third ③, and a list deals its records different first pictures', () => {
+  const kids = ['a', 'b', 'c', 'd'].map(id => ({ id, title: `${id} 图书馆亲子故事时间 storytime`, venue: 'Library', category: 'family' }));
+  assert.deepEqual([...denseCategories('event', kids.slice(0, 3), tables)], [], 'three records, three pictures: not crowded');
+  const dense = denseCategories('event', kids, tables);
+  assert.deepEqual([...dense], ['storytime']);
+  assert.deepEqual(denseCategories('event', kids, tables, 2).size, 0, 'the factor is records per picture');
+  const spots = categorySpots('event', kids);
+  assert.deepEqual(kids.map(kid => spots.get(kid.id)), [0, 1, 2, 3]);
+  const firsts = kids.map(kid => coverCandidates('event', kid, tables, routeStock('event', kid, dense, spots)));
+  assert.deepEqual(firsts.map(keys => keys.length), [DENSE_STOCK, DENSE_STOCK, DENSE_STOCK, DENSE_STOCK]);
+  assert.deepEqual(firsts.map(keys => keys[0]), ['s1', 's2', 's3', 's1'], 'neighbours lead with different pictures, wrapping round the pool');
+  assert.equal(coverCandidates('event', kids[0], tables, routeStock('event', kids[0], new Set())).length, ROUTE_STOCK);
+});
+
+test('a saved neighbourhood post takes its board category\'s ③ pictures (captain 10-22 02:50: never an empty frame)', () => {
+  const housing = postStockKeys({ id: 'p1', category: '租屋' });
+  assert.ok(housing.length >= 3 && housing.every(key => key.startsWith('stock-guide-housing-') && Object.hasOwn(GUIDE_IMAGES, key)));
+  assert.ok(postStockKeys({ id: 'p2', category: '接送' }).every(key => key.startsWith('stock-transit-')));
+  assert.ok(postStockKeys({ id: 'p3' }).every(key => key.startsWith('stock-guide-newcomer-')), 'any other category: newcomer basics');
 });

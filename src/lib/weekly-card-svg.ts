@@ -3,10 +3,11 @@ import { CARD_INK, CARD_PALETTE, cardLines, fitSize, plainText, textWidth, type 
 
 /**
  * The weekly card v2 (WEB-SHARE-SEO, I18N-SEO-05): 1080 × 1440 (3:4), the weekend's picks — the same the home page
- * shows — as a 2 × 2 grid of TypeCover tiles (or a promotion-cleared photo) with their date badges, then a QR of at
+ * shows — as a 2 × 2 grid of photo tiles (UI9-IMAGES DECISIONS 21: a promotion-cleared picture each; a ③ one says 示意图)
+ * with their date badges, then a QR of at
  * least 300 px to the region's always-current list. One card per language.
  */
-export type WeeklyTile = { tone: CardTone; label: string; date: string; title: string; place: string; sticker?: string; pick?: string; photo?: string };
+export type WeeklyTile = { tone: CardTone; label: string; date: string; title: string; place: string; sticker?: string; pick?: string; photo?: string; badge?: string };
 export type WeeklyCardModel = {
   eyebrow: string; range: string; weekdays: string;
   tiles: WeeklyTile[];
@@ -42,7 +43,8 @@ export function renderWeeklyCardSvg(model: WeeklyCardModel, qr: CardQr, logo: st
     ${pill(draw, tile.date, x + 30, y + 78, 26, '#fff', INK)}
     ${lines(draw, title, x + 32, y + 178, 34, 44, 700, tile.photo ? '#fff' : INK)}
     ${lines(draw, cardLines(tile.place, tileW - 64, 22, 1), x + 32, y + 178 + title.length * 44 + 4, 22, 30, 400, tile.photo ? '#fff' : INK_2)}
-    ${tile.sticker ? pill(draw, tile.sticker, x + 30, y + tileH - 70, 22, tile.photo ? '#fff' : palette.fg, tile.photo ? INK : '#fff') : ''}`;
+    ${tile.sticker ? pill(draw, tile.sticker, x + 30, y + tileH - 70, 22, tile.photo ? '#fff' : palette.fg, tile.photo ? INK : '#fff') : ''}
+    ${tile.photo && tile.badge ? pill(draw, tile.badge, x + tileW - 32 - Math.ceil(textWidth(tile.badge, 18)) - 32, y + tileH - 66, 18, PAPER, INK) : ''}`;
   });
   if (model.tiles.length === 3 && model.more) {
     const x = left + tileW + gap, y = top + tileH + gap;

@@ -8,8 +8,9 @@ import { GUIDE_IMAGES, guideCount, HOME_WEEKENDS, MONTHLY_EVENTS } from '../src/
 import { WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
-import { GUIDE_IMAGES as COMPLETE_IMAGES } from '../src/data/guide-media';
+import { AI_COVER_APPROVALS, GUIDE_IMAGES as COMPLETE_IMAGES } from '../src/data/guide-media';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
+import { assertPoolSpacing, coversInPageOrder } from './support/cover-spacing';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
@@ -75,19 +76,27 @@ test('the picks are the weekly share card’s three in order, each a cover, the 
   assert.equal(doc.querySelector('.home-share a[download]')!.getAttribute('href'), getWeeklyCardHref(today));
 });
 
-test('no event, offer or guide on the home shows an AI illustration, and no image appears twice (SV-04, VISUAL-10)', () => {
-  const illustrations = new Set(Object.values(COMPLETE_IMAGES).filter(image => image.kind === 'illustration' && !image.scene3d).map(image => image.src));
+test('the home shows no unapproved AI illustration, never leads with one, and shows no image twice (SV-04, VISUAL-10, UI9-IMAGES 22/24)', () => {
+  // Since 2026-10-21 the owner-approved AI illustrations (src/data/ai-cover-approvals.json, ④) may cover a card, badged
+  // AI 示意图; any other AI illustration stays out, and none takes the lead (DECISIONS 24).
+  const approved = new Set(AI_COVER_APPROVALS.map(approval => approval.key));
+  const approvedSrcs = new Set([...approved].map(key => COMPLETE_IMAGES[key].src));
+  const illustrations = new Set(Object.entries(COMPLETE_IMAGES).filter(([key, image]) => image.kind === 'illustration' && !image.scene3d && !approved.has(key)).map(([, image]) => image.src));
   for (const day of days) {
     const doc = serverHome(day);
     const sources = [...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')!);
-    assert.equal(new Set(sources).size, sources.length, `${day}: an image appears once`);
-    for (const badge of doc.querySelectorAll('.home-picks [data-provenance], .home-feed [data-provenance], .home-offers [data-provenance], .home-guides [data-provenance]')) {
-      assert.notEqual(badge.textContent, 'AI 示意图', `${day}: ${badge.closest('article')?.querySelector('h3')?.textContent}`);
-    }
-    for (const src of sources) assert.ok(!illustrations.has(src), `${day}: ${src} is an AI illustration`);
+    // ①② images once per page; an approved AI picture is a ④ pool picture, which may come back only ADJACENT_CARDS or more
+    // cards apart (cover.ts).
+    const once = sources.filter(src => !approvedSrcs.has(src));
+    assert.equal(new Set(once).size, once.length, `${day}: an image appears once`);
+    assertPoolSpacing(coversInPageOrder(doc.querySelector('.home-discovery')!), approvedSrcs, day);
+    const lead = doc.querySelector('.home-picks__list>li:first-child');
+    assert.notEqual(lead?.querySelector('[data-provenance]')?.textContent, 'AI 示意图', `${day}: an AI illustration leads`);
+    for (const img of lead?.querySelectorAll('img') ?? []) assert.ok(!approvedSrcs.has(img.getAttribute('src')!), `${day}: an AI illustration leads`);
+    for (const src of sources) assert.ok(!illustrations.has(src), `${day}: ${src} is an unapproved AI illustration`);
   }
-  // The catalog ships no AI illustration; the 3D tile's postcard is labelled 3D 场景插图 and says how big the world is.
-  for (const [key, image] of Object.entries(GUIDE_IMAGES)) assert.notEqual(image.kind, 'illustration', key);
+  // The catalog ships no unapproved AI illustration; the 3D tile's postcard is labelled 3D 场景插图 and says how big the world is.
+  for (const [key, image] of Object.entries(GUIDE_IMAGES)) if (image.kind === 'illustration') assert.ok(approved.has(key), key);
   assert.match(serverHome().querySelector('a[href="/opus-bay?from=home"]')!.textContent!, /3D 场景插图.*约 8MB/s);
 });
 
@@ -316,7 +325,8 @@ test('the first cover is fetched first; English has the question H1 and English 
 
 test('home sends the weekend to /events and keeps an eager, client-side 按日历看 link (WEB-ROUTES, OPUS contract)', () => {
   const doc = serverHome();
-  const moods = [...doc.querySelectorAll('.home-moods a')].map(link => [link.textContent, link.getAttribute('href')]);
+  // UI9-IMG-A1b (DECISIONS 27): each entry is a photo tile, its name (.home-mood__label) and one line under it.
+  const moods = [...doc.querySelectorAll('.home-moods a')].map(link => [link.querySelector('.home-mood__label')?.textContent, link.getAttribute('href')]);
   assert.deepEqual(moods.find(([label]) => label === '今天去哪'), ['今天去哪', '/events?when=today']);
   assert.deepEqual(moods.find(([label]) => label === '免费'), ['免费', '/events?cost=free']);
   assert.deepEqual(moods.find(([label]) => label === '按日历看'), ['按日历看', '/calendar']);

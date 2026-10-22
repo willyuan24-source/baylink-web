@@ -1,3 +1,4 @@
+import { getCover } from '../../lib/cover';
 import type { GuideImage } from '../../data/guide-media';
 import { translateText } from '../../i18n/locale';
 import { eventPlace, type EventFactsInput } from '../../lib/event-facts';
@@ -34,7 +35,15 @@ export function buildPlanWeekend(): PlanWeekendSnapshot {
         const shortTitle = event.shortTitle ? translateText(event.shortTitle, 'en') : '';
         events[event.id] = { ...event, en: { title: translateText(event.title, 'en'), ...(shortTitle && !HAN.test(shortTitle) ? { shortTitle } : {}), place: translateText(eventPlace(event as unknown as EventFactsInput), 'en') } };
       }
-      if (event.imageKey && GUIDE_IMAGES[event.imageKey]) images[event.imageKey] = GUIDE_IMAGES[event.imageKey];
+      // The first candidate the ladder accepts (imageKeys: ① own, ② venue, ③ stock, ④ approved AI; UI9-IMG-A1b), so a pick
+      // whose own image is no cover still shows a picture (never an information card); a second one only for a ③ picture,
+      // so two picks of one category can show two pictures (/plan route JS ≤ the 0d5f7cd base, DECISIONS 28).
+      const order = event.imageKeys ?? (event.imageKey ? [event.imageKey] : []);
+      const accepted = order.filter(key => GUIDE_IMAGES[key] && getCover({ kind: 'event', id: event.id, imageKey: key }, { images: GUIDE_IMAGES, today: day }).tier !== 'type');
+      const first = accepted[0] && getCover({ kind: 'event', id: event.id, imageKey: accepted[0] }, { images: GUIDE_IMAGES, today: day });
+      const shown = accepted.slice(0, first && first.tier === 'stock' ? 2 : 1);
+      for (const key of shown) images[key] = GUIDE_IMAGES[key];
+      if (event.imageKeys) events[event.id] = { ...events[event.id], imageKeys: shown };
     }
   }
   return { days, events, images };

@@ -12,7 +12,7 @@ export type HeroCardProps = {
   to: string;
   /** A 4:5 cover: `<EventCover ratio="4:5" ratioLock …/>`. */
   cover: ReactNode;
-  /** Print kicker, title and fact chips on the photo (scrim). Pass false for a TypeCover, which already shows them. */
+  /** Print kicker, title and fact chips on the photo (scrim); false prints them under the picture. */
   overlay: boolean;
   /** "Fremont · 东湾" */
   kicker?: string;

@@ -17,12 +17,12 @@ const cssHook = registerHooks({ load(url, context, nextLoad) {
   if (/\/components\/ui\/(?:ui|covers|cards)\.css$/.test(url)) return { format: 'module', shortCircuit: true, source: 'export {};' };
   return nextLoad(url, context);
 } });
-const { render, cleanup, act } = await import('@testing-library/react');
+const { render, cleanup } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
-const { TypeCover, EventTypeCover, OfferTypeCover, OpeningTypeCover, EventCover, OfferCover } = await import('../src/components/ui');
+const { EventCover, OfferCover, Cover } = await import('../src/components/ui');
 cssHook.deregister();
 const { setLocale } = await import('../src/i18n/locale');
-const { getCover } = await import('../src/lib/cover');
+const { getCover, createCoverPage } = await import('../src/lib/cover');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
@@ -32,95 +32,6 @@ const fleetWeek = {
   city: 'San Francisco', category: 'family' as const, cost: 'free' as const, audience: ['家庭'], iconKey: 'plane',
 };
 const wrap = (node: React.ReactNode) => render(<MemoryRouter>{node}</MemoryRouter>);
-
-test('an event type cover is the date family: real DOM text, the honest label, the day and weekday, the venue; never the title', () => {
-  const view = wrap(<EventTypeCover event={fleetWeek} today={today} />);
-  const root = view.container.querySelector('[data-cover="type"]');
-  assert.ok(root, 'the root carries data-cover="type" for the image-area probe (RC-31)');
-  assert.deepEqual(['data-family', 'data-kind', 'data-mark', 'data-tone'].map(name => root.getAttribute(name)), ['date', 'event', 'calendar', 'family']);
-  assert.equal(root.getAttribute('data-key'), '10/10–11');
-  assert.equal(root.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  assert.equal(root.querySelector('.tc-cal__top')?.textContent, '周六–周日');
-  assert.equal(root.querySelector('.tc-cal__day')?.textContent, '10/10–11');
-  assert.equal(root.querySelector('.tc-eyebrow')?.textContent, 'San Francisco');
-  assert.doesNotMatch(root.textContent ?? '', /Fleet Week|蓝天使/, 'the caption prints the title; the cover never repeats it (N19)');
-  assert.equal(root.querySelector('.ui-sticker'), null, 'no stickers on a cover (N22)');
-  assert.equal(root.querySelector('.tc-bar'), null, 'a two-day run draws no time bar');
-  assert.equal(root.hasAttribute('data-art'), false, 'no drawings (G3)');
-  assert.equal(root.querySelector('img'), null, 'no picture inside a type cover');
-});
-
-test('the type cover translates: English weekday, day and venue; zh-Hant converts the Chinese', async () => {
-  await act(async () => { await setLocale('en', false); });
-  const english = wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week', shortTitle: undefined }} today={today} />);
-  assert.equal(english.container.querySelector('[data-provenance]')?.textContent, 'Info card');
-  assert.equal(english.container.querySelector('.tc-cal__top')?.textContent, 'Sat–Sun');
-  assert.equal(english.container.querySelector('.tc-cal__day')?.textContent, 'Oct 10–11');
-  assert.equal(english.container.querySelector('.tc-eyebrow')?.getAttribute('lang'), 'en');
-  cleanup();
-  await act(async () => { await setLocale('zh-Hant', false); });
-  const traditional = wrap(<EventTypeCover event={{ ...fleetWeek, city: '长者中心', audience: ['长者'] }} today={today} />);
-  assert.equal(traditional.container.querySelector('.tc-cal__top')?.textContent, '週六–週日');
-  assert.equal(traditional.container.querySelector('.tc-eyebrow')?.textContent, '長者中心');
-});
-
-test('an unknown date says so instead of printing dateLabel; a thumbnail shows the time, else the place, else the price', () => {
-  const view = wrap(<EventTypeCover event={{ ...fleetWeek, cost: 'unknown', occurrenceDates: [] }} today={today} />);
-  assert.equal(view.container.querySelector('.tc-cal__day')?.textContent, '日期见详情');
-  assert.equal(view.container.querySelector('.ui-sticker'), null);
-  cleanup();
-  const mini = wrap(<EventTypeCover event={fleetWeek} today={today} size="mini" />);
-  const thumb = mini.container.querySelector('[data-cover="type"]')!;
-  assert.equal(thumb.getAttribute('data-size'), 'mini');
-  assert.equal(thumb.textContent, 'San Francisco', 'no time: the place; never the date the row already prints, and not a row of 免费');
-  cleanup();
-  const timed = wrap(<EventTypeCover event={{ ...fleetWeek, endDate: '2026-10-10', sessions: [{ date: '2026-10-10', start: '11:00', end: '16:00' }] }} today={today} size="mini" />);
-  assert.equal(timed.container.querySelector('[data-cover="type"]')!.textContent, '11:00–16:00');
-});
-
-test('offer and opening type covers: the ticket (value, condition, brand as written, deadline stub) and the shop sign', async () => {
-  const offer = wrap(<OfferTypeCover offer={{ brand: 'SAN FRANCISCO PUBLIC LIBRARY', title: '借书证免费参观博物馆', endDate: '2026-10-09', availability: 'dated' }} today={today} />);
-  const root = offer.container.querySelector('[data-cover="type"]')!;
-  assert.deepEqual(['data-family', 'data-kind', 'data-ratio', 'data-tone'].map(name => root.getAttribute(name)), ['ticket', 'offer', '1:1', 'free']);
-  assert.equal(root.querySelector('.tc-ticket__value')?.textContent, '免费');
-  assert.equal(root.querySelector('.tc-eyebrow')?.textContent, 'San Francisco Public Library');
-  assert.equal(root.querySelector('.tc-ticket__stub')?.textContent, '10/9截止');
-  assert.equal(root.querySelector('.ui-sticker'), null);
-  cleanup();
-  const retail = wrap(<OfferTypeCover offer={{ brand: 'YOGURTLAND', title: '会员生日礼', availability: 'ongoing' }} today={today} />);
-  // No value: the deadline leads; the caption carries the title, so the cover never repeats it (PROD-W3: "Concord Taco Tra…").
-  assert.equal(retail.container.querySelector('.tc-ticket__value')?.textContent, '长期有效');
-  assert.equal(retail.container.querySelector('.tc-ticket__stub'), null);
-  assert.equal(retail.container.querySelector('.tc-eyebrow')?.textContent, 'Yogurtland');
-  assert.doesNotMatch(retail.container.textContent ?? '', /会员生日礼/);
-  cleanup();
-  const withOrder = { brand: 'SMASHBURGER', title: '周三买完整成人套餐，12 岁及以下儿童餐免费', availability: 'ongoing', kind: 'purchase' } as const;
-  const zhOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
-  assert.equal(zhOrder.container.querySelector('.tc-ticket__value')?.textContent, '随单免费');
-  cleanup();
-  await act(async () => { await setLocale('en', false); });
-  const enOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
-  assert.equal(enOrder.container.querySelector('.tc-ticket__value')?.textContent, 'Free');
-  assert.equal(enOrder.container.querySelector('.tc-ticket__cond')?.textContent, 'with purchase', 'the condition stays on the cover');
-  assert.equal(enOrder.container.querySelector('.tc-ticket')?.hasAttribute('data-long'), false, '"Free" keeps its stub on a 2-up card');
-  cleanup();
-  // UI9-INT (acceptance review): "Purchase required" broke as 'Purcha / se / requir / ed' beside the stub on a 2-up card; a
-  // long English word marks the ticket, and covers.css gives it the whole width there (the card's status prints the date).
-  const enTerms = wrap(<OfferTypeCover offer={{ brand: 'Party City', title: 'Costume swap', availability: 'limited', kind: 'purchase', endDate: '2026-10-26' }} today={today} />);
-  assert.equal(enTerms.container.querySelector('.tc-ticket__value')?.textContent, 'Purchase required');
-  assert.equal(enTerms.container.querySelector('.tc-ticket')?.hasAttribute('data-long'), true);
-  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /@container tc \(max-width:240px\) \{[^}]*\}[^@]*\.tc-ticket\[data-long\] \.tc-ticket__stub \{ display:none; \}/);
-  cleanup();
-  await act(async () => { await setLocale('zh-Hans', false); });
-  const opening = wrap(<OpeningTypeCover opening={{ name: 'Sergeant Ma', city: 'San Francisco', status: 'announced', openingType: 'new-restaurant' }} today={today} />);
-  const shop = opening.container.querySelector('[data-cover="type"]')!;
-  assert.deepEqual(['data-family', 'data-mark', 'data-tone'].map(name => shop.getAttribute(name)), ['shop', 'shopfront', 'food']);
-  assert.equal(shop.querySelector('.tc-sign')?.textContent, '新开餐厅即将开业');
-  assert.doesNotMatch(shop.textContent ?? '', /Sergeant Ma/, 'the sign says what it sells, not the name the caption prints (G4)');
-  cleanup();
-  const dated = wrap(<OpeningTypeCover opening={{ name: 'Marufuku', city: 'Burlingame', status: 'open', openedOn: '2026-10-01', openingType: 'new-restaurant', category: '拉面' }} today={today} />);
-  assert.equal(dated.container.querySelector('.tc-sign')?.textContent, '拉面10/1 开业');
-});
 
 test('EventCover shows the resolved photo with its provenance chip and nothing else, or falls back to the date family', () => {
   const photo = getCover({ kind: 'event', id: 'fleet', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today });
@@ -137,15 +48,53 @@ test('EventCover shows the resolved photo with its provenance chip and nothing e
   assert.equal(withPhoto.container.querySelectorAll('img').length, 1, 'one image: no blurred duplicate');
   cleanup();
   // An AI illustration the owner has not approved (src/data/ai-cover-approvals.json) is skipped for the next candidate
-  // (UI9-IMAGES ④); with none left the date family draws until A1.
-  const next = getCover({ kind: 'event', id: 'fleet', imageKeys: ['weekend', 'dvids-blue-angels-sffw-2024'] }, { images: GUIDE_IMAGES, today });
+  // (UI9-IMAGES ④). ('settling' is not among the owner's 2026-10-21 approvals.)
+  const next = getCover({ kind: 'event', id: 'fleet', imageKeys: ['settling', 'dvids-blue-angels-sffw-2024'] }, { images: GUIDE_IMAGES, today });
   assert.equal(next.tier !== 'type' && next.key, 'dvids-blue-angels-sffw-2024', 'the unapproved AI candidate moves on to the next one');
-  const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'weekend' }, { images: GUIDE_IMAGES, today })} />);
-  assert.equal(typed.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date', 'no candidate left: the date family');
+  // UI9-IMAGES DECISIONS 21: with no candidate left (which report:covers keeps at 0 for every listed record) the frame keeps
+  // its LQIP colour: never a date board, ticket, shop sign or title plate.
+  const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'settling' }, { images: GUIDE_IMAGES, today })} />);
+  assert.equal(typed.container.querySelector('[data-cover="type"]'), null);
+  assert.ok(typed.container.querySelector('[data-cover="lqip"][aria-hidden="true"]'));
   assert.equal(typed.container.querySelector('img'), null);
   cleanup();
+  // Captain 10-22 02:50: a card whose only picture another card on the page already claimed shows it again (the resolver
+  // still reports the slot, report:covers counts it) rather than an empty frame.
+  const page = createCoverPage();
+  getCover({ kind: 'event', id: 'first', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today, page });
+  const second = getCover({ kind: 'event', id: 'fleet', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today, page });
+  assert.ok(second.tier === 'type' && second.reason === 'duplicate' && second.repeat, 'the resolver still reports the duplicate');
+  const repeated = wrap(<EventCover event={fleetWeek} today={today} cover={second} />);
+  assert.equal(repeated.container.querySelector('[data-cover="lqip"]'), null);
+  assert.equal(repeated.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES['dvids-blue-angels-sffw-2024'].src);
+  assert.equal(repeated.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
+  cleanup();
   const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);
-  assert.equal(offer.container.querySelector('.tc-eyebrow')?.textContent, 'IKEA');
+  assert.equal(offer.container.textContent, '', 'no brand, value or deadline drawn on a cover');
+  assert.equal(offer.container.querySelector('[data-cover="lqip"]')?.getAttribute('data-ratio'), '1:1');
+});
+
+test('a picture whose file fails becomes its ③ fallback, then the LQIP colour (UI9-IMAGES DECISIONS 21 onError)', async () => {
+  const { fireEvent } = await import('@testing-library/react');
+  const stock = Object.entries(GUIDE_IMAGES).filter(([key]) => key.startsWith('stock-family-outdoor-')).map(([key]) => key);
+  assert.ok(stock.length >= 2);
+  const cover = getCover({ kind: 'event', id: 'fleet', imageKeys: ['dvids-blue-angels-sffw-2024', ...stock] }, { images: GUIDE_IMAGES, today });
+  assert.ok(cover.tier !== 'type' && cover.fallback, 'a ①② picture carries its next ③ picture');
+  const view = wrap(<EventCover event={fleetWeek} today={today} cover={cover} />);
+  assert.equal(view.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
+  fireEvent.error(view.container.querySelector('img')!);
+  assert.equal(view.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES[stock[0]].src);
+  // The stand-in is a ③ picture: its own badge words and tier, never the failed picture's ① / ② words (DECISIONS 23/24).
+  assert.equal(view.container.querySelector('[data-provenance]')?.textContent, '示意图');
+  assert.equal(view.container.querySelector('[data-cover="image"]')?.getAttribute('data-tier'), 'stock');
+  assert.equal(view.container.querySelector('[data-cover="image"]')?.getAttribute('data-fit'), 'cover');
+  fireEvent.error(view.container.querySelector('img')!);
+  assert.equal(view.container.querySelector('img'), null, 'the LQIP colour shows');
+  assert.ok(view.container.querySelector('[data-cover="image"]'), 'the same frame stays (CLS 0)');
+  // The same mounted card given another picture starts again from that picture (the failure belongs to the failed file).
+  const other = getCover({ kind: 'event', id: 'fleet', imageKeys: [stock[1]] }, { images: GUIDE_IMAGES, today });
+  view.rerender(<MemoryRouter><EventCover event={fleetWeek} today={today} cover={other} /></MemoryRouter>);
+  assert.equal(view.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES[stock[1]].src);
 });
 
 // The primitives' three sheets in load order (UI9-PREP split ui.css; the cover rules are in covers.css).
@@ -166,13 +115,13 @@ const resolve = (name: string, depth = 0): number[] => {
 const luminance = (rgb: number[]) => rgb.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
 const contrast = (fg: string, bg: string) => { const [a, b] = [luminance(resolve(fg)), luminance(resolve(bg))].sort((x, y) => y - x); return (a + .05) / (b + .05); };
 
-test('every TypeCover and status pair is at least 4.5:1', () => {
+test('every category tone pair and status pair is at least 4.5:1', () => {
   const pairs: [string, string][] = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'].map(tone => [`--tc-${tone}-fg`, `--tc-${tone}-bg`]);
   pairs.push(['--color-success', '--color-success-tint'], ['--color-warning', '--color-warning-tint'], ['--color-danger', '--color-danger-tint'], ['--color-info', '--color-info-tint'], ['--color-brand-deep', '--color-highlight']);
   for (const [fg, bg] of pairs) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)}:1`);
 });
 
-test('TypeCover text scales with Aa once: every size is a text token, a rem, a clamp() between rem bounds, or a share of its parent never below the caption size', () => {
+test('cover and card text scales with Aa once: every size is a text token, a rem, a clamp() between rem bounds, or a share of its parent never below the caption size', () => {
   postcss.parse(css).walkDecls('font-size', declaration => {
     const where = `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`;
     // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
@@ -196,27 +145,18 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
   assert.doesNotMatch(outsideTokens, /#[\da-f]{3,8}\b/i, 'colours outside the token block come from tokens');
 });
 
-test('a cover keeps its own category colour: no neighbour rotation (N08)', () => {
-  const view = wrap(<><EventTypeCover event={fleetWeek} today={today} /><EventTypeCover event={fleetWeek} today={today} tone="food" /></>);
-  const [first, second] = view.container.querySelectorAll('[data-cover="type"]');
-  assert.deepEqual([first.getAttribute('data-tone'), second.getAttribute('data-tone')], ['family', 'family']);
-  cleanup();
-  const bare = wrap(<TypeCover tone="culture" label="文化活动" title="社区讲座" ratio="16:9" />);
-  assert.equal(bare.container.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9');
-});
-
 test('the palette lives in tokens.css: ui.css defines no global names, and every name it reads exists', () => {
   // TOKENS-B moved the WEB-UI token block (TypeCover pairs, status colours, badge, highlight, scrims) into tokens.css.
   // ui.css loads lazily after tokens.css at the same specificity, so a :root name here would override the site-wide value
   // once a primitive mounts; it may only set element-scoped layout variables.
   postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|tc-fg|tc-deep|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-img-ratio', '--tc-fg', '--tc-deep', '--tc-badge-room', '--tb-from', '--tb-span']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-img-ratio']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
@@ -253,69 +193,37 @@ test('a photo hero card is one link from edge to edge: its text box never become
   assert.equal(declarations('.ui-hero-card[data-overlay] .ui-hero-card__media').get('display'), 'grid');
 });
 
-test('no cover drawings: the 21 art files and their mask rules are gone, and a cover loads no image of its own (G3)', async () => {
+test('no information cards: the family modules, their rules and the drawings are gone (UI9-IMAGES DECISIONS 21)', async () => {
   const { existsSync } = await import('node:fs');
   assert.equal(existsSync('public/default-covers/art'), false);
-  assert.doesNotMatch(css, /default-covers\/art|data-art|url\(/, 'the cover sheets draw with CSS only');
-  for (const family of ['event', 'offer', 'opening', 'guide'] as const) {
-    const view = wrap(<TypeCover tone="family" family={family} label="标签" title="先打 800-510-2020" value={family === 'offer' ? '免费' : undefined} seed="x" />);
-    assert.equal(view.container.querySelector('img,[data-art]'), null, family);
-    cleanup();
+  for (const file of ['TypeCover.tsx', 'cover-date.tsx', 'cover-date-face.tsx', 'cover-ticket.tsx', 'cover-shop.tsx', 'cover-guide.tsx', 'cover-frame.tsx', 'cover-defer.tsx']) {
+    assert.equal(existsSync(`src/components/ui/${file}`), false, file);
   }
+  assert.equal(existsSync('src/lib/cover-family.ts'), false);
+  assert.doesNotMatch(css, /default-covers\/art|data-art|url\(|ui-type-cover|\.tc-|ui-cover-credit/, 'the cover sheets draw pictures only');
+  const view = wrap(<Cover cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);
+  assert.equal(view.container.querySelector('img,[data-art],[data-cover="type"]'), null);
 });
 
-test('a list names the info card once: its cards that credit their source drop the drawn badge, never the DOM text (H12)', async () => {
+test('no list names an information card any more: FeedGrid prints no 没有照片的条目 line', async () => {
   const { FeedGrid, FeedItem, FeedCard } = await import('../src/components/ui');
+  const photo = getCover({ kind: 'event', id: 'fleet', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today });
   const view = wrap(<FeedGrid label="本周末活动">
-    <FeedItem><FeedCard title="社区讲座" to="/events/a" cover={<EventTypeCover event={fleetWeek} today={today} />} trust="官网核对 10/7" /></FeedItem>
-    <FeedItem><FeedCard title="无来源行" to="/events/b" cover={<EventTypeCover event={{ ...fleetWeek, id: 'b' }} today={today} />} /></FeedItem>
+    <FeedItem><FeedCard title="社区讲座" to="/events/a" cover={<EventCover event={fleetWeek} today={today} cover={photo} />} trust="官网核对 10/7" /></FeedItem>
   </FeedGrid>);
-  const feed = view.container.querySelector('.ui-feed')!;
-  assert.equal(feed.getAttribute('data-cover-credit'), '');
-  assert.equal(feed.querySelector(':scope > .ui-cover-credit')?.textContent, '没有照片的条目用 BAYLINK 信息卡，插画仅作装饰。');
-  const [credited, plain] = feed.querySelectorAll('.ui-feed-card');
-  assert.equal(credited.getAttribute('data-credited'), '');
-  assert.equal(plain.hasAttribute('data-credited'), false, 'a card without a source line keeps its badge');
-  for (const card of [credited, plain]) assert.equal(card.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡', 'screen readers and probes still read the label');
-  // Only the credited card in a credited list hides the badge (visually) and gives its room to the label; the caption hides
-  // itself in a list without such a card.
-  assert.match(css, /\[data-cover-credit\] \.ui-feed-card\[data-credited\] \.ui-type-cover \.ui-provenance \{ width:1px; height:1px;[^}]*clip:rect\(0 0 0 0\)/);
-  assert.match(css, /\[data-cover-credit\] \.ui-feed-card\[data-credited\] \.ui-type-cover:not\(\[data-size=mini\]\) \{ --tc-badge-room:0px; \}/);
-  assert.match(css, /\.ui-feed:not\(:has\(\.ui-feed-card\[data-credited\] \[data-cover=type\]\)\)>\.ui-cover-credit \{ display:none; \}/);
-  cleanup(); await act(async () => { await setLocale('en', false); });
-  const english = wrap(<FeedGrid label="Events"><FeedItem><FeedCard title="Talk" to="/events/a" cover={<EventTypeCover event={fleetWeek} today={today} />} trust="Source checked 10/7" /></FeedItem></FeedGrid>);
-  assert.equal(english.container.querySelector('.ui-cover-credit')?.textContent, 'No photo: a BAYLINK info card; drawings are decorative.');
+  assert.equal(view.container.querySelector('.ui-cover-credit,[data-cover-credit]'), null);
+  assert.doesNotMatch(view.container.textContent ?? '', /BAYLINK 信息卡/);
 });
 
-test('a home guide card keeps its family and mark in every language: the rail keys them by the slug and topic, not the title', async () => {
-  const { GuideRail } = await import('../src/features/home/GuideRail');
-  const { guides } = await import('../src/lib/home-catalog');
-  const rail = guides.slice(0, 8);
-  const covers = rail.map(() => ({ tier: 'type' as const, label: { zh: 'BAYLINK 信息卡', en: 'Info card' }, reason: 'no-image' as const }));
-  const marks = (list: typeof rail) => {
-    const view = wrap(<GuideRail intent="weekend" onIntent={() => {}} guides={list} covers={covers} guideCount={141} />);
-    const found = [...view.container.querySelectorAll('[data-cover="type"]')].map(node => `${node.getAttribute('data-family')}/${node.getAttribute('data-mark')}`);
-    cleanup();
-    return found;
-  };
-  const chinese = marks(rail);
-  assert.equal(chinese.length, rail.length);
-  assert.deepEqual(marks(rail.map(guide => ({ ...guide, title: `${guide.slug} in English` }))), chinese);
-});
-
-test('the offer rail names the info card only for tickets every layout shows (three after a wide ticket)', async () => {
+test('the offer rail opens wide on a landscape photo and prints no info-card line', async () => {
   const { OfferTickets } = await import('../src/features/home/OfferTickets');
   const { HOME_OFFERS } = await import('../src/lib/home-catalog');
   const offers = HOME_OFFERS.slice(0, 6);
-  const photo = { tier: 'official' as const, key: 'k', image: { src: '/x.webp', width: 1440, height: 900, alt: '', kind: 'photo' as const, credit: '官方' }, label: { zh: '官方图', en: 'Official' }, fit: 'cover' as const, focal: [50, 40] as const };
-  const typeCover = { tier: 'type' as const, label: { zh: 'BAYLINK 信息卡', en: 'Info card' }, reason: 'no-image' as const };
-  const rail = (typedAt: number) => {
-    const view = wrap(<OfferTickets offers={offers} covers={offers.map((_, index) => index === typedAt ? typeCover : photo)} today={today} />);
-    const section = view.container.querySelector('.home-offers')!;
-    const result = { wide: section.querySelector('li[data-wide]') !== null, credit: section.hasAttribute('data-cover-credit'), line: section.querySelector('.ui-cover-credit') !== null };
-    cleanup();
-    return result;
-  };
-  assert.deepEqual(rail(2), { wide: true, credit: true, line: true });
-  assert.deepEqual(rail(4), { wide: true, credit: false, line: false }, 'a narrow desktop hides the fifth ticket');
+  const photo = { tier: 'official' as const, key: 'k', image: { src: '/x.webp', width: 1440, height: 900, alt: '', kind: 'photo' as const, credit: '官方', caption: '' }, label: { zh: '官方图', en: 'Official' }, fit: 'cover' as const, focal: [50, 40] as const };
+  const view = wrap(<OfferTickets offers={offers} covers={offers.map(() => photo)} today={today} />);
+  const section = view.container.querySelector('.home-offers')!;
+  assert.ok(section.querySelector('li[data-wide]'));
+  assert.equal(section.querySelector('.ui-cover-credit'), null);
+  assert.equal(section.hasAttribute('data-cover-credit'), false);
+  for (const item of section.querySelectorAll('li')) assert.equal(item.querySelectorAll('[data-cover="image"] img').length, 1);
 });

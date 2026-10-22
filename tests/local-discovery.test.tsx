@@ -267,7 +267,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.equal(breadcrumb.itemListElement.at(-1).item, expectedUrl);
 
     const content = doc.querySelector('.local-discovery-detail')!;
-    // The hero opens the page: the listing's photo when the cover ladder accepts it, else its TypeCover (never empty).
+    // The hero opens the page: the listing's picture (UI9-IMAGES DECISIONS 21: its next candidate when its own cannot be the cover).
     const main = content.querySelector('.detail-main')!;
     assert.ok(main.firstElementChild?.classList.contains('detail-hero'), share.id + ' opens on its hero');
     const cover = heroCover(record, today);
@@ -278,7 +278,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(img?.getAttribute('loading'), 'eager');
       assert.equal(img?.getAttribute('fetchpriority'), 'high');
       const credit = content.querySelector('.detail-credit')!;
-      assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit)), share.id + ' keeps its photo credit');
+      // A ③ credit that repeats its badge ("示意图 · 摄影 …") prints after the badge without the repeat (creditAfterLabel).
+      assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit.replace(/^示意图 · /, ''))), share.id + ' keeps its photo credit');
       if (cover.image.licenseUrl?.startsWith('https://')) assert.ok([...credit.querySelectorAll('a')].some(a => a.getAttribute('href') === cover.image.licenseUrl));
     } else {
       assert.equal(img, null);
@@ -331,8 +332,9 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
       const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(fixture)} today="2026-09-15" /></StaticRouter>);
       const page = new JSDOM(body);
       assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : item.kind === 'opening' ? openingHeading(discoveryShare(item).title, item.shop.city) : discoveryShare(item).title);
-      assert.equal(page.window.document.querySelector('.detail-hero [data-cover="image"]'), null);
-      assert.ok(page.window.document.querySelector('.detail-hero [data-cover="type"]'), 'a TypeCover stands in');
+      // UI9-IMAGES DECISIONS 21/22: the hero is the record's next candidate (a ③ 示意图 of its kind), never an information card.
+      assert.equal(page.window.document.querySelector('.detail-hero [data-cover="type"]'), null);
+      assert.ok(page.window.document.querySelector('.detail-hero [data-cover="image"] img'), 'a picture stands in');
       assert.ok(officialLink(page.window.document));
       page.window.close();
     }

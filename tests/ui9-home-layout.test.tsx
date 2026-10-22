@@ -71,6 +71,8 @@ test('长辈常用电话: each row links its guide and dials the number the guid
   rows.forEach((row, index) => {
     const call = ELDER_CALLS[index];
     assert.equal(row.querySelector('a[href^="/guides/"]')!.getAttribute('href'), `/guides/${call.slug}`);
+    // UI9-IMG-A1b (DECISIONS 21): every row shows its guide's picture (its own, else its ③ stock picture), never no thumbnail.
+    assert.ok(row.querySelector('.ui-row-card__thumb .ui-cover img'), `${call.slug}: the row has a picture`);
     const dial = row.querySelector('a[href^="tel:"]')!;
     assert.equal(dial.getAttribute('href'), `tel:${call.tel}`);
     assert.equal(dial.textContent, `拨打 ${call.number}`);
@@ -90,7 +92,7 @@ test('the trust line says 官网核对, never 人工核对, and links the one me
   assert.ok(trust.textContent!.startsWith(`✓ ${OFFICIAL_LINKS.zh}`));
 });
 
-test('the credits line is #page-credits with its photo count, last in the home, and names the info card once', () => {
+test('the credits line is #page-credits with its photo count, last in the home', () => {
   const doc = home();
   const credits = doc.querySelector('#page-credits')!;
   assert.equal(credits, doc.querySelector('.home-discovery')!.lastElementChild);
@@ -98,9 +100,10 @@ test('the credits line is #page-credits with its photo count, last in the home, 
   const items = credits.querySelectorAll('details li').length;
   assert.equal(Number(credits.getAttribute('data-count')), items);
   assert.match(credits.querySelector('summary')?.textContent ?? '', new RegExp(`本页图片来源（${items}）`));
-  assert.match(CSS, /\.home-discovery :is\(\.ui-feed,\.home-offers\)>\.ui-cover-credit \{ display:none; \}/, 'the lists\' own notes are hidden on the home');
-  // Every credited image is shown on the page.
-  const shown = new Set([...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')));
+  // Every credited image is shown on the page: the cards' pictures and the eight entry tiles' photos (DECISIONS 27).
+  const shown = new Set([...doc.querySelectorAll('.home-discovery :is(img.ui-cover__img, img.home-mood__img)')].map(img => img.getAttribute('src')));
+  assert.equal(doc.querySelectorAll('.home-moods img.home-mood__img[loading="lazy"]').length, 8, 'eight lazy tile photos');
+  assert.match(credits.textContent ?? '', /入口配图/);
   assert.ok(items <= shown.size);
 });
 
@@ -120,21 +123,12 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 // (size, crop, place) are unchanged, and the postcard pixels with them.
 const POSTCARD_RULES_SHA = 'f391a71deb13491f';
 
-test('the coded-cover note is printed once, in the credits line, exactly when the page shows a coded cover', () => {
-  const typeCover = { tier: 'type', reason: 'no-image', label: { zh: '信息卡', en: 'Info card' } } as const;
-  const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
-  const credits = (covers: Parameters<typeof HomeImageCredits>[0]['covers']) => new JSDOM(renderToStaticMarkup(<HomeImageCredits covers={covers} />)).window.document;
-  // A coded cover on the page: the line names it once, beside the photo credits.
-  const mixed = credits([photo, typeCover, typeCover]);
-  assert.equal(mixed.querySelectorAll('.ui-cover-credit').length, 1);
-  assert.equal(mixed.querySelector('#page-credits')!.getAttribute('data-count'), '1');
-  // Photos only: no note at all.
-  const photos = credits([photo]);
-  assert.equal(photos.querySelectorAll('.ui-cover-credit').length, 0);
-  assert.equal(photos.querySelector('#page-credits')!.getAttribute('data-count'), '1');
-  // On the home the lists' own notes are hidden (home-discovery.css), so the reader sees the credits line's one.
+test('no information card and no info-card note on the home: every card is a picture, credited once in the credits line (UI9-IMAGES DECISIONS 21)', () => {
+  const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer', caption: '' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
+  const credits = new JSDOM(renderToStaticMarkup(<HomeImageCredits covers={[photo, photo]} />)).window.document;
+  assert.equal(credits.querySelector('#page-credits')!.getAttribute('data-count'), '1', 'one credit per file');
   const doc = home();
-  assert.equal(doc.querySelectorAll('#page-credits .ui-cover-credit').length, 1, 'the home shows coded covers today');
+  assert.equal(doc.querySelectorAll('.home-discovery [data-cover="type"], .ui-cover-credit').length, 0);
 });
 
 test('长辈常用电话 with no numbers: nothing in standard, 长辈与家属指南 → in 简洁 only', () => {
@@ -164,10 +158,10 @@ test('an unknown weekend with no picks: a text panel holds the lead\'s place (no
   assert.equal(doc.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
 });
 
-test('phone: the lead asks for the 800w rung (the site\'s 266px phone cap), the share card is one row of its buttons', () => {
+test('phone: the lead asks for its real width (100vw less the gutters, UI9-IMG-A1b), the share card is one row of its buttons', () => {
   const doc = home();
   const lead = doc.querySelector('.home-picks__list>li:first-child img');
-  if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) 266px, /);
+  if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) calc\(100vw - 32px\), /);
   assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
 });
 

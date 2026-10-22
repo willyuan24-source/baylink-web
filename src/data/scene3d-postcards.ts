@@ -9,8 +9,8 @@ import { ladderSrcSet, readExtraLadder } from './image-ladder';
  *
  * Not part of GUIDE_IMAGES, so no page ships them until a W2 surface asks: getCover() reads them through a lookup such
  * as `key => GUIDE_IMAGES[key] ?? SCENE3D_POSTCARD_IMAGES[key]` with `postcardKey`, and only for SF places. Passed as an
- * `imageKey` they resolve to a TypeCover on every kind (`rights.basis: 'ai'`), so that lookup is safe for events, offers
- * and openings too. The label is always 3D 场景插图 (getImageProvenance, `scene3d`); captions also say plainly that the
+ * `imageKey` an unapproved one is skipped for the record's next candidate on every kind (`rights.basis: 'ai'`), so that
+ * lookup is safe for events, offers and openings too. The label is always 3D 场景插图 (getImageProvenance, `scene3d`); captions also say plainly that the
  * picture is AI-generated art.
  */
 export type Scene3dPostcard = GuideImage & {

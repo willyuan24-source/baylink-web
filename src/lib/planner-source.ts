@@ -26,6 +26,11 @@ export type PlanExtras = {
   offers: FreebieOffer[];
   /** 按条件挑选's region list (data/attractions.ts ATTRACTION_REGIONS). */
   regions: PlanRegion[];
+  /**
+   * UI9-IMG-A1b (DECISIONS 21/22): an event stop's cover candidates (① own → ② venue → ③ stock → ④ approved AI) when its
+   * own image cannot be its cover, so a stop shows a picture, never an information card.
+   */
+  coverKeys?: Record<string, string[]>;
 };
 
 export let PLANNER_EVENTS: PlannerEvent[] = [];
@@ -33,6 +38,7 @@ export let PLANNER_PLACES: PlannerPlace[] = [];
 /** The edition's events as `eventFor` returns them: data/monthly-edition.ts MONTHLY_EVENTS, or the planner's events on 行程. */
 export let CATALOG_EVENTS: MonthlyEvent[] = [];
 export let PLAN_COVER_IMAGES: Readonly<Record<string, GuideImage>> = {};
+export let PLAN_COVER_KEYS: Readonly<Record<string, readonly string[]>> = {};
 export let PLAN_OFFERS: FreebieOffer[] = [];
 export let PLAN_REGIONS: readonly PlanRegion[] = [];
 
@@ -61,6 +67,7 @@ export function installPlanCatalog(catalog: PlanCatalog): void {
 /** What 行程 alone reads: cover image records, linked offers, regions. */
 export function installPlanExtras(extras: PlanExtras): void {
   PLAN_COVER_IMAGES = extras.images;
+  PLAN_COVER_KEYS = extras.coverKeys ?? {};
   PLAN_OFFERS = extras.offers;
   PLAN_REGIONS = extras.regions;
   planExtras = true;

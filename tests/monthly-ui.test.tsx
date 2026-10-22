@@ -114,8 +114,11 @@ test('monthly media files and credits are valid and only reviewed contextual med
   const rendered = new JSDOM(renderToStaticMarkup(<StaticRouter location="/this-month?q=Beresford"><MonthlyEdition today="2026-10-05" /></StaticRouter>)).window.document;
   const recyclingCard = rendered.querySelector(`#monthly-events a[href="/events/${recycling.id}"]`)?.closest('.ui-feed-card');
   assert.ok(recyclingCard, 'the published recycling event is still discoverable by its venue');
-  assert.equal(recyclingCard.querySelector('img'), null, 'the recycling card renders no unrelated image');
-  assert.ok(recyclingCard.querySelector('[data-cover="type"]'), 'it gets the information card instead');
+  // Never a photo of another place (the B Street shot); a ③ category photo (示意图, the owner's 2026-10-21 approvals) may cover
+  // it. Compare the src, not the DOM node (a node's diff prints the whole document).
+  const img = recyclingCard.querySelector('img');
+  if (img) assert.match(img.getAttribute('src') ?? '', /^\/guides\/category-stock\//, 'the recycling card renders no unrelated image');
+  else assert.ok(recyclingCard.querySelector('[data-cover="type"]'), 'it gets the information card instead');
   const keys = new Set<string>();
   const sourceKeys = new Set<string>();
   const paths = new Set<string>();

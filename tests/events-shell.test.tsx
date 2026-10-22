@@ -30,7 +30,12 @@ const model = await import('../src/features/events/events-model');
 const { isFreeToAttend, getMonthlyDateRange, nextOccurrence } = await import('../src/lib/monthly');
 const { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS } = await import('../src/data/weekend-picks');
 const { isAdultOnly, isRealPhotoImage, scoreWeekendEvent } = await import('../src/lib/weekend-ranking');
-const { GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { AI_COVER_APPROVALS, GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { assertPoolSpacing, coversInPageOrder } = await import('./support/cover-spacing');
+// The AI illustrations the owner approved as ④ covers in chat on 2026-10-21 (src/data/ai-cover-approvals.json).
+const approvedAiSrcs = new Set(AI_COVER_APPROVALS.map(approval => GUIDE_IMAGES[approval.key].src));
+/** ③④ pool pictures: the owner's category photos (rights basis 'stock', 2026-10-21) and the approved AI covers. */
+const poolSrcs = new Set([...approvedAiSrcs, ...Object.values(GUIDE_IMAGES).filter(image => image.rights?.basis === 'stock').map(image => image.src)]);
 // The shell is rendered on the weekend of 10/10 with this editor list of its own, so these tests do not depend on what
 // src/data/weekend-picks.ts holds for a passed weekend (the routine deletes those).
 const PICKS_1010 = [
@@ -90,7 +95,10 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     const ids = feedIds(page.querySelector('#monthly-events')!);
     assert.equal(ids.length, 12);
     assert.equal(ids.some(id => shown.includes(id)), false);
-    assert.ok(ids.includes(PICKS_1010[0].id), "home's lead returns to the feed");
+    // Since the owner approved AI covers (2026-10-21) more weekend events have a picture and sort first within their day,
+    // so home's lead may sit past the first 12; it is still a feed event, never the lead or a pick row.
+    assert.ok(!shown.includes(PICKS_1010[0].id) && weekendEvents().some(event => event.id === PICKS_1010[0].id), "home's lead returns to the feed");
+    if (!ids.includes(PICKS_1010[0].id)) assert.ok(weekendEvents().length - shown.length > 12, "home's lead is on a later page of the feed");
     for (const card of page.querySelectorAll('#monthly-events .ui-feed-card')) {
       assert.ok(card.querySelector('[data-cover="image"], [data-cover="type"]'), 'every card has a cover');
       // The whole card is one link; its only other control is the ♡ in the cover's save slot (H31).
@@ -415,15 +423,22 @@ test('RC-33: the events pages never statically load the guides, the full discove
   }
 });
 
-test('covers come from the ladder: no image twice on a page, information cards are marked, no AI art on a listing', () => {
+test('covers come from the ladder: no image twice on a page, information cards are marked, no unapproved AI art on a listing', () => {
   for (const location of ['/events', '/events?when=all', '/events?day=sun']) {
     const page = ssr(location, <EventsView today={today} />);
     const sources = [...page.querySelectorAll('.ui-cover__img')].map(img => img.getAttribute('src'));
-    assert.equal(new Set(sources).size, sources.length, `${location}: an image appears once`);
-    assert.ok(page.querySelectorAll('[data-cover="type"]').length > 0);
+    // ①② once per page; a ③ category photo or an approved ④ AI picture is a pool picture, which may come back only
+    // ADJACENT_CARDS or more cards apart (cover.ts). Information cards are going (DECISIONS 21), so none need be left.
+    const once = sources.filter(src => !poolSrcs.has(src!));
+    assert.equal(new Set(once).size, once.length, `${location}: an image appears once`);
+    assertPoolSpacing(coversInPageOrder(page), poolSrcs, location);
     // A row thumbnail (≤ 140 px) carries no chip (UI9-C): its words move into the row; every other coded cover is marked.
     for (const cover of page.querySelectorAll('[data-cover="type"]:not([data-size="mini"])')) assert.match(cover.textContent!, /BAYLINK 信息卡/);
-    for (const badge of page.querySelectorAll('[data-cover="image"] .ui-provenance')) assert.doesNotMatch(badge.textContent!, /AI/);
+    for (const cover of page.querySelectorAll('[data-cover="image"]')) {
+      const badge = cover.querySelector('.ui-provenance')?.textContent ?? '';
+      const src = cover.querySelector('img.ui-cover__img')?.getAttribute('src') ?? '';
+      if (/AI/.test(badge)) assert.ok(badge === 'AI 示意图' && approvedAiSrcs.has(src), `${location}: ${src} is badged ${badge}`);
+    }
   }
 });
 
@@ -432,7 +447,9 @@ test('RC-33: a phone-wide cover (the picks, the calendar lead) asks for the 800w
   const events = ssr('/events', <EventsView today={today} />);
   const picks = [...events.querySelectorAll('.ev-picks img.ui-cover__img')];
   assert.ok(picks.length > 0);
-  for (const img of picks) assert.match(img.getAttribute('sizes')!, cap);
+  for (const img of events.querySelectorAll('.ev-picks .ev-lead img.ui-cover__img')) assert.match(img.getAttribute('sizes')!, cap);
+  // A pick row may carry an approved AI cover (2026-10-21): its half-width phone card or 88 px desktop thumbnail asks for less.
+  for (const img of picks) assert.match(img.getAttribute('sizes')!, /^(?:\(max-width: 767px\) (?:266px|calc\(50vw - 22px\)), |88px$)/);
   assert.equal(picks[0].getAttribute('fetchpriority'), 'high', 'the first pick is the eager LCP image');
   const calendar = ssr('/calendar?date=2026-10-10', <CalendarPage today={today} />);
   const lead = calendar.querySelector('.ev-calendar__lead img.ui-cover__img')!;

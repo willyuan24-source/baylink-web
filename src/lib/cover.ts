@@ -19,12 +19,12 @@ import type { Copy } from './event-facts';
  *   stock      ③ a licensed stock picture of the item's category (rights basis 'stock'), any age → 示意图
  *   ai         ④ an AI illustration the owner approved (src/data/ai-cover-approvals.json → aiCoverApproved) → AI 示意图
  *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
- *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
+ *   type       no picture at all: the page shows the empty frame in its LQIP colour (<Cover>). UI9-IMAGES DECISIONS 21: no
+ *              listed record may end here — tests/report-cover-coverage.test.ts (report:covers --fail-on-info) keeps it at 0.
  * Never: an unapproved AI illustration or a theme photo; AI on a lead; a ①② file twice on one page, or a ③④ picture
  * twice within ADJACENT_CARDS cards (the item tries its next candidate, else the pool picture shown farthest away); a
- * cropped poster (`fit: 'contain'`).
- * `label` is today's badge (getImageProvenance); cover-labels.ts tierLabelOf(cover) gives the DECISIONS 23 badge A1 prints.
- * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
+ * cropped poster (`fit: 'contain'`). A picture carries `fallback`, its next ③ candidate, for <CoverImage>'s onError.
+ * `label` is getImageProvenance's words (image credits); the pages print cover-labels.ts tierLabelOf(cover) (DECISIONS 23).
  */
 
 export type CoverKind = 'event' | 'offer' | 'opening' | 'place' | 'guide' | 'bulletin';
@@ -78,8 +78,15 @@ export type ImageCover = {
   fit: 'cover' | 'contain';
   focal: readonly [number, number];
   year?: number;
+  /** The item's next ③ stock picture (another file): what the page shows when this file fails to load (DECISIONS 21). */
+  fallback?: Pick<CoverAsset, 'src' | 'srcSet'>;
 };
-export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string };
+/**
+ * No picture the page may still show. `repeat` is the item's first picture that lost only to page de-duplication: <Cover>
+ * shows it again rather than an empty frame (captain 10-22 02:50: an LQIP frame never stands in for a picture), while
+ * report:covers and the CI tests still count the slot as unresolved.
+ */
+export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string; repeat?: ImageCover };
 export type ResolvedCover = ImageCover | TypeCoverResolution;
 
 /**
@@ -91,12 +98,20 @@ export type CoverPage = {
   claims: Map<string, string>;
   order?: Map<string, number>;
   shared?: Map<string, Map<string, number>>;
+  /**
+   * Prefer a ③④ picture the page has not shown over one shown ADJACENT_CARDS or more cards away (UI9-IMG-A1b round 2): the
+   * home and /events, whose few dozen cards then show each pool picture once. A long board (/perks, /calendar's day) keeps
+   * the first candidate that may show, which deals each pool round in turn (taking new pictures first there leaves later
+   * cards of a crowded category nothing but near ones: /perks 27 → 76 repeats in 21 days).
+   */
+  fresh?: boolean;
 };
-export const createCoverPage = (): CoverPage => ({ claims: new Map() });
+export const createCoverPage = ({ fresh = false }: { fresh?: boolean } = {}): CoverPage => ({ claims: new Map(), ...(fresh ? { fresh } : {}) });
 /**
  * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
- * not on one screen, which is at most 8 cards on desktop). When every pool picture is nearer, the item still takes the
- * one shown farthest away: ③④ never fall back to an info card.
+ * not on one screen, which is at most 8 cards on desktop); on a `fresh` page only when the item has no candidate of that
+ * tier the page has not shown yet. When every pool picture is nearer, the item still takes the one shown farthest away:
+ * ③④ never fall back to an info card.
  */
 export const ADJACENT_CARDS = 8;
 
@@ -138,8 +153,8 @@ const lookup = (images: CoverContext['images'], key: string): CoverAsset | undef
   return Object.hasOwn(images, key) ? images[key] as CoverAsset : undefined;
 };
 const itemKey = (item: CoverItem) => `${item.kind}:${item.id}`;
-const typeCover = (reason: TypeCoverReason, rejectedKey?: string): TypeCoverResolution => ({
-  tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}),
+const typeCover = (reason: TypeCoverReason, rejectedKey?: string, repeat?: ImageCover): TypeCoverResolution => ({
+  tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}), ...(repeat ? { repeat } : {}),
 });
 
 /**
@@ -204,6 +219,7 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
   const at = order ? order.get(me) ?? order.set(me, order.size).size - 1 : 0;
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
+  let repeat: ImageCover | undefined;
   // The pool picture shown farthest away (the first at ADJACENT_CARDS or more ends the search): when every ③④ candidate
   // is nearer, the item still takes the farthest one.
   let pool: { cover: ImageCover; shown: Map<string, number>; gap: number } | undefined;
@@ -217,26 +233,43 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
     const { cover } = outcome;
     const src = cover.image.src;
     if (cover.tier === 'stock' || cover.tier === 'ai') {
-      if (!page) return cover;
+      if (!page) return withFallback(cover, attempts, ctx.images);
+      // A ③ that may show beats any ④ after it (DECISIONS 22 order).
+      if (pool && pool.gap >= ADJACENT_CARDS && pool.cover.tier !== cover.tier) break;
       const shared = page.shared ??= new Map<string, Map<string, number>>();
       const shown = shared.get(src) ?? shared.set(src, new Map()).get(src)!;
       let gap = Infinity;
       shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
       if (!pool || gap > pool.gap) pool = { cover, shown, gap };
-      if (gap >= ADJACENT_CARDS) break;
+      // A picture not yet on the page ends the search, and so does one shown ADJACENT_CARDS or more cards away, except on a
+      // `fresh` page, which keeps looking for a picture of the same tier the page has not shown yet.
+      if (gap === Infinity || (!page.fresh && gap >= ADJACENT_CARDS)) break;
       continue;
     }
+    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order; a `fresh` page's search).
+    if (pool && pool.gap >= ADJACENT_CARDS) break;
     const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
+      repeat ??= cover;
       continue;
     }
     page?.claims.set(src, me);
-    return cover;
+    return withFallback(cover, attempts, ctx.images);
   }
-  if (!pool) return typeCover(reason, rejectedKey);
+  if (!pool) return typeCover(reason, rejectedKey, repeat && withFallback(repeat, attempts, ctx.images));
   pool.shown.set(me, at);
-  return pool.cover;
+  return withFallback(pool.cover, attempts, ctx.images);
+}
+
+/** The cover with its onError picture: the item's first ③ stock candidate in another file, if it has one. */
+function withFallback(cover: ImageCover, attempts: readonly { key: string; tier: 'image' | 'scene3d' }[], images: CoverContext['images']): ImageCover {
+  for (const { key, tier } of attempts) {
+    if (tier !== 'image' || key === cover.key) continue;
+    const image = lookup(images, key);
+    if (image && image.coverOk !== false && image.src !== cover.image.src && rightsBasisOf(image) === 'stock') return { ...cover, fallback: { src: image.src, ...(image.srcSet ? { srcSet: image.srcSet } : {}) } };
+  }
+  return cover;
 }
 
 /**
@@ -248,9 +281,11 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
  */
 export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem {
   const imageKey = override ? override.imageKey : record.imageKey;
-  // coverCandidates() puts the record's own image first, so the candidates are that image (or the override) + the rest.
+  // The candidates keep coverCandidates()' order (an own AI image comes after the stock pictures, DECISIONS 22); an
+  // override that drops the own image leaves it out, one that names another image puts that image first.
   const rest = record.imageKeys?.filter(key => key !== record.imageKey);
-  return { kind, id: record.id, imageKey, ...(rest && { imageKeys: imageKey ? [imageKey, ...rest] : rest }), ...(override?.lead && { lead: true }) };
+  const keys = !record.imageKeys ? undefined : imageKey === record.imageKey ? record.imageKeys : imageKey ? [imageKey, ...rest!] : rest;
+  return { kind, id: record.id, imageKey, ...(keys && { imageKeys: keys }), ...(override?.lead && { lead: true }) };
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */

@@ -11,7 +11,8 @@ import { SITE_URL } from '../src/lib/seo';
 import { eventOccursOn, addCalendarDays } from '../src/lib/event-calendar';
 import { eventPriceChip, eventTone, formatDateChip, readerDayRange, readerMonthDay, toneLabel } from '../src/lib/event-facts';
 import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
-import { promoPhoto, type CardLocale } from '../src/lib/share-card-model';
+import { promoPhoto, sharePicture, type CardLocale } from '../src/lib/share-card-model';
+import { rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { renderWeeklyCardSvg, type WeeklyCardModel } from '../src/lib/weekly-card-svg';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
 
@@ -31,7 +32,7 @@ const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, '
 // Dated cards from an earlier local build would otherwise linger next to the new ones.
 for (const directory of ['public/weekly', 'public/weekly/en', 'public/weekly/zh-Hant']) {
   await mkdir(directory, { recursive: true });
-  for (const file of await readdir(directory)) if (/^all-\d{4}-\d{2}-\d{2}\.(png|json)$/.test(file)) await rm(`${directory}/${file}`);
+  for (const file of await readdir(directory)) if (/^all-\d{4}-\d{2}-\d{2}(?:\.png|\.json|-thumb\.webp)$/.test(file)) await rm(`${directory}/${file}`);
 }
 const outline = await createGlyphOutliner();
 const pool = createRasterPool();
@@ -54,17 +55,27 @@ const card = async (region: string, label: string, catalog: MonthlyEvent[], day:
   const range = getMonthlyDateRange('weekend', day)!;
   const selection = getBuildWeekend(day, catalog).picks;
   const weekendCount = catalog.filter(event => [range.start, range.end].some(date => eventOccursOn(event, date))).length;
+  // UI9-IMG-A1b (DECISIONS 21/22): every tile is a photo — the event's own promotion-cleared image, else its venue's or a
+  // ③ stock picture that promotion allows (share-card-model.ts sharePicture: never AI art, never CC BY-SA), each file once
+  // on the card; a ③ picture says 示意图 on the tile.
+  const used = new Set<string>();
+  const pictures = selection.map(({ event }) => {
+    const image = sharePicture('event', event, promoPhoto(GUIDE_IMAGES[event.imageKey]), GUIDE_IMAGES, used);
+    if (image) used.add(image.src);
+    return image;
+  });
   for (const locale of LOCALES) {
     const english = locale === 'en', t = tr(locale);
     const pick = (copy: { zh: string; en: string }) => english ? copy.en : t(copy.zh);
-    const tiles = await Promise.all(selection.map(async ({ event, date, editorial }) => {
+    const tiles = await Promise.all(selection.map(async ({ event, date, editorial }, index) => {
       const tone = eventTone(event);
       const price = eventPriceChip(event);
-      // a tile shows a photo only when its rights allow promotion (share-card-model.ts), else the TypeCover palette
-      const photo = await photoData(promoPhoto(GUIDE_IMAGES[event.imageKey])?.src);
+      const image = pictures[index];
+      const photo = await photoData(image?.src);
+      const stock = image && rightsBasisOf(image as CoverAsset) === 'stock';
       return { tone, label: pick(toneLabel(tone)), date: t(formatDateChip({ kind: 'day', date, ended: false }, english).label), title: t(event.shortTitle || event.title),
         place: t(event.venueShort ? `${event.city} · ${event.venueShort}` : event.city), sticker: price ? pick(price.text) : undefined,
-        pick: editorial ? (english ? 'Editor’s pick' : t('编辑精选')) : undefined, photo };
+        pick: editorial ? (english ? 'Editor’s pick' : t('编辑精选')) : undefined, photo, ...(stock ? { badge: english ? 'Illustrative photo' : t('示意图') } : {}) };
     }));
     const more = weekendCount - tiles.length;
     const prefix = locale === 'zh-Hans' ? '' : `/${locale}`;
@@ -84,7 +95,7 @@ const card = async (region: string, label: string, catalog: MonthlyEvent[], day:
     const svg = finish(renderWeeklyCardSvg(model, qrFor(`${SITE_URL}${prefix}/n/${region}`), logo, draw));
     tasks.push(pool.run({ svg, out: `public/weekly/${locale === 'zh-Hans' ? '' : `${locale}/`}${name}.png` }));
   }
-  await writeFile(`public/weekly/${name}.json`, JSON.stringify({ generatedAt: today, day, range, region, picks: selection.map(({ event: { id, title, startDate, endDate, city, venue, costLabel, officialUrl, verifiedAt }, date, editorial }) => ({ id, title, date, startDate, endDate, city, venue, costLabel, officialUrl, verifiedAt, ...editorial && { editorial } })) }));
+  await writeFile(`public/weekly/${name}.json`, JSON.stringify({ generatedAt: today, day, range, region, picks: selection.map(({ event: { id, title, startDate, endDate, city, venue, costLabel, officialUrl, verifiedAt }, date, editorial }, index) => ({ id, title, date, startDate, endDate, city, venue, costLabel, officialUrl, verifiedAt, ...editorial && { editorial }, ...pictures[index] && { photo: pictures[index]!.src } })) }));
 };
 
 // RFC 5545: a TZID needs its VTIMEZONE; the Bay Area's rules (PDT from the second Sunday of March, PST from the first of November).
@@ -117,4 +128,12 @@ for (const [region, label] of Object.entries(regions)) {
 }
 await Promise.all(tasks);
 await pool.close();
+// UI9-IMG-A1b (UI9-IMAGES §4 家庭群面板): a ≤ 30 KB WebP preview of each Bay Area card, which the home's 发到家庭群 panel
+// shows beside its two buttons (verify:weekly checks the size).
+{
+  const { default: sharp } = await import('sharp');
+  for (const directory of ['public/weekly', 'public/weekly/en', 'public/weekly/zh-Hant']) for (const file of await readdir(directory)) {
+    if (/^all(?:-\d{4}-\d{2}-\d{2})?\.png$/.test(file)) await sharp(`${directory}/${file}`).resize(240, 320).webp({ quality: 72 }).toFile(`${directory}/${file.replace(/\.png$/, '-thumb.webp')}`);
+  }
+}
 console.log(`Weekly cards v2 (${getWeeklyCardDays().length} dated Bay Area cards, six regions, three languages) and six subscription calendars generated for ${today}; full source review manifest exported.`);

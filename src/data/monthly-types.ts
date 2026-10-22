@@ -66,7 +66,7 @@ export type EventEditorial = {
   dateNote?: string;
   /** Set only from a dated source read (`docs/source-reads-2026-10.md`). */
   status?: EditorialStatus;
-  /** Optional TypeCover texture icon (`src/components/ui/TypeCover.tsx`). */
+  /** Optional texture icon key (the UI9-C type covers used it; kept for the data, UI9-IMAGES draws pictures only). */
   iconKey?: string;
 };
 

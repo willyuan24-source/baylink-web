@@ -10,6 +10,11 @@ test('provenance labels distinguish archive years, official media and AI without
   assert.equal(getImageProvenance({ ...archive, kind: 'illustration', credit: 'BAYLINK' }), 'AI 示意图', 'DECISIONS 23');
   assert.equal(getImageProvenance({ ...archive, kind: 'poster', credit: 'Official organizer' }), '官方图');
   assert.equal(getImageProvenance({ ...archive, caption: '地点环境，出发前请确认开放情况。' }), '照片');
+  // ③ a category stock photo (DECISIONS 23): 示意图, whatever its caption or credit says, never 照片 of the listing.
+  const stock = { kind: 'photo' as const, credit: '示意图 · 摄影 Taylor Foss / Unsplash', caption: '类别示意图，不是所列活动、场馆或现场的照片。', rights: { basis: 'stock' } };
+  assert.equal(getImageProvenance(stock), '示意图');
+  assert.equal(getImageProvenance(stock, true), 'Illustrative photo');
+  for (const [key, image] of Object.entries(GUIDE_IMAGES)) if (image.rights && typeof image.rights === 'object' && image.rights.basis === 'stock') assert.equal(getImageProvenance(image), '示意图', key);
 });
 
 test('third-party photos read as a dated photo, with the year taken from the caption and never from the credit', () => {

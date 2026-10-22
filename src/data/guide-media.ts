@@ -7,6 +7,8 @@ import guideCommonsPhotos from './guide-commons-photos-2026-10.json';
 import officialEventMedia from './official-event-media.json';
 import officialOpeningMedia from './official-opening-media.json';
 import guidePhotos1019 from './guide-photos-2026-10-19.json';
+import categoryStockPhotos from './category-stock-photos.json';
+import homeTileStockPhotos from './home-tile-stock-photos.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
 import { getLocale } from '../i18n/locale';
@@ -57,9 +59,11 @@ export type MediaRightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-
 /**
  * What a picture shows for the records that use it (UI9-IMAGES DECISIONS 22): `item` the record's own image (①), `venue`
  * the place it happens at (②, approved once per venue in src/data/venue-photos.json), `category` a stock or AI picture of
- * its kind of activity (③④, src/data/category-photos.json). Absent on today's records, which keep their old rules.
+ * its kind of activity (③④, src/data/category-photos.json), `tile` the photo under a home entry tile (DECISIONS 27,
+ * src/data/home-tile-photos.json): a navigation image, never a record's cover (coverOk false). Absent on today's records,
+ * which keep their old rules.
  */
-export type ImageSubject = 'item' | 'venue' | 'category';
+export type ImageSubject = 'item' | 'venue' | 'category' | 'tile';
 export type MediaRights = {
   basis: MediaRightsBasis;
   /** The page that shows the licence, press-kit terms or permission. */
@@ -151,6 +155,16 @@ for (const { key, ...asset } of guideCommonsPhotos) GUIDE_IMAGES[key] = { ...ass
 // credited and linked) and Carol M. Highsmith's public-domain photo of HHS in Washington, D.C. (示意图, never a cover). Download
 // records: scripts/data/guide-photos-2026-10-19-downloads.json.
 for (const { key, ...asset } of guidePhotos1019) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', rights: asset.rights as MediaRights };
+// UI9-IMG-B1b (owner approval in chat 2026-10-21 09:28 PT, 「圖片全部批准」): licensed stock photos of the photo categories
+// (UI9-IMAGES ③ 示意图), from Unsplash and Wikimedia Commons, each with its photographer, page and licence; never a picture of
+// a listed event or venue. src/data/category-photos.json maps each category to its keys. Download and page-read records:
+// scripts/data/category-stock-photos-downloads.json; sources: docs/category-media-sources-2026-10-21.md.
+for (const { key, ...asset } of categoryStockPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', subject: 'category', rights: asset.rights as MediaRights };
+// UI9-IMG-B1b2 (owner approval in chat 2026-10-21 16:51 PT, 「圖片都過，沒問題」): the photos under the home's eight entry tiles
+// (UI9-IMAGES DECISIONS 27), Unsplash, each with its photographer, page and licence. Navigation images: no 示意图 badge, never a
+// card's cover (coverOk false, never in a card pool), listed in the home's image credits. src/data/home-tile-photos.json maps
+// each tile to its photo and approved spares. Download records: scripts/data/home-tile-photos-downloads.json.
+for (const { key, ...asset } of homeTileStockPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', subject: 'tile', coverOk: false, rights: asset.rights as MediaRights };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The JSON keeps the event id and artwork class; the download record (source URL, retrieval time, hash) is in
@@ -324,7 +338,7 @@ for (const image of Object.values(GUIDE_IMAGES)) {
  * only a chat approval counts; a pre-ticked review page does not). `for` names the records (`kind:id`) or categories
  * (`category:<id>`) it may cover; coverCandidates() reads it. Only these keys get `aiCoverApproved`.
  */
-export type AiCoverApproval = { key: string; ownerQuote: string; approvedAt: string; for?: string[] };
+export type AiCoverApproval = { key: string; ownerQuote: string; approvedAt: string; page?: string; for?: string[] };
 export const AI_COVER_APPROVALS: readonly AiCoverApproval[] = (aiCoverApprovals as { approvals: AiCoverApproval[] }).approvals;
 for (const { key } of AI_COVER_APPROVALS) {
   const image = GUIDE_IMAGES[key];

@@ -7,9 +7,10 @@ import { getGuideMedia } from '../src/data/guide-media';
 import { getGuideEditorial } from '../src/data/guide-editorial';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { discoverRelatedGuides } from '../src/lib/guide-discovery';
-import { guideRegionsOf, keepInlineImage } from '../src/features/guides/guide-data';
+import { coverInCurrentLanguage, guideRegionsOf, keepInlineImage } from '../src/features/guides/guide-data';
+import { slimListingImage } from '../src/lib/listing-image';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
-import { coverFor, relatedForToday, type GuidesIndex } from '../src/features/guides/guide-records';
+import { coverFor, expandGuidesIndex, relatedForToday, type GuidesIndexFile } from '../src/features/guides/guide-records';
 import { isGuideSlug, loadGuide, peekGuide, readGuide } from '../src/features/guides/guide-store';
 import guidesIndex from '../src/data/generated/guides-index.json';
 
@@ -19,7 +20,7 @@ import guidesIndex from '../src/data/generated/guides-index.json';
  * keep the corpus out of both pages' static imports. A failure after a content change means: run `npm run generate:home`.
  */
 const plain = <T,>(value: T): T => (value === undefined ? value : JSON.parse(JSON.stringify(value)));
-const index = guidesIndex as GuidesIndex;
+const index = expandGuidesIndex(guidesIndex as GuidesIndexFile);
 
 test('the index lists every published guide in corpus order with the card facts the pages used to compute', () => {
   assert.deepEqual(index.guides.map(card => card.slug), guides.map(guide => guide.slug));
@@ -30,7 +31,9 @@ test('the index lists every published guide in corpus order with the card facts 
     assert.equal(card.sourceCount, guideSourceCount(guide), guide.slug);
     assert.equal(card.readMinutes, guideReadMinutes(guide), guide.slug);
     assert.deepEqual(card.regions ?? [], guideRegionsOf(guide), guide.slug);
-    assert.deepEqual(coverFor(card.covers, 'zh-Hans'), plain(getGuideMedia(guide).cover), guide.slug);
+    // UI9-IMG-A1b: the listing cover (its own ①/photo, else its ③ stock picture: guide-data.ts guideListingCover).
+    // The index carries it slim, as every listing does (src/lib/listing-image.ts: no rights prose, the caption's signal).
+    assert.deepEqual(coverFor(card.covers, 'zh-Hans'), plain(slimListingImage(coverInCurrentLanguage(guide))), guide.slug);
   }
 });
 

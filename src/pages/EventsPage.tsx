@@ -6,15 +6,10 @@ import { setPageMetadata } from '../lib/seo';
 import { columnFor, resolveWhen } from '../features/events/events-model';
 import { loadForLocation } from '../features/events/events-later';
 import type { Locale } from '../i18n/locale';
-import { preloadDateFamily } from '../components/ui/cover-date';
 
-/**
- * At boot (route-loaders.ts): a link to dates past the route's own (十二月, 全部日期) waits for the rest of the catalog, and the
- * date family loads first (UI9-IMG-A0), so the first render draws its covers, not their empty frames (the 免费与优惠 and
- * 新店 boards wait for their own families: EventsFrame.tsx).
- */
+/** At boot (route-loaders.ts): a link to dates past the route's own (十二月, 全部日期) waits for the rest of the catalog. */
 // eslint-disable-next-line react-refresh/only-export-components
-export const prepare = (search: string, locale: Locale) => Promise.all([loadForLocation('events', search, locale), preloadDateFamily()]);
+export const prepare = (search: string, locale: Locale) => loadForLocation('events', search, locale);
 
 /**
  * /events (活动, 本周末 first). The prerender renders EventsView and links this chunk's stylesheet (features/events/events.css).

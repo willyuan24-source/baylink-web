@@ -73,7 +73,7 @@ const lines = (draw: TextDrawer, texts: string[], x: number, y: number, size: nu
   texts.map((text, index) => draw({ text, x, y: y + index * lineHeight, size, weight, fill })).join('');
 
 /**
- * Card v2 (I18N-SEO-05): the listing's TypeCover on the left (palette, category, the big date or value) and on the right
+ * Card v2 (I18N-SEO-05): the type layout (palette, category, the big date or value; hub cards and any card without a picture) on the left and on the right
  * the title, date and place, then the QR to the page in the card's own language; a card with a photo it may carry puts
  * the photo across the top instead (renderPhotoCardSvg, H45). One card per language (/share-cards/,
  * /share-cards/zh-Hant/, /share-cards/en/).
@@ -88,7 +88,7 @@ export type ShareCardModel = {
   note?: string;
   /** The price or deadline sticker ("免费", "$5–8", "还剩 3 天"). */
   sticker?: string;
-  /** The provenance badge: "BAYLINK 信息卡", or the photo's own label. */
+  /** The provenance badge: the picture's own label (示意图 for a ③ picture). */
   provenance: string;
   kindLabel: string; title: string; meta: string[]; summary?: string;
   /** Under the QR. */
@@ -146,7 +146,7 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   ${lines(draw, title, left, titleY, 42, 52, 700, INK)}
   ${lines(draw, meta, left + 2, metaY, 24, 34, 400, INK_2)}
   ${lines(draw, cardLines(model.footnote, right - left, 16, 1), left, 600, 16, 22, 400, INK_3)}
-  ${qrBlock(qr, 1004, 400, 148)}
+  ${qrBlock(qr, 984, 388, 168)}
   ${draw({ text: 'baylink.us', x: 1004, y: 598, size: 24, weight: 700, fill: BRAND })}
   </g></svg>`;
 }

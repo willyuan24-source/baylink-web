@@ -46,8 +46,8 @@
   --color-badge-bg:rgb(var(--color-brand-deep-rgb) / .78);
   --color-backdrop:var(--scrim);
   --scrim-photo:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / 0) 40%, rgb(var(--color-scrim-rgb) / .64) 62%, rgb(var(--color-scrim-rgb) / .82) 100%);
-  /* TypeCover pairs = the category map, fg on bg (tests/token-contrast.test.ts holds each to AA). 长辈 takes the brand
-     family instead of a fifth accent hue; the cover system (UI9-C) builds its deep blocks on these same hues. */
+  /* Category tone pairs = the category map, fg on bg (tests/token-contrast.test.ts holds each to AA): the chips and tags
+     that name a category. 长辈 takes the brand family instead of a fifth accent hue. */
   --tc-family-bg:var(--color-warm-tint); --tc-family-fg:var(--color-warm);
   --tc-culture-bg:var(--color-info-tint); --tc-culture-fg:var(--color-info);
   --tc-outdoors-bg:var(--color-moss-tint); --tc-outdoors-fg:var(--color-moss);
@@ -184,7 +184,7 @@ html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'PingFang TC',
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI'), local('SegoeUI'); font-weight:400; unicode-range:U+0000-024F; }
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:600; unicode-range:U+0000-024F; }
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:700; unicode-range:U+0000-024F; }
-html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title,.ui-type-cover) { font-family:'BL Hant Latin',var(--font-sans); }
+html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title) { font-family:'BL Hant Latin',var(--font-sans); }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
    carries the same factor into the vw middle of fluid headings (clamp(2rem, calc(4vw * var(--fluid-scale)), 3rem)). */
@@ -306,9 +306,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .reading-simple-switch[aria-checked=true] .reading-simple-track>span { background:var(--color-surface); transform:translateX(1.125rem) scale(1.25); }
 @media(forced-colors:active) { .reading-simple-track>span { background:CanvasText; } }
 
-/* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. A TypeCover sets its own
-   type (ui.css): at 0-1-1 this rule outranked it, and a detail page's coded hero printed its value and date at 14px in ink-2. */
-:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(p,small,label,time,summary):not(:where(.ui-type-cover *)) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-read); }
+/* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. Kept at 0-1-1 so a
+   component that sets its own type (ui.css) is not outranked by it. */
+:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(p,small,label,time,summary) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-read); }
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
 /* A title link is the heading, not a control: it keeps the heading's size (SYS-03, EVT-03). (0,1,2) outranks the (0,1,1) rule above. */
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }

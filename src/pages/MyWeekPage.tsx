@@ -14,6 +14,7 @@ import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { readerMonthDay } from '../lib/event-facts';
 import { coverItemFor, createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
+import { coverCandidates } from '../lib/cover-candidates';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { ImportedEventsPanel } from '../components/ImportedEventsPanel';
@@ -32,7 +33,6 @@ import { COVER_SIZES } from '../components/ui/cover-sizes';
 import { ErrorState } from '../components/ui/States';
 import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
-import { EventTypeCover } from '../components/ui/TypeCover';
 import { confirmDialog } from '../components/ui/confirm';
 import '../features/saves/my-week.css';
 
@@ -81,12 +81,12 @@ function PlanTimeline({ plans, english, busy, onDelete }: { plans: SavedPlan[]; 
 function WeekEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
-  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', event)), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
+  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', { ...event, imageKeys: coverCandidates('event', event) })), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
   return <ul className="my-week__list">{events.map(({ event, date }, index) => {
     const title = translateText(event.title, locale);
     return <li key={event.id} className="my-week__event">
       <RowCard title={title} to={`/events/${event.id}`} heading="h3"
-        thumb={<Cover cover={covers[index]} sizes={COVER_SIZES.thumb} decorative fallback={<EventTypeCover event={event} today={today} days={[date]} size="mini" ariaHidden />} />}
+        thumb={<Cover cover={covers[index]} sizes={COVER_SIZES.thumb} decorative kind="event" />}
         date={<><span>{t('本次', 'This visit')} </span><time dateTime={date}>{dayLabel(date, english)}</time></>}
         meta={`${translateText(event.city, locale)} · ${translateText(event.costLabel, locale)} · ${t('活动期间', 'Runs')} ${translateText(event.dateLabel, locale)}`}
         trailing={<SaveHeart kind="event" id={event.id} title={title} />} />

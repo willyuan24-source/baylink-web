@@ -5,12 +5,13 @@ import './cards.css';
 import { cx } from './ui-copy';
 
 /**
- * The provenance chip. The text must come from getImageProvenance() / typeCoverProvenance(). `plain`: the badge exactly as it
- * was before UI9-C, without the attribute the cover system's chip look keys on (covers.css `.ui-provenance[data-chip]`): the
- * AI 3D postcards (captain decision 1) and the pictures outside the listing feeds (/explore, which this phase leaves as is).
+ * The provenance chip: one per picture, bottom-left (UI9-IMAGES DECISIONS 23). The words come from tierLabelOf() (cover-labels.ts)
+ * or, for a 3D postcard, getImageProvenance(). `tier` (data-tier) keeps a ③ 示意图 / ④ AI 示意图 chip on the picture in every
+ * size and mode. `plain`: the badge exactly as it was before UI9-C, without the attribute the chip look keys on (covers.css
+ * `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).
  */
-export function ProvenanceBadge({ label, className, plain }: { label: string; className?: string; plain?: boolean }) {
-  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''}>{label}</span>;
+export function ProvenanceBadge({ label, className, plain, tier }: { label: string; className?: string; plain?: boolean; tier?: string }) {
+  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier}>{label}</span>;
 }
 
 export type StickerTone = 'date' | 'free' | 'mixed' | 'price' | 'paid' | 'danger' | 'warning' | 'success' | 'neutral';

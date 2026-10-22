@@ -304,7 +304,7 @@ After the merge:
 19. Deploy order: web must read `value.baybay ?? value` from `/api/ai/usage` before API-FIX5 deploys (done: #38 went live before #42).
 20. API-SYNC must follow every content merge, including GPT's, or saves 404 and BayBay misses the new items.
 21. CNT lanes: one new dated batch file + its `-en.json` pair + overlay fields; ledger rows for every new fact; no image downloads (write `image-candidates.md` for the owner instead).
-22. capture2 counts a TypeCover as image area only through `[data-cover]`. Report `realPhotoArea` separately (RC-31). Otherwise the image metric is wrong by construction.
+22. capture2 counts a TypeCover as image area only through `[data-cover]`. Report `realPhotoArea` separately (RC-31). Otherwise the image metric is wrong by construction. (UI9-IMAGES 2026-10-21: TypeCover is gone; every cover is a picture, `[data-cover=type]` = 0.)
 23. Generated single-line JSON conflicts on every rebase. Never resolve by hand; take main and regenerate.
 24. Linkify phone numbers on the already-translated string, or /en paragraphs fall back to Chinese (RC-11).
 25. Lazy-loaded home sections render only their fallback in prerender. Anything the OPUS contract needs must render eagerly (RC-8).

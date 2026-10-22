@@ -6,13 +6,15 @@ import {
   offerPhotoCategory, openingPhotoCategory, photoCategoryOf, type PhotoCategoryId,
 } from '../src/lib/photo-category';
 import overrideFile from '../src/data/photo-category-overrides.json';
-import type { EventsIndex, EventsLater } from '../src/features/events/events-index-types';
+import type { EventsBoards, EventsIndex, EventsLater } from '../src/features/events/events-index-types';
 
 // UI9-IMAGES (DECISIONS 22 ③, 24): every record on the shelf — the route's events, events-later, every offer, new shop,
 // bulletin and guide, not only this window's — falls into a stock-photo pool, so no card can end up without a picture.
 const generated = (name: string) => JSON.parse(readFileSync(new URL(`../src/data/generated/${name}`, import.meta.url), 'utf8'));
 const index = generated('events-index.json') as EventsIndex;
 const later = generated('events-later.json') as EventsLater;
+// UI9-IMG-A1b: the boards' offers and new shops are in events-boards.json.
+const boards = generated('events-boards.json') as EventsBoards;
 const guides = (generated('guides-index.json') as { guides: { slug: string; title: string; category: string }[] }).guides;
 
 test('the category list is closed: unique ids, every label in three languages', () => {
@@ -27,10 +29,10 @@ test('every live record has a photo category (add a rule or an override when thi
   const missing: string[] = [];
   const check = (label: string, category: PhotoCategoryId | undefined) => { if (!category) missing.push(label); };
   const events = [...index.events, ...later.events];
-  assert.ok(events.length > 100 && index.offers.length > 50 && guides.length > 50, 'the generated catalog is loaded');
+  assert.ok(events.length > 100 && boards.offers.length > 50 && guides.length > 50, 'the generated catalog is loaded');
   for (const e of events) check(`event:${e.id} ${e.title}`, eventPhotoCategory(e));
-  for (const o of index.offers) check(`offer:${o.id} ${o.brand} ${o.title}`, offerPhotoCategory(o));
-  for (const o of index.openings) check(`opening:${o.id} ${o.name} ${o.category}`, openingPhotoCategory(o));
+  for (const o of boards.offers) check(`offer:${o.id} ${o.brand} ${o.title}`, offerPhotoCategory(o));
+  for (const o of boards.openings) check(`opening:${o.id} ${o.name} ${o.category}`, openingPhotoCategory(o));
   for (const b of index.bulletins) check(`bulletin:${b.id} ${b.title}`, bulletinPhotoCategory(b));
   for (const g of guides) check(`guide:${g.slug}`, guidePhotoCategory(g));
   assert.deepEqual(missing, []);

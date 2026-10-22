@@ -5,6 +5,7 @@ import { getBayAreaToday, getMonthlyDateRange } from '../../lib/monthly';
 import { calendarPeriod, validCalendarDay } from '../../lib/calendar-days';
 import { INDEX_EVENTS, installLaterEvents, isLaterInstalled, listWindow, nearCovers, resolveWhen, subscribeLater } from './events-model';
 import type { EventsLater, IndexEvent } from './events-index-types';
+import { loadBoards } from './events-boards';
 
 /**
  * WEB-PERF-2: the events column's route carries the events of its first screens only (events-index.json `near`), so a
@@ -78,7 +79,8 @@ export function loadForLocation(page: 'events' | 'calendar', search: string, loc
     days = calendarPeriod(validCalendarDay(date) ? date : today, 'week');
   } else {
     const view = params.get('view');
-    if (view === 'perks' || view === 'openings') return Promise.resolve();
+    // A board's link waits for the boards' records (events-boards.ts), so the app's first render lists them.
+    if (view === 'perks' || view === 'openings') return loadBoards(locale).catch(() => undefined);
     days = listWindow(getMonthlyDateRange(resolveWhen(params.get('when'), 'weekend'), today), today);
   }
   return nearCovers(days.start, days.end) ? Promise.resolve() : loadLaterEvents(locale).catch(() => undefined);

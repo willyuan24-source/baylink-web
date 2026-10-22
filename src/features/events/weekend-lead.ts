@@ -6,7 +6,7 @@ import { nextOccurrence } from '../../lib/monthly';
 
 /**
  * Photos that never lead (DECISIONS 15): one list for /events, /calendar and the home lead (lib/close-up-faces.ts). A lead
- * that has no other candidate keeps its slot in its type cover (`leadImageKey`).
+ * that has no other candidate shows its next one (`leadImageKey`; never an information card, UI9-IMAGES DECISIONS 21).
  */
 export { CLOSE_UP_FACE_IMAGES, leadImageKey };
 
@@ -14,7 +14,8 @@ export { CLOSE_UP_FACE_IMAGES, leadImageKey };
  * Whether an event can lead a page (DECISIONS 26, lib/lead-rule.ts): its lead picture is ① its own (official image, poster
  * or photo) or ② its venue's, never a close-up face, an AI picture or an information card.
  */
-export const canLead = (event: Pick<IndexEvent, 'id' | 'imageKey' | 'imageKeys'>, today: string) => leadsWithPicture(event, coverContext(today));
+export const canLead = (event: Pick<IndexEvent, 'id' | 'imageKey' | 'imageKeys'>, today: string, closeUps: ReadonlySet<string> = CLOSE_UP_FACE_IMAGES) =>
+  leadsWithPicture(event, coverContext(today), closeUps);
 
 /**
  * Home's lead for a day (the first of home.weekends[day].ids, written into the index by generate-events-index.ts), else

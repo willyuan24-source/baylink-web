@@ -113,13 +113,15 @@ test('a venue photo too old to be the cover still shows the place below the summ
   const find = (kind: string, id: string) => localDiscoveries.find(row => `${row.kind}:${discoveryShare(row).id}` === `${kind}:${id}`)!;
   // The SF main library's 2013 atrium photo is the approved venue photo of this swap, past the 8-year cover rule.
   const old = page(find('event', 'sf-main-halloween-costume-swap-oct15-2026'));
-  assert.equal(old.querySelector('.detail-hero [data-cover]')?.getAttribute('data-cover'), 'type', 'the hero is the TypeCover');
+  // UI9-IMG-A1b (DECISIONS 21/22): the hero shows the swap's next candidate (a ③ stock picture), never an information card.
+  assert.equal(old.querySelector('.detail-hero [data-cover]')?.getAttribute('data-cover'), 'image', 'the hero is a picture');
+  assert.equal(old.querySelectorAll('[data-cover="type"]').length, 0, 'no information card on the page');
   const photo = old.querySelector('.detail-body figure.detail-photo')!;
   assert.ok(photo, 'the venue photo is in the body');
   assert.ok(old.querySelector('.detail-summary')!.compareDocumentPosition(photo) & FOLLOWING, 'after the summary');
   assert.match(photo.textContent || '', /资料图 · 2013/);
   assert.ok(photo.querySelector('img[loading="lazy"]'), 'below the fold, so it loads lazily');
-  assert.equal(old.querySelectorAll('.detail-credit').length, 1, 'one credit line for the one photo');
+  assert.equal(old.querySelectorAll('.detail-credit').length, 2, 'one credit line each for the hero picture and the venue photo');
   // A photo that is the cover is not repeated; offers keep the brand-image rule (a CC Muni photo is not the offer).
   for (const [kind, id] of [['event', 'san-francisco-fleet-week-2026'], ['offer', 'sfmta-free-muni-seniors'], ['offer', 'omca-free-oct4']]) {
     assert.equal(page(find(kind, id)).querySelector('.detail-photo'), null, `${kind}:${id}`);

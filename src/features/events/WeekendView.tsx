@@ -176,10 +176,10 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const oneDay = weekend && (day === 'sat' || day === 'sun') ? feedDays[0] : undefined;
 
   // One page context in display order — share strip, lead, picks, feed — so an image appears once per page (VISUAL-10).
-  const context = { ...coverContext(today), page: createCoverPage() };
+  const context = { ...coverContext(today), page: createCoverPage({ fresh: true }) };
   const covers = {
     strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
-    // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
+    // DECISIONS 15/26: a lead never shows a close-up face photo; it takes its next candidate (never an information card).
     lead: arranged.lead ? resolveCovers([coverItemFor('event', arranged.lead.event, { imageKey: leadImageKey(arranged.lead.event.imageKey), lead: true })], context) : [],
     rows: resolveCovers(rows.map(eventItem), context),
     feed: resolveCovers(visible.map(eventItem), context),
@@ -280,7 +280,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // The list as cards, or as rows at 大 / 特大 and in 简洁显示 (the live list and the one held while another range loads).
   const cards = (events: readonly IndexEvent[], label: string, onDay?: string, coverOf = (event: IndexEvent) => covers.feed[visible.indexOf(event)]) => roomy
     ? <div className="ev-rows" role="list" aria-label={label}>{events.map(event => <div key={event.id} role="listitem">{rowCard(event, coverOf(event), onDay)}</div>)}</div>
-    : <FeedGrid label={label} layout={layout} coverCredit={false} className="ev-cards">
+    : <FeedGrid label={label} layout={layout} className="ev-cards">
       {events.map(event => <FeedItem key={event.id}>{feedCard(event, coverOf(event), onDay)}</FeedItem>)}
     </FeedGrid>;
   const feed = !visible.length ? null : weekend ? cards(visible, t('本周末活动', 'Events this weekend'))
@@ -296,10 +296,9 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       <Strip region={card} state={strip} events={stripEvents} covers={covers.strip} today={today} />
     </Suspense>; }}</ChunkBoundary>}
 
-    {/* data-cover-credit: the page names the info card once (本页图片来源), so a credited pick's coded cover drops its badge (H12). */}
     {/* H26 / HOMEIA13-03: 编辑精选 only when the lead is from the editor's list (src/data/weekend-picks.ts, with its reason);
         a lead from the ranking (DECISIONS 26: no pick has a ① or ② picture) heads the block as 本周末先看. */}
-    {arranged.lead && <section className="ev-picks" aria-labelledby="ev-picks-heading" data-cover-credit="">
+    {arranged.lead && <section className="ev-picks" aria-labelledby="ev-picks-heading">
       <h2 id="ev-picks-heading" className="ev-section-title ev-picks__title">{arranged.lead.reason ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
       <div className="ev-picks__grid">
         <EventLeadCard event={arranged.lead.event} cover={covers.lead[0]} today={today} days={[arranged.lead.date]}

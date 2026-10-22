@@ -13,11 +13,11 @@ import { EventMeta } from './WeekendFeed';
 import { dateScope } from '../../lib/date-guard';
 
 /**
- * The lead fills a phone's width (16:9) and columns 6–12 on a desktop (≈700px); picks 2–3 are half a phone, three columns.
- * Below 768 the lead asks for 266px, the site's phone cap (RC-33, EventCards' PHONE_COVER_CAP): the 800w rung, which still
- * gives about 2 device pixels per CSS pixel across 390px, where 1200w is about twice the bytes on the page's LCP image.
+ * The lead fills a phone's width less the 16px gutters (16:9, about 358px at 390) and columns 6–12 on a desktop (≈700px);
+ * picks 2–3 are half a phone, three columns. `sizes` states the slot's real width (UI9-IMG-A1b, captain 10-21: it said 266px
+ * on a 358px slot), and the prerendered LCP preload copies it, so the two always ask for the same rung.
  */
-const LEAD_SIZES = '(max-width: 767px) 266px, (max-width: 1023px) 100vw, 700px';
+const LEAD_SIZES = '(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) 100vw, 700px';
 const PICK_SIZES = '(max-width: 1023px) 50vw, 290px';
 const facts = (event: HomeEvent) => event as unknown as EventFactsInput;
 const weekend = dateScope('weekend');
@@ -57,7 +57,7 @@ export function HeroPicks({ picks, covers, today, start, end, total, checked }: 
       {/* The separator keeps the heading's name readable ("本周末先看这几件，10/24–25"); the date shows as a kicker. */}
       <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end, english)}</span></h2>
     </div>
-    {picks.length ? <ul className="home-picks__list" role="list" aria-label={t('本周末精选', 'This weekend’s picks')} data-cover-credit="">
+    {picks.length ? <ul className="home-picks__list" role="list" aria-label={t('本周末精选', 'This weekend’s picks')}>
       {picks.map((item, index) => <li key={item.event.id} {...weekend}><PickCard pick={item} cover={covers[index]} today={today} lead={index === 0} /></li>)}
     </ul> : <div className="home-empty" {...weekend}>
       {/* The lead's slot holds a text panel when there is nothing to show: none confirmed (0), or no picks for a day the

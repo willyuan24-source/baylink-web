@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { getCover, type CoverItem } from '../src/lib/cover';
-import type { EventsIndex, IndexEvent, IndexImage } from '../src/features/events/events-index-types';
+import type { EventsBoards, EventsIndex, IndexEvent, IndexImage } from '../src/features/events/events-index-types';
 import { captionSignal, INDEX_IMAGE_DROPPED_FIELDS, INDEX_IMAGE_FIELDS } from '../scripts/events-index-images';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { captureYear, type CoverAsset } from '../src/lib/cover';
@@ -15,8 +15,10 @@ const laterFile = 'src/data/generated/events-later.json';
 const later = existsSync(laterFile)
   ? JSON.parse(readFileSync(laterFile, 'utf8')) as { events: IndexEvent[]; images: Record<string, IndexImage> }
   : { events: [], images: {} };
+// UI9-IMG-A1b: the boards' offers, new shops and their pictures are in events-boards.json (loaded with the boards).
+const boards = JSON.parse(readFileSync('src/data/generated/events-boards.json', 'utf8')) as EventsBoards;
 const events = [...route.events, ...later.events];
-const images: Record<string, IndexImage> = { ...route.images, ...later.images };
+const images: Record<string, IndexImage> = { ...route.images, ...later.images, ...boards.images };
 
 // Image records: the index keeps only the fields listings read (scripts/events-index-images.ts) and cuts a structured
 // rights record to its basis, so each new image costs /events and /calendar as little as possible. A registry field in
@@ -34,8 +36,8 @@ test('index images carry only the fields listings read and resolve every listing
   }
   const items: CoverItem[] = [
     ...events.map(event => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })),
-    ...route.offers.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })),
-    ...route.openings.map(shop => ({ kind: 'opening' as const, id: shop.id, imageKey: shop.imageKey })),
+    ...boards.offers.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })),
+    ...boards.openings.map(shop => ({ kind: 'opening' as const, id: shop.id, imageKey: shop.imageKey })),
   ];
   // A TypeCover is a TypeCover: AI illustrations are left out of the index on purpose (reason missing-image, not ai-illustration).
   const summary = (cover: ReturnType<typeof getCover>) => cover.tier === 'type' ? { tier: cover.tier } : { tier: cover.tier, key: cover.key, label: cover.label, fit: cover.fit, focal: cover.focal, year: cover.year };

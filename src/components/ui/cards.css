@@ -48,13 +48,6 @@
 .ui-meta-sep { white-space:pre; }
 .ui-feed-card__trust { display:flex; align-items:center; gap:var(--sp-1); color:var(--color-ink-3); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
-/* H12 / SV13-02: in a list that names the info card once (FeedGrid's caption, the home offers) a card that credits its source
-   (the ✓ 官网核对 line, FeedCard data-credited) drops the BAYLINK 信息卡 badge from its coded cover: still in the DOM for screen
-   readers and probes, not drawn, and the label takes its place. Elsewhere (heroes, detail bands, guide cards) the badge stays. */
-[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover:not([data-size=mini]) { --tc-badge-room:0px; }
-[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover .ui-provenance { width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
-.ui-cover-credit { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
-.ui-feed:not(:has(.ui-feed-card[data-credited] [data-cover=type]))>.ui-cover-credit { display:none; }
 .ui-feed-card__save { position:absolute; top:var(--sp-1); right:var(--sp-1); z-index:3; }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { display:block; overflow:visible; font-size:var(--text-card); line-height:1.444; }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
@@ -79,6 +72,7 @@
 /* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
 .ui-row-card__thumb .ui-stickers { display:none; }
 .ui-row-card__thumb .ui-provenance { top:auto; right:0; bottom:0; left:0; max-width:none; padding:2px var(--sp-1); border-radius:0; text-align:center; }
+.ui-row-card__thumb .ui-provenance[data-chip] { line-height:var(--lh-snug); white-space:normal; }
 :is(.ui-row-card__meta,.ui-feed-card__meta)>svg { display:inline-block; vertical-align:-2px; }
 
 /* The segmented control (DayToggle, 列表 | 地图); the view row's tabs are in features/events/events.css. */
@@ -117,7 +111,7 @@
 /* Hero card 4:5 (本周封面 / 编辑精选): text on the photo only on the bottom scrim. */
 .ui-hero-card { position:relative; display:flex; flex-direction:column; gap:var(--sp-2); min-width:0; }
 .ui-hero-card__media { position:relative; overflow:hidden; border-radius:var(--r-xl); }
-.ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); }
+.ui-hero-card__media .ui-cover { border-radius:var(--r-xl); }
 /* P07: without a photo overlay the title sits below the cover inside this box, and its rounded clip cut the title's first
    glyph at the bottom-left corner ("Berkeley" on the home pick at 1440). The cover rounds and clips itself (.ui-cover). */
 .ui-hero-card:not([data-overlay]) .ui-hero-card__media { overflow:visible; }

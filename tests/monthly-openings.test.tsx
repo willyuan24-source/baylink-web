@@ -204,7 +204,14 @@ test('opening cards show only attributable photos or posters; synthetic shop art
     const image = registered?.kind === 'illustration' ? undefined : registered;
     const img = article.querySelector('img.ui-cover__img');
     // The cover ladder decides which factual images an opening may use (official images and own shots, WEB-UI).
-    if (image && getCover({ kind: 'opening', id: shop.id, imageKey: shop.imageKey }, coverContext(TODAY)).tier !== 'type') {
+    const tier = getCover({ kind: 'opening', id: shop.id, imageKey: shop.imageKey }, coverContext(TODAY)).tier;
+    if (registered?.kind === 'illustration' && tier === 'ai') {
+      // An AI illustration the owner approved as a ④ cover in chat on 2026-10-21 shows, badged AI 示意图 (or, when the board
+      // already shows it fewer than ADJACENT_CARDS cards before, another pool picture: a ③ category photo, 示意图; cover.ts).
+      assert.ok(registered.aiCoverApproved, `${shop.id}: only an approved AI illustration`);
+      if (img) assert.match(article.querySelector('[data-cover="image"] .ui-provenance')?.textContent ?? '', /^(AI 示意图|示意图)$/, shop.id);
+      else assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
+    } else if (image && tier !== 'type') {
       assert.ok(image.kind === 'photo' || image.kind === 'poster', `${shop.id} uses factual media`);
       assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0, `${shop.id} image file exists`);
       assert.ok(img, `${shop.id} shows its own image`);
@@ -214,8 +221,14 @@ test('opening cards show only attributable photos or posters; synthetic shop art
       const fit = article.querySelector('[data-cover="image"]')!.getAttribute('data-fit');
       assert.equal(fit, image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover', `${shop.id}: posters and full-frame photos are never cropped`);
     } else {
-      assert.equal(img, null, `${shop.id} has no unrelated, synthetic or unlicensed picture`);
-      assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
+      // Never its unrelated, synthetic or unlicensed picture: a ③ category photo labelled 示意图 (the owner's, 2026-10-21;
+      // UI9-IMAGES DECISIONS 21/22) or the information card. Compare the src, not the DOM node: a node's diff prints the
+      // whole document and can run the test out of memory.
+      const src = img?.getAttribute('src') ?? null;
+      if (src) {
+        assert.match(src, /^\/guides\/category-stock\//, `${shop.id} has no unrelated, synthetic or unlicensed picture`);
+        assert.match(article.querySelector('[data-cover="image"] .ui-provenance')?.textContent ?? '', /^示意图$/, shop.id);
+      } else assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
       if (registered?.kind === 'illustration') assert.equal(article.textContent!.includes(registered.caption), false, 'hidden synthetic artwork leaves no picture caption');
     }
     // DECISIONS 17: a press source reads 媒体报道 · M/D 核对, never 官网核对.
@@ -246,7 +259,8 @@ test('opening cards show only attributable photos or posters; synthetic shop art
 
 test('unavailable and inherited opening image keys safely fall back to the information card', () => {
   const shop = INDEX_OPENINGS[0];
-  for (const imageKey of ['unregistered-opening-test-image', '__proto__', 'constructor', 'family-workshop']) {
+  // 'settling' is an AI illustration the owner has not approved as a cover ('family-workshop' was approved on 2026-10-21).
+  for (const imageKey of ['unregistered-opening-test-image', '__proto__', 'constructor', 'settling']) {
     const cover = getCover({ kind: 'opening', id: shop.id, imageKey }, coverContext(TODAY));
     assert.equal(cover.tier, 'type', imageKey);
   }
