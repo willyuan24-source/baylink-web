@@ -18,7 +18,7 @@
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 36,
-    "spacingOffScale": 1487,
+    "spacingOffScale": 1486,
     "englishUiUntranslated": 104,
     "lazyCssDuplicateSelectors": 0
   },
@@ -420,7 +420,7 @@
     },
     "src/components/ui/cards.css": {
       "fontSizeLiteral": 2,
-      "spacingOffScale": 9
+      "spacingOffScale": 8
     },
     "src/components/ui/confirm.tsx": {
       "baylinkClasses": 11
