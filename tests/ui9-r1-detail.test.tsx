@@ -8,10 +8,11 @@ import postcss, { type AtRule, type Rule } from 'postcss';
 
 /**
  * UI9-R1-DETAIL (first cold-review round, lanes/UI9-P4/r1/synthesis-r1.json): the event, offer and opening detail pages
- * outside the hero, the rail markup and the page credits. One fact per row in the facts card (only an offer's two short
- * values pair up), 适合 at 400, the long-note clamp with 展开 on its own line; 问 BayBay kept from 360 px in every reading
+ * outside the hero, the rail markup and the page credits. One fact per row in the facts card (an offer's two short values
+ * pair up, and an event's 多少钱 | 适合 on a phone when both are short, H58), 适合 at 400, the long-note clamp with 展开 on its own line; 问 BayBay kept from 360 px in every reading
  * mode; the 14 px caption at 30em (N05); the rail on the grid gutter (N16); a colour hover on the source and credit links
- * (N23); the desktop action card sticky in a full-height aside; the bar's cells in the quiet look (N12); the section rules
+ * (N23); on a desktop the whole aside sticky where it fits, else the action card sticky in a full-height aside; a detail
+ * bar's cells in the quiet look, one filled button per bar and section (N12, in part); the section rules
  * splitting the section gap (N15). The facts card's rules ship with the detail route, not in the global sheet.
  */
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/events/x' });
@@ -22,7 +23,8 @@ const { StaticRouter } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
-const { NOTE_CLAMP_UNITS } = await import('../src/features/detail/FactsGrid');
+const { NOTE_CLAMP_UNITS, PAIR_UNITS, PAIR_NOTE_UNITS } = await import('../src/features/detail/FactsGrid');
+const { displayUnits } = await import('../src/lib/event-facts');
 const { setLocale } = await import('../src/i18n/locale');
 
 after(() => {
@@ -75,10 +77,37 @@ test('J1 P14: one fact per row, the offer\'s two short values side by side, 适�
   assert.ok(NOTE_CLAMP_UNITS >= 44 && NOTE_CLAMP_UNITS <= 48, 'two lines of the full-width note');
 });
 
+test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) only when both fit one line of a half card', () => {
+  assert.equal(decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts[data-pair]', '(max-width:767px)')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
+  assert.ok(PAIR_UNITS <= 8 && PAIR_NOTE_UNITS <= 22, 'a half card is about 139 px at 360');
+  let paired = 0, single = 0;
+  for (const item of localDiscoveries.filter(row => row.kind === 'event').slice(0, 60)) {
+    const doc = page(`event:${discoveryShare(item).id}`);
+    const facts = doc.querySelector('.detail-facts')!;
+    const forValue = facts.querySelector('[data-fact="for"] .detail-fact__key')?.textContent ?? '';
+    const cost = facts.querySelector('[data-fact="cost"]');
+    const costKey = cost?.querySelector('.detail-fact__key')?.textContent ?? '';
+    const note = cost?.querySelector('dd>small')?.textContent ?? '';
+    if (facts.hasAttribute('data-pair')) {
+      paired++;
+      assert.ok(forValue && displayUnits(forValue) <= PAIR_UNITS && displayUnits(costKey) <= PAIR_UNITS && displayUnits(note) <= PAIR_NOTE_UNITS, `${discoveryShare(item).id}: ${costKey} | ${forValue}`);
+      assert.equal(cost?.hasAttribute('data-clamp'), false);
+    } else {
+      single++;
+      assert.ok(!forValue || displayUnits(forValue) > PAIR_UNITS || displayUnits(costKey) > PAIR_UNITS || displayUnits(note) > PAIR_NOTE_UNITS, discoveryShare(item).id);
+    }
+  }
+  assert.ok(paired > 0 && single > 0, `both kinds sampled (${paired} paired, ${single} one per row)`);
+});
+
 test('J1 P14: a clamped note fades out at the end of its second line and 展开 has a line of its own, never over the text', () => {
   const text = readFileSync(FACTS_CSS, 'utf8');
   const phone = text.slice(text.indexOf('@media(max-width:767px)'));
-  assert.match(phone, /\[data-clamp\]:not\(\[data-open\]\) dd>small \{ max-height:calc\(2em \* var\(--lh-ui\)\); overflow:hidden; mask:linear-gradient\(var\(--color-ink\) 0 0\) 0 0 \/ 100% 50% no-repeat, linear-gradient\(to left, transparent, var\(--color-ink\) 4em\) 0 100% \/ 100% 50% no-repeat; \}/);
+  assert.ok(phone.length > 0);
+  const clamp = decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) dd>small', '(max-width:767px)');
+  assert.equal(clamp['max-height'], 'calc(2em * var(--lh-ui))', 'two lines of the note');
+  assert.equal(clamp.overflow, 'hidden');
+  assert.match(clamp.mask ?? '', /transparent/, 'the second line fades out');
   const toggle = decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle', '(max-width:767px)');
   assert.equal(toggle.display, 'inline-flex', 'after the block note: a line of its own');
   assert.equal(toggle['min-height'], '0', 'the page-wide 44px control height would add a row');
@@ -101,8 +130,14 @@ test('J1 P20 / J2 P14 / J3 P18: 问 BayBay from 360 px in every reading mode; �
   css.walkRules(rule => { if (rule.selector.includes('[data-label=tight]') && /display:\s*inline/.test(rule.toString())) tight.push(`${mediaOf(rule)} ${rule.selector}`); });
   assert.deepEqual(tight, ['(max-width:359px) .site-detail-actions.detail-actions [data-label=tight]'], 'BayBay alone only below 360 px');
   const wrap = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)');
-  assert.deepEqual([wrap['white-space'], wrap['text-wrap']], ['normal', 'balance']);
+  assert.deepEqual([wrap['white-space'], wrap['text-wrap'], wrap['text-align']], ['normal', 'balance', 'center'], 'wrapped lines centred, clear of the round ends');
   assert.equal(decls(DETAIL_CSS, 'html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions', '(max-width:1023px)')['padding-inline'], '0 var(--sp-1)');
+  assert.equal(decls(DETAIL_CSS, 'html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)')['padding-inline'], 'var(--sp-2)');
+  assert.equal(decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:359px)')['text-align'], 'center');
+  // From 360 px no detail rule takes the primary's padding below 8 px (the review's −4.8 px glyph clearance at 4 px).
+  sheet(DETAIL_CSS).walkRules(rule => {
+    if (mediaOf(rule) === '(max-width:1023px)' && rule.selector.includes('detail-action--primary')) rule.walkDecls('padding-inline', decl => assert.notEqual(decl.value, 'var(--sp-1)', rule.selector));
+  });
   for (const [key, primary] of [['event:san-mateo-boos-brews-2026', /加入这天计划/], ['offer:shake-shack-scarygood-oct2026', /领取入口/], ['opening:marufuku-burlingame-announced', /加入计划|商家官网/]] as const) {
     const bar = page(key).querySelector('.site-detail-actions.detail-actions')!;
     assert.equal(bar.querySelector('[data-cell="ask"] [data-label="long"]')?.textContent, '问 BayBay', key);
@@ -128,19 +163,32 @@ test('N05 / N16 / N23: the caption at 30em, the rail on the grid gutter, the sou
   assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .trust-row a:hover', hover).color, 'var(--color-brand-hover)');
 });
 
-test('desktop: the aside runs the column\'s height and the action card is sticky in it; the cells take the quiet look (N12)', () => {
+test('desktop: the whole aside sticky where it fits, else the action card sticky in it; a detail bar\'s cells quiet (N12)', () => {
   const desk = '(min-width:1024px)';
   const aside = decls(DETAIL_CSS, '.local-discovery-detail .detail-aside', desk);
   assert.equal(aside['align-self'], 'stretch');
-  assert.equal(aside.position, undefined, 'the facts card scrolls away with the top block');
+  assert.equal(aside.position, undefined, 'in 大 / 特大 / 简洁显示 or on a short screen the facts card scrolls away');
   const card = decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions', desk);
   assert.deepEqual([card.position, card.top], ['sticky', '5.5rem']);
-  const cells = decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk);
-  assert.equal(cells.border, undefined, 'no box around a cell');
-  assert.equal(cells.background, undefined);
-  // One filled button per section: the bar's primary; the share row and 一起去 are quiet / secondary.
-  const doc = page('event:san-mateo-boos-brews-2026');
-  for (const section of doc.querySelectorAll('section')) assert.ok(section.querySelectorAll('[data-variant="primary"]').length <= 1, section.className);
+  const std = 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail';
+  const tall = '(min-width:1024px) and (min-height:820px)';
+  const whole = decls(DETAIL_CSS, `${std} .detail-aside`, tall);
+  assert.deepEqual([whole['align-self'], whole.position, whole.top], ['start', 'sticky', '5.5rem'], '标准 on a tall screen: the facts stay in view too');
+  assert.equal(decls(DETAIL_CSS, `${std} .site-detail-actions.detail-actions`, tall).position, 'static');
+  // A guide's card keeps its boxed cells (UI9-R1-GUIDE-ARTICLE); a detail page's cells drop the box, hover and press keep
+  // the sunken fill.
+  const shared = decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk);
+  assert.equal(shared.border, '1px solid var(--color-line-control)');
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk)['border-color'], 'transparent');
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):not(:hover,:active)', desk).background, 'none');
+  // One filled button per bar (its primary, on every kind) and at most one per body section.
+  for (const key of ['event:san-mateo-boos-brews-2026', 'offer:shake-shack-scarygood-oct2026', 'opening:marufuku-burlingame-announced']) {
+    const doc = page(key);
+    const bar = doc.querySelector('.site-detail-actions.detail-actions')!;
+    assert.equal(bar.querySelectorAll('.detail-action--primary,.detail-actions__primary .saves-add-day').length, 1, `${key}: one primary in the bar`);
+    assert.equal(bar.querySelectorAll('.detail-actions__cell [data-variant="primary"],.detail-actions__cell.detail-action--primary').length, 0, `${key}: no filled cell`);
+    for (const section of doc.querySelectorAll('.detail-body section')) assert.ok(section.querySelectorAll('[data-variant="primary"]').length <= 1, `${key} ${section.className}`);
+  }
 });
 
 test('N15: a section rule splits the section gap instead of adding to it; the share row has no rule of its own', () => {

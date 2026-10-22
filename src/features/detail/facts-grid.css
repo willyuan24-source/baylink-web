@@ -1,5 +1,6 @@
 /* 一眼看懂 (UI9-DETAIL; UI9-R1-DETAIL, J1 P14): a white card, one fact per row (何时 · 在哪 · 多少钱 · 适合; an opening's
-   类型); only an offer's two short values, 福利 | 要不要消费, share a row. Line 1 of a fact is its key at 600 (适合 is a list,
+   类型); an offer's two short values, 福利 | 要不要消费, share a row, and so do an event's 多少钱 | 适合 on a phone in 标准
+   when both fit one line of a half card (FactsGrid PAIR_UNITS, data-pair; H58: the card ends sooner above the bar). Line 1 of a fact is its key at 600 (适合 is a list,
    so it stays at 400), the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. Loaded with FactsGrid
    (the detail route and its skeleton), not on every page; the page frame is local-discovery-detail.css. */
 .local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
@@ -33,6 +34,7 @@
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle { position:relative; display:inline-flex; min-height:0; margin-top:var(--sp-1); padding:0; border:0; background:none; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); cursor:pointer; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle::before { content:""; position:absolute; inset-inline:min(0px, (100% - var(--control-height)) / 2); top:calc(50% - var(--control-height) / 2); height:var(--control-height); }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle>span { text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts[data-pair] { grid-template-columns:repeat(2,minmax(0,1fr)); }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
 }
 @media(min-width:1024px) { .local-discovery-detail .detail-facts-card { margin-top:0; } }

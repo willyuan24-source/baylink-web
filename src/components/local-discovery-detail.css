@@ -130,13 +130,14 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); }
   /* 特大 and 家人版 (UI9-R1, J1 P20): from 360 px the ask cell keeps 问 BayBay / Ask BayBay; it reads BayBay only below 360
-     px. 家人版 makes the room on the bar's edges (the 56 px 收藏 cell centres its icon 16 px in) and in the primary, 4 px
-     each, so the cell labels keep 12 px between them; a primary that still has no room wraps to two balanced lines (its
-     button is 3rem tall) instead of a word being swapped. Detail pages only: a guide's bar keeps its own arrangement
+     px. 家人版 makes the room on the bar's edges (the 56 px 收藏 cell centres its icon 16 px in, 4 px each side), so the
+     cell labels keep 12 px between them; a primary that still has no room wraps to two balanced lines (its button is 3rem
+     tall) instead of a word being swapped. The wrapped lines are centred and keep the 8 px padding, so no glyph reaches
+     the pill's round ends (the offer and opening primary is the shared Button <a>, which starts its text at the left;
+     AddToDayPlan's <button> centres already). Detail pages only: a guide's bar keeps its own arrangement
      (guide-article.css). */
-  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-wrap:balance; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
   html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions { padding-inline:0 var(--sp-1); }
-  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-1); }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
    labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
@@ -146,7 +147,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions [data-label=long] { display:none; }
   .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { font-size:var(--fs-badge); }
-  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-wrap:balance; }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
   /* 家人版: the cells drop their side padding and the primary keeps 4 px, so 领取入口 / 加入计划 / "Add to day" stay on one line. */
@@ -164,8 +165,9 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 /* Desktop: F's 12 columns (gutter 24): the column (top: hero and title; body: the rest) on 8, the aside on 4 (the facts
    card, then the action card). The aside comes between the two blocks in the DOM, so a phone reads the facts under the H1.
    At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. The aside runs the column's full
-   height and the action card is sticky in it (J1): the facts scroll away with the top block, the actions stay in view to
-   the end of the body, at any reading size (the whole aside at 特大 is taller than a 768 px laptop screen). */
+   height and the action card is sticky in it (J1): where the whole aside would not fit the screen (大 / 特大 / 简洁显示,
+   or a screen under 820 px tall, e.g. a 768 px laptop) the facts scroll away and the actions stay in view to the end of the
+   body; where it fits (标准 from 820 px tall), the whole aside, facts included, stays in view, as before. */
 @media (min-width:1024px) {
   .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
@@ -184,9 +186,15 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions>.detail-actions__cell { grid-column:span 2; }
   .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3),.site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3)~.detail-actions__cell { grid-column:span 3; }
   .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(2) { grid-column:1 / -1; }
-  /* N12: the cells keep the bar's quiet look (no box: icon over label, the sunken fill on hover and press); the primary is
-     the card's one filled button. */
-  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; color:var(--color-ink); white-space:normal; }
+  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-ink); white-space:normal; }
+  /* N12 (part): on a detail page the cells keep the bar's quiet look (no box: icon over label, the sunken fill on hover and
+     press), so the primary is the card's one filled button. A guide's card keeps its boxed cells (UI9-R1-GUIDE-ARTICLE). */
+  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { border-color:transparent; }
+  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):not(:hover,:active) { background:none; }
   .site-detail-actions.detail-actions [data-label=desk] { display:inline; }
   .site-detail-actions.detail-actions [data-label=phone] { display:none; }
+}
+@media (min-width:1024px) and (min-height:820px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-aside { align-self:start; position:sticky; top:5.5rem; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .site-detail-actions.detail-actions { position:static; }
 }

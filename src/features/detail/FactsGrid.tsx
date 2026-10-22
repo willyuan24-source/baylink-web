@@ -14,8 +14,8 @@ import './facts-grid.css';
 
 /**
  * "一眼看懂" (UI9-DETAIL, content arrangement 10-19; UI9-R1-DETAIL): one card, the facts in a fixed order per kind, one per
- * row (event 何时 · 在哪 · 多少钱 · 适合; offer 有效期 · 福利 | 要不要消费 · 在哪, its two short values side by side; opening
- * 开业 · 在哪 · 类型). Each fact: an icon and a 14 px label, then the key on line 1 at 600 (适合's list at 400) and everything
+ * row (event 何时 · 在哪 · 多少钱 · 适合, the last two side by side on a phone when both are short, PAIR_UNITS; offer 有效期 ·
+ * 福利 | 要不要消费 · 在哪, its two short values side by side; opening 开业 · 在哪 · 类型). Each fact: an icon and a 14 px label, then the key on line 1 at 600 (适合's list at 400) and everything
  * after it as the note at 400. The label line has one quiet right slot: 地图 ↗ on 在哪,
  * and 官方页 ↗ / 商家官网 ↗ on 何时 / 有效期 / 开业 whenever the page's primary action is not the official link (`official`).
  * Values come from structured overlay fields when present and from the listing's own labels otherwise; nothing is invented,
@@ -29,9 +29,19 @@ export type FactsLink = { href: string; label: string };
  * note size on a 390px phone; the cost fact has the whole row since UI9-R1-DETAIL). A longer cost note shows two lines
  * there, the second fading out, with 展开 on a line of its own under it (facts-grid.css); the sentence stays whole in the
  * page, for a screen reader and in the elder modes. A note just over two lines stays whole: a third line reads better than
- * a 展开 with nothing behind it.
+ * a 展开 with nothing behind it. The count is an estimate for a 390 px phone: on a 414–430 px phone (a 354–364 px card) a
+ * note of about 47–52 units fits two lines and still gets the fade and 展开 (nothing more behind it); measuring the overflow
+ * would need a layout read per fact, not worth it for those few notes.
  */
 export const NOTE_CLAMP_UNITS = 46;
+
+/**
+ * H58 (UI9-R1-DETAIL review): on a phone in 标准 an event's 多少钱 | 适合 share a row again when both read on one line of a
+ * half card (about 139px at 360 px, 154px at 390: 8 units at the 17px key) and the cost note, if any, fits two lines of it
+ * (14px note); a longer 适合 or note takes the whole row (J1 P14), so the card is never taller than the one-per-row card.
+ */
+export const PAIR_UNITS = 8;
+export const PAIR_NOTE_UNITS = 20;
 
 /** Catalog text as a cell value or note, or undefined when no reader text is left (readerProse). */
 function readerNode(text: string | undefined, locale: Locale): ReactNode {
@@ -56,8 +66,8 @@ function Fact({ cell }: { cell: Cell }) {
   </div>;
 }
 
-function Facts({ cells, label }: { cells: Cell[]; label: string }) {
-  return <dl className="detail-facts" aria-label={label}>
+function Facts({ cells, label, pair }: { cells: Cell[]; label: string; pair?: boolean }) {
+  return <dl className="detail-facts" aria-label={label} data-pair={pair ? '' : undefined}>
     {cells.filter(cell => cell.value !== undefined && cell.value !== null && cell.value !== '').map(cell => <Fact key={cell.key} cell={cell} />)}
   </dl>;
 }
@@ -103,6 +113,10 @@ export function EventFacts({ event, today, official }: { event: MonthlyEvent; to
   const cost = readerCost(event.costLabel, event.cost, locale);
   const audience = [event.ageChip, ...event.audience].filter((value): value is string => !!value);
   const costNote = cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined;
+  const costValue = price ? pick(price.text) : cost ? t('费用待确认', 'Cost not confirmed') : t('票价见官网', 'See the official site');
+  const audienceText = audience.map(value => translateText(value, locale)).join(' / ');
+  const pair = !!audienceText && displayUnits(audienceText) <= PAIR_UNITS && displayUnits(costValue) <= PAIR_UNITS
+    && (!costNote || displayUnits(costNote) <= PAIR_NOTE_UNITS);
   // The key is C's eventWhenLine as written (one date and one time style site-wide, N06). Several upcoming session days
   // follow as the note (on an ended page, all of them, so its archive keeps the whole run); a listing without sessions keeps
   // its own date line as the note while the key names no time. Whether it does is read from the zh line in every locale:
@@ -126,11 +140,10 @@ export function EventFacts({ event, today, official }: { event: MonthlyEvent; to
     // The value is always short (免费 / 部分免费 / $8–12 / 收费, design.md §4.9): the listing's cost sentence is the note under
     // it, never a paragraph in the key. With no price at all the key says so instead of guessing.
     { key: 'cost', icon: <Ticket aria-hidden="true" />, label: t('多少钱', 'Cost'),
-      value: price ? pick(price.text) : cost ? t('费用待确认', 'Cost not confirmed') : t('票价见官网', 'See the official site'),
-      note: costNote, clamp: !!costNote && displayUnits(costNote) > NOTE_CLAMP_UNITS },
+      value: costValue, note: costNote, clamp: !!costNote && displayUnits(costNote) > NOTE_CLAMP_UNITS },
   ];
-  if (audience.length) cells.push({ key: 'for', icon: <Users aria-hidden="true" />, label: t('适合', 'Good for'), value: audience.map(value => translateText(value, locale)).join(' / ') });
-  return <Facts cells={cells} label={t('一眼看懂', 'At a glance')} />;
+  if (audienceText) cells.push({ key: 'for', icon: <Users aria-hidden="true" />, label: t('适合', 'Good for'), value: audienceText });
+  return <Facts cells={cells} label={t('一眼看懂', 'At a glance')} pair={pair} />;
 }
 
 const PURCHASE: Record<FreebieOffer['kind'], { zh: string; en: string }> = {
