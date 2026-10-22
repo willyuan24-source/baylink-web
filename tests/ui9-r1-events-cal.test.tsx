@@ -130,6 +130,10 @@ test('rhythm (N15): the week strip ends a section gap above the day head; no two
   assert.doesNotMatch(css, /\.ev-lede-facts \{[^}]*min-height/);
   assert.doesNotMatch(css, /calc\(2em \* 1\.6\)/);
   assert.match(rule('.ev-end__item'), /min-width:var\(--control-height\); min-height:var\(--control-height\)/);
+  // The 36 px circles on a row's thumbnail (♡, 加入) have no border: their ::after ring (inset -4px) is cut from the padding
+  // box, so 36 + 2 × 4 = 44 px only without one (a 1 px border made it 42 at 特大).
+  assert.match(rule('.ev-page .ui-row-card__trailing .saves-control .saves-toggle'), /width:36px; height:36px; min-height:36px; padding:0; border:0;/);
+  assert.match(rule('.ev-calendar__rows .ui-row-card.ev-card--action .saves-add-day[data-variant=icon]'), /width:36px; height:36px; min-width:36px; min-height:36px; border:0;/);
 });
 
 test('an empty result is not followed by 出行提醒 (J3 P27); 简洁显示 leaves 出行提醒 and 整个湾区 ▾ out (D6)', () => {
