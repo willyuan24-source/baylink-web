@@ -16,10 +16,12 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http:
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, FormData: dom.window.FormData, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
-const { render, cleanup, act, within } = await import('@testing-library/react');
+const { render, cleanup, act, within, fireEvent } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { OutingsHub } = await import('../src/features/outings/OutingsHub');
 const { OutingForm } = await import('../src/features/outings/OutingForm');
+const { OutingFormFrame } = await import('../src/features/outings/OutingDetail');
+const { lazyChunk, forgetLostChunks } = await import('../src/lib/chunk-recovery');
 const { useOutingSession } = await import('../src/features/outings/outing-session');
 const { outingDays, outingTimes, outingLastDay, OUTING_DAYS_AHEAD } = await import('../src/features/outings/outing-copy');
 const { api } = await import('../src/lib/api');
@@ -153,6 +155,7 @@ test('disabled controls use the token look, small print is 14px, the page has no
   assert.equal(decl('.together-page :is(.outing-primary,.outing-secondary):disabled', 'color'), 'var(--color-ink-3)');
   assert.equal(decl('.together-page .outing-results.is-reserved', 'min-height'), '20rem');
   assert.equal(decl('.together-page :is(.outing-tabs>button,.outing-cover-modes>button,.outing-cover-options>button):disabled', 'color'), 'var(--color-ink-3)', 'toggles and cover choices have the disabled look');
+  assert.equal(decl('.together-page .outing-cover-options>button:disabled strong', 'color'), 'var(--color-ink-3)', 'a disabled cover choice dims its title too');
   outings.walkRules(rule => { if (rule.selector.trim() === '.together-page p') assert.fail('a page-wide p margin reset outranks the component rules (cover picker, poll)'); });
   assert.equal(decl('.together-page.ui-container .outing-cover,.together-page.ui-container .outing-grid .outing-card>.outing-cover', 'border-radius'), 'var(--r-lg)', 'covers keep base corners');
   assert.equal(decl('.together-page .outing-cover-picker', 'border-radius'), 'var(--r-sm)');
@@ -160,3 +163,28 @@ test('disabled controls use the token look, small print is 14px, the page has no
   assert.match(css('src/pages/together-page.css'), /padding:var\(--sp-5\) var\(--page-gutter\) 0;/);
 });
 
+
+test('the host form loads through the shell chunk guard; a lost chunk keeps /together on screen with 重试 and 返回 (REG-15)', async t => {
+  const detail = readFileSync('src/features/outings/OutingDetail.tsx', 'utf8'), hubSource = readFileSync('src/features/outings/OutingsHub.tsx', 'utf8');
+  assert.match(detail, /\nconst OutingForm = lazyChunk\(\(\) => import\('\.\/OutingForm'\), m => m\.OutingForm\);/, 'lazyChunk: one retry, the module settled before the pick');
+  assert.match(detail, /<OutingFormFrame onBack=\{form\.onCancel\}>\{lead\}<OutingForm \{\.\.\.form\} \/><\/OutingFormFrame>/, 'the lazy form mounts only in its frame');
+  assert.doesNotMatch(detail, /\.then\(\w+ => \(\{ default:/, 'no unguarded named-export pick (undefined.OutingForm on a recovery reload)');
+  assert.doesNotMatch(hubSource, /<Suspense|<OutingForm /, 'the hub opens the form as OutingHostForm');
+  for (const source of [detail, hubSource]) assert.equal((source.match(/<OutingHostForm /g) || []).length, 1, '发起小队 and 编辑安排');
+  t.mock.method(console, 'error', () => {});
+  t.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  let online = false, loads = 0, back = 0;
+  const Lost = lazyChunk(async (): Promise<{ Named: React.ComponentType }> => { loads += 1; if (!online) throw new TypeError('Importing a module script failed.'); return { Named: () => <p>host form</p> }; }, m => m.Named, 1);
+  try {
+    const view = render(<main><h1>一起去</h1><OutingFormFrame onBack={() => { back += 1; }}><Lost /></OutingFormFrame></main>);
+    assert.ok(view.getByRole('status'), 'the status line while the chunk loads');
+    await view.findByRole('heading', { name: '表单暂时没能打开' }, { timeout: 1000 });
+    assert.equal(loads, 2, 'the load and its one retry');
+    assert.ok(view.getByRole('heading', { name: '一起去' }), 'the page stays; the root error page never shows');
+    fireEvent.click(view.getByRole('button', { name: '返回' })); assert.equal(back, 1);
+    online = true;
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '重试' })); });
+    await view.findByText('host form', undefined, { timeout: 1000 });
+    assert.equal(loads, 3, '重试 loads the chunk again (a fresh boundary and lazy)');
+  } finally { forgetLostChunks(); }
+});

@@ -94,6 +94,9 @@
 .together-page .outing-empty :is(h1,h2) { margin:var(--sp-2) 0 0; font-size:var(--text-card); font-weight:600; line-height:var(--lh-card); }
 .together-page .outing-empty p { max-width:28em; font-size:var(--text-body); line-height:var(--lh-read); color:var(--color-ink-2); }
 .together-page .outing-empty .outing-inline-actions { justify-content:center; margin-top:var(--sp-2); }
+/* The host form's chunk did not load (OutingFormFrame): the ui error state, then 返回 under it. */
+.together-page .outing-form-lost>.ui-state { padding-bottom:0; }
+.together-page .outing-form-lost>.outing-inline-actions { justify-content:center; margin-top:var(--sp-2); }
 .together-page .outing-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-5); }
 .together-page .outing-card { display:flex; flex-direction:column; overflow:hidden; border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); }
 .together-page .outing-card-body { display:flex; flex:1; flex-direction:column; gap:var(--sp-3); padding:var(--sp-5); }
@@ -231,6 +234,7 @@
 .together-page .outing-cover-picker-heading>span{font-size:var(--text-caption);color:var(--color-ink-3);background:transparent;border:1px solid var(--color-line-strong)}
 .together-page .outing-cover-catalog input{font-size:var(--text-body)!important}
 .together-page .outing-cover-options strong{font-size:var(--text-fact);display:block;overflow:visible;color:var(--color-ink)}
+.together-page .outing-cover-options>button:disabled strong{color:var(--color-ink-3)}
 .together-page .outing-cover-options small{font-size:var(--text-caption);color:var(--color-ink-3)}
 .together-page :is(.outing-cover-catalog>p,.outing-cover-picker-note,.outing-cover-preview-label>span){font-size:var(--text-caption);color:var(--color-ink-3)}
 .together-page .outing-cover-preview-label{font-size:var(--text-fact);color:var(--color-ink-2)}
