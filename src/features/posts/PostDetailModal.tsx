@@ -28,6 +28,7 @@ import { postAvailability } from '../../lib/postAvailability';
 import { setPageMetadata } from '../../lib/seo';
 import { usePostTranslation } from './usePostTranslation';
 import { PostTranslationNotice } from './PostTranslationNotice';
+import { formatPostPrice } from './post-price';
 import { ServiceBookingPanel } from '../bookings/ServiceBookingPanel';
 import { categoryName, feedTypeNames, isFounderPost, postedOn, regionName, showCount } from './community-copy';
 import { CommunityPausedSheet } from './CommunityPaused';
@@ -97,6 +98,8 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const { t, pick, english, locale } = useUiCopy();
   const reading = usePostTranslation(post);
   const displayed = reading.display;
+  // The price as written, with digit groups (UI9-R1 N06; the card shows the same string).
+  const price = post.budget ? formatPostPrice(displayed.budget, locale) : '';
   useEffect(() => {
     setPageMetadata({ title: `${displayed.title}｜BAYLINK`, description: displayed.description.slice(0, 160), path: `/posts/${post.id}`, image: post.imageUrls?.[0], type: 'article', noindex: post.status === 'closed', preserveText: true });
   }, [post, displayed.title, displayed.description, locale]);
@@ -292,7 +295,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
             {post.isFeatured && <><span aria-hidden="true">·</span><span>{t('编辑精选', 'Editor’s pick')}</span></>}</p>
           <h1 translate="no" ref={titleRef} tabIndex={-1}>{displayed.title}</h1>
           <PostTranslationNotice reading={reading} />
-          {post.budget && <p className="cm-sheet__price" translate="no">{displayed.budget}</p>}
+          {price && <p className="cm-sheet__price" translate="no">{price}</p>}
           <div className="cm-sheet__availability"><PostStatusLine post={post} /><p>{english ? (availability.tone === 'confirmed' ? 'Confirmed by the poster; BAYLINK does not guarantee availability or the outcome of a deal.' : availability.tone === 'closed' ? 'The poster has ended this post.' : 'Not reconfirmed recently; ask the poster whether it still stands before you contact them.') : t(availability.detail, availability.detail)}</p></div>
           {detailRefreshing && <p className="cm-sheet__availability" role="status"><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {t('正在同步最新内容…', 'Updating…')}</p>}
 
@@ -382,7 +385,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
       </div>
 
       <footer className="cm-sheet__bar">
-        {post.budget && <span className="cm-sheet__bar-price" translate="no">{displayed.budget}</span>}
+        {price && <span className="cm-sheet__bar-price" translate="no">{price}</span>}
         {isOwner ? <>
           <p className="cm-sheet__bar-note">{t('这是你发布的信息。私信和联系请求在「消息」里。', 'This is your post. Messages and contact requests are in Messages.')}</p>
           {onEdit && <Button variant="secondary" icon={<Edit aria-hidden="true" strokeWidth={1.75} />} onClick={() => onEdit(post)}>{t('编辑', 'Edit')}</Button>}

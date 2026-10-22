@@ -79,8 +79,8 @@ test('English cards translate visible post text while editing and sharing keep t
 
   await waitFor(() => assert.equal(view.getByRole('heading', { level: 3 }).textContent, translation.title));
   assert.equal(requests, 1);
-  // WEB-COMMUNITY: the card shows the title, the price on the cover and the status; the description is on the sheet.
-  assert.equal(view.container.querySelector('.ui-sticker[data-tone=price]')!.textContent, translation.budget);
+  // WEB-COMMUNITY: the card shows the title, the price line under it (UI9-R1 N22) and the status; the description is on the sheet.
+  assert.equal(view.container.querySelector('.cm-card__price')!.textContent, translation.budget);
   assert.ok(view.getByText('Automatically translated'));
 
   fireEvent.click(view.getByRole('button', { name: 'Post actions', exact: true }));
@@ -91,7 +91,7 @@ test('English cards translate visible post text while editing and sharing keep t
 
   fireEvent.click(view.getByRole('button', { name: 'Show original', exact: true }));
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);
-  assert.equal(view.container.querySelector('.ui-sticker[data-tone=price]')!.textContent, source.budget);
+  assert.equal(view.container.querySelector('.cm-card__price')!.textContent, source.budget);
   fireEvent.click(view.getByRole('button', { name: 'Show translation', exact: true }));
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, translation.title);
   assert.equal(requests, 1);
@@ -128,7 +128,7 @@ test('Traditional cards offer local script conversion and original text without 
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, '週日幫鄰居修復藍色書架');
-  assert.equal(view.container.querySelector('.ui-sticker[data-tone=price]')!.textContent, source.budget);
+  assert.equal(view.container.querySelector('.cm-card__price')!.textContent, source.budget);
   assert.ok(view.getByText('已轉為繁體顯示'));
   fireEvent.click(view.getByRole('button', { name: '查看原文', exact: true }));
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);

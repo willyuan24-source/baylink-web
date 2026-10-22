@@ -88,7 +88,7 @@ test('a guest’s contact bar asks to sign in through onContactLoginNeeded; a me
   await settle();
   const guestButton = within(bar()).getByRole('button', { name: '登录后私信发布者' });
   assert.ok(guestButton.hasAttribute('data-contact-action'), 'the contact_click metric still finds the bar button');
-  assert.ok(within(bar()).getByText('$1500/月'));
+  assert.ok(within(bar()).getByText('$1,500/月'), 'the price as written, with digit groups (UI9-R1 N06)');
   fireEvent.click(guestButton);
   assert.equal(contactLogins, 1);
   assert.equal(logins, 0);
