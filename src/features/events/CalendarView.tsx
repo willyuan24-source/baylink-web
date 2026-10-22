@@ -29,10 +29,12 @@ const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) 
 const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4, TOP_CITIES = 4;
 
 /**
- * 日历·地图 (design.md §4.11 ④; UI9-EVENTS content arrangement §5): the week strip (‹ 10/19–25 ›, the range opens the
- * month grid and the region in a Sheet, then the 7 days with dots), the day head (H2 10月19日 周一 · 9 场 with 列表 | 地图),
- * a city rail (全部, the day's top 4 cities, 更多城市), the day's lead (the first picture that can lead) and rows 12 at a
- * time, each with one + 计划 control; the list end names what is shown, the next day and BayBay. The map loads when opened.
+ * 日历·地图 (design.md §4.11 ④; UI9-EVENTS content arrangement §5; UI9-R1 AFTER-A1): the week strip (‹ 10/19–25 ›, the
+ * range opens the month grid and the region in a Sheet, then the 7 days with dots), then a section gap (N15), the day head
+ * (H2 10/19 周一 · 9 场 in the site's date pattern, N06, with 列表 | 地图 always on its row, J2 P7), a city rail (全部, the
+ * day's top 4 cities, 更多城市), the day's lead (the first picture that can lead) and rows 12 at a time. Every listed event
+ * has one 加入这天计划 control, the compact calendar+ icon (D7: no wall of outline buttons). The list end names what is
+ * shown, the next day and BayBay. The map loads when opened.
  */
 export default function CalendarView({ today }: { today: string }) {
   const { t, pick, english, locale } = useUiCopy();
@@ -48,6 +50,9 @@ export default function CalendarView({ today }: { today: string }) {
   const [savedRegion, setSavedRegion] = useState<MonthlyRegion>();
   useEffect(() => setSavedRegion(readSavedRegion()), []);
   const readingSize = useReadingSize(), simple = useSimpleDisplay();
+  // At 大 / 特大 and in 简洁显示 every event is a row, the first one too (as the events feeds there): a lead card at those
+  // sizes never ended on the first screen (N18).
+  const roomy = readingSize !== 'standard' || simple;
   const pageSize = simple ? readingSize === 'extra-large' ? FAMILY_PAGE : SIMPLE_PAGE : PAGE;
   const dateParam = params.get('date') || '';
   const date = validCalendarDay(dateParam) ? dateParam : today;
@@ -96,8 +101,10 @@ export default function CalendarView({ today }: { today: string }) {
   }
   const nearest = [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(0, 3);
   const past = date < today;
-  // 加入这天计划 (WEB-SAVES, plan D19) on every listed event of today or a later day: saves into that day's plan at once.
-  const addToDay = (event: IndexEvent) => past ? undefined : <AddToDayPlan className="ev-add-day" stop={{ kind: 'event', id: event.id }} date={date} title={event.title} today={today} compact />;
+  // 加入这天计划 (WEB-SAVES, plan D19) on every listed event of today or a later day: saves into that day's plan at once. The
+  // icon variant (D7): a 44px calendar+ on the picture's corner on phones, with the word 加入 beside the title or at the
+  // row's end from 768px (events.css); its name stays 加入这天计划：<title>.
+  const addToDay = (event: IndexEvent) => past ? undefined : <AddToDayPlan className="ev-add-day" stop={{ kind: 'event', id: event.id }} date={date} title={event.title} today={today} variant="icon" />;
   const beforeIndex = date < EVENTS_INDEX.edition.checkedAt;
 
   const weekdayShort = (day: string) => pick(WEEKDAYS[weekdayIndex(day)].char);
@@ -137,8 +144,9 @@ export default function CalendarView({ today }: { today: string }) {
     </div>
 
     <div className="ev-calendar__head">
-      {/* English names the day as the weekend view does ("Mon, Oct 19"), so 列表 | 地图 stays on the head's line at 390. */}
-      <h2 id="ev-calendar-day" className="ev-section-title">{english ? shortDate(date) : longDate(date)}{events && <span className="ev-calendar__count"> · {t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span>}</h2>
+      {/* The day in the site's one date pattern (N06: 10/19 周一, Mon, Oct 19). 列表 | 地图 keeps the head's row at every size
+          (J2 P7): the H2 wraps instead, its count on a line of its own at 大 / 特大 (events.css). */}
+      <h2 id="ev-calendar-day" className="ev-section-title"><span className="ev-calendar__date">{shortDate(date)}</span>{events && <span className="ev-calendar__count"><span className="ev-calendar__sep">{'\u00a0· '}</span>{t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span>}</h2>
       <SegmentedControl className="ev-calendar__mode" label={t('显示方式', 'Show as')} value={mode} onChange={value => setMode(value as 'list' | 'map')}
         items={[{ id: 'list', label: t('列表', 'List') }, { id: 'map', label: t('地图', 'Map') }]} />
     </div>
@@ -160,10 +168,18 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-calendar__rows" aria-live="polite">
       {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
       : shownEvents.length ? <>
-        <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
+        {/* The lead card (span 6 beside four rows on desktop). On a standard phone the lead and the next event are one 2-up
+            row of cards, so two whole cards fit the first screen (N18); that event's row steps aside there (events.css), as
+            the /events pick rows do. At 大 / 特大 and in 简洁显示 every event is a row. */}
+        {!roomy && <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
           <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} oneDay={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
-        </FeedGrid>
-        {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} oneDay action={addToDay(event)} />)}
+          {shownEvents.length > 1 && <FeedItem><EventFeedCard event={shownEvents[1]} cover={covers[1]} today={today} days={[date]} day={date} oneDay={date} action={addToDay(shownEvents[1])} /></FeedItem>}
+        </FeedGrid>}
+        {shownEvents.slice(roomy ? 0 : 1).map((event, index) => {
+          const at = roomy ? index : index + 1;
+          const row = <EventRowCard key={event.id} event={event} cover={covers[at]} today={today} day={date} oneDay action={addToDay(event)} />;
+          return !roomy && at === 1 ? <div key={event.id} className="ev-calendar__pair-row">{row}</div> : row;
+        })}
         <div className="ev-list-end ev-calendar__end">
           <p className="ev-list-end__count">{t(`已显示 ${shownEvents.length} / ${ordered.length} 场`, `Showing ${shownEvents.length} of ${ordered.length}`)}</p>
           {more > 0 && <Button variant="secondary" className="ev-list-end__more" onClick={() => setPages(current => ({ scope: `${scope}:${city}`, count: (current.scope === `${scope}:${city}` ? current.count : 1) + 1 }))}>{t(`再看 ${more} 场`, `Show ${more} more`)}</Button>}
