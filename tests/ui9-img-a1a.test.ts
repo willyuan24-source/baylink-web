@@ -68,9 +68,12 @@ test('DECISIONS 26: every day, the home lead = homeLeads[day] = the weekly card\
 
 test('the lead rule refuses a close-up face, AI and an information card, and takes a venue photo', () => {
   const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-  for (const key of CLOSE_UP_FACE_IMAGES) assert.equal(leadsWithPicture({ id: 'x', imageKey: key }, context), false, `${key}: a close-up face never leads`);
-  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): LumaFest's photo leads like any ①.
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' }, context), true, 'a released close-up leads');
+  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): none is left unreleased
+  // (CLOSE_UP_FACE_IMAGES is empty), and LumaFest's photo leads like any ①. Flagged and not released, it never would.
+  assert.equal(CLOSE_UP_FACE_IMAGES.size, 0);
+  const lumaFest = { id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' };
+  assert.equal(leadsWithPicture(lumaFest, context, new Set([lumaFest.imageKey])), false, 'a flagged close-up the owner has not released never leads');
+  assert.equal(leadsWithPicture(lumaFest, context), true, 'a released close-up leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');

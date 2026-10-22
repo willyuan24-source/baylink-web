@@ -31,6 +31,7 @@ const { READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } = await import('../src/lib/readin
 const { TrustLine, EventFeedCard } = await import('../src/features/events/EventCards');
 const { isPressSource } = await import('../src/features/events/source-kind');
 const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
@@ -55,12 +56,18 @@ test('the index carries home\'s lead per day, and the /events lead and pick rows
   assert.notEqual(lead!.event.id, home, 'never home\'s lead');
   assert.ok(!rows.some(item => item.event.id === home), 'home\'s lead is no pick row');
   assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead!.event.imageKey), 'no close-up face leads');
-  // A pick whose photo shows close-up faces never leads, even when it is first (none left unreleased since 2026-10-21).
-  for (const imageKey of [...CLOSE_UP_FACE_IMAGES].slice(0, 1)) {
-    const face = { ...picks[0], event: { ...picks[0].event, id: 'x-face', imageKey } };
+  // A pick whose photo shows close-up faces never leads, even when it is first. None is left unreleased since 2026-10-21,
+  // so flag the lead's own photo as one the owner has not released, for this check only (the pages read the shared list).
+  const face = { ...lead!, event: { ...lead!.event, id: 'x-face' } };
+  assert.equal(canLead(face.event, today), true, 'as it ships, the photo leads');
+  assert.equal(canLead(face.event, today, new Set([face.event.imageKey!])), false, 'flagged, it cannot lead');
+  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  flagged.add(face.event.imageKey!);
+  try {
     assert.equal(canLead(face.event, today), false);
-    assert.notEqual(arrangePicks([face, ...picks.slice(1)], today, 'none').lead?.event.id, 'x-face');
-  }
+    assert.notEqual(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'the next pick that can lead leads');
+  } finally { flagged.delete(face.event.imageKey!); }
+  assert.equal(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'released, it leads');
   // With no entry for the day, the first weekend pick is home's lead.
   assert.equal(homeLeadFor('2099-01-01', picks, {}), picks[0].event.id);
 });
@@ -360,6 +367,31 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
   }
   // Released close-ups count as no face days: the list of unreleased ones is empty since 2026-10-21.
   assert.equal(faceDays, 0, 'no unreleased close-up runs in the week tested');
+  // The rule still binds the next close-up flagged: flag the first day's lead photo as one the owner has not released, for
+  // this check only (the page reads the shared list), and that photo leaves the day's lead.
+  const leadOf = (day: string) => {
+    const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
+    const card = view.container.querySelector('.ev-calendar__lead');
+    const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
+    const result = { event: href ? byId.get(href.replace(/^\/events\/|\?.*$/g, '')) : undefined, html: card?.innerHTML ?? '' };
+    cleanup();
+    return result;
+  };
+  const flagDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offset)).find(day => {
+    const { event } = leadOf(day);
+    return !!event?.imageKey && canLead(event, today);
+  });
+  assert.ok(flagDay, 'a day in the week leads with a photo');
+  const before = leadOf(flagDay);
+  const key = before.event!.imageKey!;
+  // The photo's file stem: the lead's <img> is one of its sized files.
+  const stem = (GUIDE_IMAGES[key]?.src ?? '').replace(/\.webp$/, '');
+  assert.ok(stem && before.html.includes(stem), `${flagDay}: ${before.event!.id} leads with ${key}`);
+  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  flagged.add(key);
+  try {
+    assert.equal(leadOf(flagDay).html.includes(stem), false, `${flagDay}: flagged, ${key} never leads the day`);
+  } finally { flagged.delete(key); }
   assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), 'official-ferry-plaza-farmers-market-2026-autumn', 'a released photo leads as itself');
   assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
 });
