@@ -112,9 +112,9 @@ test('N18 / N25 / J2 P14: one-row bar from 390 px in every mode, primary last, �
   assert.equal(value(long, 'display', '(max-width:389px)'), undefined, 'no BayBay-only label on a narrow phone');
   // DETAIL's 家人版 swap to BayBay is (0,5,1); the guide's long label outranks it.
   assert.ok(specificity(long)[1] > specificity('html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=long]')[1], 'outranks DETAIL');
-  const twoLines = 'html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long]';
-  assert.equal(value(twoLines, 'white-space', '(min-width:390px)'), 'normal', '特大: 问 / BayBay on two lines');
-  assert.match(value('html:root:is([data-reading=extra-large],[data-reading=large][data-simple]):has(.gd-bar)', '--site-mobile-nav-height', '(min-width:390px) and (max-width:1023px)') ?? '', /var\(--fs-meta\) \* 2\.6/);
+  const twoLines = 'html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long]';
+  assert.equal(value(twoLines, 'white-space', '(min-width:390px)'), 'normal', '大 / 特大 / 简洁: 问 / BayBay on two lines');
+  assert.match(value('html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar)', '--site-mobile-nav-height', '(min-width:390px) and (max-width:1023px)') ?? '', /var\(--fs-meta\) \* 2\.6/);
   // 回到顶部 is not a third pinned layer at 特大 / 简洁 below a desktop.
   assert.equal(value(':is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top', 'position', '(max-width:1023px)'), 'static');
   assert.equal(value(':is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after', 'content', '(max-width:1023px)'), 'attr(aria-label)');

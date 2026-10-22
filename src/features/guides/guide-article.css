@@ -81,15 +81,17 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
   .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
 }
 /* N18 / N25: from 390 px one row in every mode — ♡ 收藏 · 发家人 · 问 BayBay, then the primary, rightmost — so a phone at 特大 or
-   in 简洁显示 pins the head and one bar (≤ 20% of an 844 px screen), not a two-row bar. At 特大 (and 大 + 简洁) the ask cell
-   reads 问 / BayBay on two lines and the cells grow to hold it (no fixed 56 px); the bar's height token holds the otter
-   (1.5rem), the two lines of --fs-meta and the cells' and the bar's 4 px paddings. The rail's narrow cells do the same. */
+   in 简洁显示 pins the head and one bar (≤ 20% of an 844 px screen), not a two-row bar. At 大 / 特大 / 简洁 the ask cell reads
+   问 / BayBay on two lines and the cells grow to hold it (no fixed 56 px); the bar's height token holds the otter (1.5rem),
+   the two lines of --fs-meta and the cells' and the bar's 4 px paddings. The rail's narrow cells do the same. An English
+   phone at 标准 reads Ask / BayBay on two lines inside the 56 px cell, so the 1-800 number keeps its glyph. */
 @media (min-width:390px) {
-  html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; }
-  html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding-block:var(--sp-1); line-height:var(--lh-tight); }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding-block:var(--sp-1); line-height:var(--lh-tight); }
 }
 @media (min-width:390px) and (max-width:1023px) {
-  html:root:is([data-reading=extra-large],[data-reading=large][data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
+  html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
+  html:lang(en):not([data-reading]):not([data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; line-height:1; }
   /* 家人版 (特大 + 简洁): the bar drops its side padding, the cells theirs (48 px wide at least) and the primary keeps 4 px, so a
      1-800 number keeps one line at 23 px. */
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:0; }
@@ -101,7 +103,7 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 @media (min-width:390px) and (max-width:1023px) {
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { flex-direction:column; justify-content:center; gap:2px; height:auto; min-height:56px; border-radius:var(--r-lg); }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary>svg { display:inline-block; }
-  html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { align-self:stretch; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { align-self:stretch; }
   html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
 }
 /* 家人版 (特大 + 简洁): icon + number (the arrangement). */
