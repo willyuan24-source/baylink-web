@@ -27,7 +27,7 @@ export function UnitConverterTool({ onToast }: { onToast: ShowToast }) {
     <div className="tool-choice-row" role="group" aria-label="换算类型">{UNIT_PAIRS.map(item => <button type="button" key={item.id} aria-pressed={kind === item.id} onClick={() => { setKind(item.id); setReversed(false); setValue(''); }}>{item.label}</button>)}</div>
     <div className="tool-converter-row">
       <label className="tool-field"><span>{from}</span><input aria-label="需要换算的数值" inputMode="decimal" maxLength={22} placeholder={`例如 ${pair.example}`} value={value} onChange={event => setValue(event.target.value)} aria-invalid={!!error} aria-describedby={error ? 'unit-error' : undefined} /></label>
-      <button type="button" className="ui-icon-button tool-swap" aria-label="交换换算方向" title="交换换算方向" onClick={() => { setReversed(!reversed); setValue(''); }}><ArrowLeftRight aria-hidden="true" strokeWidth={1.75} /></button>
+      <button type="button" className="ui-icon-button tool-swap" aria-label="交换换算方向" onClick={() => { setReversed(!reversed); setValue(''); }}><ArrowLeftRight aria-hidden="true" strokeWidth={1.75} /></button>
       <div className="tool-field tool-conversion-result"><span>{to}</span><output aria-live="polite" aria-label="换算结果">{result == null ? '—' : display(result)}</output></div>
     </div>
     {error && <p id="unit-error" className="tool-error" role="alert">{error}</p>}
