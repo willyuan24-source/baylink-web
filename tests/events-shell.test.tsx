@@ -34,6 +34,8 @@ const { AI_COVER_APPROVALS, GUIDE_IMAGES } = await import('../src/data/guide-med
 const { assertPoolSpacing, coversInPageOrder } = await import('./support/cover-spacing');
 // The AI illustrations the owner approved as ④ covers in chat on 2026-10-21 (src/data/ai-cover-approvals.json).
 const approvedAiSrcs = new Set(AI_COVER_APPROVALS.map(approval => GUIDE_IMAGES[approval.key].src));
+/** ③④ pool pictures: the owner's category photos (rights basis 'stock', 2026-10-21) and the approved AI covers. */
+const poolSrcs = new Set([...approvedAiSrcs, ...Object.values(GUIDE_IMAGES).filter(image => image.rights?.basis === 'stock').map(image => image.src)]);
 // The shell is rendered on the weekend of 10/10 with this editor list of its own, so these tests do not depend on what
 // src/data/weekend-picks.ts holds for a passed weekend (the routine deletes those).
 const PICKS_1010 = [
@@ -425,12 +427,11 @@ test('covers come from the ladder: no image twice on a page, information cards a
   for (const location of ['/events', '/events?when=all', '/events?day=sun']) {
     const page = ssr(location, <EventsView today={today} />);
     const sources = [...page.querySelectorAll('.ui-cover__img')].map(img => img.getAttribute('src'));
-    // ①② once per page; an approved AI picture is a ④ pool picture, which may come back only ADJACENT_CARDS or more cards
-    // apart (cover.ts).
-    const once = sources.filter(src => !approvedAiSrcs.has(src!));
+    // ①② once per page; a ③ category photo or an approved ④ AI picture is a pool picture, which may come back only
+    // ADJACENT_CARDS or more cards apart (cover.ts). Information cards are going (DECISIONS 21), so none need be left.
+    const once = sources.filter(src => !poolSrcs.has(src!));
     assert.equal(new Set(once).size, once.length, `${location}: an image appears once`);
-    assertPoolSpacing(coversInPageOrder(page), approvedAiSrcs, location);
-    assert.ok(page.querySelectorAll('[data-cover="type"]').length > 0);
+    assertPoolSpacing(coversInPageOrder(page), poolSrcs, location);
     // A row thumbnail (≤ 140 px) carries no chip (UI9-C): its words move into the row; every other coded cover is marked.
     for (const cover of page.querySelectorAll('[data-cover="type"]:not([data-size="mini"])')) assert.match(cover.textContent!, /BAYLINK 信息卡/);
     for (const cover of page.querySelectorAll('[data-cover="image"]')) {

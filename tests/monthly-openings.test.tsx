@@ -207,9 +207,9 @@ test('opening cards show only attributable photos or posters; synthetic shop art
     const tier = getCover({ kind: 'opening', id: shop.id, imageKey: shop.imageKey }, coverContext(TODAY)).tier;
     if (registered?.kind === 'illustration' && tier === 'ai') {
       // An AI illustration the owner approved as a ④ cover in chat on 2026-10-21 shows, badged AI 示意图 (or, when the board
-      // already shows it fewer than ADJACENT_CARDS cards before, the information card; cover.ts).
+      // already shows it fewer than ADJACENT_CARDS cards before, another pool picture: a ③ category photo, 示意图; cover.ts).
       assert.ok(registered.aiCoverApproved, `${shop.id}: only an approved AI illustration`);
-      if (img) assert.match(article.querySelector('[data-cover="image"] .ui-provenance')?.textContent ?? '', /^AI 示意图$/, shop.id);
+      if (img) assert.match(article.querySelector('[data-cover="image"] .ui-provenance')?.textContent ?? '', /^(AI 示意图|示意图)$/, shop.id);
       else assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
     } else if (image && tier !== 'type') {
       assert.ok(image.kind === 'photo' || image.kind === 'poster', `${shop.id} uses factual media`);
@@ -221,9 +221,14 @@ test('opening cards show only attributable photos or posters; synthetic shop art
       const fit = article.querySelector('[data-cover="image"]')!.getAttribute('data-fit');
       assert.equal(fit, image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover', `${shop.id}: posters and full-frame photos are never cropped`);
     } else {
-      // Compare the src, not the DOM node: a node's diff prints the whole document and can run the test out of memory.
-      assert.equal(img?.getAttribute('src') ?? null, null, `${shop.id} has no unrelated, synthetic or unlicensed picture`);
-      assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
+      // Never its unrelated, synthetic or unlicensed picture: a ③ category photo labelled 示意图 (the owner's, 2026-10-21;
+      // UI9-IMAGES DECISIONS 21/22) or the information card. Compare the src, not the DOM node: a node's diff prints the
+      // whole document and can run the test out of memory.
+      const src = img?.getAttribute('src') ?? null;
+      if (src) {
+        assert.match(src, /^\/guides\/category-stock\//, `${shop.id} has no unrelated, synthetic or unlicensed picture`);
+        assert.match(article.querySelector('[data-cover="image"] .ui-provenance')?.textContent ?? '', /^示意图$/, shop.id);
+      } else assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
       if (registered?.kind === 'illustration') assert.equal(article.textContent!.includes(registered.caption), false, 'hidden synthetic artwork leaves no picture caption');
     }
     // DECISIONS 17: a press source reads 媒体报道 · M/D 核对, never 官网核对.

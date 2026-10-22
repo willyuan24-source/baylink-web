@@ -133,8 +133,10 @@ test('the coded-cover note is printed once, in the credits line, exactly when th
   assert.equal(photos.querySelectorAll('.ui-cover-credit').length, 0);
   assert.equal(photos.querySelector('#page-credits')!.getAttribute('data-count'), '1');
   // On the home the lists' own notes are hidden (home-discovery.css), so the reader sees the credits line's one.
+  // Since the owner's category photos (③, 2026-10-21) the home may show no coded cover at all: then the line has no note.
   const doc = home();
-  assert.equal(doc.querySelectorAll('#page-credits .ui-cover-credit').length, 1, 'the home shows coded covers today');
+  const coded = doc.querySelectorAll('.home-discovery [data-cover="type"]').length;
+  assert.equal(doc.querySelectorAll('#page-credits .ui-cover-credit').length, coded ? 1 : 0, `the note is there exactly when the home shows a coded cover (${coded})`);
 });
 
 test('长辈常用电话 with no numbers: nothing in standard, 长辈与家属指南 → in 简洁 only', () => {

@@ -6,7 +6,8 @@ import { GUIDE_TOPICS } from '../src/data/guide-topics';
 import { HOME_INTENTS } from '../src/data/home-pathways';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
 import { currentFreebies } from '../src/data/october-offers';
-import { getCover } from '../src/lib/cover';
+import { coverItemFor, getCover } from '../src/lib/cover';
+import { listingImageKeys } from '../src/lib/cover-candidates';
 import { isPublicBenefit } from '../src/lib/event-facts';
 import { GUIDE_IMAGES, guides, HOME_OFFERS, HOME_SCENE3D, HOME_WEEKENDS, MONTHLY_EVENTS } from '../src/lib/home-catalog';
 import { GUIDE_IMAGES as FULL_IMAGES } from '../src/data/guide-media';
@@ -36,8 +37,12 @@ test('snapshots: picks and feed are distinct weekend events, the feed at most ei
 test('shipped images are covers the ladder accepts for some item; the 3D postcard is labelled 3D 场景插图', () => {
   const today = Object.keys(snapshots).sort()[0];
   const used = new Set<string>();
-  for (const event of MONTHLY_EVENTS) if (getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type') used.add(event.imageKey);
-  for (const offer of HOME_OFFERS) if (getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type') used.add(offer.imageKey);
+  // Every cover candidate the catalog writes (imageKeys: ① own, ② venue, ③ category photos, ④ approved AI) counts.
+  const accept = (kind: 'event' | 'offer', record: { id: string; imageKey?: string; imageKeys?: readonly string[] }) => {
+    for (const key of record.imageKeys ?? (record.imageKey ? [record.imageKey] : [])) if (getCover({ kind, id: record.id, imageKey: key }, { images: GUIDE_IMAGES, today }).tier !== 'type') used.add(key);
+  };
+  for (const event of MONTHLY_EVENTS) accept('event', event);
+  for (const offer of HOME_OFFERS) accept('offer', offer);
   for (const guide of guides) if (guide.imageKey) used.add(guide.imageKey);
   assert.deepEqual(Object.keys(GUIDE_IMAGES).filter(key => !used.has(key)), [], 'no image the page cannot show');
   assert.equal(getImageProvenance(HOME_SCENE3D, false), '3D 场景插图');
@@ -98,7 +103,8 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
   // generator's (the full registry), the offers ending today or tomorrow come first (after the wide ticket) and never sit
   // where a narrow desktop rail cuts off (three tickets after a wide one, four otherwise), and a landscape photo leads
   // unless the deadline offers fill those three.
-  const reviewed = currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation');
+  // The generator gives each offer its cover candidates (listingImageKeys) before the rail's photo steps; so does this check.
+  const reviewed = currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation').map(item => ({ ...item, ...listingImageKeys('offer', item) }));
   const reviewedIds = new Set(reviewed.map(item => item.id));
   const shipped = new Set(HOME_OFFERS.map(item => item.id));
   let urgentDays = 0, wideDays = 0;
@@ -115,7 +121,7 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
     const brand = (item: { brand: string }) => item.brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
     const urgent = rail.flatMap((item, index) => item.endDate! <= tomorrow && !rail.slice(0, index).some(other => brand(other) === brand(item)) ? [index] : []);
     if (urgent.length) urgentDays++;
-    const wide = rail.length > 0 && offerRailOpensWide(rail, getCover({ kind: 'offer', id: rail[0].id, imageKey: rail[0].imageKey }, { images: GUIDE_IMAGES, today: day }), day);
+    const wide = rail.length > 0 && offerRailOpensWide(rail, getCover(coverItemFor('offer', rail[0]), { images: GUIDE_IMAGES, today: day }), day);
     if (wide) wideDays++;
     urgent.forEach((index, rank) => assert.ok(index <= rank + 1 && index < (wide ? 3 : Math.max(4, urgent.length)), `${day}: ${rail[index].id} ends by tomorrow and is ticket ${index + 1}`));
     // Every brand with a reviewed offer usable this week that ends today or tomorrow is on the rail, inside a narrow

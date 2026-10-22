@@ -6,6 +6,7 @@ import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 import { getCover, coverItemFor, type CoverKind } from '../src/lib/cover';
 import { leadsWithPicture } from '../src/lib/lead-rule';
+import { CLOSE_UP_FACE_IMAGES } from '../src/lib/close-up-faces';
 import { venuesFor, type CandidateRecord } from '../src/lib/cover-candidates';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
@@ -67,7 +68,9 @@ test('DECISIONS 26: every day, the home lead = homeLeads[day] = the weekly card\
 
 test('the lead rule refuses a close-up face, AI and an information card, and takes a venue photo', () => {
   const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' }, context), false, 'a close-up face never leads');
+  for (const key of CLOSE_UP_FACE_IMAGES) assert.equal(leadsWithPicture({ id: 'x', imageKey: key }, context), false, `${key}: a close-up face never leads`);
+  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): LumaFest's photo leads like any ①.
+  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' }, context), true, 'a released close-up leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');
@@ -112,7 +115,13 @@ test('/events arrangePicks (DECISIONS 26): the first pick that can lead; else th
 });
 
 test('getBuildWeekend (DECISIONS 26): a later pick, then the next editor pick, then the ranking leads; the last pick returns to the feed', () => {
-  const day = '2026-10-28';
+  // The first weekend from 10/31 whose feed holds three events that cannot lead (the owner's 10-21 close-up release moved the
+  // Goblin Jamboree and Ferry Plaza photos into the 10/31 feed as leaders). The catalog is fixed data, so the day is too.
+  const fixture = (candidate: string) => {
+    const weekend = getBuildWeekend(candidate, MONTHLY_EVENTS, {});
+    return weekend.events.some(entry => buildCanLead(entry.event, candidate)) && weekend.feed.filter(entry => !buildCanLead(entry.event, candidate)).length >= 3;
+  };
+  const day = Array.from({ length: 9 }, (_, week) => new Date(Date.parse('2026-10-28T12:00:00Z') + week * 7 * 86_400_000).toISOString().slice(0, 10)).find(fixture) ?? '2026-10-28';
   const plainWeekend = getBuildWeekend(day, MONTHLY_EVENTS, {});
   const start = plainWeekend.start;
   const events = plainWeekend.events.map(entry => entry.event);

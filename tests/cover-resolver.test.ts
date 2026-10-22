@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCoverPage, getCover, resolveCovers, rightsBasisOf, type CoverAsset, type CoverItem } from '../src/lib/cover';
 import * as coverModule from '../src/lib/cover';
-import { assertPoolSpacing } from './support/cover-spacing';
+import { coverCandidates } from '../src/lib/cover-candidates';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -145,19 +145,22 @@ test('rights basis reads today’s registry fields', () => {
 
 test('the live catalog: no unapproved AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
   const live = MONTHLY_EVENTS.filter(item => item.endDate >= today);
-  const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey })), { images: GUIDE_IMAGES, today });
+  // Each event with the candidates the build writes for it (coverCandidates: ① own → ② venue → ③ category photos → ④), as
+  // the listings resolve them.
+  const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey, imageKeys: coverCandidates('event', item) })), { images: GUIDE_IMAGES, today });
   // 官方图 · 2025 往届: an official photo whose caption names the earlier edition it shows (the 2027 parade's 2025 photo).
   // An AI illustration covers a card only when the owner approved it (④, src/data/ai-cover-approvals.json, 2026-10-21).
-  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届|AI 示意图)$/;
+  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届|AI 示意图|示意图)$/;
   covers.forEach((cover, index) => {
     if (cover.tier !== 'type' && cover.image.kind === 'illustration') assert.ok(cover.tier === 'ai' && cover.image.aiCoverApproved, live[index].id);
     assert.match(cover.label.zh, vocabulary, live[index].id);
   });
-  // ①② files once per page; a ③④ pool picture may repeat only ADJACENT_CARDS or more cards apart (cover.ts).
-  const sources = covers.flatMap(cover => cover.tier === 'type' || cover.tier === 'ai' ? [] : [cover.image.src]);
+  // ①② files once per page; a ③④ pool picture may repeat (cover.ts). Its ADJACENT_CARDS spacing is checked on the pages
+  // themselves (home-discovery, events-shell): a category's pool is sized for one screen (CATEGORIES.json), not for every
+  // live event in one list.
+  const sources = covers.flatMap(cover => cover.tier === 'type' || cover.tier === 'ai' || cover.tier === 'stock' ? [] : [cover.image.src]);
   assert.equal(new Set(sources).size, sources.length, 'one page, no repeated file');
-  const pool = new Set(covers.flatMap(cover => cover.tier === 'ai' ? [cover.image.src] : []));
-  assertPoolSpacing(covers.map(cover => cover.tier === 'type' ? null : cover.image.src), pool, 'the live catalog');
+  assert.ok(covers.some(cover => cover.tier === 'stock'), 'the owner\'s category photos (③) cover live events');
   const fleetWeek = live.find(item => item.imageKey === 'dvids-blue-angels-sffw-2024');
   assert.ok(fleetWeek, 'the Fleet Week event is live');
   const cover = getCover({ kind: 'event', id: fleetWeek.id, imageKey: fleetWeek.imageKey }, { images: GUIDE_IMAGES, today });
