@@ -92,17 +92,20 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   // H19: the generator's photo tests (src/lib/home-offers.ts) on the images the page ships.
   const offers = useMemo(() => selectHomeOffers(HOME_OFFERS, today, 6, offerHasPhoto(GUIDE_IMAGES, today), offerLeadsRail(GUIDE_IMAGES, today)), [today]);
   const guides = useMemo(() => HOME_INTENTS.find(item => item.id === intent)!.slugs.map(getGuideBySlug).filter((guide): guide is HomeGuide => !!guide), [intent]);
-  // One page context in display order — picks, feed, guides, offers — so an image appears once (VISUAL-10) and the
-  // ladder decides every label (SV-04: an AI illustration is never an event's cover).
+  // One page context in display order — picks, feed, offers, guides — so an image appears once (VISUAL-10), a ③④ pool
+  // picture comes back only ADJACENT_CARDS cards later as the page shows them, and the ladder decides every label (SV-04).
   const covers = useMemo(() => {
     const context: CoverContext = { images: GUIDE_IMAGES, today, page: createCoverPage() };
     const event = (item: HomeEvent) => getCover(coverItemFor('event', item), context);
+    const picks = weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey), lead: true }), context));
+    const feed = weekend.feed.map(entry => event(entry.event as HomeEvent));
+    const offerCovers = offers.map(offer => getCover(coverItemFor('offer', offer), context));
     return {
       // DECISIONS 15: the lead (16:9) never shows a close-up face photo; it draws its type cover (the photo stays a card's).
-      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey), lead: true }), context)),
-      feed: weekend.feed.map(entry => event(entry.event as HomeEvent)),
+      picks,
+      feed,
+      offers: offerCovers,
       guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey }), context)),
-      offers: offers.map(offer => getCover(coverItemFor('offer', offer), context)),
     };
   }, [weekend, guides, offers, today]);
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is
