@@ -4,5 +4,5 @@
 .planner-web-search h3,.planner-import h3,.planner-web-saved>h3 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
 .planner-web-candidate .planner-web-city { display:flex; align-items:center; gap:6px; color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-web-candidate-links a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); max-width:100%; overflow-wrap:anywhere; }
-.planner-web-coverage { margin:10px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-web-save-notice { margin:12px 0; padding:10px 14px; border-left:3px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink); font-size:var(--text-fact); }
+.planner-web-coverage { margin:10px 0; }
+.planner-web-save-notice { margin:12px 0; padding:10px 14px; border-left:3px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-brand-tint); }
