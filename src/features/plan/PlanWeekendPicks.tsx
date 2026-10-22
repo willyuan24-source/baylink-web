@@ -26,14 +26,10 @@ function shown(event: PlanWeekendEvent, english: boolean): EventFactsInput {
 
 /**
  * Line 2 as on every event card (DECISIONS 20; EventCards.tsx EventStatusLine): 免费 and 部分免费 in the one status map's
- * look, a price as plain text, then the place. The markup, not EventCards, so /plan does not load the events card module.
+ * look (STATUS_TONE), a price as plain text, then the place. The markup, not EventCards, so /plan does not load the events
+ * card module.
  */
-function StatusPlace({ price, place, text }: { price: ReturnType<typeof eventPriceChip>; place: string; text: string }) {
-  const status = !price ? null : price.tone === 'free' || price.tone === 'mixed'
-    ? <span className="ui-status" data-tone={price.tone === 'free' ? 'free' : 'partial'}>{text}</span>
-    : <span className="ui-meta-price">{text}</span>;
-  return <>{status}{status && place && <span className="ui-meta-sep">{'\u00a0· '}</span>}{place && <span className="ui-meta-place">{place}</span>}</>;
-}
+const STATUS_TONE: Record<string, string> = { free: 'free', mixed: 'partial' };
 
 /**
  * H54 (WEB-PERF-3): 行程 opens with pictures, not a form. This weekend's picks, the home page's snapshot for the day (the
@@ -83,7 +79,7 @@ export function PlanWeekendPicks({ coverPage, onCovers }: { coverPage?: CoverPag
         return <FeedItem key={event.id}>
           <FeedCard title={facts.shortTitle || facts.title} to={`/events/${event.id}?date=${date}`}
             cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === eager} decorative />}
-            when={<EventWhen event={facts} today={today} days={[date]} />} meta={<StatusPlace price={price} place={translateText(eventPlace(facts), locale)} text={price ? pick(price.text) : ''} />} />
+            when={<EventWhen event={facts} today={today} days={[date]} />} meta={<>{price && <span className={STATUS_TONE[price.tone] ? 'ui-status' : 'ui-meta-price'} data-tone={STATUS_TONE[price.tone]}>{pick(price.text)}</span>}{price && <span className="ui-meta-sep">{'\u00a0· '}</span>}<span className="ui-meta-place">{translateText(eventPlace(facts), locale)}</span></>} />
         </FeedItem>;
       })}
     </FeedGrid>

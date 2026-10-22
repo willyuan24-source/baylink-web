@@ -156,6 +156,6 @@ test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balan
   for (const file of ['src/components/ui/Card.tsx', 'src/components/ui/HeroCard.tsx']) {
     const source = read(file);
     assert.doesNotMatch(source, /^import '\.\/card-press';/m);
-    assert.match(source, /import\('\.\/card-press'\)/);
+    assert.match(source, /void import\('\.\/card-press'\)/);
   }
 });

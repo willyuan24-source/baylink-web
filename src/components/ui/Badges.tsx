@@ -11,9 +11,10 @@ import { cx } from './ui-copy';
  * `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).
  */
 export function ProvenanceBadge({ label, className, plain, tier }: { label: string; className?: string; plain?: boolean; tier?: string }) {
-  const dated = plain ? null : DATED.exec(label);
+  // Two children, no fragment: the split adds no react import to this primitive's chunk (route JS budgets).
+  const dated = !plain && DATED.exec(label);
   return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier}>
-    {dated ? <><span className="ui-provenance__lead">{dated[1]}</span>{dated[2]}</> : label}
+    {dated && <span className="ui-provenance__lead">{dated[1]}</span>}{dated ? dated[2] : label}
   </span>;
 }
 
@@ -22,7 +23,7 @@ export function ProvenanceBadge({ label, className, plain, tier }: { label: stri
  * (covers.css hides the lead there; #62 live check: the full words wrapped to 2–3 lines over a thumbnail). The full words stay
  * on larger covers and in the page's image credits.
  */
-const DATED = /^(.+? · )((?:19|20)\d{2} ?(?:往[届屆]|edition))$/;
+const DATED = /^(.+ · )(\d{4} ?(?:往[届屆]|edition))$/;
 
 export type StickerTone = 'date' | 'free' | 'mixed' | 'price' | 'paid' | 'danger' | 'warning' | 'success' | 'neutral';
 /** A fact printed on a member's photo (community posts). Listing covers carry no stickers since UI9-C (N22). */

@@ -7,7 +7,7 @@ import './cards.css';
 import { cx } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
 // The card press (card-press.ts) loads after this module, off the route's first-load JS (verify:release route budgets).
-if (typeof window !== 'undefined') setTimeout(() => void import('./card-press'));
+if (typeof window !== 'undefined') void import('./card-press');
 
 export type HeroCardProps = {
   title: string;
