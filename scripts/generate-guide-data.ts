@@ -4,10 +4,11 @@ import { guides, type Guide } from '../src/data/guides';
 import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
 import { coverInCurrentLanguage, guideRecordOf, guideStockPool, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
 import { getBayAreaToday } from '../src/lib/monthly';
-import type { GuideCard, GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
+import type { GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
 import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
 import { answeredHookFields } from '../src/lib/guide-hook-highlight';
+import { slimListingImage } from '../src/lib/listing-image';
 
 /**
  * The guide routes' data split (WEB-DATA-SPLIT, ENGSEC-01, FA-01): a slim index for /guides (cards: title, topic inputs,
@@ -58,22 +59,26 @@ export async function buildGuideData(): Promise<GuideData> {
   const distinctRelated = (record: GuideRecord): GuideRecord => {
     // The page's own pictures come first: the hero and the article's inline pictures.
     const claimed = new Set([record.covers['zh-Hans'].src, ...record.inline.map(({ image }) => image.src)]);
-    const repeats: GuideCard[] = [];
-    const distinct = record.related.flatMap(card => {
+    const distinct = record.related.map(card => {
       const own = card.covers['zh-Hans'];
-      if (!isStock(own) && !claimed.has(own.src)) { claimed.add(own.src); return [card]; }
+      if (!isStock(own) && !claimed.has(own.src)) { claimed.add(own.src); return card; }
       const pool = poolPerLanguage.get(card.slug)!;
       const at = (pool['zh-Hans'] ?? []).findIndex(image => !claimed.has(image.src));
-      // Its category has no picture left that the page does not show: the card moves behind the others ("Read next" shows
-      // the first four that are still current, relatedForToday).
-      if (at < 0) { repeats.push(card); return []; }
+      // Its category has no picture left that the page does not show: the card keeps its place and its picture (the order
+      // of "Read next" is the editors', never the pictures'; tests/guide-visuals.test.tsx lists the pools that are too small).
+      if (at < 0) return card;
       claimed.add(pool['zh-Hans']![at].src);
       const pick = mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]);
-      return [isStock(own) ? { ...card, covers: pick } : { ...card, covers: { ...card.covers, stock: pick } }];
+      return isStock(own) ? { ...card, covers: pick } : { ...card, covers: { ...card.covers, stock: pick } };
     });
-    return { ...record, related: [...distinct, ...repeats] };
+    return { ...record, related: distinct };
   };
-  return { index: { ...index, guides: index.guides.map(withHook) }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
+  // The /guides cards read a cover the way the events column's listings do (UI9-IMG-A1b: the ③ pictures every guide may now
+  // carry made the index 30.5 → 41.3 KiB gzip): no rights prose or evidence URL, the caption as its signal
+  // (src/lib/listing-image.ts slimListingImage). The article records keep the whole picture record.
+  const slim = (covers: GuideCovers): GuideCovers => Object.fromEntries(Object.entries(covers)
+    .map(([key, value]) => [key, key === 'stock' ? slim(value as GuideCovers) : slimListingImage(value as GuideImage)])) as GuideCovers;
+  return { index: { ...index, guides: index.guides.map(card => withHook({ ...card, covers: slim(card.covers) })) }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
 }
 
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]*$/u;

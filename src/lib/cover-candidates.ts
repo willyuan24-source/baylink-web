@@ -65,7 +65,7 @@ export function idSpot(id: string, size: number): number {
  * (a key in ai-cover-approvals.json) is ④, not ①: it goes after the category's stock pictures (UI9-IMG-A1b; the B1b
  * review found the 204 stock pictures unused and AI covers on unrelated records while it led).
  */
-export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables: CoverTables = COVER_TABLES): string[] {
+export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables: CoverTables = COVER_TABLES, { stock = Infinity }: CandidateLimits = {}): string[] {
   const keys: string[] = [];
   const add = (key?: string) => { if (key && !keys.includes(key)) keys.push(key); };
   const ownIsAi = !!record.imageKey && tables.ai.some(approval => approval.key === record.imageKey);
@@ -74,7 +74,10 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const category = photoCategoryOf(kind, record);
   const pool = category ? tables.categories[category] ?? [] : [];
   const start = idSpot(record.id, pool.length);
-  for (let i = 0; i < pool.length; i++) add(pool[(start + i) % pool.length]);
+  const shown = Math.min(pool.length, stock);
+  for (let i = 0; i < shown; i++) add(pool[(start + i) % pool.length]);
+  // A capped list (what a route ships) carries ④ only for a record whose category has no ③ picture.
+  if (shown && stock !== Infinity) return keys;
   if (ownIsAi) add(record.imageKey);
   const refs = [`${kind}:${record.id}`, ...(category ? [`category:${category}`] : [])];
   for (const approval of tables.ai) if (approval.for?.some(ref => refs.includes(ref))) add(approval.key);
@@ -82,12 +85,20 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
 }
 
 /**
+ * How many ③ pictures a record carries (UI9-IMG-A1b, captain 21:15 step 3): a route's catalog ships the record's own ①, its
+ * venue's ②, ROUTE_STOCK ③ pictures (rotated by id) and ④ only when its category has no ③. The home catalog keeps the
+ * whole pool (owner, DECISIONS 29: the look before bytes on the home), and so does report:covers' projection.
+ */
+export type CandidateLimits = { stock?: number };
+export const ROUTE_STOCK = 2;
+
+/**
  * What a catalog generator writes for a record's pictures (UI9-IMG-A1a): `imageKey` when its own image is one the catalog
  * ships (`keep`), and `imageKeys`, its shipped candidates, only when they add to that. A record whose own key points at a
  * picture no listing may show (an unapproved AI illustration) carries no key at all, so the route pays for neither.
  */
-export function listingImageKeys(kind: CoverKind, record: CandidateRecord, keep: (key: string) => boolean = () => true, tables: CoverTables = COVER_TABLES): { imageKey?: string; imageKeys?: string[] } {
-  const keys = coverCandidates(kind, record, tables).filter(keep);
+export function listingImageKeys(kind: CoverKind, record: CandidateRecord, keep: (key: string) => boolean = () => true, tables: CoverTables = COVER_TABLES, limits: CandidateLimits = {}): { imageKey?: string; imageKeys?: string[] } {
+  const keys = coverCandidates(kind, record, tables, limits).filter(keep);
   const own = record.imageKey && keep(record.imageKey) ? record.imageKey : undefined;
   return { ...(own ? { imageKey: own } : {}), ...(keys.length > (own ? 1 : 0) ? { imageKeys: keys } : {}) };
 }

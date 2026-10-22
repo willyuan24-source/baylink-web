@@ -7,6 +7,7 @@ import { getDiscoveryMetadata } from '../../lib/discovery-metadata';
 import { placeFor } from '../../lib/planner';
 import { coverItemFor, getCover, type CoverAsset, type CoverKind } from '../../lib/cover';
 import { coverCandidates, type CandidateRecord } from '../../lib/cover-candidates';
+import { slimListingImage } from '../../lib/listing-image';
 import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent } from './detail-record';
 
 /**
@@ -47,7 +48,7 @@ function nextCandidate(kind: CoverKind, record: CandidateRecord, claimed: Set<st
   const pick = accepted.find(({ cover }) => cover.tier !== 'type' && !claimed.has(cover.image.src)) ?? accepted[0];
   if (!pick || pick.cover.tier === 'type') return undefined;
   claimed.add(pick.cover.image.src);
-  return { key: pick.key, image: pick.cover.image };
+  return { key: pick.key, image: slimListingImage(pick.cover.image, 'keep') };
 }
 
 const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') === b.trim().toLocaleLowerCase('en-US');
@@ -65,7 +66,9 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
   return [...same, ...others]
     .map(candidate => {
       const next = nextCandidate('event', candidate, claimed);
-      const image = next?.image ?? listingImage(candidate.imageKey);
+      // A rail card prints no caption: its picture carries the caption's signal (UI9-IMG-A1b, listing-image.ts).
+      const own = next?.image ?? listingImage(candidate.imageKey);
+      const image = own && slimListingImage(own);
       return {
         id: candidate.id, title: candidate.title, startDate: candidate.startDate, endDate: candidate.endDate,
         // A card states the day only: session days become the confirmed days, their times stay on the event's own page.
@@ -89,7 +92,9 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
 export function buildDetailRecord(item: LocalDiscovery, events: readonly MonthlyEvent[] = MONTHLY_EVENTS): DetailRecord {
   const resolved: LocalDiscovery = item.kind === 'event' ? { kind: 'event', event: withOverrides(item.event) } : item;
   const imageKey = resolved.kind === 'event' ? resolved.event.imageKey : resolved.kind === 'offer' ? resolved.offer.imageKey : resolved.shop.imageKey;
-  const image = listingImage(imageKey);
+  const own = listingImage(imageKey);
+  // The page prints its hero's caption (PageCredits HeroCaption), so the record keeps it; the rights prose stays in the registry.
+  const image = own && slimListingImage(own, 'keep');
   const placeId = resolved.kind === 'opening' ? placeFor(`opening-${resolved.shop.id}`)?.id : undefined;
   const claimed = new Set<string>();
   const record: CandidateRecord = resolved.kind === 'event' ? resolved.event : resolved.kind === 'offer' ? resolved.offer : resolved.shop;

@@ -35,10 +35,13 @@ export function buildPlanWeekend(): PlanWeekendSnapshot {
         const shortTitle = event.shortTitle ? translateText(event.shortTitle, 'en') : '';
         events[event.id] = { ...event, en: { title: translateText(event.title, 'en'), ...(shortTitle && !HAN.test(shortTitle) ? { shortTitle } : {}), place: translateText(eventPlace(event as unknown as EventFactsInput), 'en') } };
       }
-      // The first two candidates the ladder accepts (imageKeys: ① own, ② venue, ③ stock, ④ approved AI; UI9-IMG-A1b), so a
-      // pick whose own image is no cover still shows a picture (never an information card) and the strip can avoid a repeat.
+      // The first candidate the ladder accepts (imageKeys: ① own, ② venue, ③ stock, ④ approved AI; UI9-IMG-A1b), so a pick
+      // whose own image is no cover still shows a picture (never an information card); a second one only for a ③ picture,
+      // so two picks of one category can show two pictures (/plan route JS ≤ the 0d5f7cd base, DECISIONS 28).
       const order = event.imageKeys ?? (event.imageKey ? [event.imageKey] : []);
-      const shown = order.filter(key => GUIDE_IMAGES[key] && getCover({ kind: 'event', id: event.id, imageKey: key }, { images: GUIDE_IMAGES, today: day }).tier !== 'type').slice(0, 2);
+      const accepted = order.filter(key => GUIDE_IMAGES[key] && getCover({ kind: 'event', id: event.id, imageKey: key }, { images: GUIDE_IMAGES, today: day }).tier !== 'type');
+      const first = accepted[0] && getCover({ kind: 'event', id: event.id, imageKey: accepted[0] }, { images: GUIDE_IMAGES, today: day });
+      const shown = accepted.slice(0, first && first.tier === 'stock' ? 2 : 1);
       for (const key of shown) images[key] = GUIDE_IMAGES[key];
       if (event.imageKeys) events[event.id] = { ...events[event.id], imageKeys: shown };
     }

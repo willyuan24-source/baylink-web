@@ -8,7 +8,7 @@ import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../src/data/guide-
 import { SCENE3D_POSTCARD_FOR } from '../src/data/scene3d-postcards';
 import { stopCoverItem } from '../src/lib/plan-stop-cover';
 import { getCover } from '../src/lib/cover';
-import { COVER_TABLES, coverCandidates, idSpot } from '../src/lib/cover-candidates';
+import { COVER_TABLES, ROUTE_STOCK, coverCandidates, idSpot } from '../src/lib/cover-candidates';
 import { placePhotoCategory } from '../src/lib/photo-category';
 import { getBayAreaToday } from '../src/lib/monthly';
 import type { Stop } from '../src/lib/planner-core';
@@ -50,7 +50,7 @@ export function buildPlanCatalog(): PlanCatalog & PlanExtras {
   for (const event of PLANNER_EVENTS) {
     const own = getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, { images: GUIDE_IMAGES, today }).tier;
     if (own !== 'type' && own !== 'ai') continue;
-    const candidates = coverCandidates('event', event).filter(key => Object.hasOwn(GUIDE_IMAGES, key)
+    const candidates = coverCandidates('event', event, COVER_TABLES, { stock: ROUTE_STOCK }).filter(key => Object.hasOwn(GUIDE_IMAGES, key)
       && getCover({ kind: 'event', id: event.id, imageKey: key }, { images: GUIDE_IMAGES, today }).tier !== 'type');
     if (!candidates.length) continue;
     coverKeys[event.id] = candidates;
@@ -64,8 +64,8 @@ export function buildPlanCatalog(): PlanCatalog & PlanExtras {
     if (getCover({ kind, id, imageKey, postcardKey }, { images: fullStopCoverImage, today }).tier !== 'type') continue;
     const category = placePhotoCategory(place);
     const pool = category ? COVER_TABLES.categories[category] ?? [] : [];
-    const rotated = pool.map((_, i) => pool[(idSpot(place.id, pool.length) + i) % pool.length]);
-    const opening = place.id.startsWith('opening-') ? coverCandidates('opening', { id: place.id.slice('opening-'.length), name: place.title }) : [];
+    const rotated = pool.map((_, i) => pool[(idSpot(place.id, pool.length) + i) % pool.length]).slice(0, ROUTE_STOCK);
+    const opening = place.id.startsWith('opening-') ? coverCandidates('opening', { id: place.id.slice('opening-'.length), name: place.title }, COVER_TABLES, { stock: ROUTE_STOCK }) : [];
     const candidates = [...new Set([...opening, ...rotated])].filter(key => Object.hasOwn(GUIDE_IMAGES, key)
       && getCover({ kind: 'place', id: place.id, imageKey: key }, { images: GUIDE_IMAGES, today }).tier !== 'type');
     if (!candidates.length) continue;

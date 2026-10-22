@@ -14,8 +14,8 @@ import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
 import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
 import { isPressSource } from '../src/features/events/source-kind';
 import { isApprovedAiCover, type CoverAsset } from '../src/lib/cover';
-import { listingImageKeys } from '../src/lib/cover-candidates';
-import type { EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
+import { COVER_TABLES, ROUTE_STOCK, listingImageKeys } from '../src/lib/cover-candidates';
+import type { EventsBoards, EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
 /**
@@ -78,7 +78,7 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
     startDate: event.startDate, endDate: event.endDate, ...(dates !== undefined ? { occurrenceDates: dates } : {}),
     region: event.region, city: event.city, venue: event.venue, category: event.category,
     cost: event.cost, ...(event.cost === 'mixed' ? { costLabel: event.costLabel } : {}),
-    audience: event.audience, verifiedAt: event.verifiedAt, ...listingImageKeys('event', event, shippable),
+    audience: event.audience, verifiedAt: event.verifiedAt, ...listingImageKeys('event', event, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
     ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(planning && Object.keys(planning).length ? { planning } : {}),
     ...(event.location ? { location: { lat: event.location.lat, lng: event.location.lng, precision: event.location.precision, sourceUrl: event.location.sourceUrl } } : {}),
@@ -91,14 +91,14 @@ const offers: IndexOffer[] = currentFreebies
   .filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!offer.endDate || offer.endDate >= cutoff))
   .map(offer => ({
     id: offer.id, brand: offer.brand, title: offer.title, ...pick(offer, ['region', 'startDate', 'endDate', 'weekdays'] as const),
-    availability: offer.availability, kind: offer.kind, ...listingImageKeys('offer', offer, shippable),
+    availability: offer.availability, kind: offer.kind, ...listingImageKeys('offer', offer, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
     sourceLabel: offer.sourceLabel, ...(offer.verifiedAt ? { verifiedAt: offer.verifiedAt } : {}),
     ...(offer.status === 'sold_out' ? { status: 'sold_out' as const } : {}),
   }));
 
 const openings: IndexOpening[] = currentOpenings.map(shop => ({
   id: shop.id, name: shop.name, city: shop.city, region: shop.region, category: shop.category, status: shop.status,
-  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), ...listingImageKeys('opening', shop, shippable),
+  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), ...listingImageKeys('opening', shop, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
   sourceLabel: shop.sourceLabel, verifiedAt: shop.verifiedAt,
 }));
 
@@ -119,8 +119,11 @@ const imagesFor = (keys: Iterable<string>): Record<string, IndexImage> => Object
  * over its ceiling; at 8 days (today's 未来 7 天) it stops shrinking. Every other event (later days, and days of the edition
  * before this week) is in events-later.json, which a view loads when it reaches past `near` (events-model.ts). Like
  * `weeklyCardDays`, the split follows the build day, as the home catalog does.
+ * UI9-IMG-A1b: 56 → 60 KiB. Every event now carries its picture candidates (own, venue, 2 ③; DECISIONS 22), which had shrunk
+ * the window to 17–19 days; the offers, new shops and their pictures left the route at the same time (events-boards.json,
+ * about 36 KiB gzip), so 21 days fit again with the route still below the 0d5f7cd base (verify-release, DECISIONS 28).
  */
-const NEAR_MAX_DAYS = 21, NEAR_MIN_DAYS = 8, NEAR_CAP = 56 * 1024;
+const NEAR_MAX_DAYS = 21, NEAR_MIN_DAYS = 8, NEAR_CAP = 60 * 1024;
 const buildDay = getBayAreaToday();
 const occursIn = (event: IndexEvent, start: string, end: string) => { const day = nextOccurrence(event, start); return !!day && day <= end; };
 const nearFrom = calendarPeriod(buildDay, 'week').start;
@@ -132,7 +135,13 @@ const nearBytes = (list: IndexEvent[]) => gzipSync(JSON.stringify({ events: list
 while (nearThrough > addCalendarDays(buildDay, NEAR_MIN_DAYS - 1) && nearBytes(nearFor(nearThrough)) > NEAR_CAP) nearThrough = addCalendarDays(nearThrough, -1);
 const nearIds = new Set(nearFor(nearThrough).map(event => event.id));
 const nearEvents = events.filter(event => nearIds.has(event.id));
-const images = imagesFor(keysOf([...nearEvents, ...offers, ...openings]));
+const images = imagesFor(keysOf(nearEvents));
+// UI9-IMG-A1b (captain 21:15 step 2): the boards' offers, new shops and the pictures only they use leave the route for
+// events-boards.json, which the 免费与优惠 and 新店 views load with their own chunks (events-boards.ts).
+const boards: EventsBoards = {
+  offers, openings,
+  images: Object.fromEntries(Object.entries(imagesFor(keysOf([...offers, ...openings]))).filter(([key]) => !Object.hasOwn(images, key))),
+};
 const laterImages = Object.fromEntries(Object.entries(imagesFor(keysOf(events.filter(event => !nearIds.has(event.id)))))
   .filter(([key]) => !Object.hasOwn(images, key)));
 const later: EventsLater = {
@@ -159,12 +168,13 @@ const homeLeads: Record<string, string> = Object.fromEntries(Object.entries(home
 const index: EventsIndex = {
   edition: { label: MONTHLY_EDITION.label, checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate, startMonth: MONTHLY_EDITION.startMonth },
   near: { from: nearFrom, through: nearThrough },
-  events: nearEvents, offers, openings, bulletins, images, cityNames, weeklyCardDays, homeLeads,
+  events: nearEvents, bulletins, images, cityNames, weeklyCardDays, homeLeads,
 };
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/events-index.json', JSON.stringify(index));
 await writeFile('src/data/generated/events-later.json', JSON.stringify(later));
-console.log(`Events index: ${events.length} events (${nearEvents.length} on ${nearFrom}…${nearThrough} in the route, ${later.events.length} in events-later.json), ${offers.length} offers, ${openings.length} openings, ${bulletins.length} bulletins, ${Object.keys(images).length} + ${Object.keys(laterImages).length} images; no articles or plan steps.`);
+await writeFile('src/data/generated/events-boards.json', JSON.stringify(boards));
+console.log(`Events index: ${events.length} events (${nearEvents.length} on ${nearFrom}…${nearThrough} in the route, ${later.events.length} in events-later.json), ${offers.length} offers, ${openings.length} openings, ${bulletins.length} bulletins, ${Object.keys(images).length} + ${Object.keys(laterImages).length} images (+ ${Object.keys(boards.images).length} in events-boards.json); no articles or plan steps.`);
 
 // The event, offer and opening detail records (WEB-DETAIL, ENGSEC-01) come from the same catalogs, in the same step.
 await import('./generate-detail-records');

@@ -73,8 +73,6 @@ export type EventsIndex = {
   near: { from: string; through: string };
   /** The events of the `near` days, in catalog order; the rest load with events-later.json (events-model.ts). */
   events: IndexEvent[];
-  offers: IndexOffer[];
-  openings: IndexOpening[];
   bulletins: IndexBulletin[];
   images: Record<string, IndexImage>;
   /** English city name → its Chinese name (city-search-aliases), for bilingual city chips. */
@@ -99,5 +97,16 @@ export type { MonthlyRegion };
 export type EventsLater = {
   events: IndexEvent[];
   at: number[];
+  images: Record<string, IndexImage>;
+};
+
+/**
+ * The 免费与优惠 and 新店 boards' records (events-boards.json, UI9-IMG-A1b; captain 21:15 step 2): every live offer and new
+ * shop with the pictures only they use. Split out of the route's events-index.json, so /events and /calendar carry only
+ * events and their pictures; the boards' own chunks load it (events-boards.ts), Node installs it at once (events-model.ts).
+ */
+export type EventsBoards = {
+  offers: IndexOffer[];
+  openings: IndexOpening[];
   images: Record<string, IndexImage>;
 };

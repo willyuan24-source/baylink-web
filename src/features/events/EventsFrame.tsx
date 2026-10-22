@@ -14,13 +14,17 @@ import { getMonthlyDateRange, isFreeToAttend, nextOccurrence } from '../../lib/m
 import { isPressSource } from './source-kind';
 import { EVENTS_INDEX, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
 import { useIndexEvents } from './events-later';
+import { loadBoards, useBoards } from './events-boards';
+import { getLocale } from '../../i18n/locale';
 import type { EventsFilters } from './events-model';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 
-// The two other boards load on demand: /events itself stays small (RC-33), and their skeleton and retry states are real.
-const perksView = retryableLazy(() => import('./PerksView'));
-const openingsView = retryableLazy(() => import('./OpeningsView'));
+// The two other boards load on demand with their records (events-boards.ts, UI9-IMG-A1b): /events itself stays small
+// (RC-33), and their skeleton and retry states are real.
+const withBoards = <M,>(load: () => Promise<M>) => async () => (await Promise.all([load(), loadBoards(getLocale())]))[0];
+const perksView = retryableLazy(withBoards(() => import('./PerksView')));
+const openingsView = retryableLazy(withBoards(() => import('./OpeningsView')));
 
 /**
  * 活动 (plan D3, design.md §4.11; UI9-EVENTS G17 + G12): one head — H1 活动 with the range on its baseline (本周末 · 10/24–25,
@@ -68,6 +72,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const { events } = useIndexEvents(days.start, days.end, column === 'list' || column === 'calendar');
   const inScope = (events ?? []).filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));
   const free = inScope.filter(event => isFreeToAttend(event)).length;
+  // The boards' counts wait for their records (events-boards.json loads with the board).
+  const boards = useBoards(column === 'perks' || column === 'openings');
   const offerList = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region) : [];
   const offers = offerList.length;
   // H02: the check dates of what this view lists (/calendar: the chosen day's events), said as checks against the official
@@ -86,7 +92,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const rangeLine = column === 'perks' ? t('免费与优惠', 'Free & deals') + region
     : column === 'openings' ? t('新店', 'New shops') + region
     : column === 'calendar' ? `${t('按日期看', 'By date')} · ${through}` : whenLine + region;
-  const counts = column === 'perks' ? t(`${offers} 条优惠与免费福利`, `${offers} offers and free perks`)
+  const counts = (column === 'perks' || column === 'openings') && !boards.ready ? ''
+    : column === 'perks' ? t(`${offers} 条优惠与免费福利`, `${offers} offers and free perks`)
     : column === 'openings' ? t(`${INDEX_OPENINGS.length} 家新店与开业消息`, `${INDEX_OPENINGS.length} new shops and openings`)
     : column === 'calendar' || !events ? ''
     : english ? `${inScope.length} ${inScope.length === 1 ? 'event' : 'events'} · ${free} free` : t(`${inScope.length} 场 · ${free} 场免费`, `${inScope.length} events · ${free} free`);

@@ -1,6 +1,6 @@
 import indexJson from '../../data/generated/events-index.json';
 import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../../data/weekend-picks';
-import type { EventsIndex, EventsLater, IndexEvent, IndexOffer, IndexOpening, MonthlyRegion } from './events-index-types';
+import type { EventsBoards, EventsIndex, EventsLater, IndexEvent, IndexOffer, IndexOpening, MonthlyRegion } from './events-index-types';
 import type { Copy } from '../../lib/event-facts';
 import { coverItemFor, getCover, type CoverContext } from '../../lib/cover';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs, type MonthlyDateFilter, type WeekendDayTab } from '../../lib/monthly';
@@ -21,8 +21,12 @@ export const EVENTS_INDEX = indexJson as unknown as EventsIndex;
  * reaches past `near` waits for it through useIndexEvents (events-later.ts); Node installs it at once (below).
  */
 export let INDEX_EVENTS: readonly IndexEvent[] = EVENTS_INDEX.events;
-export const INDEX_OFFERS: readonly IndexOffer[] = EVENTS_INDEX.offers;
-export const INDEX_OPENINGS: readonly IndexOpening[] = EVENTS_INDEX.openings;
+/**
+ * The 免费与优惠 and 新店 boards' records (events-boards.json, UI9-IMG-A1b): empty until the boards' chunk installs them
+ * (installBoards; live bindings, so every reader sees them), at once in Node (below).
+ */
+export let INDEX_OFFERS: readonly IndexOffer[] = [];
+export let INDEX_OPENINGS: readonly IndexOpening[] = [];
 
 /** The cover resolver's registry: only listing images that can be covers (no AI illustrations). */
 export const coverContext = (today: string): CoverContext => ({ images: EVENTS_INDEX.images, today });
@@ -343,6 +347,23 @@ export const nearCovers = (start: string, end: string | null): boolean =>
 export const listWindow = (range: { start: string; end: string } | null, today: string): { start: string; end: string | null } =>
   ({ start: range && range.start > today ? range.start : today, end: range ? range.end : null });
 
+// The boards' records (UI9-IMG-A1b) -------------------------------------------------------------------------------
+
+let boardsInstalled = false;
+const boardsListeners = new Set<() => void>();
+/** Whether events-boards.json is in (INDEX_OFFERS and INDEX_OPENINGS list every live offer and new shop). */
+export const isBoardsInstalled = (): boolean => boardsInstalled;
+export const subscribeBoards = (listener: () => void): (() => void) => { boardsListeners.add(listener); return () => { boardsListeners.delete(listener); }; };
+/** Install the boards' offers, new shops and their pictures (the pictures join the cover registry coverContext reads). */
+export function installBoards(boards: EventsBoards): void {
+  if (boardsInstalled) return;
+  Object.assign(EVENTS_INDEX.images, boards.images);
+  INDEX_OFFERS = boards.offers;
+  INDEX_OPENINGS = boards.openings;
+  boardsInstalled = true;
+  boardsListeners.forEach(listener => listener());
+}
+
 // Node (the prerender, the generators and the tests) reads the whole catalog in one pass, so every prerendered list, its
 // JSON-LD and every test see what they saw with one file; BAYLINK_LAZY_EVENTS=1 makes Node take the browser's path.
 type NodeProcess = { env?: Record<string, string | undefined>; getBuiltinModule?: (id: string) => unknown };
@@ -354,4 +375,7 @@ if (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_LAZY_EVENTS !== '1
   let later: EventsLater | undefined;
   try { later = require('../../data/generated/events-later.json') as EventsLater; } catch (error) { if ((error as { code?: string }).code !== 'MODULE_NOT_FOUND') throw error; }
   if (later) installLaterEvents(later);
+  let boards: EventsBoards | undefined;
+  try { boards = require('../../data/generated/events-boards.json') as EventsBoards; } catch (error) { if ((error as { code?: string }).code !== 'MODULE_NOT_FOUND') throw error; }
+  if (boards) installBoards(boards);
 }
