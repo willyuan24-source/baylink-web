@@ -27,7 +27,7 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { offerSections, openingSections } from '../src/features/events/board-status';
 import { guideCover, inSeason, editionState } from '../src/features/guides/guide-facts';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf } from '../src/data/guide-topics';
-import { GUIDE_BAND_SIZE, type GuideIndexCard } from '../src/features/guides/guide-records';
+import { GUIDE_BAND_SIZE, withIndexStock, type GuideIndexCard, type GuidesIndex } from '../src/features/guides/guide-records';
 import { addCalendarDays } from '../src/lib/calendar-days';
 
 const arg = (name: string) => { const at = process.argv.indexOf(`--${name}`); return at > 0 ? process.argv[at + 1] : undefined; };
@@ -38,7 +38,8 @@ const OUT = arg('out');
 const FAIL_ON_INFO = process.argv.includes('--fail-on-info');
 
 const read = <T,>(path: string) => JSON.parse(readFileSync(new URL(`../src/data/generated/${path}`, import.meta.url), 'utf8')) as T;
-const GUIDES = read<{ guides: GuideIndexCard[] }>('guides-index.json').guides;
+// The cards with their second picture back on covers.stock, as GuidesHome reads them.
+const GUIDES = withIndexStock(read<GuidesIndex>('guides-index.json')).guides;
 /** The whole catalog in its own order: in Node, events-model installs events-later.json at once (installLaterEvents). */
 const EVENTS = INDEX_EVENTS;
 

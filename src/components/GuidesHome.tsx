@@ -5,7 +5,7 @@ import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
 import { searchGuides } from '../lib/guide-search';
 import guidesIndex from '../data/generated/guides-index.json';
-import { GUIDE_BAND_SIZE as BAND_SIZE, telOf, type GuideIndexCard, type GuidesIndex } from '../features/guides/guide-records';
+import { GUIDE_BAND_SIZE as BAND_SIZE, telOf, withIndexStock, type GuideIndexCard, type GuidesIndex } from '../features/guides/guide-records';
 import { createCoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
@@ -45,7 +45,7 @@ type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const PREVIEW_SIZE = 4;
 // The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
-const INDEX = guidesIndex as GuidesIndex;
+const INDEX = withIndexStock(guidesIndex as GuidesIndex);
 const guides = INDEX.guides;
 const GUIDE_CATEGORY_TABS = INDEX.categoryTabs;
 const cardsBySlug = new Map(guides.map(guide => [guide.slug, guide]));

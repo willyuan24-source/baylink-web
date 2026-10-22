@@ -37,13 +37,16 @@ export async function buildGuideData(): Promise<GuideData> {
   } finally {
     await setLocale(previous, false);
   }
-  // UI9-IMG-A1b: every guide carries a second picture, its next ③ stock picture (the first of its category's pool its cover
-  // is not), so a page that already shows its cover (①② once per page) or shows the same ③ picture within ADJACENT_CARDS
-  // cards gives the card that picture instead of repeating one or drawing an empty frame.
+  // UI9-IMG-A1b: a guide whose cover file another guide also uses carries a second picture, its next ③ stock picture (the
+  // first of its category's pool its cover is not), so a page that shows both (①② once per page) gives the second that
+  // picture instead of an empty frame. (Every guide carrying one cost /guides 5.5 KiB gzip: over DECISIONS 28; a guide
+  // page's 接下来 cards get theirs from distinctRelated below.)
+  const uses = new Map<string, number>();
+  for (const images of perLanguage.values()) uses.set(images['zh-Hans']!.src, (uses.get(images['zh-Hans']!.src) ?? 0) + 1);
   const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => {
     const own = mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!);
     const pool = poolPerLanguage.get(slug)!;
-    const at = (pool['zh-Hans'] ?? []).findIndex(image => image.src !== images['zh-Hans']!.src);
+    const at = (uses.get(images['zh-Hans']!.src) ?? 0) > 1 ? (pool['zh-Hans'] ?? []).findIndex(image => image.src !== images['zh-Hans']!.src) : -1;
     return [slug, at < 0 ? own : { ...own, stock: mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]) }];
   }));
   const coversOf = (guide: Guide) => covers.get(guide.slug)!;
@@ -80,7 +83,17 @@ export async function buildGuideData(): Promise<GuideData> {
   // (src/lib/listing-image.ts slimListingImage). The article records keep the whole picture record.
   const slim = (covers: GuideCovers): GuideCovers => Object.fromEntries(Object.entries(covers)
     .map(([key, value]) => [key, key === 'stock' ? slim(value as GuideCovers) : slimListingImage(value as GuideImage)])) as GuideCovers;
-  return { index: { ...index, guides: index.guides.map(card => withHook({ ...card, covers: slim(card.covers) })) }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
+  // The cards' second pictures come from a few category pools: the index ships each once (stockImages) and a card names its
+  // own by file (withIndexStock puts it back), not a copy per card in three languages.
+  const stockImages: Record<string, Omit<GuideCovers, 'stock'>> = {};
+  const indexCard = (card: GuidesIndex['guides'][number]) => {
+    const { stock, ...own } = slim(card.covers);
+    if (!stock) return withHook({ ...card, covers: own });
+    stockImages[stock['zh-Hans'].src] ??= stock;
+    return withHook({ ...card, covers: own, stockSrc: stock['zh-Hans'].src });
+  };
+  const guidesCards = index.guides.map(indexCard);
+  return { index: { ...index, guides: guidesCards, stockImages }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
 }
 
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]*$/u;

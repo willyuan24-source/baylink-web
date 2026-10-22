@@ -16,8 +16,8 @@ import type { GuideRegionId } from './guide-facts';
 export type GuideCovers = {
   'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage;
   /**
-   * UI9-IMG-A1b (DECISIONS 21/22): the guide's next ③ stock picture, so a page that already shows its cover (①② once per
-   * page; a ③ not within ADJACENT_CARDS cards) gives the card this picture instead of a repeat or an empty frame. A guide
+   * UI9-IMG-A1b (DECISIONS 21/22): the guide's next ③ stock picture, carried when its cover file is one another guide also
+   * uses, so a page that shows both (①② once per page) gives the second this picture instead of an empty frame. A guide
    * page's "Read next" cards carry it only when the page shows their cover (scripts/generate-guide-data.ts distinctRelated).
    */
   stock?: Omit<GuideCovers, 'stock'>;
@@ -45,6 +45,8 @@ export type GuideCall = { number: string; tel: string; label: { zh: string; en: 
 
 /** An index card: the card plus what the index filters on. */
 export type GuideIndexCard = GuideCard & {
+  /** The file of the card's second (③) picture in the index's `stockImages` (UI9-IMG-A1b: shipped once per file). */
+  stockSrc?: string;
   /** The regions a guide is about (guideRegionsOf); absent = the whole Bay Area. */
   regions?: GuideRegionId[];
   /** The number the reader's bar calls, on the band's guides that have one: 简洁 prints it as a 48 px 拨打 button (G16). */
@@ -60,6 +62,8 @@ export const telOf = (number: string) => { const digits = number.replace(/\D/g, 
 export type GuidesIndex = {
   /** Every published guide, in the corpus order the index lists them. */
   guides: GuideIndexCard[];
+  /** The cards' second (③) pictures, once each, by file: a card names its own with `stockSrc` (withIndexStock). */
+  stockImages?: Record<string, Omit<GuideCovers, 'stock'>>;
   categoryTabs: { id: 'all' | GuideCategory; label: string }[];
 };
 
@@ -100,4 +104,10 @@ export const coverFor = (covers: GuideCovers, locale: 'zh-Hans' | 'zh-Hant' | 'e
 export function relatedForToday(related: readonly GuideCard[], today: string, count = 4): GuideCard[] {
   const month = today.slice(0, 7);
   return related.filter(card => !card.editionMonth || card.editionMonth >= month).slice(0, count);
+}
+
+/** The index's cards with their second picture back on `covers.stock` (the index ships each ③ picture once). */
+export function withIndexStock(index: GuidesIndex): GuidesIndex {
+  const table = index.stockImages ?? {};
+  return { ...index, guides: index.guides.map(card => card.stockSrc && table[card.stockSrc] ? { ...card, covers: { ...card.covers, stock: table[card.stockSrc] } } : card) };
 }
