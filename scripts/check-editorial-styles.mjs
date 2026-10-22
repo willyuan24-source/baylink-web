@@ -10,7 +10,8 @@ export const editorialStyleScopes = [
   { file: 'src/components/ai-local.css' },
   { file: 'src/components/local-discovery-detail.css' },
   { file: 'src/editorial-refinement.css' },
-  { file: 'src/features/outings/outings.css', after: '/* Editorial refinement and shared reading controls.' },
+  // UI9-R1-TOGETHER: outings.css is one reviewed layer now (the whole file).
+  { file: 'src/features/outings/outings.css' },
   { file: 'src/features/posts/posts-ui.css', selectors: /^\.post-translation(?:\s|$)/ },
   { file: 'src/features/source-monitor/source-monitor.css' },
   // WEB-FRESH2: the editor's source desk (loaded with the admin view).
