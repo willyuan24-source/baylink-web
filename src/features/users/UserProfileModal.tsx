@@ -1,8 +1,9 @@
 // 用户公开资料弹层（湾区生活名片）
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  X, Shield, ChevronRight, Flag, UserX, Sparkles,
+  Shield, ChevronRight, Flag, UserX, Sparkles,
 } from 'lucide-react';
+import { CloseButton } from '../../components/ui/CloseButton';
 import { api } from '../../lib/api';
 import { ModalShell } from '../../components/ui/Modal';
 import { ProfileCardSkeleton } from '../../components/ui/Skeleton';
@@ -84,11 +85,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
   const isBlocked = profile ? (blockedUserIds ? blockedUserIds.includes(profile.id) : profile.viewerHasBlockedUser) : false;
 
   return (
-    <ModalShell onClose={onClose} label="湾区生活名片" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
+    <ModalShell onClose={onClose} label="湾区生活名片" className="fixed inset-0 z-[110] flex items-center justify-center bg-[var(--scrim)] px-4 py-6">
       <div className="flex max-h-[86vh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] bg-baylink-bg-alt shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-5 py-3">
           <h3 className="text-base font-bold text-baylink-text">湾区生活名片</h3>
-          <button type="button" onClick={onClose} aria-label="关闭用户名片" className="rounded-full p-2 text-baylink-muted hover:bg-baylink-section"><X size={18} /></button>
+          <CloseButton label="关闭用户名片" onClick={onClose} />
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5">
           {loading ? (
@@ -106,7 +107,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               {isPlatformAdmin(profile) && <p className="profile-admin-note">该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。</p>}
               {commonInterests.length > 0 && <section className="profile-common-interests" aria-label="你们的共同兴趣"><h3><Sparkles size={15} />你们的共同兴趣</h3><p>从共同喜欢的事，开始一段对话。</p><div>{commonInterests.map(interest => <span key={interest} translate="no">{interest}</span>)}</div></section>}
 
-              <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[0.6875rem] text-baylink-text-secondary">
+              <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[length:var(--text-caption)] text-baylink-text-secondary">
                 <p className="font-semibold text-baylink-text mb-2 text-xs">信任信息</p>
                 <div className="space-y-1.5">
                   {joinDays != null && <p>{translateText('已加入 BAYLINK {days} 天', locale).replace('{days}', String(joinDays))}</p>}
@@ -127,7 +128,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                 <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
                 {profile.recentPosts.length > 0 ? (
                   <>
-                  <p className="mb-2 text-[0.6875rem] text-baylink-muted">查看 TA 最近的本地信息</p>
+                  <p className="mb-2 text-[length:var(--text-caption)] text-baylink-muted">查看 TA 最近的本地信息</p>
                   <div className="space-y-2">
                     {profile.recentPosts.map((rp) => {
                       const postId = rp.id || rp._id;
@@ -148,11 +149,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                         {normalizePostImages(rp)[0] ? (
                           <img src={normalizePostImages(rp)[0]} alt="" loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         ) : (
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[0.6875rem] text-baylink-muted">无图</div>
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[length:var(--text-caption)] text-baylink-muted">无图</div>
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="line-clamp-1 text-sm font-semibold text-baylink-text" translate="no">{rp.title}</div>
-                          <div className="text-[0.6875rem] text-baylink-muted">{rp.city} · #{rp.category}</div>
+                          <div className="text-[length:var(--text-caption)] text-baylink-muted">{rp.city} · #{rp.category}</div>
                         </div>
                         <ChevronRight size={16} className="shrink-0 self-center text-gray-300" />
                       </button>
@@ -160,11 +161,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                   </div>
                   </>
                 ) : (
-                  <p className="mt-2 text-[0.6875rem] text-baylink-muted">TA 还没有发布过内容</p>
+                  <p className="mt-2 text-[length:var(--text-caption)] text-baylink-muted">TA 还没有发布过内容</p>
                 )}
               </div>
 
-              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
+              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[length:var(--text-caption)] leading-relaxed text-baylink-muted">
                 <Shield size={12} className="mt-px shrink-0 text-baylink-green/60" />
                 交易前请核实对方信息，不要提前转账。遇到可疑行为可以举报或屏蔽。
               </p>
@@ -177,7 +178,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               type="button"
                 onClick={handleChat}
                 disabled={openingChat || !onChat || !!isBlocked || !!profile.viewerIsBlockedByUser}
-                className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:opacity-50"
+                className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent"
             >
                 {openingChat ? '正在打开聊天…' : isBlocked || profile.viewerIsBlockedByUser ? '当前无法私信' : currentUser ? '发私信' : '登录后发私信'}
             </button>
