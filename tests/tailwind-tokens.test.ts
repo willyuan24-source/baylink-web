@@ -56,9 +56,10 @@ test('every *-baylink-* class written in src compiles to a rule (none silently d
   const pattern = /(?<![\w-])(?:text|bg|border(?:-[trblxy])?|ring(?:-offset)?|accent|from|via|to|fill|stroke|outline|divide|placeholder|decoration|caret)-baylink-[a-z-]+(?:\/\d+)?(?![\w-])/g;
   for (const file of sources) for (const match of readFileSync(file, 'utf8').matchAll(pattern)) used.add(match[0]);
   // A floor that proves the scan reads the sources; it falls as templates move off Tailwind colours (UI9-BB left exactly 40;
-  // UI9-R1-CATEGORY moved OfficialAds onto community.css: exactly 38). A lane that drops more lowers it to its own count;
+  // UI9-R1-CATEGORY moved OfficialAds onto community.css: exactly 38; with UI9-R1-RATCHET-LOGGED-IN's member dialogs on the
+  // tokens too, fix batch 4's integration counts exactly 37). A lane that drops more lowers it to its own count;
   // when parallel lanes merge, the integration re-counts.
-  assert.ok(used.size >= 38, `found ${used.size} distinct classes`);
+  assert.ok(used.size >= 37, `found ${used.size} distinct classes`);
   const css = await compile([...used].join(' '));
   const emitted = new Set<string>();
   postcss.parse(css).walkRules(rule => {
