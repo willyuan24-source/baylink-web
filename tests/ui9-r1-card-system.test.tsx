@@ -66,6 +66,15 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.match(decls(UI, '.ui-button[data-variant=quiet]').padding, /^var\(--sp-2\) /);
   assert.equal(decls(UI, '.ui-button[data-variant=secondary]').border, decls(UI, '.ui-icon-button').border);
   assert.match(decls('src/features/saves/saves.css', '.saves-control .saves-toggle,.saves-day .saves-add-day').padding, /^var\(--sp-2\) /);
+  // The detail action bar's primary (家人版 / 特大 at 360 and 390 px wraps 加入这天计划, How to claim, Add to a plan): the
+  // narrow-cell rule only changes the sides, and two wrapped lines at a 1.1 pitch keep the pill inside the 64 / 76 px bar.
+  const DETAIL = 'src/components/local-discovery-detail.css', PRIMARY = ':is(.detail-action--primary,.detail-actions__primary .saves-add-day)';
+  assert.match(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`).padding, /^var\(--sp-2\) /);
+  const narrow = decls(DETAIL, '.site-detail-actions.detail-actions .detail-actions__primary .saves-add-day', 'detail-primary (max-width:9.5em)');
+  assert.equal(narrow.padding, undefined);
+  assert.equal(narrow['padding-inline'], 'var(--sp-2)');
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
+  assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
 
 test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumbnail at 36px', () => {
