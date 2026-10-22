@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { Copy, Minus, Plus, ReceiptText, RotateCcw } from 'lucide-react';
+import { Copy, Minus, Plus, ReceiptText } from 'lucide-react';
 import type { ShowToast } from '../../app/context';
 import { calculateDiningBill, DiningInputError, type DiningField, type DiningInput, type DiningResult } from '../../lib/dining-calculator';
 import { translateText, useLocale } from '../../i18n/locale';
@@ -62,7 +62,7 @@ export function DiningCalculator({ onToast }: { onToast: ShowToast }) {
 
   return <div className="dining-calculator tool-form">
     <div className="dining-intro"><ReceiptText size={25} aria-hidden="true" /><div><strong>吃得开心，账也算清楚。</strong><p>照着账单填，不用心算税、小费与每个人的那一份。</p></div></div>
-    <div className="tool-inline-heading"><p className="tool-note">金额统一使用美元。税额按账单填写，小费比例由你决定。</p><button type="button" className="tool-text-button" onClick={() => { setValues(EXAMPLE); setExample(true); setManualCopy(false); }}>看看一张示例账单</button></div>
+    <div className="tool-inline-heading"><p className="tool-note">金额统一使用美元。税额按账单填写，小费比例由你决定。</p><button type="button" className="ui-button" data-variant="quiet" onClick={() => { setValues(EXAMPLE); setExample(true); setManualCopy(false); }}>看看一张示例账单</button></div>
     {example && <p className="dining-example" role="status">演示账单，所有金额和小费比例都可修改。</p>}
     <div className="dining-layout">
       <div className="dining-inputs">
@@ -72,7 +72,7 @@ export function DiningCalculator({ onToast }: { onToast: ShowToast }) {
           <label className="tool-field dining-percent-field"><span>自填小费比例</span><div><input aria-label="自填小费比例" inputMode="decimal" maxLength={8} value={values.tipPercent} onChange={event => change('tipPercent', event.target.value)} aria-invalid={invalid('tipPercent')} aria-describedby={describedBy('tipPercent')} /><span aria-hidden="true">%</span></div></label>
           <fieldset className="dining-basis"><legend>按哪个金额算小费？</legend><label><input type="radio" name={`${prefix}-basis`} value="before-tax" checked={values.tipBasis === 'before-tax'} onChange={() => change('tipBasis', 'before-tax')} />税前消费</label><label><input type="radio" name={`${prefix}-basis`} value="after-tax" checked={values.tipBasis === 'after-tax'} onChange={() => change('tipBasis', 'after-tax')} />税前消费 + 税额</label></fieldset>
         </fieldset>
-        <div className="tool-field dining-people"><label htmlFor={`${prefix}-people`}>分账人数</label><div><button type="button" aria-label="减少分账人数" disabled={!validPeople || peopleValue <= 1} onClick={() => change('people', String(peopleValue - 1))}><Minus size={18} aria-hidden="true" /></button><input id={`${prefix}-people`} aria-label="分账人数" inputMode="numeric" maxLength={3} value={values.people} onChange={event => change('people', event.target.value)} aria-invalid={invalid('people')} aria-describedby={describedBy('people')} /><button type="button" aria-label="增加分账人数" disabled={!validPeople || peopleValue >= 100} onClick={() => change('people', String(peopleValue + 1))}><Plus size={18} aria-hidden="true" /></button></div><small>1 至 100 人，按实际金额均分。</small></div>
+        <div className="tool-field dining-people"><label htmlFor={`${prefix}-people`}>分账人数</label><div><button type="button" className="ui-icon-button" aria-label="减少分账人数" disabled={!validPeople || peopleValue <= 1} onClick={() => change('people', String(peopleValue - 1))}><Minus aria-hidden="true" strokeWidth={1.75} /></button><input id={`${prefix}-people`} aria-label="分账人数" inputMode="numeric" maxLength={3} value={values.people} onChange={event => change('people', event.target.value)} aria-invalid={invalid('people')} aria-describedby={describedBy('people')} /><button type="button" className="ui-icon-button" aria-label="增加分账人数" disabled={!validPeople || peopleValue >= 100} onClick={() => change('people', String(peopleValue + 1))}><Plus aria-hidden="true" strokeWidth={1.75} /></button></div><small>1 至 100 人，按实际金额均分。</small></div>
         {error && <p id={`${prefix}-error`} className="tool-error" role="alert">{error.message}</p>}
       </div>
       <section className={`dining-receipt ${result ? 'has-result' : ''}`} aria-label="聚餐计算结果" aria-live="polite">
@@ -86,7 +86,7 @@ export function DiningCalculator({ onToast }: { onToast: ShowToast }) {
         </> : <div className="dining-empty"><ReceiptText size={38} aria-hidden="true" /><strong>{error ? '改好输入，马上重新计算。' : '把账单放这里，轻松分好。'}</strong><p>填写税前消费金额后，显示总额、额外小费与每人的金额。</p></div>}
       </section>
     </div>
-    <div className="tool-actions"><button type="button" className="tool-button" disabled={!result} onClick={copy}><Copy size={16} aria-hidden="true" />复制聚餐账单</button><button type="button" className="tool-button-secondary" onClick={() => { setValues(EMPTY); setExample(false); setManualCopy(false); }}><RotateCcw size={15} aria-hidden="true" />清空账单</button></div>
+    <div className="tool-actions"><button type="button" className="ui-button" data-variant="primary" disabled={!result} onClick={copy}><Copy size={16} aria-hidden="true" />复制聚餐账单</button><button type="button" className="ui-button" data-variant="secondary" onClick={() => { setValues(EMPTY); setExample(false); setManualCopy(false); }}>清空账单</button></div>
     {manualCopy && result && <label className="tool-field dining-manual-copy"><span>手动复制聚餐摘要</span><textarea aria-label="手动复制聚餐摘要" aria-describedby={`${prefix}-manual-hint`} readOnly rows={9} value={summary} onFocus={event => event.currentTarget.select()} /><small id={`${prefix}-manual-hint`}>点击摘要后全选，使用系统复制功能。</small></label>}
     <p className="tool-note">服务费单独计入总额，不从额外小费中自动扣除；是否已包含小费，请核对账单。</p>
   </div>;

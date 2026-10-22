@@ -313,7 +313,7 @@ html[data-simple] .site-app .site-footer-about { display:none; }
 /* Route feedback (UI9-F): the tapped link answers at once (the press styles and data-pending), the page keeps its height
    while the next route loads, and a brand bar runs at the top only after 150ms, so a fast route never flashes it, until
    the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). */
-.site-route-wait { flex:1 1 auto; min-height:60vh; }
+.site-route-wait { flex:1 1 auto; min-height:100vh; }
 .site-route-progress { position:fixed; inset:0 0 auto; z-index:90; height:3px; overflow:hidden; opacity:0; pointer-events:none; animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards; }
 .site-route-progress::before { content:""; position:absolute; inset:0; background:var(--color-brand); transform-origin:0; animation:site-route-run calc(6 * var(--dur-3)) var(--ease-std) infinite; }
 @keyframes site-route-show { to { opacity:1; } }

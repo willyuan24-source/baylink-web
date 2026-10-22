@@ -1,18 +1,24 @@
 /* 生活工具箱 (/tools, WEB-SECONDARY-A): PageContainer wide + PageHeader, the tool list, the open tool's workspace and the shared
-   form controls every tool uses. Tokens and rem only (no hex); text at least 13px. */
+   form controls every tool uses. Tokens only (no hex, no font-size literal); text at least 13px. Buttons are the shared
+   Button / IconButton looks (ui.css), selects the shared Select (select.css), the focus ring the site's one ring (tokens.css);
+   this file only lays them out (UI9-R1-TOOLS). */
 .tools-page{padding-block:24px 56px;color:var(--color-ink)}
 .tools-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
-.tools-picker ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+/* Two-up on a phone; one column at 大 / 特大 / 简洁显示 on a phone (--feed-cols, tokens.css, D9), where a tile reads as a row. */
+.tools-picker ul{display:grid;grid-template-columns:repeat(var(--feed-cols),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
 .tools-picker-item{display:flex;flex-direction:column;align-items:flex-start;gap:8px;height:100%;min-height:4rem;padding:12px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
-.tools-picker-item:hover{border-color:var(--color-line-strong)}
-.tools-picker-item[aria-current=page]{border-color:var(--color-brand);background:var(--color-brand-tint);box-shadow:inset 0 0 0 1px var(--color-brand)}
 .tools-picker-icon{display:grid;place-items:center;flex:none;width:2.25rem;height:2.25rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
+/* The open tool is the one selected look site-wide (--selected-*: ink fill, white text). A phone at rest (no ?tool=) has
+   no open tool: ToolsHub sets data-rest and no aria-current, and the workspace waits below until a tile is tapped. */
+.tools-picker-item[aria-current=page]{border-color:var(--selected-line);background:var(--selected-bg);color:var(--selected-fg)}
 .tools-picker-item[aria-current=page] .tools-picker-icon{background:var(--color-surface)}
+.tools-picker-item[aria-current=page] .tools-picker-text :is(small,.tools-picker-tag){color:var(--selected-fg)}
+@media (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current]):hover{border-color:var(--color-line-strong)}}
 .tools-picker-icon>svg{width:1.25rem;height:1.25rem}
 .tools-picker-text{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tools-picker-text strong{font-size:var(--text-body);line-height:1.4;font-weight:600}
 .tools-picker-text small{color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.5}
-.tools-picker-tag{display:none;color:var(--color-ink-3);font-size:var(--text-caption);line-height:1.5}
+.tools-picker-tag{display:none;color:var(--color-ink-3);font-size:var(--text-fact);line-height:var(--lh-ui)}
 .tool-workspace{scroll-margin-top:16px;overflow:hidden;border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
 .tool-workspace-header{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px;border-bottom:1px solid var(--color-line)}
 .tool-workspace-header>span{display:grid;place-items:center;flex:none;width:2.75rem;height:2.75rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
@@ -24,52 +30,52 @@
 .tool-workspace-body>[hidden]{display:none}
 .tools-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;margin-top:24px;padding-top:16px;border-top:1px solid var(--color-line)}
 .tools-footer p{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.714}
-.tools-footer>a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em}
+.tools-footer>a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-decoration-thickness:var(--underline-thickness);text-underline-offset:var(--underline-offset)}
 /* Shared tool controls. */
 .tool-form{display:flex;flex-direction:column;gap:20px}
 .tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .tool-field{display:flex;flex-direction:column;gap:8px;min-width:0;color:var(--color-ink);font-size:var(--text-fact)}
-.tool-field>span,.tool-field>label{font-weight:600}
-.tool-field input,.tool-field textarea,.tool-field select,.tool-output textarea{width:100%;min-height:var(--control-height);padding:10px 12px;border:1px solid var(--color-line-control);border-radius:var(--r-md);outline:none;background:var(--color-surface);color:var(--color-ink);font:inherit;font-size:var(--text-body)}
-.tool-field textarea,.tool-output textarea{min-height:140px;line-height:1.75;resize:vertical}
-.tool-field input:focus,.tool-field textarea:focus,.tool-field select:focus,.tool-output textarea:focus{border-color:var(--color-brand);box-shadow:0 0 0 3px var(--color-brand-tint)}
-.tool-field input::placeholder,.tool-field textarea::placeholder{color:var(--color-ink-3)}
+.tool-field>span:not(.ui-select),.tool-field>label{font-weight:600}
+.tool-field input,.tool-field textarea,.tool-output textarea{width:100%;min-height:var(--control-height);padding:10px 12px;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font:inherit;font-size:var(--text-body)}
+/* No resize grip (N13): the rows set the height and a long text scrolls inside. */
+.tool-field textarea,.tool-output textarea{min-height:140px;line-height:var(--lh-read);resize:none}
+.tool-field input:focus,.tool-field textarea:focus,.tool-output textarea:focus{border-color:var(--color-brand)}
 .tool-field small{color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.6}
 .tool-money-input{position:relative;display:flex;align-items:center}
 .tool-money-input>span{position:absolute;left:14px;color:var(--color-ink-2)}
 .tool-money-input input{padding-left:30px}
 .tool-inline-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .tool-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.tool-button,.tool-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--control-height);padding:0 18px;border:1px solid transparent;border-radius:var(--r-md);font-size:var(--text-fact);font-weight:600}
-.tool-button{background:var(--color-brand);color:var(--color-surface)}
-.tool-button:hover{background:var(--color-brand-hover)}
-.tool-button-secondary{border-color:var(--color-line-control);background:var(--color-surface);color:var(--color-ink)}
-.tool-button-secondary:hover{background:var(--color-surface-2)}
-.tool-text-button{display:inline-flex;flex-shrink:0;align-items:center;gap:6px;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600}
-.tool-button:disabled,.tool-button-secondary:disabled,.tool-text-button:disabled,.tool-icon-button:disabled{border-color:transparent;background:var(--color-surface-2);color:var(--color-ink-3);cursor:not-allowed}
-.tool-text-button:disabled{background:none}
+/* Buttons are the shared looks (N12): <Button> primary / secondary / quiet and <IconButton>. A quiet button keeps its own
+   width in a column or beside a note; an icon button that cannot act reads ink-3 on a lighter edge (not faded, N09). */
+.tool-form>.ui-button{align-self:flex-start}
+.tool-inline-heading>.ui-button{flex:none}
+/* ui.css's hover rules are not limited to enabled controls and outrank its :disabled rule, so a disabled primary would
+   take the brand-hover fill under the pointer. Inside a tool a disabled button keeps its disabled look on hover
+   (the root fix, :not(:disabled,[aria-disabled=true]) on ui.css's hovers, is handed to INT in PR.md). */
+.tool-workspace .ui-button[data-variant]:disabled{border-color:transparent;background:var(--color-surface-2)}
+.tool-workspace .ui-button[data-variant=quiet]:disabled{background:none;text-decoration-line:none}
+.tool-workspace .ui-icon-button:disabled{border-color:var(--color-line);background:var(--color-surface);color:var(--color-ink-3);cursor:not-allowed}
 .tool-note{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.714}
 .tool-error{padding:12px 14px;border-radius:var(--r-md);background:var(--color-danger-tint);color:var(--color-danger);font-size:var(--text-fact);line-height:1.6}
 .tool-output{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface-2)}
-.tool-output>label{color:var(--color-ink);font-size:var(--text-fact);font-weight:400}
 .tool-output textarea{min-height:190px;font-size:var(--text-body)}
-.tool-related-link{display:inline-flex;align-items:center;gap:6px;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);text-decoration:underline;text-underline-offset:3px}
+.tool-related-link{display:inline-flex;align-items:center;gap:6px;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);text-decoration:underline;text-decoration-thickness:var(--underline-thickness);text-underline-offset:var(--underline-offset)}
 .tool-choice-row{display:flex;flex-wrap:wrap;gap:8px}
 .tool-choice-row button{min-height:var(--control-height);padding:0 16px;border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
 .tool-choice-row button[aria-pressed=true]{border-color:var(--color-ink);background:var(--color-ink);color:var(--color-surface);font-weight:600}
 .tool-converter-row{display:grid;grid-template-columns:1fr 46px 1fr;align-items:end;gap:16px}
-.tool-converter-row input,.tool-conversion-result output{min-height:82px;padding:16px;font-size:1.75rem}
+.tool-converter-row input,.tool-conversion-result output{min-height:82px;padding:16px;font-size:var(--fs-keep-28)}
 .tool-conversion-result output{display:block;overflow-wrap:anywhere;border-radius:var(--r-md);background:var(--color-brand-tint);color:var(--color-ink);font-variant-numeric:tabular-nums}
-.tool-swap{display:grid;place-items:center;align-self:center;width:var(--control-height);height:var(--control-height);margin-top:22px;border:1px solid var(--color-line-strong);border-radius:var(--r-circle);color:var(--color-ink-2)}
+.tool-swap{align-self:center;margin-top:22px}
 .tool-budget-results{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .tool-budget-results>div{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--r-md);background:var(--color-brand-tint);color:var(--color-ink)}
 .tool-budget-results>div+div{background:var(--color-surface-2)}
 .tool-budget-results span{color:var(--color-ink-2);font-size:var(--text-fact)}
-.tool-budget-results strong{overflow-wrap:anywhere;font-size:1.75rem;font-variant-numeric:tabular-nums}
+.tool-budget-results strong{overflow-wrap:anywhere;font-size:var(--fs-keep-28);font-variant-numeric:tabular-nums}
 .tool-budget-results small{color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.6}
 .tool-member-list{display:flex;flex-direction:column;gap:12px}
 .tool-member-row{display:grid;grid-template-columns:minmax(0,1fr) 95px var(--control-height);align-items:end;gap:12px}
-.tool-icon-button{display:grid;place-items:center;width:var(--control-height);height:var(--control-height);color:var(--color-ink-2)}
 .tool-split-result{padding:16px 20px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface-2)}
 .tool-split-result p{margin-bottom:8px;color:var(--color-ink);font-size:var(--text-fact);font-weight:600}
 .tool-split-result li,.tool-split-result>div{display:flex;justify-content:space-between;gap:20px;padding:8px 0;color:var(--color-ink);font-size:var(--text-body)}
@@ -78,43 +84,50 @@
 .tool-split-result>div{margin-top:8px;padding-top:12px;border-top:1px solid var(--color-line-strong);font-weight:600}
 .tool-empty-result{padding:20px;border-radius:var(--r-md);background:var(--color-surface-2);color:var(--color-ink-2);font-size:var(--text-fact);text-align:center}
 .tool-checklist{display:flex;flex-direction:column;gap:24px}
-.tool-checklist-group h3{margin-bottom:8px;color:var(--color-ink);font-size:var(--text-body);font-weight:600}
+.tool-checklist-group>legend{margin-bottom:8px;color:var(--color-ink);font-size:var(--text-body);font-weight:600}
 .tool-checklist-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-line);color:var(--color-ink);font-size:var(--text-fact);line-height:1.714}
 .tool-checklist-item label{display:flex;flex:1;align-items:flex-start;gap:12px;min-width:0;cursor:pointer}
 .tool-checklist-item input[type=checkbox]{flex-shrink:0;width:1.25rem;height:1.25rem;min-height:auto;margin-top:2px;accent-color:var(--color-brand)}
 .tool-checklist-item:has(input:checked) label>span{color:var(--color-ink-3);text-decoration:line-through}
-.tool-checklist-item button{min-width:var(--control-height);min-height:var(--control-height);color:var(--color-ink-2)}
 .tool-checklist-progress{padding:12px 16px;border-radius:var(--r-md);background:var(--color-brand-tint);color:var(--color-ink);font-size:var(--text-fact);line-height:1.714}
-.tool-checklist-progress progress{display:block;width:100%;height:8px;margin-top:8px;accent-color:var(--color-brand)}
+/* The progress bar in the site's colours, not the platform's grey (N13). */
+.tool-checklist-progress progress{display:block;width:100%;height:8px;margin-top:8px;overflow:hidden;border:0;border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-brand);appearance:none}
+.tool-checklist-progress progress::-webkit-progress-bar{background:var(--color-surface)}
+.tool-checklist-progress progress::-webkit-progress-value{background:var(--color-brand)}
+.tool-checklist-progress progress::-moz-progress-bar{background:var(--color-brand)}
 .tool-checklist-custom{display:flex;align-items:end;gap:10px}
 .tool-checklist-custom .tool-field{flex:1}
 .tool-checklist-reset{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--r-md);background:var(--color-warning-tint);color:var(--color-ink);font-size:var(--text-fact)}
-.tools-page :is(a,button,summary,select,input,textarea):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(min-width:1024px){
   .tools-layout{grid-template-columns:17rem minmax(0,1fr);gap:32px}
   .tools-picker{position:sticky;top:5.5rem}
   .tools-picker ul{grid-template-columns:minmax(0,1fr);gap:4px}
   .tools-picker-item{flex-direction:row;align-items:center;gap:12px;min-height:3.5rem;padding:10px 12px;border-color:transparent;background:none}
-  .tools-picker-item:hover{background:var(--color-surface-2);border-color:transparent}
-  .tools-picker-item[aria-current=page]{border-color:transparent;box-shadow:none}
+  /* A desktop always shows a tool beside the list: at rest the first one is open, so it takes the selected look too. */
+  .tools-layout[data-rest] .tools-picker-item[data-open]{border-color:var(--selected-line);background:var(--selected-bg);color:var(--selected-fg)}
+  .tools-layout[data-rest] .tools-picker-item[data-open] .tools-picker-icon{background:var(--color-surface)}
+  .tools-layout[data-rest] .tools-picker-item[data-open] .tools-picker-tag{color:var(--selected-fg)}
   .tools-picker-tag{display:block}
   .tools-picker-text small{display:none}
   .tool-workspace-header{padding:24px 28px 20px}
   .tool-workspace-body{padding:24px 28px 28px}
 }
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current],[data-open]):hover{border-color:transparent;background:var(--color-surface-2)}}
+@media(max-width:1023px){.tools-layout[data-rest] .tool-workspace{display:none}}
+@media(max-width:767px){html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item{flex-direction:row;align-items:center;gap:12px}}
 @media(max-width:639px){
   .tools-page{padding-top:16px}
   .tool-grid{grid-template-columns:1fr;gap:14px}
   .tool-workspace{border-radius:var(--r-md);scroll-margin-top:10px}
   .tool-workspace-header{padding:16px}
   .tool-workspace-body{padding:16px}
-  .tool-converter-row{grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr);gap:8px}
+  .tool-converter-row{grid-template-columns:minmax(0,1fr) var(--control-height) minmax(0,1fr);gap:8px}
   .tool-converter-row input,.tool-conversion-result output{min-height:67px;padding:12px 8px;font-size:var(--fs-keep-20)}
-  .tool-swap{width:2.25rem;height:2.25rem}
   .tool-budget-results{grid-template-columns:1fr;gap:10px}
   .tool-member-row{grid-template-columns:minmax(0,1fr) 72px var(--control-height);gap:6px}
   .tool-checklist-custom{flex-direction:column;align-items:stretch}
   .tools-footer{flex-direction:column;align-items:flex-start}
 }
-/* Every control inside a tool is a full tap target (44px; 48px in 简洁显示 through --control-height). */
-.tools-page .tool-workspace :is(button,select,input:not([type=checkbox]):not([type=radio]):not([type=range])){min-height:var(--control-height)}
+/* Every control inside a tool is a full tap target (44px; 48px in 简洁显示 through --control-height): the field rule above,
+   the shared Button / IconButton / Select and the chip rows each set it. (A catch-all rule here outranked the converter's
+   67 / 82px fields and left the two sides of the converter at different heights.) */

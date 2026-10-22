@@ -7,19 +7,19 @@
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 19,
     "radiusKinds": 28,
-    "shadowKinds": 20,
+    "shadowKinds": 18,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 45,
     "baylinkClasses": 330,
     "arrowUpRight": 29,
-    "buttonLooks": 32,
+    "buttonLooks": 27,
     "fontSizeOffLadder": 27,
-    "fontSizeLiteral": 365,
+    "fontSizeLiteral": 278,
     "fontWeightBold": 2,
     "durationOffScale": 0,
-    "durationLiteral": 28,
-    "spacingOffScale": 1351,
-    "englishUiUntranslated": 104,
+    "durationLiteral": 27,
+    "spacingOffScale": 1171,
+    "englishUiUntranslated": 102,
     "lazyCssDuplicateSelectors": 0
   },
   "lazyCssDuplicates": [],
@@ -30,7 +30,6 @@
     "BAYLINK 共享账单分摊 总额：{total} {shares} 各人金额合计等于账单总额，尾差按权重余数分配。",
     "BAYLINK 租房费用计算 每月合计：{0} 入住首月现金需求：{1} 其中押金：{2}（现金占用，非每月开销） 一次性搬家及安置费：{3} 按自填费用估算；首月租金按整月计。",
     "BAYLINK 贷款计算 贷款本金：{0}{1} 固定年利率：{2}% 贷款年限：{3} 年 常规每月本息：{4}{5} 每月额外还本金：{6} 当前方案利息合计：{7} 贷款本息合计：{8} 预计还清：{9} 较不额外还款节省利息：{10} 固定利率、每月计息估算；未计贷款费用、罚金及税费变化，末期按余额调整。",
-    "San Francisco / SF / 旧金山",
     "[d一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟萬億兩貳參陸零〇,，.]+s*(?:美元|美金|人民币|人民幣|港元|港币|港幣|台币|台幣|元|块|塊|刀)",
     "{0} · 一起去",
     "{0} 人想去 ·",
@@ -86,7 +85,6 @@
     "我正在读《{0}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。",
     "提供者发布的时段和预约设置用于让顾客选择申请时间。预约时间、状态及顾客备注可由该预约双方查看，不作为公开预约名单展示。系统处理申请、确认、取消、拒绝、完成与到期状态，并保存相应站内通知；服务提供者选择接收短信后，短信服务商会处理接收号码和消息内容。本预约功能不收取服务款项。",
     "收藏状态待载入",
-    "旧金山 / SF / San Francisco",
     "智能检索",
     "服务提供者在预约设置中另行选择业务短信，并可随时关闭；手机号验证本身不表示同意。当前短信只通知服务提供者新申请、即时预约与顾客取消，不向顾客发送预约短信。按发送方说明回复 STOP 可由短信服务处理退订；站内开关不会绕过退订状态。短信可能产生运营商费用，提交成功不保证送达，失败不影响站内预约记录。",
     "服务提供者需在预约通知设置中单独开启短信；开启前须验证手机号，且短信服务已配置可用。系统保存同意版本、时间、开关状态及该次同意对应的已验证号码；更换号码后须重新同意。手机号不会因此公开。短信仅通知服务提供者新申请、即时预约与顾客取消，不发送给顾客，也不提供定时提醒。关闭短信仍可使用预约和站内通知。",
@@ -195,13 +193,11 @@
     ],
     "shadow": [
       "0 0 0 18px rgb(var(--color-surface-rgb) / .07)",
-      "0 0 0 1px var(--color-brand)",
       "0 0 0 1px var(--profile-ink)",
       "0 0 0 3px rgb(var(--color-brand-rgb) / .06)",
       "0 0 0 3px rgb(var(--color-brand-rgb) / .07)",
       "0 0 0 3px rgb(var(--color-line-control-rgb) / .09)",
       "0 0 0 3px var(--color-brand-tint)",
-      "0 0 0 3px var(--color-danger-tint)",
       "0 0 0 4px var(--color-surface)",
       "inset 0 0 0 1px var(--color-brand)",
       "none",
@@ -216,12 +212,9 @@
       "var(--e2)"
     ],
     "button": [
-      "var(--color-brand) | var(--color-surface) | -",
-      "var(--color-brand) | var(--color-surface) | 0",
       "var(--color-brand) | var(--color-surface) | 1px solid var(--color-brand)",
       "var(--color-brand) | var(--color-surface) | var(--color-brand)",
       "var(--color-brand) | white | 1px solid var(--color-brand)",
-      "var(--color-brand-deep) | - | var(--color-brand-deep)",
       "var(--color-brand-deep) | var(--color-surface) | -",
       "var(--color-brand-deep) | var(--color-surface) | 1px solid var(--color-brand-deep)",
       "var(--color-brand-tint) | - | -",
@@ -240,11 +233,9 @@
       "var(--color-surface) | var(--color-ink) | var(--color-line-control)",
       "var(--color-surface) | var(--color-ink-2) | 1px solid var(--color-line-control)",
       "var(--color-surface) | var(--color-ink-3) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--outing-green) | 1px solid var(--color-line-control)",
       "var(--color-surface-2) | var(--color-ink) | -",
       "var(--color-surface-2) | var(--color-ink-2) | 1px solid var(--color-line-control)",
       "var(--color-surface-2) | var(--color-ink-3) | 1px solid var(--color-line-control)",
-      "var(--outing-green) | var(--color-surface) | 1px solid var(--outing-green)",
       "white | - | 1px solid var(--color-line-control)",
       "white | var(--color-brand-deep) | 1px solid var(--color-line-control)",
       "white | var(--color-ink-3) | 1px solid var(--color-line-control)"
@@ -390,23 +381,19 @@
       "textArbitraryUnder13": 1
     },
     "src/components/tools/dining-calculator.css": {
-      "fontSizeLiteral": 7,
       "spacingOffScale": 32
     },
     "src/components/tools/loan-calculator.css": {
-      "fontSizeLiteral": 7,
-      "spacingOffScale": 33
+      "spacingOffScale": 32
     },
     "src/components/tools/LoanCalculatorTool.tsx": {
       "arrowUpRight": 2
     },
     "src/components/tools/tools.css": {
-      "fontSizeLiteral": 2,
-      "spacingOffScale": 29
+      "spacingOffScale": 27
     },
     "src/components/tools/unit-price.css": {
-      "fontSizeLiteral": 6,
-      "spacingOffScale": 40
+      "spacingOffScale": 37
     },
     "src/components/ui/cards.css": {
       "fontSizeLiteral": 2,
@@ -526,10 +513,10 @@
       "spacingOffScale": 10
     },
     "src/features/outings/my-week-outings.css": {
-      "fontSizeLiteral": 4,
+      "fontSizeLiteral": 2,
       "fontSizeOffLadder": 2,
       "fontSizeUnder13": 1,
-      "spacingOffScale": 21
+      "spacingOffScale": 1
     },
     "src/features/outings/outing-cover.css": {
       "fontSizeLiteral": 24,
@@ -537,17 +524,13 @@
       "fontSizeUnder13": 14,
       "spacingOffScale": 34
     },
-    "src/features/outings/outing-time-poll.css": {
-      "fontSizeLiteral": 15,
-      "spacingOffScale": 31
-    },
     "src/features/outings/OutingCover.tsx": {
       "arrowUpRight": 1
     },
     "src/features/outings/outings.css": {
-      "fontSizeLiteral": 49,
+      "fontSizeLiteral": 2,
       "fontSizeOffLadder": 2,
-      "spacingOffScale": 118
+      "spacingOffScale": 2
     },
     "src/features/posts/community.css": {
       "fontSizeLiteral": 1,
@@ -565,7 +548,7 @@
     },
     "src/features/profile/me-hub.css": {
       "fontSizeLiteral": 1,
-      "spacingOffScale": 15
+      "spacingOffScale": 11
     },
     "src/features/profile/privacy-security.css": {
       "fontSizeLiteral": 4,
@@ -585,7 +568,6 @@
       "baylinkClasses": 7
     },
     "src/features/saves/my-week.css": {
-      "durationLiteral": 1,
       "spacingOffScale": 11
     },
     "src/features/saves/saves.css": {
@@ -627,10 +609,6 @@
     },
     "src/pages/LittleBayPage.tsx": {
       "arrowUpRight": 6
-    },
-    "src/pages/together-page.css": {
-      "fontSizeLiteral": 1,
-      "spacingOffScale": 3
     },
     "src/styles/attractions.css": {
       "fontSizeLiteral": 1,

@@ -1,9 +1,10 @@
 /* About and 我们怎么核对 (/about; UI9-NAV, content arrangement §8): the 1216 frame (content at x = 112 in a 1440 window),
    the reading column in grid columns 1-8 at the measure (36em CJK, 66ch Latin), 联系与反馈 as an aside in columns 9-12
-   level with the H1; sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. Tokens only. */
-.about-page{padding-block:var(--sp-5) 0;color:var(--color-ink);overflow-wrap:anywhere}
+   level with the H1; sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. The page ends 16px (phone) / 24px
+   (desktop) above the footer (UI9-R1 N15). Links read the underline tokens (N13). Tokens only. */
+.about-page{padding-block:var(--sp-5) var(--sp-4);color:var(--color-ink);overflow-wrap:anywhere}
 .about-page .ui-page-header{margin-bottom:0}
-.about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
+.about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline var(--underline-thickness);text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);text-decoration-skip-ink:none}
 .about-layout{display:grid;gap:var(--section-gap)}
 .about-main{display:grid;gap:var(--section-gap);min-width:0}
 .about-section>h2{margin:0 0 var(--stack-head);color:var(--color-ink);font-size:var(--fs-keep-20);line-height:var(--lh-tight);font-weight:var(--fw-strong);letter-spacing:0;text-wrap:balance}
@@ -16,11 +17,11 @@
 .about-icon{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .about-icon>svg{width:1.25rem;height:1.25rem}
 .about-icon>img{width:1.5rem;height:1.5rem}
-.about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--fs-meta);line-height:var(--lh-snug);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer}
+.about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--fs-meta);line-height:var(--lh-snug);text-decoration:underline var(--underline-thickness);text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);text-decoration-skip-ink:none;cursor:pointer}
 @media (hover:hover) and (pointer:fine){.about-link:hover,.about-policies a:hover,.about-more a:hover{text-decoration-color:currentColor}}
-.about-section>.about-more{color:var(--color-ink-2);font-size:var(--fs-meta)}
-/* A separator travels with the link after it, so a line never ends on a lone " · " (PROD-W3). */
-.about-more__next{white-space:nowrap}
+/* 还有: the links in a wrapping row with a gap and no " · " between them, so no line starts or ends on a separator (N06,
+   PROD-W3); each link is its own 44px target. */
+.about-section>.about-more{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--sp-4);color:var(--color-ink-2);font-size:var(--fs-meta)}
 html[data-simple] .about-more{display:none}
 .about-labels{display:grid;gap:var(--sp-3);max-width:44rem;margin:var(--sp-4) 0 0}
 .about-labels>div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:var(--sp-3);align-items:start}
@@ -30,7 +31,7 @@ html[data-simple] .about-more{display:none}
 .about-policies{margin:var(--sp-2) 0 0}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:var(--sp-1)}}
 @media(min-width:1024px){
-  .about-page{padding-block:var(--sp-6) 0}
+  .about-page{padding-block:var(--sp-6) var(--sp-5)}
   .about-layout{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gutter);align-items:start}
   .about-main{grid-column:1 / span 8;grid-row:1}
   /* Level with the H1: the breadcrumb line above it is the aside's top margin. */

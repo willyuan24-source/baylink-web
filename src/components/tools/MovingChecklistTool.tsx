@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Copy } from 'lucide-react';
 import { translateText } from '../../i18n/locale';
 import { emptyMovingChecklist, MAX_CUSTOM_MOVING_TASKS, MAX_MOVING_TASK_LENGTH, MOVING_CHECKLIST_GROUPS,
   movingChecklistProgress, movingChecklistText, readMovingChecklist, saveMovingChecklist, validateMovingTask,
@@ -89,7 +90,7 @@ function MovingChecklistSession({ storageScope, onToast }: MovingChecklistProps)
       <p role="status">已完成 {progress.completed} / {progress.total} 项{saved ? ' · 已保存到此浏览器' : ''}</p>
       <progress aria-label="搬家清单完成进度" value={progress.completed} max={progress.total} />
     </div>
-    {storageError && <div className="tool-error" role="alert"><p>{storageError}</p>{readBlocked && <button type="button" className="tool-button-secondary" onClick={retryRead}>重试读取清单</button>}</div>}
+    {storageError && <div className="tool-error" role="alert"><p>{storageError}</p>{readBlocked && <button type="button" className="ui-button" data-variant="secondary" onClick={retryRead}>重试读取清单</button>}</div>}
     {MOVING_CHECKLIST_GROUPS.map(group => <fieldset key={group.id} className="tool-checklist-group" disabled={readBlocked}>
       <legend>{group.title}</legend>
       {group.items.map(item => <label key={item.id} className="tool-checklist-item"><input type="checkbox" checked={state.completed.includes(item.id)} onChange={() => toggle(item.id)} /><span>{item.label}</span></label>)}
@@ -98,19 +99,19 @@ function MovingChecklistSession({ storageScope, onToast }: MovingChecklistProps)
       <legend>自己补充 <span>({state.custom.length} / {MAX_CUSTOM_MOVING_TASKS})</span></legend>
       {state.custom.map(item => <div key={item.id} className="tool-checklist-item">
         <label><input type="checkbox" checked={item.done} onChange={() => toggle(item.id)} /><span translate="no">{item.label}</span></label>
-        <button type="button" className="tool-button-secondary" aria-label={`删除待办：${item.label}`} onClick={() => { persist({ ...state, custom: state.custom.filter(task => task.id !== item.id) }); setInputError(null); }}>删除</button>
+        <button type="button" className="ui-button" data-variant="secondary" aria-label={`删除待办：${item.label}`} onClick={() => { persist({ ...state, custom: state.custom.filter(task => task.id !== item.id) }); setInputError(null); }}>删除</button>
       </div>)}
       <form className="tool-actions" onSubmit={event => { event.preventDefault(); add(); }}>
         <div className="tool-field"><label htmlFor={fieldId}>新待办</label><input id={fieldId} type="text" maxLength={MAX_MOVING_TASK_LENGTH} value={customText} placeholder="例如：留出一箱第一晚要用的物品" aria-describedby={`${fieldId}-hint${inputError ? ` ${fieldId}-error` : ''}`} onChange={event => { setCustomText(event.target.value); setInputError(null); }} onKeyDown={event => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) event.preventDefault(); }} /><small id={`${fieldId}-hint`}>最多 80 个字符；自定义待办最多 20 条。</small></div>
-        <button type="submit" className="tool-button-secondary">添加待办</button>
+        <button type="submit" className="ui-button" data-variant="secondary">添加待办</button>
       </form>
       {inputError && <p id={`${fieldId}-error`} className="tool-error" role="alert">{inputError}</p>}
     </fieldset>
     <div className="tool-actions">
-      <button type="button" className="tool-button" disabled={copyStatus === 'copying' || readBlocked} onClick={() => void copy()}>{copyStatus === 'copying' ? '正在复制…' : copyStatus === 'copied' ? '已复制清单' : '复制清单'}</button>
-      <button type="button" className="tool-button-secondary" onClick={() => setConfirmReset(true)}>重置清单</button>
+      <button type="button" className="ui-button" data-variant="primary" disabled={copyStatus === 'copying' || readBlocked} onClick={() => void copy()}><Copy size={16} aria-hidden="true" />{copyStatus === 'copying' ? '正在复制…' : copyStatus === 'copied' ? '已复制清单' : '复制清单'}</button>
+      <button type="button" className="ui-button" data-variant="secondary" onClick={() => setConfirmReset(true)}>重置清单</button>
     </div>
-    {confirmReset && <div className="tool-checklist-reset tool-output" role="group" aria-label="确认重置搬家清单"><p>清除所有完成标记和自定义待办，恢复初始模板？</p><div className="tool-actions"><button type="button" className="tool-button-secondary" onClick={() => setConfirmReset(false)}>保留清单</button><button type="button" className="tool-button" onClick={reset}>确认重置</button></div></div>}
+    {confirmReset && <div className="tool-checklist-reset tool-output" role="group" aria-label="确认重置搬家清单"><p>清除所有完成标记和自定义待办，恢复初始模板？</p><div className="tool-actions"><button type="button" className="ui-button" data-variant="secondary" onClick={() => setConfirmReset(false)}>保留清单</button><button type="button" className="ui-button" data-variant="primary" onClick={reset}>确认重置</button></div></div>}
     {copyStatus === 'failed' && <div className="tool-output"><p role="status" className="tool-note">浏览器未允许复制，请选中下方文本手动复制。</p><textarea aria-label="可手动复制的搬家清单" readOnly rows={12} value={copyText} onFocus={event => event.currentTarget.select()} /></div>}
     <p className="tool-note"><Link to="/guides/bay-area-utilities-address-change-guide">查看水电网与地址变更指南</Link></p>
   </div>;

@@ -1,30 +1,50 @@
-.week-outings{margin:2rem 0;padding:clamp(1rem,3vw,1.6rem);border:1px solid var(--color-line);border-radius:var(--r-xl);background:var(--color-surface);color:var(--color-brand-deep)}
-.week-outings-heading,.week-outings-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-.week-outings-heading h2{display:flex;gap:.55rem;align-items:center;margin:.4rem 0;font-size:clamp(1.25rem,calc(3vw * var(--fluid-scale)),1.55rem)}
-.week-outings-heading nav{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem 1rem}
-.week-outings-heading nav a{display:inline-flex;align-items:center;min-height:44px;font-size:var(--fs-keep-14)}
-.week-outings a{color:var(--color-brand-hover);text-underline-offset:3px;overflow-wrap:anywhere}
-.week-outings button{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:44px;padding:.6rem .85rem;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-brand-hover);font:inherit;font-size:var(--fs-keep-14);cursor:pointer}
-.week-outings button:disabled{opacity:.55;cursor:not-allowed}
-.week-outings :is(a,button):focus-visible{outline:3px solid var(--color-brand);outline-offset:3px}
-.week-outings-help,.week-outings-toolbar{font-size:var(--fs-keep-14);line-height:1.65;color:var(--color-ink-3)}
-.week-outings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:1rem;margin:1rem 0}
-.week-outing-card{min-width:0;padding:1.15rem;background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--r-lg)}
-.week-outing-card.needs-confirmation{border-color:var(--color-line-control);background:var(--color-surface)}
-.week-outing-status{display:inline-block;padding:.2rem .55rem;background:var(--color-brand-tint);color:var(--color-ink-2);border-radius:var(--r-sm);font-size:var(--fs-keep-13);line-height:1.5}
-.needs-confirmation .week-outing-status{color:var(--color-warning);background:var(--color-warning-tint)}
-.week-outing-card h3,.week-outing-requests h4{margin:.7rem 0;line-height:1.5;overflow-wrap:anywhere}
-.week-outing-card p{display:flex;align-items:flex-start;gap:.4rem;font-size:var(--fs-keep-14);line-height:1.65;overflow-wrap:anywhere}
-.week-outing-card p svg{flex-shrink:0;margin-top:.25rem}
-.week-outing-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
-.week-outing-actions a,.week-outing-requests li>a,.week-outings-empty a{display:inline-flex;align-items:center;min-height:44px;font-size:var(--fs-keep-14)}
-.week-outing-requests{border-top:1px solid var(--color-line);margin-top:1.5rem;padding-top:1rem}
-.week-outing-requests ul{list-style:none;margin:0;padding:0}
-.week-outing-requests li{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;padding:1rem 0;border-top:1px solid var(--color-line)}
-.week-outing-requests li>div{min-width:0;flex:1 1 230px}
-.week-outing-requests time{font-size:var(--fs-keep-14);color:var(--color-ink-3)}
-.week-outings-empty{margin:1rem 0;padding:1rem;border-radius:var(--r-lg);background:var(--color-brand-tint);line-height:1.6}
-.week-outings-alert,.week-outings-notice{padding:.8rem 1rem;border-radius:var(--r-md);line-height:1.65;background:var(--color-warning-tint);color:var(--color-warning)}
-@media(max-width:480px){.week-outings{border-radius:var(--r-lg)}.week-outing-actions{align-items:stretch}.week-outing-actions>*{flex:1 1 120px}.week-outings-toolbar{gap:.4rem}.week-outing-card{padding:1rem}}
-.week-outing-card{padding:0;display:flex;flex-direction:column}.week-outing-card>.outing-cover{border:0;border-bottom:1px solid var(--color-line);border-radius:var(--r-lg) var(--r-lg) 0 0;flex:none}.week-outing-card .outing-cover-frame{height:155px}.week-outing-card .outing-cover-designed{padding:16px 20px}.week-outing-card .outing-cover-calendar-date{font-size:2.25rem}.week-outing-card .outing-cover-credit p{display:block;font-size:.6875rem}.week-outing-card-body{padding:1.1rem;min-width:0;flex:1;display:flex;flex-direction:column}.week-outing-card-body>.week-outing-status{align-self:flex-start}.week-outing-actions{margin-top:auto;padding-top:1rem}.week-outing-attention{display:flex;flex-direction:column;gap:4px;margin-top:10px;padding:11px 13px;border:1px solid var(--color-line-strong);border-radius:var(--r-md);background:var(--color-brand-tint)}.week-outing-attention>a{display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:.8125rem;font-weight:600}.week-outing-attention>span{font-size:.8125rem;line-height:1.7;color:var(--color-ink-3)}.week-outings-grid>*{min-width:0}@media(max-width:480px){.week-outing-card{padding:0}.week-outing-card-body{padding:1rem}.week-outing-card .outing-cover-frame{height:150px}}
-@media(min-width:960px){.week-outings-grid:has(>.week-outing-card:only-child){grid-template-columns:minmax(0,1fr)}.week-outing-card:only-child{display:grid;grid-template-columns:minmax(220px,.9fr) minmax(0,1.3fr)}.week-outing-card:only-child>.outing-cover{border-bottom:0;border-right:1px solid var(--color-line);border-radius:var(--r-lg) 0 0 var(--r-lg)}.week-outing-card:only-child .outing-cover-frame{height:220px}.week-outing-card:only-child .week-outing-card-body{padding:1.5rem}}
+/* 我的这周 · 一起去 (MyWeekOutings on /my-week), tokens only (UI9-R1-TOGETHER, N01 / N14). Disabled buttons read ink-3 on
+   surface-2, never opacity (N09). The .outing-cover* rules size the outing covers (UI9-IMAGES' look; unchanged). */
+.week-outings { margin:var(--sp-6) 0; padding:clamp(var(--sp-4),3vw,var(--sp-5)); border:1px solid var(--color-line); border-radius:var(--r-xl); background:var(--color-surface); color:var(--color-ink); }
+.week-outings-heading,.week-outings-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-4); }
+.week-outings-heading h2 { display:flex; align-items:center; gap:var(--sp-2); margin:var(--sp-2) 0; font-size:var(--text-section); line-height:var(--lh-section); }
+.week-outings-heading nav { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-4); }
+.week-outings-heading nav a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--fs-keep-14); }
+.week-outings a { color:var(--color-brand-hover); text-underline-offset:var(--underline-offset); overflow-wrap:anywhere; }
+.week-outings button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand-hover); font:inherit; font-size:var(--fs-keep-14); cursor:pointer; }
+.week-outings button:disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+.week-outings-help,.week-outings-toolbar { font-size:var(--fs-keep-14); line-height:var(--lh-read); color:var(--color-ink-3); }
+.week-outings-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr)); gap:var(--sp-4); margin:var(--sp-4) 0; }
+.week-outings-grid>* { min-width:0; }
+.week-outing-card { display:flex; flex-direction:column; min-width:0; padding:0; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.week-outing-card.needs-confirmation { border-color:var(--color-line-control); }
+.week-outing-card-body { display:flex; flex:1; flex-direction:column; min-width:0; padding:var(--sp-4); }
+.week-outing-status { display:inline-block; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink-2); font-size:var(--fs-keep-13); line-height:var(--lh-ui); }
+.week-outing-card-body>.week-outing-status { align-self:flex-start; }
+.needs-confirmation .week-outing-status { background:var(--color-warning-tint); color:var(--color-warning); }
+.week-outing-card h3,.week-outing-requests h4 { margin:var(--sp-3) 0; line-height:var(--lh-card); overflow-wrap:anywhere; }
+.week-outing-card p { display:flex; align-items:flex-start; gap:var(--sp-2); font-size:var(--fs-keep-14); line-height:var(--lh-read); overflow-wrap:anywhere; }
+.week-outing-card p svg { flex-shrink:0; margin-top:var(--sp-1); }
+.week-outing-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2); margin-top:auto; padding-top:var(--sp-4); }
+.week-outing-actions a,.week-outing-requests li>a,.week-outings-empty a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--fs-keep-14); }
+.week-outing-attention { display:flex; flex-direction:column; gap:var(--sp-1); margin-top:var(--sp-3); padding:var(--sp-3); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-brand-tint); }
+.week-outing-attention>a { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:2rem; font-size:var(--text-fact); font-weight:600; }
+.week-outing-attention>span { font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-3); }
+.week-outing-requests { margin-top:var(--sp-5); padding-top:var(--sp-4); border-top:1px solid var(--color-line); }
+.week-outing-requests ul { margin:0; padding:0; list-style:none; }
+.week-outing-requests li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-4); padding:var(--sp-4) 0; border-top:1px solid var(--color-line); }
+.week-outing-requests li>div { flex:1 1 230px; min-width:0; }
+.week-outing-requests time { font-size:var(--fs-keep-14); color:var(--color-ink-3); }
+.week-outings-empty { margin:var(--sp-4) 0; padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-brand-tint); line-height:var(--lh-read); }
+.week-outings-alert,.week-outings-notice { padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-warning); line-height:var(--lh-read); }
+@media (max-width:480px) {
+  .week-outings { border-radius:var(--r-lg); }
+  .week-outing-actions { align-items:stretch; }
+  .week-outing-actions>* { flex:1 1 120px; }
+  .week-outings-toolbar { gap:var(--sp-2); }
+}
+@media (min-width:960px) {
+  .week-outings-grid:has(>.week-outing-card:only-child) { grid-template-columns:minmax(0,1fr); }
+  .week-outing-card:only-child { display:grid; grid-template-columns:minmax(220px,.9fr) minmax(0,1.3fr); }
+  .week-outing-card:only-child .week-outing-card-body { padding:var(--sp-5); }
+}
+
+/* Outing covers inside the cards (UI9-IMAGES' look; unchanged). */
+.week-outing-card>.outing-cover{border:0;border-bottom:1px solid var(--color-line);border-radius:var(--r-lg) var(--r-lg) 0 0;flex:none}.week-outing-card .outing-cover-frame{height:155px}.week-outing-card .outing-cover-designed{padding:16px 20px}.week-outing-card .outing-cover-calendar-date{font-size:2.25rem}.week-outing-card .outing-cover-credit p{display:block;font-size:.6875rem}
+@media(max-width:480px){.week-outing-card .outing-cover-frame{height:150px}}
+@media(min-width:960px){.week-outing-card:only-child>.outing-cover{border-bottom:0;border-right:1px solid var(--color-line);border-radius:var(--r-lg) 0 0 var(--r-lg)}.week-outing-card:only-child .outing-cover-frame{height:220px}}

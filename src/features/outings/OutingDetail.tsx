@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Copy, Flag, MapPin, RefreshCw, Share2, Users } from 'lucide-react';
 import type { AppContextValue } from '../../app/context';
 import { outings, safeOutingUrl, type Outing, type OutingAction, type OutingDraft, type OutingMemberStatus } from '../../lib/outings';
-import { OutingForm } from './OutingForm';
 import { OutingCover } from './OutingCover';
 import { OutingDiscussion, OutingReport } from './OutingDiscussion';
 import { OutingTimePoll } from './OutingTimePoll';
@@ -13,6 +12,35 @@ import { canExportOutingCalendar, downloadOutingCalendar } from '../../lib/outin
 import { publicOutingMetadata } from '../../lib/outing-metadata';
 import { setPageMetadata } from '../../lib/seo';
 import { languagePath } from '../../lib/language-path';
+import { lazyChunk } from '../../lib/chunk-recovery';
+import { ChunkBoundary } from '../../components/ChunkBoundary';
+import { Button } from '../../components/ui/Button';
+import { ErrorState } from '../../components/ui/States';
+import type { OutingForm as OutingFormView } from './OutingForm';
+
+/** The host form (OutingForm.tsx) loads when a host opens it (发起小队, 编辑安排), so /together's first load does not
+ * carry it or the cover picker. It loads through the shell's lazyChunk (one retry; the REG-15 guard sees the module before
+ * the named export is picked, so a stale deploy's recovery reload never throws on `undefined.OutingForm`). */
+const OutingForm = lazyChunk(() => import('./OutingForm'), m => m.OutingForm);
+function OutingFormLoading() {
+  const { t } = useOutingCopy();
+  return <p className="outing-read-status" role="status">{t('正在打开表单…', 'Opening the form…')}</p>;
+}
+/** Where the host form mounts: a status line while its chunk loads, and a lost chunk (offline, a stale deploy) contained
+ * here, with 重试 (a fresh boundary loads it again) and 返回, so /together stays on screen instead of the root error page. */
+export function OutingFormFrame({ onBack, children }: { onBack: () => void; children: ReactNode }) {
+  const { t } = useOutingCopy();
+  const [attempt, setAttempt] = useState(0);
+  const lost = <div className="outing-form-lost">
+    <ErrorState title={t('表单暂时没能打开', 'The form didn’t open')} body={t('可能是网络不稳，或网站刚刚更新。请再试一次，或先返回。', 'The connection may be unstable, or the site was just updated. Try again, or go back for now.')} onRetry={() => setAttempt(count => count + 1)} homeTo={null} />
+    <div className="outing-inline-actions"><Button variant="text" onClick={onBack}>{t('返回', 'Go back')}</Button></div>
+  </div>;
+  return <ChunkBoundary key={attempt} fallback={lost}><Suspense fallback={<OutingFormLoading />}>{children}</Suspense></ChunkBoundary>;
+}
+/** The host form in its frame (发起小队, 编辑安排); 返回 on a lost chunk is the form's own onCancel. `lead` shows above it. */
+export function OutingHostForm({ lead, ...form }: ComponentProps<typeof OutingFormView> & { lead?: ReactNode }) {
+  return <OutingFormFrame onBack={form.onCancel}>{lead}<OutingForm {...form} /></OutingFormFrame>;
+}
 
 export const outingEligible = (app: Pick<AppContextValue, 'user'>) => !!app.user && (app.user.isPhoneVerified || app.user.officialVerification?.status === 'approved' || (app.user.isOfficialVerified && (!app.user.officialVerification?.status || app.user.officialVerification.status === 'none')));
 export const memberLabel = (status: OutingMemberStatus, t: OutingTranslate, waitlisted = false) => status === 'requested' && waitlisted ? t('候补中，尚未加入','Waitlisted — not yet joined') : ({ requested:t('待发起人确认','Awaiting host'), confirmed:t('已加入','Confirmed'), declined:t('申请未通过','Declined'), left:t('已退出','Left'), removed:t('已移出','Removed') })[status];
@@ -114,7 +142,7 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
   const requestable = canJoinEdit && !['requested','confirmed','removed','declined'].includes(member?.status || '');
   // Hosts retain membership controls after blocking; ordinary members still hide blocked people.
   const people = (host || member?.status === 'confirmed') ? (outing.members || []).filter(person => host || (person.status === 'confirmed' && !app.blockedUserIds.includes(person.userId))) : [];
-  if (edit) return <OutingForm key={outing.id} initial={draftOf(outing)} outing={outing} session={session} onCancel={() => setEdit(false)} onRefresh={() => void load()} onSaved={result => { setOuting(result.outing); setEdit(false); setNotice(result.notificationWarning ? t('安排已保存，但通知暂未确认发送。请提醒成员查看最新安排。','The plan was saved, but notifications could not be confirmed. Ask members to review it.') : result.outing.planVersion > outing.planVersion ? t('安排已保存。涉及关键变更的成员需重新确认。','The plan was saved. Members affected by key changes need to reconfirm.') : t('小队已更新，成员无需重新确认。','Outing updated. Members do not need to reconfirm.')); }} />;
+  if (edit) return <OutingHostForm key={outing.id} initial={draftOf(outing)} outing={outing} session={session} onCancel={() => setEdit(false)} onRefresh={() => void load()} onSaved={result => { setOuting(result.outing); setEdit(false); setNotice(result.notificationWarning ? t('安排已保存，但通知暂未确认发送。请提醒成员查看最新安排。','The plan was saved, but notifications could not be confirmed. Ask members to review it.') : result.outing.planVersion > outing.planVersion ? t('安排已保存。涉及关键变更的成员需重新确认。','The plan was saved. Members affected by key changes need to reconfirm.') : t('小队已更新，成员无需重新确认。','Outing updated. Members do not need to reconfirm.')); }} />;
   return <><div className="outing-toolbar"><button className="outing-link-button" onClick={onBack}><ArrowLeft size={16}/>{t('返回小队','Back to outings')}</button><button className="outing-secondary" disabled={busy || loading} onClick={() => void load()}><RefreshCw size={15}/>{t('刷新小队','Refresh outing')}</button></div>
     {error && <div className="outing-error" role="alert">{error}</div>}{notice && <p className="outing-notice" role="status">{notice}</p>}
     <div className="outing-detail-grid"><article className="outing-surface outing-detail-head"><OutingCover outing={outing} variant="detail" /><span className="outing-badge">{outingLabel(outing,t,now)}</span><h1 translate="no">{outing.title}</h1><p className="outing-detail-description" translate="no">{outing.description}</p>

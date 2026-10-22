@@ -16,21 +16,27 @@ import './loan-calculator.css';
 
 const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket, receipt: ReceiptText };
 
-/** 生活工具箱 (/tools, WEB-SECONDARY-A): PageHeader, a list of the eight tools, then the open tool's workspace. */
+/** 生活工具箱 (/tools, WEB-SECONDARY-A): PageHeader, a list of the eight tools, then the open tool's workspace. Forms use the
+ * shared primitives (UI9-R1-TOOLS): the Button / IconButton looks as their ui.css classes (ui-button + data-variant,
+ * ui-icon-button; no Button chunk on this route, as HomeHead does), the Select, the selected pair on the open tool. */
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [params] = useSearchParams();
-  const active = resolveLifeTool(params.get('tool'));
+  const requested = params.get('tool');
+  // At rest (no valid ?tool=) nothing is chosen: a phone shows the eight tiles only, none selected, and the workspace
+  // appears once a tile is tapped (J1 P22). A desktop still opens the first tool beside the list.
+  const chosen = LIFE_TOOLS.some(tool => tool.id === requested);
+  const active = resolveLifeTool(requested);
   const current = LIFE_TOOLS.find(tool => tool.id === active)!;
   const CurrentIcon = ICONS[current.icon];
   return <PageContainer className="tools-page">
     <PageHeader title={t('生活工具箱', 'Everyday tools')}
       lede={t('算小费、比单价、算房贷、写一条英文消息。计算在你的浏览器里完成；AI 沟通只在你点按钮生成草稿时提交内容。', 'Tips, unit prices, a mortgage, a message in English. Calculations stay in your browser; the AI helper sends your text only when you tap the button to generate a draft.')} />
-    <div className="tools-layout">
+    <div className="tools-layout" data-rest={chosen ? undefined : ''}>
       <nav className="tools-picker" aria-label="选择生活工具">
         <ul>
-          {LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <li key={tool.id}><Link to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={active === tool.id ? 'page' : undefined} className="tools-picker-item">
+          {LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <li key={tool.id}><Link to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={chosen && active === tool.id ? 'page' : undefined} data-open={active === tool.id ? '' : undefined} className="tools-picker-item">
             <span className="tools-picker-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
             <span className="tools-picker-text"><strong>{tool.title}</strong><small>{tool.short}</small><span className="tools-picker-tag">{tool.tag}</span></span>
           </Link></li>; })}

@@ -1,26 +1,5 @@
-/* /together on the shared kit (H30 / SV13-08). The page body is OutingsHub (src/features/outings, styled in outings.css); this
-   file only maps its controls onto the site's looks, scoped to the page wrapper (`.together-page.ui-container`, which outranks
-   the outings.css rules without !important): the page frame of every other template (PageContainer, 1216 + gutter), the H1
-   spec (--text-h1, no kicker above it), the three button looks (primary brand fill, secondary white with the control border,
-   quiet text) at radius 10, filter toggles as the shared chip (pill, ink when on), and 10/16px radii for fields and cards. */
-.together-page.ui-container { max-width:var(--container-wide); margin-inline:auto; padding:24px var(--page-gutter) 80px; color:var(--color-ink); }
-.together-page.ui-container .outing-hero { align-items:flex-end; padding:0 0 24px; }
-.together-page.ui-container .outing-hero .outing-eyebrow { display:none; }
-.together-page.ui-container .outing-hero h1 { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-h1); font-weight:600; line-height:var(--lh-h1); letter-spacing:0; text-wrap:balance; }
-.together-page.ui-container .outing-hero p { max-width:40em; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
-.together-page.ui-container :is(.outing-primary,.outing-secondary) { min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:var(--r-md); font-size:var(--text-body); font-weight:600; line-height:1.25; text-decoration:none; }
-.together-page.ui-container .outing-primary { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
-.together-page.ui-container .outing-primary:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
-.together-page.ui-container .outing-secondary { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); }
-.together-page.ui-container .outing-secondary:not(:disabled):hover { border-color:var(--color-ink-3); }
-.together-page.ui-container .outing-link-button { border:0; border-radius:var(--r-md); background:transparent; color:var(--color-brand); }
-.together-page.ui-container :is(.outing-tabs>button,.outing-date-shortcuts>button,.outing-cover-modes>button) { min-height:2.75rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; }
-.together-page.ui-container :is(.outing-tabs>button,.outing-date-shortcuts>button,.outing-cover-modes>button)[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
-.together-page.ui-container :is(input:not([type=checkbox]),textarea,select) { border-color:var(--color-line-control); border-radius:var(--r-md); }
-.together-page.ui-container :is(.outing-card,.outing-surface,.outing-empty,.outing-cover,.outing-inspiration-context) { border-radius:var(--r-lg); }
-.together-page.ui-container :is(.outing-error,.outing-notice) { border-radius:var(--r-md); }
-@media (min-width:1024px) {
-  .together-page.ui-container { padding-top:32px; }
-  .together-page.ui-container :is(.outing-primary,.outing-secondary) { min-height:var(--control-height); font-size:1rem; }
-}
-html[data-simple] .together-page.ui-container :is(.outing-primary,.outing-secondary,.outing-tabs>button,.outing-date-shortcuts>button) { min-height:3rem; }
+/* /together in the site's page frame (PageContainer, H30): 1216 + gutter, 24 / 32 above the H1. No bottom padding of its
+   own, so the blank above the footer is the footer's margin (N15: 139 → under 64). The page body (OutingsHub, outings.css)
+   takes the site's looks for its buttons, chips and fields there. */
+.together-page.ui-container { max-width:var(--container-wide); margin-inline:auto; padding:var(--sp-5) var(--page-gutter) 0; }
+@media (min-width:1024px) { .together-page.ui-container { padding-top:var(--sp-6); } }

@@ -56,6 +56,13 @@ function PollHarness({ item, account = host, onSaved = noop }: { item: Outing; a
 const timePoll = (patch: Partial<NonNullable<Outing['timePoll']>> = {}): NonNullable<Outing['timePoll']> => ({ id: 'poll-fixture', status: 'open', planVersion: 2, createdAt: now, eligibleCount: 2, repliedCount: 0, myAnswers: null,
   options: [{ id: 'option-1', date: '2026-10-17', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-17T21:00:00Z'), endAt: Date.parse('2026-10-17T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }, { id: 'option-2', date: '2026-10-18', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-18T21:00:00Z'), endAt: Date.parse('2026-10-18T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }], ...patch });
 const hub = (account: UserData | null = user, path = '/together', extras: Partial<AppContextValue> = {}) => <MemoryRouter initialEntries={[path]}><OutingsHub app={appFor(account, extras)} /></MemoryRouter>;
+const pickDay = async (view: ReturnType<typeof render>, day: RegExp, monthsAhead = 0) => {
+  await act(async () => { fireEvent.click(within(view.getByRole('group', { name: '参加日期' })).getByRole('button', { name: /选日期|月\d+日/ })); });
+  const sheet = await view.findByRole('dialog');
+  for (let step = 0; step < monthsAhead; step++) await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: '下个月' })); });
+  await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: day })); });
+};
+const dayChip = (view: ReturnType<typeof render>) => within(view.getByRole('group', { name: '参加日期' })).getAllByRole('button')[3];
 const deferred = <T,>() => { let resolve!: (value: T) => void; let reject!: (reason: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const consent = (view: ReturnType<typeof render>) => {
   fireEvent.click(view.getByRole('checkbox', { name: /我已年满 18 岁/ }));
@@ -466,14 +473,15 @@ test('date and city filters reach the API and survive opening a detail and retur
     return { outing: outing() };
   });
   const view = render(hub()); await view.findByRole('link', { name: initial.title });
-  fireEvent.change(view.getByLabelText('参加日期'), { target: { value: '2026-10-17' } });
+  await pickDay(view, /10月17日/, 1); await view.findByRole('link', { name: initial.title });
+  assert.equal(filters.at(-1)!.get('date'), '2026-10-17', 'a day from the sheet applies at once');
   fireEvent.change(view.getByRole('textbox', { name: '城市（可选）' }), { target: { value: 'Fremont' } });
   fireEvent.click(view.getByRole('button', { name: '筛选小队' })); await act(async () => {});
   const link = view.getByRole('link', { name: initial.title }); const url = new URL(link.getAttribute('href')!, 'https://example.test');
   assert.equal(url.searchParams.get('date'), '2026-10-17'); assert.equal(url.searchParams.get('city'), 'Fremont');
   fireEvent.click(link); await view.findByRole('heading', { level: 1, name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '返回小队' })); await view.findByRole('link', { name: initial.title });
-  assert.equal((view.getByLabelText('参加日期') as HTMLInputElement).value, '2026-10-17');
+  assert.equal(dayChip(view).textContent, '10月17日周六'); assert.equal(dayChip(view).getAttribute('aria-pressed'), 'true');
   assert.equal((view.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).value, 'Fremont');
   assert.equal(filters.at(-1)!.get('date'), '2026-10-17'); assert.equal(filters.at(-1)!.get('city'), 'Fremont');
 });
@@ -492,9 +500,9 @@ test('discovery presets replace exact dates and preserve search, city aliases, l
   view.getByText('更多筛选').closest('details')!.open = true;
   fireEvent.change(view.getByRole('combobox', { name: '沟通语言' }), { target: { value: 'zh' } });
   fireEvent.click(view.getByRole('checkbox', { name: '只看有空位' }));
-  fireEvent.click(view.getByRole('button', { name: '本周末' })); await view.findByText('2026-10-03 — 2026-10-04');
+  fireEvent.click(view.getByRole('button', { name: '本周末' })); await view.findByText('10月3日周六 — 10月4日周日');
   assert.deepEqual(Object.fromEntries(requests.at(-1)!), { q: '散步 & coffee', city: '舊金山', dateFrom: '2026-10-03', dateTo: '2026-10-04', language: 'zh', seats: 'open', sort: 'soonest' });
-  assert.equal((view.getByLabelText('参加日期') as HTMLInputElement).value, '');
+  assert.equal(dayChip(view).textContent, '选日期'); assert.equal(dayChip(view).getAttribute('aria-pressed'), 'false');
   const link = await view.findByRole('link', { name: initial.title }), destination = new URL(link.getAttribute('href')!, 'https://example.test');
   for (const [key, value] of requests.at(-1)!) assert.equal(destination.searchParams.get(key), value);
   fireEvent.click(link); await view.findByRole('heading', { level: 1, name: initial.title });
@@ -504,11 +512,10 @@ test('discovery presets replace exact dates and preserve search, city aliases, l
   assert.equal((view.getByRole('combobox', { name: '沟通语言' }) as HTMLSelectElement).value, 'zh');
   assert.equal((view.getByRole('checkbox', { name: '只看有空位' }) as HTMLInputElement).checked, true);
   assert.equal(view.getByRole('button', { name: '本周末' }).getAttribute('aria-pressed'), 'true');
-  fireEvent.change(view.getByLabelText('参加日期'), { target: { value: '2026-10-17' } });
-  fireEvent.click(view.getByRole('button', { name: '筛选小队' })); await act(async () => {});
+  await pickDay(view, /10月17日/, 1); await act(async () => {});
   assert.equal(requests.at(-1)!.get('date'), '2026-10-17');
   assert.equal(requests.at(-1)!.has('dateFrom'), false); assert.equal(requests.at(-1)!.has('dateTo'), false);
-  fireEvent.click(view.getByRole('button', { name: '未来7天' })); await act(async () => {});
+  fireEvent.click(view.getByRole('button', { name: '未来 7 天' })); await act(async () => {});
   assert.equal(requests.at(-1)!.get('dateFrom'), '2026-09-30'); assert.equal(requests.at(-1)!.get('dateTo'), '2026-10-06'); assert.equal(requests.at(-1)!.has('date'), false);
   fireEvent.click(view.getByRole('button', { name: '今天' })); await act(async () => {});
   assert.equal(requests.at(-1)!.get('date'), '2026-09-30'); assert.equal(requests.at(-1)!.has('dateFrom'), false);
@@ -519,7 +526,7 @@ test('list failure shows retry rather than no outings and only guest intent to c
   t.mock.method(api, 'request', async () => { if (++reads === 1) throw { status: 503 }; return { outings: [outing()], nextCursor: null }; });
   const view = render(hub(null, '/together', { setShowLogin: () => { logins++; } })); await view.findByRole('alert');
   assert.equal(view.queryByText('还没有符合条件的小队'), null); assert.equal(logins, 0);
-  fireEvent.click(view.getByRole('button', { name: '重新读取' })); await view.findByRole('link', { name: initial.title });
+  fireEvent.click(view.getByRole('button', { name: '重试' })); await view.findByRole('link', { name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '发起小队' })); assert.equal(logins, 1);
   assert.equal(view.queryByRole('textbox', { name: '小队名称' }), null);
 });
@@ -528,7 +535,8 @@ test('a verified host can start from a concrete filtered date while an unverifie
   t.mock.method(api, 'request', async () => ({ outings: [outing()], nextCursor: null }));
   const view = render(hub(host, '/together?date=2026-10-17')); await view.findByRole('link', { name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '发起小队' }));
-  assert.equal((view.getByLabelText('参加日期') as HTMLInputElement).value, '2026-10-17');
+  // The host form loads on demand (OutingDetail.tsx OutingForm).
+  assert.equal((await view.findByLabelText('参加日期') as HTMLInputElement).value, '2026-10-17');
   assert.equal((view.getByRole('button', { name: '发布小队' }) as HTMLButtonElement).disabled, true);
   const unverified = { ...user, isPhoneVerified: false }; signIn(unverified);
   view.rerender(hub(unverified, '/together?date=2026-10-17')); await view.findByRole('link', { name: initial.title });
@@ -768,7 +776,7 @@ test('a guide inspiration URL previews its cover, carries it into creation and s
   assert.equal(inspiration.getByRole('link', { name: `参考内容 · ${coverGuide.title}` }).getAttribute('href'), `https://www.baylink.us/guides/${coverGuide.slug}`);
   assert.equal(writes.length, 0, 'following a content link never publishes an outing');
   fireEvent.click(inspiration.getByRole('button', { name: '用这张配图发起小队' }));
-  const editor = within(view.getByRole('region', { name: '发起小队' }));
+  const editor = within(await view.findByRole('region', { name: '发起小队' }));
   assert.equal(editor.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
   assert.equal((editor.getByRole('textbox', { name: '公共集合地点' }) as HTMLInputElement).value, '', 'reference content must not invent a meeting place');
   assert.equal((editor.getByLabelText('参加日期') as HTMLInputElement).value, initial.date);
@@ -820,7 +828,7 @@ test('host editing reopens a saved guide cover and persists an explicit text-car
   });
   const view = render(detail(host));
   fireEvent.click(await view.findByRole('button', { name: '编辑安排' }));
-  assert.equal(view.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal((await view.findByRole('img')).getAttribute('src'), getGuideMedia(coverGuide).cover.src);
   assert.equal(view.getByRole('button', { name: '从攻略与资讯选图' }).getAttribute('aria-pressed'), 'true');
   fireEvent.click(view.getByRole('button', { name: '文字卡片' }));
   assert.equal(view.queryByRole('img'), null); assert.equal(writes.length, 0, 'cover changes remain a private unsaved draft');
@@ -830,7 +838,7 @@ test('host editing reopens a saved guide cover and persists an explicit text-car
   assert.equal(writes[0].revision, 4); assert.equal(writes[0].date, initial.date); assert.equal(writes[0].venue, initial.venue);
   assert.equal('planVersion' in writes[0], false, 'the server owns decisions about plan versions');
   fireEvent.click(view.getByRole('button', { name: '编辑安排' }));
-  assert.equal(view.getByRole('button', { name: '文字卡片' }).getAttribute('aria-pressed'), 'true');
+  assert.equal((await view.findByRole('button', { name: '文字卡片' })).getAttribute('aria-pressed'), 'true');
   assert.equal(view.queryByRole('img'), null);
 });
 
