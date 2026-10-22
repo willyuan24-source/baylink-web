@@ -31,6 +31,8 @@ import { useViewHold } from './view-hold';
 
 /** Cards per page: 12; in 简洁显示 6 and in 家人版 (简洁 + 特大) 4 (content arrangement §6). */
 const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4;
+/** The English date scopes' short names at 大 / 特大 and in 简洁显示 (the rail's scopes: 本周末 · 未来 7 天 · 全部日期). */
+const ROOMY_SCOPES_EN: Partial<Record<EventsWhen, string>> = { weekend: 'Weekend', next7: 'Next 7', all: 'All' };
 /** The editor's block shows the lead and up to three pick rows (two on a phone: one 2-up row). */
 const PICK_ROWS = 3;
 // The share-card strip shows only on a share card's landing (?from=card-…): its chunk (lazy-view `parts`) loads with the
@@ -221,8 +223,11 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // dropped) in their own .ev-days wrapper. A date the sheet chose (今天, a month) checks none: its removable chip says it.
   // 简洁显示 keeps 本周末 (the whole weekend) and the checked scope only.
   const scopes = SCOPES.filter(id => !simple || id === 'weekend' || id === filters.when);
+  // At 大 / 特大 and in 简洁显示 the English scopes take short names (Weekend · Next 7 · All; the range line names the dates),
+  // so they keep one row and the first event ends on screen 1 (N18: /en next7 and this-month at 特大 wrapped to 4 rows).
+  const scopeLabel = (id: EventsWhen) => (english && roomy && ROOMY_SCOPES_EN[id]) || pick(WHEN_OPTIONS.find(option => option.id === id)!.label);
   const dateItems = [
-    ...scopes.map(id => ({ id, label: pick(WHEN_OPTIONS.find(option => option.id === id)!.label) })),
+    ...scopes.map(id => ({ id, label: scopeLabel(id) })),
     ...(weekend ? [
       ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
       { id: 'sun', label: dayLabel(days[1]) },
@@ -330,7 +335,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         </ChipRow>
       </div>
 
-      <div ref={listRef} className="ev-list" data-hold={hold.phase === 'idle' ? undefined : hold.phase} style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }} aria-busy={!events && !failed ? true : undefined}>
+      <div ref={listRef} className="ev-list" data-empty={events && !visible.length ? '' : undefined} data-hold={hold.phase === 'idle' ? undefined : hold.phase} style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }} aria-busy={!events && !failed ? true : undefined}>
         {hold.phase === 'skeleton' ? <SkeletonFeed count={4} />
         : !events ? failed ? <ChunkError onRetry={retry} />
           : hold.phase === 'dim' && held ? cards(held.events, t('活动', 'Events'), undefined, event => held.covers[held.events.indexOf(event)])

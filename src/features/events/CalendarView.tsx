@@ -89,6 +89,9 @@ export default function CalendarView({ today }: { today: string }) {
   const shownCount = pageSize * (pages.scope === `${scope}:${city}` ? pages.count : 1);
   const shownEvents = ordered.slice(0, shownCount + 1);
   const more = Math.min(pageSize, ordered.length - shownEvents.length);
+  // The phone's 2-up first row (lead + next event): marked here, not found by :has(), so a browser without :has() (Safari
+  // before 15.4, Firefox before 121) still shows each event once.
+  const pair = !roomy && shownEvents.length > 1;
   // DECISIONS 15/26: a lead never shows a close-up face photo; it takes its next candidate (never an information card).
   const covers = resolveCovers(shownEvents.map((event, index) => coverItemFor('event', event, { imageKey: index ? event.imageKey : leadImageKey(event.imageKey), lead: !index })), { ...coverContext(today), page: createCoverPage() });
   // The nearest days with events after an empty one can be past the route's own days: they read the whole catalog.
@@ -126,9 +129,12 @@ export default function CalendarView({ today }: { today: string }) {
   return <section className="ev-calendar" aria-labelledby="ev-calendar-day">
     <div className="ev-week" role="group" aria-label={t('这一周', 'This week')}>
       <IconButton className="ev-week__prev" label={t('上一周', 'Previous week')} onClick={() => update({ date: addCalendarDays(date, -7) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      {/* The range opens the sheet of dates, regions and cities. At 大 / 特大 on a phone, where the city rail steps aside, its
+          second line says so (选日期、地区和城市, the sheet's title; events.css), so the cities stay in sight. */}
       <button type="button" className="ev-week__range" aria-haspopup="dialog" onClick={() => setSheetOpen(true)}
-        aria-label={t(`${weekRange}，选日期和地区：${pick(regionLabel(region))}`, `${weekRange}, pick a date and region: ${pick(regionLabel(region))}`)}>
-        <CalendarDays aria-hidden="true" strokeWidth={1.75} />{weekRange}{region !== 'all' && <span className="ev-week__region"> · {pick(regionLabel(region))}</span>}
+        aria-label={t(`${weekRange}，选日期、地区和城市：${pick(regionLabel(region))}`, `${weekRange}, pick a date, region, city: ${pick(regionLabel(region))}`)}>
+        <CalendarDays aria-hidden="true" strokeWidth={1.75} /><span className="ev-week__label">{weekRange}{region !== 'all' && <span className="ev-week__region"> · {pick(regionLabel(region))}</span>}</span>
+        <span className="ev-week__hint" aria-hidden="true">{t('选日期、地区和城市', 'Date, region, city')}</span>
       </button>
       <ol className="ev-week__days">{week.map(day => {
         const count = countOn(day);
@@ -169,9 +175,9 @@ export default function CalendarView({ today }: { today: string }) {
       {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
       : shownEvents.length ? <>
         {/* The lead card (span 6 beside four rows on desktop). On a standard phone the lead and the next event are one 2-up
-            row of cards, so two whole cards fit the first screen (N18); that event's row steps aside there (events.css), as
-            the /events pick rows do. At 大 / 特大 and in 简洁显示 every event is a row. */}
-        {!roomy && <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
+            row of cards (--pair), so two whole cards fit the first screen (N18); that event's row (.ev-calendar__pair-row)
+            steps aside there (events.css), as the /events pick rows do. At 大 / 特大 and in 简洁显示 every event is a row. */}
+        {!roomy && <FeedGrid single label={t('这一天的活动', 'Events this day')} className={pair ? 'ev-calendar__lead ev-calendar__lead--pair' : 'ev-calendar__lead'}>
           <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} oneDay={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
           {shownEvents.length > 1 && <FeedItem><EventFeedCard event={shownEvents[1]} cover={covers[1]} today={today} days={[date]} day={date} oneDay={date} action={addToDay(shownEvents[1])} /></FeedItem>}
         </FeedGrid>}
