@@ -52,7 +52,7 @@
 .cm-board__board-links { padding-top:.25rem; padding-bottom:.25rem; }
 .cm-board__board-links>a { text-decoration:none; }
 .cm-board__ads:empty { display:none; }
-/* Promotions (OfficialAds; UI9-R1 N10 / N11): a section like the two notes above it, its tiles one swipe row whose cards are
+/* Promotions (OfficialAds; UI9-R1 N10 / N11): a section like the two notes beside it, its tiles one swipe row whose cards are
    at most the row's width (min(100%, 26rem); the phone cut the tile's text at the right edge), each with the 推广信息 label.
    Tile edge + e1, --r-lg corners, no decoration; the track keeps 4px inside its clip so the shadow is not cut. */
 .cm-ads__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); margin:0 0 var(--stack-head); }
@@ -70,8 +70,7 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad__body { display:grid; gap:2px; min-width:0; }
 .cm-ad__labels,.cm-ad-dialog__labels { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-2); }
 .cm-ad__labels { margin-bottom:var(--sp-1); }
-.cm-ad-label { display:inline-flex; align-items:center; gap:var(--sp-1); padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:600; }
-.cm-ad-label>svg { flex:none; width:.875rem; height:.875rem; }
+.cm-ad-label { display:inline-flex; align-items:center; padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:600; }
 .cm-ad__title { margin:0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:600; overflow-wrap:anywhere; }
 .cm-ad__text { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 .cm-ad__disclosure { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -112,7 +111,9 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
   .cm-board__header>.ui-page-header__actions { grid-column:2; grid-row:1 / span 3; align-self:end; margin:0; }
   .cm-board__filters { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; }
   .cm-board__notes { grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); align-items:start; }
-  .cm-board__ads { grid-column:1 / -1; }
+  /* Two columns: the safety note on the left; the other boards and the promotions stacked on the right. */
+  .cm-board__safety { grid-row:1 / span 2; }
+  .cm-board__ads { grid-column:2; }
   .cm-ads[data-layout=list] .cm-ads__track { grid-template-columns:repeat(2, minmax(0, 1fr)); }
 }
 

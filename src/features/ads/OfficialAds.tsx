@@ -59,8 +59,8 @@ const AdThumb = ({ src, className, contain }: { src: string; className?: string;
   if (failed) return <div className={className || 'cm-ad__thumb'} />;
   return <img src={src} alt="" loading="lazy" decoding="async" className={`${className || ''} ${contain ? 'ad-thumb-contain' : ''}`} onError={() => setFailed(true)} />;
 };
-/** The 推广信息 label on every tile and in the dialog (the disclosure stays on each ad). */
-const AdLabel = ({ t }: { t: AdCopy['t'] }) => <span className="cm-ad-label"><Megaphone aria-hidden="true" strokeWidth={1.75} />{t('推广信息', 'Promoted')}</span>;
+/** The 推广 label on every tile and in the dialog: each ad still says it is one, under the section's 推广信息 heading. */
+const AdLabel = ({ t }: { t: AdCopy['t'] }) => <span className="cm-ad-label">{t('推广', 'Ad')}</span>;
 
 const AdDetailImage = ({ src }: { src: string }) => {
   const [failed, setFailed] = useState(false);
@@ -257,7 +257,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
   return (
     <section className="cm-ads" data-layout={layout} aria-labelledby={layout === 'carousel' ? 'cm-ads-title' : undefined} aria-label={layout === 'list' ? '推广信息列表' : undefined}>
       {(layout === 'carousel' || isAdmin) && <div className="cm-ads__head">
-        {layout === 'carousel' && <h2 id="cm-ads-title" className="cm-board__subhead"><Megaphone aria-hidden="true" strokeWidth={1.75} />{copy.t('推广信息', 'Promoted')}</h2>}
+        {layout === 'carousel' && <h2 id="cm-ads-title" className="cm-board__subhead"><Megaphone aria-hidden="true" strokeWidth={1.75} />{copy.t('推广信息', 'Promotions')}</h2>}
         {isAdmin && (
           <button type="button" onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="ui-button" data-variant="secondary">
             <Plus aria-hidden="true" strokeWidth={1.75} />添加
