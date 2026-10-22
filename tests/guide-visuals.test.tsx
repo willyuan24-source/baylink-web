@@ -202,10 +202,13 @@ test('complete guide places kept inline media after the selected section and pre
   assert.ok(view.getByRole('heading', { name: '官方来源' }));
   assert.equal(view.getByRole('link', { name: '返回湾区指南' }).getAttribute('href'), '/guides?q=海边');
   assert.equal(view.getAllByRole('tabpanel').length, 1, 'the real article route is interactive');
-  // Credits for every picture shown on the page are listed once, under the sources.
+  // Credits for every picture shown on the page are listed once, under the sources: the hero, the inline pictures and the
+  // 接下来 cards' pictures (UI9-IMG-A1b review, DECISIONS 23).
   const credits = view.container.querySelector('.gd-credits');
   assert.ok(credits);
-  assert.equal(credits.querySelectorAll('li').length, new Set([getGuideMedia(guide).cover.src, ...kept.map(item => item.image.src)]).size);
+  const related = [...view.container.querySelectorAll('.gd-related__grid img')].map(img => img.getAttribute('src'));
+  assert.ok(related.length > 0);
+  assert.equal(credits.querySelectorAll('li').length, new Set([getGuideMedia(guide).cover.src, ...kept.map(item => item.image.src), ...related]).size);
 });
 
 test('off-topic inline pictures are hidden: the stock laptop photo and shared AI theme illustrations', () => {
@@ -297,8 +300,6 @@ const KNOWN_POOL_REPEATS = [
   'bay-area-city-utilities-internet-phone-directory: /guides/category-stock/stock-guide-housing-4.webp',
   'bay-area-first-7-30-days-action-plan-october-2026: /guides/category-stock/stock-guide-housing-4.webp',
   'bay-area-first-rental-process: /guides/category-stock/stock-guide-housing-2.webp',
-  'bay-area-freebies-deals-2026-10: /guides/category-stock/stock-shopping-2.webp',
-  'bay-area-freebies-deals-2026-11: /guides/category-stock/stock-shopping-2.webp',
   'bay-area-rental-scam-guide: /guides/category-stock/stock-guide-housing-1.webp',
   'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
   'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
