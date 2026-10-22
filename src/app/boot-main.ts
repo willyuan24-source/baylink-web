@@ -1,4 +1,4 @@
-import { createElement, useEffect, type ReactElement } from 'react';
+import { createElement, useEffect, useLayoutEffect, type ReactElement } from 'react';
 import { matchRoute, routePathname } from './route-table';
 
 // No blank frame at boot (quality lens §2.4, perf-cold `blankMainAt`): the app replaces the prerendered page in one commit,
@@ -11,6 +11,12 @@ import { matchRoute, routePathname } from './route-table';
 // and 404.html, prerendered for /404 and served for every URL that is not an app page. They are not those URLs' own pages,
 // so boot.ts must not keep them on screen as one (hasBootMain).
 let boot: { path: string; html: string; exact: boolean } | null = null;
+// The account shell is a full screen tall (me-hub.css), so its footer starts below the fold. A short page replacing it (the
+// guest views of /me/bookings and /messages) would pull the footer up into the window: a layout shift. So the page that
+// replaces the shell keeps the shell's promise for this visit: <main> stays a full screen tall (100vh, as .site-route-wait
+// in site-chrome.css, for the same reason) until the reader leaves the boot path. A longer page is unaffected.
+let shellHold: string | null = null;
+const SHELL_HOLD = '100vh';
 
 /**
  * main.tsx, before the first render: keep the prerendered <main> when it was rendered for this URL, or when it is the
@@ -22,6 +28,7 @@ let boot: { path: string; html: string; exact: boolean } | null = null;
 export function captureBootMain(): void {
   if (typeof document === 'undefined') return;
   boot = null;
+  shellHold = null;
   const main = document.querySelector<HTMLElement>('#root main[data-prerender-path]');
   if (!main || !main.innerHTML.trim()) return;
   const path = routePathname(window.location.pathname);
@@ -29,6 +36,7 @@ export function captureBootMain(): void {
   const accountShell = !!main.querySelector(':scope > .account-shell');
   const notFound = !!main.querySelector(':scope > .nf-page') && !matchRoute(path);
   if (exact || accountShell || notFound) boot = { path, html: main.innerHTML, exact };
+  if (accountShell) shellHold = path;
 }
 
 /** A page prerendered for this very URL was captured (boot.ts keeps it on screen when only the dictionary failed). */
@@ -54,6 +62,19 @@ export function clearBootMain(): void {
  * same path, or a language switch (the router path stays unprefixed), shows the spinner instead of the old snapshot.
  */
 export function BootMainSettled(): null {
+  useLayoutEffect(holdShellHeight);
   useEffect(clearBootMain, []);
   return null;
+}
+
+/**
+ * After every commit of the layout (it re-renders on each location change), before paint: on the boot path that opened on
+ * the account shell, <main> keeps the shell's full-screen height; on any other path the hold is gone for good.
+ */
+function holdShellHeight(): void {
+  if (!shellHold) return;
+  const main = document.querySelector<HTMLElement>('#root main');
+  if (routePathname(window.location.pathname) === shellHold) { main?.style.setProperty('min-height', SHELL_HOLD); return; }
+  main?.style.removeProperty('min-height');
+  shellHold = null;
 }

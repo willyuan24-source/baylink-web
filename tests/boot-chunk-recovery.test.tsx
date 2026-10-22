@@ -266,6 +266,49 @@ test('boot-main: the prerendered <main> is the fallback only for its own URL, an
   dom.reconfigure({ url: 'https://www.baylink.us/' });
 });
 
+test('boot-main: the page that replaces the account shell keeps its full-screen height until the reader leaves', async () => {
+  // A short guest view (/me/bookings, /messages) replacing the 100svh shell would pull the footer into the window: a shift.
+  const shell = '<div id="root"><main data-prerender-path="/me"><div class="ui-container account-shell" data-size="content"><div aria-busy="true"></div></div></main></div>';
+  dom.reconfigure({ url: 'https://www.baylink.us/en/me/bookings' });
+  document.body.innerHTML = shell;
+  captureBootMain();
+  document.body.innerHTML = '<div id="root"><main></main></div>';
+  const main = document.querySelector<HTMLElement>('#root main')!;
+  let resolvePage!: () => void;
+  let loaded = false;
+  const ready = new Promise<void>(resolve => { resolvePage = resolve; }).then(() => { loaded = true; });
+  const Page = () => { if (!loaded) throw ready; return <p>sign in</p>; };
+  const tree = () => <Suspense fallback={bootMainFallback('/me/bookings')}><BootMainSettled /><Page /></Suspense>;
+  const view = render(tree(), { container: main });
+  assert.match(main.innerHTML, /account-shell/, 'the shell stands in while the route is suspended');
+  await act(async () => { resolvePage(); await ready; });
+  assert.equal(main.textContent, 'sign in');
+  assert.equal(main.style.minHeight, '100vh', 'the short page keeps the shell height on the boot path');
+  view.rerender(tree());
+  assert.equal(main.style.minHeight, '100vh', 'a re-render on the same path keeps it');
+  dom.reconfigure({ url: 'https://www.baylink.us/en/guides' });
+  view.rerender(tree());
+  assert.equal(main.style.minHeight, '', 'another path: the hold is gone');
+  dom.reconfigure({ url: 'https://www.baylink.us/en/me/bookings' });
+  view.rerender(tree());
+  assert.equal(main.style.minHeight, '', 'and stays gone when the reader comes back');
+  view.unmount();
+
+  // A page prerendered for its own URL, or the 404 stand-in, holds nothing.
+  for (const [url, html] of [['/guides', '<main data-prerender-path="/guides"><h1>guides</h1></main>'], ['/no-such-page', '<main data-prerender-path="/404"><div class="nf-page"></div></main>']]) {
+    dom.reconfigure({ url: `https://www.baylink.us${url}` });
+    document.body.innerHTML = `<div id="root">${html}</div>`;
+    captureBootMain();
+    document.body.innerHTML = '<div id="root"><main></main></div>';
+    const plain = document.querySelector<HTMLElement>('#root main')!;
+    const once = render(<Suspense fallback={null}><BootMainSettled /><p>page</p></Suspense>, { container: plain });
+    assert.equal(plain.style.minHeight, '', url);
+    once.unmount();
+  }
+  document.body.innerHTML = '';
+  dom.reconfigure({ url: 'https://www.baylink.us/' });
+});
+
 test('boot-main: the account shell and the 404 stand in for the URLs they are served for, without counting as their page', () => {
   const snapshot = (pathname: string) => String(bootMainFallback(pathname)?.props.dangerouslySetInnerHTML.__html ?? '');
   // The account shell (account-shell.html, prerendered once for /me, served for every account page): the first route's
