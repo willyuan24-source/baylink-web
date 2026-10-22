@@ -176,7 +176,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const oneDay = weekend && (day === 'sat' || day === 'sun') ? feedDays[0] : undefined;
 
   // One page context in display order — share strip, lead, picks, feed — so an image appears once per page (VISUAL-10).
-  const context = { ...coverContext(today), page: createCoverPage() };
+  const context = { ...coverContext(today), page: createCoverPage({ fresh: true }) };
   const covers = {
     strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
     // DECISIONS 15/26: a lead never shows a close-up face photo; it takes its next candidate (never an information card).

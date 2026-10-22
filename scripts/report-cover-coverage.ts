@@ -49,8 +49,9 @@ const withKeys = <T extends CandidateRecord>(kind: CoverKind, record: T): T & { 
   projected ? { ...record, imageKeys: coverCandidates(kind, record) } : record;
 const item = (kind: CoverKind, record: CandidateRecord, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem =>
   coverItemFor(kind, withKeys(kind, record), override);
-const pageContext = (today: string, images: CoverContext['images']): CoverContext =>
-  ({ images: projected ? GUIDE_IMAGES : images, today, page: createCoverPage() });
+// The home and /events prefer pictures new to the page (HomeDiscovery, WeekendView: CoverPage.fresh); the boards do not.
+const pageContext = (today: string, images: CoverContext['images'], fresh = false): CoverContext =>
+  ({ images: projected ? GUIDE_IMAGES : images, today, page: createCoverPage({ fresh }) });
 const guideItem = (card: GuideIndexCard, today: string, page: CoverContext['page']) => {
   const current = guideCover(card, today, page);
   if (!projected || current.tier !== 'type') return current;
@@ -80,7 +81,7 @@ for (let n = 0; n < DAYS; n++) {
   const weekend = getHomeWeekend(day);
   const offers = selectHomeOffers(HOME_OFFERS, day, 6, offerHasPhoto(HOME_IMAGES, day), offerLeadsRail(HOME_IMAGES, day));
   for (const intent of HOME_INTENTS) {
-    const context = pageContext(day, HOME_IMAGES);
+    const context = pageContext(day, HOME_IMAGES, true);
     const page = `home:${intent.id}`;
     weekend.picks.forEach(({ event }, i) => push(day, page, i ? 'picks' : 'lead', 'event', event.id,
       getCover(i ? item('event', event as HomeEvent) : item('event', event as HomeEvent, { imageKey: leadImageKey(event.imageKey), lead: true }), context)));
@@ -110,7 +111,7 @@ for (let n = 0; n < DAYS; n++) {
   const fillers = fill ? ranked.filter(event => !taken.has(event.id) && event.id !== homeLead).slice(0, fill) : [];
   const rows = [...pickEvents, ...fillers].slice(0, 3);
   const listed = ranked.filter(event => !taken.has(event.id) && !fillers.includes(event));
-  const events = pageContext(day, EVENTS_INDEX.images);
+  const events = pageContext(day, EVENTS_INDEX.images, true);
   if (arranged.lead) {
     const lead = arranged.lead.event;
     push(day, '/events', 'lead', 'event', lead.id, resolveCovers([item('event', lead, { imageKey: leadImageKey(lead.imageKey), lead: true })], events)[0]);

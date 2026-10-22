@@ -95,7 +95,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   // One page context in display order — picks, feed, offers, guides — so an image appears once (VISUAL-10), a ③④ pool
   // picture comes back only ADJACENT_CARDS cards later as the page shows them, and the ladder decides every label (SV-04).
   const covers = useMemo(() => {
-    const context: CoverContext = { images: GUIDE_IMAGES, today, page: createCoverPage() };
+    const context: CoverContext = { images: GUIDE_IMAGES, today, page: createCoverPage({ fresh: true }) };
     const event = (item: HomeEvent) => getCover(coverItemFor('event', item), context);
     const picks = weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey), lead: true }), context));
     const feed = weekend.feed.map(entry => event(entry.event as HomeEvent));

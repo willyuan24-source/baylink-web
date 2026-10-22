@@ -98,13 +98,20 @@ export type CoverPage = {
   claims: Map<string, string>;
   order?: Map<string, number>;
   shared?: Map<string, Map<string, number>>;
+  /**
+   * Prefer a ③④ picture the page has not shown over one shown ADJACENT_CARDS or more cards away (UI9-IMG-A1b round 2): the
+   * home and /events, whose few dozen cards then show each pool picture once. A long board (/perks, /calendar's day) keeps
+   * the first candidate that may show, which deals each pool round in turn (taking new pictures first there leaves later
+   * cards of a crowded category nothing but near ones: /perks 27 → 76 repeats in 21 days).
+   */
+  fresh?: boolean;
 };
-export const createCoverPage = (): CoverPage => ({ claims: new Map() });
+export const createCoverPage = ({ fresh = false }: { fresh?: boolean } = {}): CoverPage => ({ claims: new Map(), ...(fresh ? { fresh } : {}) });
 /**
  * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
- * not on one screen, which is at most 8 cards on desktop), and only when the item has no candidate of that tier the page
- * has not shown yet. When every pool picture is nearer, the item still takes the one shown farthest away: ③④ never fall
- * back to an info card.
+ * not on one screen, which is at most 8 cards on desktop); on a `fresh` page only when the item has no candidate of that
+ * tier the page has not shown yet. When every pool picture is nearer, the item still takes the one shown farthest away:
+ * ③④ never fall back to an info card.
  */
 export const ADJACENT_CARDS = 8;
 
@@ -234,12 +241,12 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       let gap = Infinity;
       shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
       if (!pool || gap > pool.gap) pool = { cover, shown, gap };
-      // A picture not yet on the page ends the search; one shown ADJACENT_CARDS or more cards away is kept while a later
-      // picture of the same tier may still be new to the page (fewer repeats per page, UI9-IMG-A1b round 2).
-      if (gap === Infinity) break;
+      // A picture not yet on the page ends the search, and so does one shown ADJACENT_CARDS or more cards away, except on a
+      // `fresh` page, which keeps looking for a picture of the same tier the page has not shown yet.
+      if (gap === Infinity || (!page.fresh && gap >= ADJACENT_CARDS)) break;
       continue;
     }
-    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order).
+    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order; a `fresh` page's search).
     if (pool && pool.gap >= ADJACENT_CARDS) break;
     const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
