@@ -4210,7 +4210,7 @@
    "sha1": "dd77d9d2b3dc3902",
    "lqip": "#877",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4302,7 +4302,7 @@
    "sha1": "3cf505735f3fdfc7",
    "lqip": "#986",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4325,7 +4325,7 @@
    "sha1": "f15341390ac2ec4e",
    "lqip": "#998",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4348,7 +4348,7 @@
    "sha1": "5d2de7c5784a7ed6",
    "lqip": "#854",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4486,7 +4486,7 @@
    "sha1": "7e5552e723dac321",
    "lqip": "#876",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4578,7 +4578,7 @@
    "sha1": "83106178fc72d03d",
    "lqip": "#973",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6313,7 +6313,7 @@
    "sha1": "48d1000dd5ac92f8",
    "lqip": "#a99",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6322,10 +6322,19 @@
      "width": 480,
      "height": 360,
      "bytes": 21028
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-seniors-1-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 40122,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-seniors-1-small.webp 480w",
+    "/guides/category-stock/stock-seniors-1-800.webp 800w",
     "/guides/category-stock/stock-seniors-1.webp 1280w"
    ]
   },
@@ -6359,7 +6368,7 @@
    "sha1": "cd1670aebd2b7365",
    "lqip": "#543",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7441,7 +7450,7 @@
    "sha1": "3613301f3dead81f",
    "lqip": "#665",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7450,10 +7459,19 @@
      "width": 480,
      "height": 320,
      "bytes": 17834
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-tech-meetup-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 35286,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-tech-meetup-1-small.webp 480w",
+    "/guides/category-stock/stock-tech-meetup-1-800.webp 800w",
     "/guides/category-stock/stock-tech-meetup-1.webp 1280w"
    ]
   },
@@ -7464,7 +7482,7 @@
    "sha1": "8987d8171bbd7889",
    "lqip": "#445",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7487,7 +7505,7 @@
    "sha1": "a098eabe7fbe074e",
    "lqip": "#888",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7602,7 +7620,7 @@
    "sha1": "d948f7c437f6f218",
    "lqip": "#554",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7611,11 +7629,19 @@
      "width": 480,
      "height": 320,
      "bytes": 24114
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-transit-2-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 85136,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-transit-2-small.webp 480w",
-    "/guides/category-stock/stock-transit-2.webp 1280w"
+    "/guides/category-stock/stock-transit-2-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-transit-4.webp": {
@@ -7763,7 +7789,7 @@
    "sha1": "57c9781d878deee8",
    "lqip": "#9aa",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -7786,7 +7812,7 @@
    "sha1": "25f8e8a14f7900ea",
    "lqip": "#964",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -7809,7 +7835,7 @@
    "sha1": "c3f50e60270dba2e",
    "lqip": "#332",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -7832,7 +7858,7 @@
    "sha1": "762c13e7f03038da",
    "lqip": "#a75",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
