@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Check, ChevronDown, Gift, HeartHandshake, House, Landmark, ShieldAlert, Stethoscope, TrainFront, Trees, type LucideIcon } from 'lucide-react';
 import { Carousel } from '../../components/ui/Carousel';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -24,6 +24,8 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   // 特大 (UI9-GUIDES): the cover slide only, then 看全部 N 张卡片 opens the rest as one list (no sideways scroller, N25). The
   // button shows in 特大 only (guide-article.css); 简洁显示 hides the whole carousel, whose facts are in 30 秒看懂.
   const [all, setAll] = useState(false);
+  // Each slide is named by its title line (aria-labelledby): the titles are styled lines, not headings (N02).
+  const id = useId();
   const total = editorial.slides.length + 1;
   const sourceTitle = (index?: number) => index && guide.sources[index - 1] ? guide.sources[index - 1].title : undefined;
   // H13: the caution 以机构确认为准 is said once, on the cover slide; each point slide names only its source.
@@ -52,20 +54,20 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
       {/* data-cover="slide": a coded slide, counted as a picture slot and never as photo area (RC-31), like GuideDiagram's
           data-cover="diagram"; not a listing cover, so the render probe of information cards skips it. */}
-      <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="slide">
+      <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="slide" aria-labelledby={`${id}-slide-1`}>
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
         {/* A styled line, not a heading: nothing on the page outranks the H1 (P12). */}
-        <p className="gd-slide__cover-title">{headline(cover.title)}</p>
+        <p className="gd-slide__cover-title" id={`${id}-slide-1`}>{headline(cover.title)}</p>
         <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source" data-template-note="">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
-      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="slide">
+      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="slide" aria-labelledby={`${id}-slide-${index + 2}`}>
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
         {/* N02: a styled line like the cover's, not an H3: a 24 px slide title outranked the article's 20 px step H2s. */}
-        <p className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></p>
+        <p className="gd-slide__title" id={`${id}-slide-${index + 2}`}>{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></p>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}
         {slide.phones && <div className="gd-slide__phones" data-count={slide.phones.length > 2 ? 'many' : undefined}>{slide.phones.map(entry => <div key={entry.tel}>{phone(entry, slide.phones!.length <= 2)}</div>)}</div>}
         {slide.items && <ul className="gd-slide__items">{slide.items.map(item => <li key={item.zh}>{slide.kind === 'checklist' && <Check aria-hidden="true" strokeWidth={2} />}<span>{pick(item)}</span></li>)}</ul>}

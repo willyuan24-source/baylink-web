@@ -31,6 +31,12 @@ test('J3 P12: the hero has one BayBay entry, the ask box; its otter opens BayBay
   fireEvent.change(view.getByRole('textbox', { name: '搜索活动、指南，或问 BayBay' }), { target: { value: '  带爸妈去哪  ' } });
   fireEvent.click(otter);
   assert.deepEqual(asked, [undefined, '带爸妈去哪']);
+  // Review r1: 简洁 keeps no BayBay control in the hero (D6, as before: the submit turns into 问 BayBay), and the otter is
+  // sized in px, so at 大 / 特大 it never takes the example question's room.
+  assert.equal(otter.getAttribute('data-simple'), 'hide');
+  assert.match(HOME_CSS, /\.home-ask__otter \{[^}]*width:44px; height:44px; margin-inline-end:calc\(var\(--sp-1\) \* -1\);/);
+  assert.match(HOME_CSS, /\.home-ask__otter>img \{ width:28px; height:28px; \}/);
+  assert.match(HOME_CSS, /html\[data-simple\] \.home-ask \{ padding-inline-start:var\(--sp-3\); \}/);
 });
 
 test('N11 + N23: the ask box takes the input radius, and every home hover rule sits behind a hover-capable pointer', () => {
@@ -50,6 +56,12 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   // /guides: the elder band on four columns, its rows in 2–4, the panel reaching past the column edges by its own padding.
   assert.match(LIBRARY_CSS, /\.gl-band \{ --gl-band-bleed:var\(--sp-4\); display:grid; grid-template-columns:repeat\(4, minmax\(0, 1fr\)\);[^}]*margin-inline:calc\(var\(--gl-band-bleed\) \* -1\); padding:var\(--sp-5\) var\(--gl-band-bleed\); \}/);
   assert.match(LIBRARY_CSS, /\.gl-band>\.gl-band__rows \{ grid-area:1 \/ 2 \/ 3 \/ -1; \}/);
+  // Review r1: in one column each band guide is a card (the 3:2 picture over the whole title), not a squeezed row, and its
+  // ③④ chip is one line; the band's picture sizes follow (a 286 px column from 1024 px).
+  assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
+  assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
+  assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{[^}]*white-space:nowrap; \}/);
+  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_PICTURE_SIZES = `\(min-width: 1024px\) 286px, \$\{COVER_SIZES\.thumb\}`;/);
   // /my-week starts on the site frame (x=112), as /me.
   assert.match(read('src/pages/MyWeekPage.tsx'), /<PageContainer size="wide" className="my-week">/);
 });
@@ -57,7 +69,10 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
 test('N02: a guide page has no heading that outranks a smaller H2 — slide titles and 目录 are styled lines', () => {
   const carousel = read('src/features/guides/GuideCarousel.tsx');
   assert.doesNotMatch(carousel, /<h3/);
-  assert.match(carousel, /<p className="gd-slide__title">/);
+  assert.match(carousel, /<p className="gd-slide__title" id=\{`\$\{id\}-slide-\$\{index \+ 2\}`\}>/);
+  // Each slide keeps a name without a heading level: its title line labels it.
+  assert.match(carousel, /data-cover="slide" aria-labelledby=\{`\$\{id\}-slide-\$\{index \+ 2\}`\}>/);
+  assert.match(carousel, /data-cover="slide" aria-labelledby=\{`\$\{id\}-slide-1`\}>/);
   const detail = read('src/components/GuideDetail.tsx');
   assert.doesNotMatch(detail, /<h2>\{t\('目录', 'Contents'\)\}<\/h2>/);
   assert.match(detail, /<p className="gd-toc__label">\{t\('目录', 'Contents'\)\}<\/p>/);
