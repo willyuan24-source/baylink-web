@@ -97,8 +97,8 @@ test('N02: a step heading is at least 1.25x the largest text of its step, phone 
   }
 });
 
-test('N05: guide source notes keep 21em (mixed Chinese) and 32em (English)', () => {
-  assert.equal(value('.gd-article .bl-guide-source-note', 'max-width'), '21em');
+test('N05: guide source notes keep 20em (mixed Chinese) and 32em (English)', () => {
+  assert.equal(value('.gd-article .bl-guide-source-note', 'max-width'), '20em');
   assert.equal(value('.gd-article .bl-guide-source-note:lang(en)', 'max-width'), '32em');
 });
 

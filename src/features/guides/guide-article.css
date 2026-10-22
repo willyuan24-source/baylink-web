@@ -14,7 +14,7 @@
 /* N13: three icon sizes on an article — 1rem beside text (links, chips, meta), 1.25rem in buttons and controls, 1.5rem in the
    bar's cells and on a slide title — plus the cover's corner mark. The borrowed parts follow: a phone chip's glyph was 1em of
    its chip (14 · 16 · 17 px), the photo's 查看大图 15 px, 这条信息有误 18 px, 返回湾区指南 24 px. */
-.gd-article :is(.phone-chip svg,.guide-figure-zoom svg,.bl-guide-tip>span>svg) { width:1rem; height:1rem; }
+.gd-article :is(.phone-chip svg,.guide-figure-zoom svg,.bl-guide-tip>span>svg) { flex:none; width:1rem; height:1rem; }
 .gd-article :is(.feedback-report-link svg,.bl-guide-return>svg) { width:1.25rem; height:1.25rem; }
 
 /* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → two meta lines. */
@@ -90,9 +90,10 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 }
 @media (min-width:390px) and (max-width:1023px) {
   html:root:is([data-reading=extra-large],[data-reading=large][data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
-  /* 家人版 (特大 + 简洁): the cells drop their side padding and the bar and the primary keep 4 px, so the number keeps one line. */
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:0; }
+  /* 家人版 (特大 + 简洁): no gaps, the cells drop their side padding (48 px wide at least) and the bar and the primary keep 4 px,
+     so a 1-800 number keeps one line at 23 px. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { gap:0; padding-inline:var(--sp-1); }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { min-width:48px; padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
 }
 /* 大 / 特大 / 简洁 at 390–1023 px: a row has no room for the glyph beside the number, so the primary holds its phone glyph above
@@ -463,9 +464,9 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-sources-more { margin-top:var(--sp-2); }
 .gd-sources-more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
 /* N05: the source note is a footnote of mixed Chinese, names and dates; at --measure (36em) its lines ran to 63 characters
-   (a Latin name is half an em) and to 89 in English (66ch). 21em keeps a mixed Chinese line within 40 characters and 32em an
+   (a Latin name is half an em) and to 89 in English (66ch). 20em keeps a mixed Chinese line within 40 characters and 32em an
    English one within 75. */
-.gd-article .bl-guide-source-note { max-width:21em; margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-article .bl-guide-source-note { max-width:20em; margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-article .bl-guide-source-note:lang(en) { max-width:32em; }
 /* The outing link's small line (outing-inspiration.css) reads at meta size inside an article. */
 .gd-article .outing-inspiration-link small { font-size:var(--fs-meta); }
@@ -508,6 +509,7 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 @media (max-width:1023px) {
   :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top { position:static; display:flex; align-items:center; justify-content:center; gap:var(--sp-2); width:auto; height:auto; min-height:3rem; margin:0 var(--page-gutter) var(--sp-6); padding:0 var(--sp-4); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); }
   :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after { content:attr(aria-label); }
+  :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top>svg { width:1.25rem; height:1.25rem; }
 }
 
 :is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-related__head a,.gd-related__topic a,.gd-credits a,.gd-about a,.gd-toc__list a,.gd-rail__sources,.gd-to-top,.gd-carousel__all,.gd-credit a,.gd-diagram__tel,.gd-keyfacts__sources):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
