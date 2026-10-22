@@ -90,9 +90,9 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 }
 @media (min-width:390px) and (max-width:1023px) {
   html:root:is([data-reading=extra-large],[data-reading=large][data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
-  /* 家人版 (特大 + 简洁): no gaps, the cells drop their side padding (48 px wide at least) and the bar and the primary keep 4 px,
-     so a 1-800 number keeps one line at 23 px. */
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { gap:0; padding-inline:var(--sp-1); }
+  /* 家人版 (特大 + 简洁): the bar drops its side padding, the cells theirs (48 px wide at least) and the primary keeps 4 px, so a
+     1-800 number keeps one line at 23 px. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { min-width:48px; padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
 }
