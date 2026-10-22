@@ -136,16 +136,23 @@ test('CSS: no bespoke button looks, no native marker or grip, measure caps, sect
   const planner = rules('src/styles/planner.css'), library = rules('src/components/planner-web-library.css');
   const all = [...planner, ...library];
   assert.ok(!all.some(rule => /planner-primary|planner-web-button|planner-edit-preview-button|planner-web-cancel|planner-launch-links/.test(rule.selector)), 'the bespoke button rules are gone (N12)');
-  // N13: one rule hides the default ▶ marker on every disclosure of the page, and no textarea is resizable.
-  assert.ok(planner.some(rule => rule.selector === '.planner-page summary' && rule.decls['list-style'] === 'none'));
-  assert.ok(planner.some(rule => rule.selector === '.planner-page summary::-webkit-details-marker' && rule.decls.display === 'none'));
-  assert.ok(planner.some(rule => rule.selector === '.planner-page textarea' && rule.decls.resize === 'none'));
+  // N13: one rule hides the default ▶ marker on every disclosure of 行程 (not My Week's legacy .planner-page blocks), the
+  // + / − mark is silent to screen readers, and no textarea is resizable.
+  const scope = '.planner-page:where(.ui-container)';
+  assert.ok(planner.some(rule => rule.selector === `${scope} summary` && rule.decls['list-style'] === 'none'));
+  assert.ok(planner.some(rule => rule.selector === `${scope} summary::-webkit-details-marker` && rule.decls.display === 'none'));
+  assert.ok(planner.some(rule => rule.selector === `${scope} summary::after` && rule.decls.content === "'+' / ''"));
+  assert.ok(planner.some(rule => rule.selector === `${scope} :where([open])>summary::after` && rule.decls.content === "'−' / ''"));
+  assert.ok(planner.some(rule => rule.selector === `${scope} textarea` && rule.decls.resize === 'none'));
+  assert.ok(!all.some(rule => /^\.planner-page (summary|textarea)/.test(rule.selector)), 'no N13 rule reaches My Week');
+  assert.doesNotMatch(readFileSync('src/components/PlannerTravelCheck.tsx', 'utf8'), /ChevronDown/, 'the travel check uses the shared + / −, not a second mark');
   assert.ok(!all.some(rule => rule.decls.resize && rule.decls.resize !== 'none'));
   // N10: the conflict edge is a border, not an inset shadow.
   assert.ok(!all.some(rule => /inset/.test(rule.decls['box-shadow'] || '')));
   // N15: sections sit --section-gap apart; the page keeps no bottom padding of its own.
-  assert.ok(planner.some(rule => rule.selector === '.planner-page :is(.plan-weekend,.planner-data-slot>*)' && rule.decls['margin-block'] === 'var(--section-gap) 0'));
+  assert.ok(planner.some(rule => rule.selector === '.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(.planner-error,.planner-offline)))' && rule.decls['margin-block'] === 'var(--section-gap) 0'));
   assert.ok(planner.some(rule => rule.selector === 'main .planner-page.ui-container' && rule.decls['padding-bottom'] === '0'));
+  assert.ok(planner.some(rule => /home-section-head__more/.test(rule.selector) && rule.decls['margin-block'] === '-8px'), 'the head link does not make the head row taller than its h2');
   // N05: the wrapped copy has a measure.
   assert.ok(planner.some(rule => /\.planner-place-summary/.test(rule.selector) && rule.decls['max-width'] === 'var(--plan-measure)'));
   assert.ok(planner.some(rule => rule.selector === '.planner-page .planner-place-when' && rule.decls['max-width'] === '25em'));

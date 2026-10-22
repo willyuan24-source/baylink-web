@@ -460,9 +460,10 @@ function SummaryToggle({ more, less }: { more: string; less: string }) {
   const [long, setLong] = useState(false);
   useEffect(() => {
     const summary = ref.current?.parentElement?.querySelector<HTMLElement>('.planner-place-summary');
-    if (open || !summary || typeof ResizeObserver === 'undefined') return;
+    if (open || !summary) return;
     const check = () => setLong(summary.scrollHeight > summary.clientHeight + 1);
     check();
+    if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(check);
     observer.observe(summary);
     return () => observer.disconnect();

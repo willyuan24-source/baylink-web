@@ -42,7 +42,7 @@ const selectedLinks = (view: View) => Array.from(view.container.querySelectorAll
 const timingInputs = (view: View, label: string) => editor(view).getAllByLabelText(label) as HTMLInputElement[];
 /** A list row, paging the list (继续看更多地点) until it is there: the first page is eight rows (UI9-R1-PLAN). */
 function listRow(view: View, key: string) {
-  for (let page = 0; page < 20 && !view.container.querySelector(`[id="catalog-${key}"]`); page++) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
+  for (let more; !view.container.querySelector(`[id="catalog-${key}"]`) && (more = view.queryByRole('button', { name: '继续看更多地点' }));) fireEvent.click(more);
   return view.container.querySelector(`[id="catalog-${key}"]`) as HTMLElement | null;
 }
 function seed(plan = savedPlan()) { localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify(library([plan]))); }

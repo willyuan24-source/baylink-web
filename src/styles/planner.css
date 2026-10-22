@@ -14,16 +14,19 @@
 .planner-page a:not(.ui-button,.ui-card-link):hover { color:var(--color-brand-hover); }
 /* Small label above a panel title in the account panels My Week mounts (bookings, groups); not upper-case, not tracked. */
 .planner-eyebrow { display:flex; align-items:center; gap:8px; line-height:1.4; font-weight:400; }
-/* N13: no default ▶ marker and no resize grip; a disclosure without an icon of its own ends in + / −. */
-.planner-page summary { list-style:none; cursor:pointer; }
-.planner-page summary::-webkit-details-marker { display:none; }
-.planner-page summary::after { content:'+'; margin-left:8px; }
-.planner-page :where([open])>summary::after { content:'−'; }
-.planner-page textarea { resize:none; }
+/* N13 (行程 itself, not My Week's legacy blocks): no default ▶ marker and no resize grip; a disclosure without an icon of its
+ * own ends in + / −, which screen readers skip. */
+.planner-page:where(.ui-container) summary { list-style:none; cursor:pointer; }
+.planner-page:where(.ui-container) summary::-webkit-details-marker { display:none; }
+.planner-page:where(.ui-container) summary::after { content:'+'; content:'+' / ''; margin-left:8px; }
+.planner-page:where(.ui-container) :where([open])>summary::after { content:'−'; content:'−' / ''; }
+.planner-page:where(.ui-container) textarea { resize:none; }
 /* N15: one gap between the page's sections (the two that open on a bare heading give back its half-leading, so the
    visible gap is the same); 行程 keeps no bottom padding of its own (pre-footer = the footer's margin). */
-.planner-page :is(.plan-weekend,.planner-data-slot>*) { margin-block:var(--section-gap) 0; }
-.planner-page :is(.plan-weekend,.plan-days) { margin-top:calc(var(--section-gap) - 8px); }
+.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(.planner-error,.planner-offline))) { margin-block:var(--section-gap) 0; }
+.planner-page .plan-days { margin-top:calc(var(--section-gap) - 8px); }
+/* The head's link may not make its row taller than the h2, so the h2 starts the section whether the head wraps or not. */
+html:not([data-reading$=large],[data-simple]) .planner-page :is(.home-section-head__more,.plan-section-head>.ui-button) { margin-block:-8px; }
 main .planner-page.ui-container { padding-bottom:0; }
 /* N05: copy that wraps holds ≤ 40 characters a line in Chinese (digits and Latin count one each; schedule lines are
    mostly digits, so they wrap at 25em) and ≤ 75 in English. */
