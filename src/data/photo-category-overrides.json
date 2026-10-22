@@ -3,6 +3,9 @@
   "overrides": {
     "event:nov2026-ardenwood-chestnut-treats": "history-heritage",
     "event:sfpl-presidio-plant-stories-dec5-2026": "storytime",
-    "event:oakland-autumn-lights-festival-2026": "community-festival"
+    "event:oakland-autumn-lights-festival-2026": "community-festival",
+    "event:smcl-portola-valley-mid-autumn-lantern-2026": "kids-craft",
+    "event:sf-financial-planning-day-oct24-2026": "tech-meetup",
+    "offer:tech-teachers-tacos-oct23-2026": "tech-meetup"
   }
 }
