@@ -3,9 +3,10 @@
  * the saved list (RowCards with covers) and this week's events. Tokens and rem only; ≥44px targets (48 in 简洁显示).
  * Panels other lanes own (bookings, groups, imported events, preference memory) keep their own styles inside
  * `.my-week__legacy`, which restores the planner-page context they were built for without its page box.
- * The page ends 16px above the footer (UI9-R1 N15: the blank before the footer was 143 with 96 here).
+ * The page ends 12px above the footer (UI9-R1 N15: the blank before the footer was 143 with 96 here; its last line is a
+ * 44px link, so the blank reads 56–62).
  */
-.my-week { padding-block:24px var(--sp-4); color:var(--color-ink); }
+.my-week { padding-block:24px var(--sp-3); color:var(--color-ink); }
 .my-week .ui-page-header { margin-bottom:16px; }
 .my-week__legacy.planner-page { max-width:none; margin:0; padding:0; }
 .my-week__legacy .planner-account-compact { gap:8px 14px; padding:10px 14px; }

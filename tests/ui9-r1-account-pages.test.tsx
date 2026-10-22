@@ -70,7 +70,7 @@ test('/me sits on the wide frame (x = 112 at 1440), tiles on the grid, sections 
 test('pre-footer (N15): /me, my-week, /about and the 404 end at most 24px above the footer', () => {
   assert.match(one('src/features/profile/me-hub.css', '.me-hub').padding, / calc\(env\(safe-area-inset-bottom, 0px\) \+ var\(--sp-5\)\)$/);
   assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-5)');
-  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-4)');
+  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-3)');
   assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-4)');
   assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-5)');
   const page = one('src/components/not-found.css', '.nf-page');

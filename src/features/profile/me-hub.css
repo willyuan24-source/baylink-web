@@ -116,6 +116,10 @@ html[data-simple] .me-language button { min-height:3.75rem; }
   .me-hub,.me-subview { padding-inline:32px; }
   .me-tiles { column-gap:var(--grid-gutter); }
   .me-section { max-width:calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter)); }
+  /* The guest card spans the frame as a banner: its text on the left, 登录 / 注册 at the right, level with it. */
+  .me-guest-card { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:var(--grid-gutter); align-items:center; }
+  .me-guest-card>:not(.ui-button) { grid-column:1; }
+  .me-guest-card>.ui-button { grid-column:2; grid-row:1 / span 2; }
 }
 /* The account pages' first paint (components/AccountShell.tsx: /me, /me/bookings, /my-week, /messages, /together). It is
    prerendered for /me, so account-shell.html links this stylesheet (UI9-R1 J1 P21 / J3 P23): a title bar above its
