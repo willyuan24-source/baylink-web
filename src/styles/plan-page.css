@@ -33,11 +33,12 @@
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr); grid-template-rows:auto 1fr; column-gap:12px; row-gap:4px; align-items:start; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__media { grid-column:1; grid-row:1 / span 2; margin:0; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend :is(.ui-feed-card__title,.ui-feed-card__meta) { grid-column:2; }
-  /* The square photo keeps the date; the price is in the lines under the title: the place, then the price on its own line
-     (at 特大 a long place wrapped around "· 免费"). The meta is a wrapping text line since tokens v2 (not a flex row), so
-     the price is a block of its own; with the dot hidden it never runs into the place ("Main Street部分免费"). */
+  /* The square photo keeps the date; line 2 (status · place, as on every event card) becomes two lines under the title:
+     the status or price, then the place (at 特大 a long place wrapped around the dot). The meta is a wrapping text line
+     (not a flex row), so each is a block of its own once the dot is hidden ("Main Street部分免费" never happens). */
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-price { display:block; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-place { display:block; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-sep { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
@@ -92,14 +93,20 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 .plan-days__more { margin:12px 0 0; }
 @media (min-width:768px) { .plan-days__more { padding-left:8.5rem; } }
 
-/* The list: RowCards with their actions below; the heart is the row's one trailing action. */
+/* The list: RowCards with the ♡ on the thumbnail (cards.css .ui-row-card__save) and 加入计划 as the one trailing action. */
 .planner-place { scroll-margin-top:96px; border-bottom:1px solid var(--color-line); padding-bottom:12px; }
 .planner-place .ui-row-card { border-bottom:0; padding-bottom:4px; }
 .planner-place.is-selected .ui-row-card__thumb { outline:3px solid var(--color-brand); outline-offset:2px; }
 .planner-pin-no { display:inline-grid; place-items:center; min-width:1.5rem; height:1.5rem; margin-right:8px; padding:0 4px; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); line-height:1; vertical-align:1px; }
-.planner-heart { display:grid; place-items:center; width:2.75rem; height:2.75rem; border:1px solid var(--color-line-strong); border-radius:var(--r-circle); background:var(--color-surface); color:var(--color-brand); cursor:pointer; }
-.planner-heart[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
-.planner-heart:disabled { color:var(--color-ink-3); cursor:not-allowed; }
+/* D7 (J1 P8 / J3 P08): 加入计划 on a row is one compact secondary button, not a full outline pill under every row: a 44px
+   calendar+ circle (加入计划 / 替换选中站点 is its name), with the short word 加入 / 替换 beside the icon from 768px. */
+.planner-page .planner-place .planner-add { min-width:var(--control-height); min-height:var(--control-height); padding:0; gap:var(--sp-1); }
+.planner-place .planner-add>svg { width:1.25rem; height:1.25rem; flex:none; color:var(--color-brand); }
+.planner-place .planner-add__label { display:none; }
+@media (min-width:768px) {
+  .planner-page .planner-place .planner-add { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-3); }
+  .planner-place .planner-add__label { display:inline; }
+}
 .planner-place-when { margin:0 0 4px 6.25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
 .planner-place-summary { margin:0 0 8px 6.25rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-place .planner-stop-offers { margin-left:6.25rem; }
@@ -113,6 +120,12 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 .planner-catalog-more { margin-top:16px; }
+/* Follow-up 3 (#60 live check): at 1440 the 40-character measure left one-word tails (「…存好后 / 发给家人。」,
+   「加入这天计 / 划」). The head copy and the empty 已排的日子 balance their lines and break CJK only between phrases (at
+   punctuation and spaces, keep-all), with an any-point break kept for a phrase longer than the line. */
+@media (min-width:768px) {
+  .planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body) { text-wrap:balance; word-break:keep-all; overflow-wrap:break-word; }
+}
 .planner-catalog-tabs { margin:8px 0 4px; }
 /* The example questions wrap inside the card, 12px under the box: the shared chip row's phone bleed (margin 0 -16px, ui.css,
    same specificity and later) ran the first chip into the card edge, cut mid-word, and set the row flush on the textarea. */
