@@ -24,7 +24,9 @@ const SKIP = new Set(['id', 'aliases', 'imageKey', 'imageKeys', 'officialUrl', '
 /**
  * Strings the OPUS contract tests pin as they are (tests/opus-bay-* belong to the 3D world's lane): the Chase Center door
  * times (tests/opus-bay-w7-s-venues.test.ts reads "18:00开门" from the catalog) and the Exploratorium After Dark price line
- * (tests/opus-bay-w9-r-words.test.ts translates it word for word). They go once those tests read the spaced text.
+ * (tests/opus-bay-w9-r-words.test.ts translates it word for word), and the MoAD first-Thursday title, which
+ * tests/opus-bay-w5-calendar.test.ts compares with public/opus-bay/sf/v1/live.json (reference-only; scripts/opus-sf/export-live.ts
+ * writes it). They go once those tests read the spaced text and live.json is re-exported.
  */
 const PINNED: ReadonlySet<string> = new Set([
   '11月5日 19:00；17:30开门',
@@ -32,6 +34,7 @@ const PINNED: ReadonlySet<string> = new Set([
   '普通After Dark官网参考价$22.95；该场最终票价及附加项目按票页',
   '费用与参加条件：普通After Dark官网参考价$22.95；该场最终票价及附加项目按票页 需购票；Tactile Dome等附加项目另订另付。',
   '需购票；Tactile Dome等附加项目另订另付。',
+  'MoAD 10月首周四免费夜场',
 ]);
 
 type Hit = { where: string; text: string };
