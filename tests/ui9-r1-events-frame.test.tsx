@@ -80,7 +80,7 @@ test('a press-sourced item says so on its own card, never in the head (DECISIONS
     // The board loads with its records; a press-sourced shop's card prints 媒体报道 · M/D 核对.
     const { waitFor } = await import('@testing-library/react');
     await waitFor(() => assert.ok(view.container.querySelector('.ui-feed-card, .ui-row-card')));
-    assert.match(view.container.textContent!, /媒体报道 · \d+\/\d+ 核对/);
+    assert.match(view.container.textContent!.replace(/\u00a0/g, ' '), /媒体报道 · \d+\/\d+ 核对/);
   }
 });
 
