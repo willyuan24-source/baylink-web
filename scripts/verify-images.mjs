@@ -158,10 +158,12 @@ for (const [tile, { key, spares = [] }] of tiles) {
   }
   const record = tileRecords.get(key);
   if (!record) continue;
+  // The 480 w file the manifest lists, else the one images:variants writes next to the original (never the original).
   const small = manifest.images[record.src]?.variants.find(variant => variant.rung === 480);
-  const bytes = small?.bytes ?? readPublic(record.src)?.length;
+  const smallFile = small?.file ?? record.src.replace(/\.webp$/, '-small.webp');
+  const bytes = small?.bytes ?? readPublic(smallFile)?.length;
   if (bytes === undefined) { problems.push(`home tile ${tile}: no 480 w file for ${record.src}`); continue; }
-  tileFiles.push({ tile, file: small?.file ?? record.src, bytes });
+  tileFiles.push({ tile, file: smallFile, bytes });
 }
 const tileBytes = tileFiles.reduce((sum, entry) => sum + entry.bytes, 0);
 const bigTiles = tileFiles.filter(entry => entry.bytes > HOME_TILE_BUDGET.each);
