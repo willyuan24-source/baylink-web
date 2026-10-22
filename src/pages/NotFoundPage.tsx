@@ -52,8 +52,8 @@ export default function NotFoundPage() {
       </ul>
     </nav>
     <div className="nf-actions">
-      <Button variant="secondary" to="/">{t('回到首页', 'Back to home')}</Button>
-      {app?.openBayBay && <Button variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button>}
+      <Button to="/">{t('回到首页', 'Back to home')}</Button>
+      {app?.openBayBay && <Button onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button>}
     </div>
     {/* A broken link someone followed is exactly what we want to hear about. */}
     <div className="nf-feedback"><LazyFeedbackLink /></div>
