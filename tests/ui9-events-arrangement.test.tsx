@@ -235,13 +235,11 @@ test('a press report never says 官网核对: the index flags it from the source
     assert.match(card.container.querySelector('.ui-feed-card__trust')!.textContent!, /^媒体报道 · \d+\/\d+ 核对$/);
     cleanup();
   }
-  // 新店: some openings come from press reports — the head counts them and makes no 每条附官方链接 promise.
-  const reports = model.INDEX_OPENINGS.filter(shop => isPressSource(shop.sourceLabel)).length;
-  const facts = page('/events?view=openings').container.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
-  if (reports) {
-    assert.doesNotMatch(facts, /每条附官方链接/);
-    assert.match(facts, new RegExp(`${reports} 条来自媒体报道`));
-  } else assert.match(facts, /每条附官方链接/);
+  // 新店: some openings come from press reports — their cards say 媒体报道 · M/D 核对 (above); the head makes no 每条附官方链接
+  // promise and no press count, for any reader (UI9-R1 AFTER-A1: no check summary in the head, not even screen-reader text).
+  const facts = page('/events?view=openings').container.querySelector('.ev-lede-facts')!;
+  assert.equal(facts.textContent!.replace(/\u00a0/g, ' '), `${model.INDEX_OPENINGS.length} 家新店与开业消息 · 我们怎么核对`);
+  assert.equal(facts.querySelector('.sr-only'), null);
 });
 
 test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook', () => {
@@ -311,7 +309,8 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
   const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
   assert.match(view.container.querySelector('.ev-range')!.textContent!, /^按日期看 · 收录至 /);
   const head = view.container.querySelector('.ev-calendar__head')!;
-  assert.equal(head.querySelector('h2')!.textContent!.replace(/ · \d+ 场$/, ''), `${Number(day.slice(5, 7))}月${Number(day.slice(8, 10))}日 ${weekday(day)}`);
+  // The day in the site's one date pattern (N06: 10/27 周二), the count after a no-break "·".
+  assert.equal(head.querySelector('h2')!.textContent!.replace(/\u00a0· \d+ 场$/, ''), `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))} ${weekday(day)}`);
   assert.ok(head.querySelector('.ev-calendar__mode'));
   const cities = view.container.querySelector('.ev-cities');
   if (cities) {
@@ -323,8 +322,8 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
   const rows = view.container.querySelectorAll('.ev-calendar__rows .ui-row-card');
   assert.ok(rows.length <= 12);
   for (const row of rows) assert.ok(row.querySelector('.ui-row-card__trust'), 'each row keeps ✓ 官网核对');
-  // The facts line keeps the day's check dates (H02).
-  if (rows.length) assert.match(view.container.querySelector('.ev-lede-facts')!.textContent!, /官网核对/);
+  // The head names no check dates: each row prints its own (UI9-R1 AFTER-A1); the facts line is the link alone.
+  assert.equal(view.container.querySelector('.ev-lede-facts')!.textContent, '我们怎么核对');
   const end = view.container.querySelector('.ev-calendar__end');
   const next = addCalendarDays(day, 1);
   if (end) {
@@ -413,7 +412,7 @@ test('events.css and cards.css: hover gated, no font-size literals, spacing on t
   assert.ok(onSteps / spacing.length >= .9, `${onSteps}/${spacing.length} spacing values on steps`);
 });
 
-test('English /calendar: the facts line opens with a capital (it starts on the promise), and keeps its dates whole', async () => {
+test('English /calendar: the facts line opens with a capital (the How we check link alone) and splits no date', async () => {
   const { act } = await import('@testing-library/react');
   const { setLocale } = await import('../src/i18n/locale');
   try {
@@ -425,7 +424,7 @@ test('English /calendar: the facts line opens with a capital (it starts on the p
   } finally { cleanup(); await setLocale('zh-Hans', false); }
 });
 
-test('/calendar facts line: the chosen day\'s events give its check dates, and a day with nothing listed promises nothing', () => {
+test('/calendar facts line: the how-we-check link alone, on a busy day and on a day with nothing listed', () => {
   const facts = (date: string) => {
     const view = render(<MemoryRouter initialEntries={[`/calendar?date=${date}`]}><CalendarPage today={today} /></MemoryRouter>);
     const text = view.container.querySelector('.ev-lede-facts')!.textContent!;
@@ -433,8 +432,8 @@ test('/calendar facts line: the chosen day\'s events give its check dates, and a
     return text;
   };
   const busy = [...new Set(model.INDEX_EVENTS.map(event => nextOccurrence(event, today)).filter((day): day is string => !!day))].sort()[0];
-  assert.match(facts(busy), /^(每条附官方链接|\d+ 条来自媒体报道)\u00a0· 官网核对 .*我们怎么核对$/);
-  // Past the catalog: nothing listed, so no 每条附官方链接 and no check dates; the line is the how-we-check link alone.
+  // The day's rows print their own ✓ lines; the head neither promises nor dates anything (UI9-R1 AFTER-A1).
+  assert.equal(facts(busy), '我们怎么核对');
   assert.equal(facts(addCalendarDays(model.EVENTS_INDEX.edition.throughDate, 400)), '我们怎么核对');
 });
 

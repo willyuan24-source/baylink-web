@@ -37,8 +37,9 @@ function LocationProbe() { const location = useLocation(); return <output data-t
 const routed = (location: string, node: React.ReactNode) => render(<MemoryRouter initialEntries={[location]}>{node}<LocationProbe /></MemoryRouter>);
 const query = (view: ReturnType<typeof render>) => new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams;
 const feedIds = (root: ParentNode) => [...root.querySelectorAll('.ui-feed-card a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/(?:events|offers|openings)\//, ''));
-// jsdom has no matchMedia, so the boards take the phone layout: 4 offers per section; 6 open shops and 4 coming soon.
-const firstOffers = (offers: ReturnType<typeof model.liveOffers>) => boards.offerSections(offers, today).flatMap(section => section.offers.slice(0, 4).map(offer => offer.id));
+// jsdom has no matchMedia, so the boards take the phone layout: 6 offers in 这 7 天 and 4 in the other sections (UI9-R1
+// N24); 6 open shops and 4 coming soon.
+const firstOffers = (offers: ReturnType<typeof model.liveOffers>) => boards.offerSections(offers, today).flatMap(section => section.offers.slice(0, section.id === 'week' ? 6 : 4).map(offer => offer.id));
 const firstShops = (shops: ReturnType<typeof model.filterOpenings>) => boards.openingSections(shops, today).flatMap(section => section.openings.slice(0, section.id === 'open' ? 6 : 4).map(shop => shop.id));
 const heads = (root: ParentNode) => [...root.querySelectorAll('h2.fb-section__head')].map(head => head.textContent);
 

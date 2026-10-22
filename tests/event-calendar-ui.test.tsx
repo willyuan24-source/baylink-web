@@ -29,8 +29,10 @@ async function open(query = '', openBayBay: AppContextValue['openBayBay'] = () =
   return view;
 }
 const onDay = (day: string, region?: string) => INDEX_EVENTS.filter(event => nextOccurrence(event, day) === day && (!region || event.region === region));
-// The day's lead card, then its rows.
-const rowIds = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0].replace('/events/', ''));
+// The day's lead card, then its rows. The second card of a standard phone's 2-up row repeats the next event, whose row
+// follows (CSS shows one of the two, UI9-R1 N18): left out, so each event counts once.
+const pairCopy = (node: Element) => !!node.closest('.ev-calendar__lead .ui-feed-grid > li + li');
+const rowIds = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')].filter(link => !pairCopy(link)).map(link => link.getAttribute('href')!.split('?')[0].replace('/events/', ''));
 // UI9-EVENTS: the lead and 12 rows per page (再看 12 场 for the rest), so a day's first page lists up to 13 of its events.
 const sameIds = (actual: string[], expected: { id: string }[]) => {
   assert.equal(actual.length, Math.min(13, expected.length), `${actual.length} of ${expected.length}`);
@@ -62,7 +64,7 @@ test('加入这天计划 on every listed event of an upcoming day saves into tha
   sameIds(listed, onDay('2026-10-17'));
   // The button loads on its own; a disabled copy holds its place until then.
   await waitFor(() => assert.ok(view.getAllByRole('button', { name: /^加入这天计划：/ }).every(button => !button.hasAttribute('disabled'))));
-  const adds = view.getAllByRole('button', { name: /^加入这天计划：/ });
+  const adds = view.getAllByRole('button', { name: /^加入这天计划：/ }).filter(button => !pairCopy(button));
   assert.equal(adds.length, listed.length);
   await act(async () => { fireEvent.click(adds[0]); });
   const plan = JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0];

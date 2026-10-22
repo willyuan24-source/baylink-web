@@ -6,9 +6,10 @@ import React from 'react';
 import { JSDOM } from 'jsdom';
 
 // UI9-R1-EVENTS-FRAME (round-1 cold review, lanes/UI9-P4/r1/synthesis-r1.json): the events head's facts line is one short
-// line (counts · 我们怎么核对 →) with the promise / press count and the 官网核对 dates behind the link as screen-reader text,
-// hidden in 简洁显示 (J1 P11, J2 P10, D6 / J2 P11); the calendar map's pins use e1 and the selected pair, and the map sheet
-// has no font-size literal (N10, DECISIONS 2 / 13).
+// line (counts · 我们怎么核对 →), hidden in 简洁显示 (J1 P11, J2 P10, D6 / J2 P11); the calendar map's pins use e1 and the
+// selected pair, and the map sheet has no font-size literal (N10, DECISIONS 2 / 13). UI9-R1 AFTER-A1-EVENTS-CAL: nothing sits
+// behind the link either (the promise, press count and 官网核对 dates were screen-reader-only text): each card prints its own
+// ✓ line (DECISIONS 3 / 17) and the method page explains the checks, so every reader gets the same line.
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/events' });
 Object.assign(globalThis, {
   window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement,
@@ -41,7 +42,7 @@ function facts(root: ParentNode) {
 const views = ['/events', '/this-month', '/events?view=perks', '/events?view=openings'];
 const page = (location: string) => render(<MemoryRouter initialEntries={[location]}><EventsView today={today} /></MemoryRouter>);
 const calendar = (location = '/calendar') => render(<MemoryRouter initialEntries={[location]}><CalendarPage today={today} /></MemoryRouter>);
-// The words the line used to print and now keeps behind the link.
+// The words the line used to print (and, until AFTER-A1, kept behind the link as screen-reader text).
 const MOVED = /官网核对|官網核對|每条附官方链接|每條附官方連結|媒体报道|媒體報導|多数|多數|最近|最早|official|news report|mostly|latest|earliest/i;
 
 test('the facts line people see is the counts and 我们怎么核对 → only, on the four events views and /calendar', () => {
@@ -50,35 +51,37 @@ test('the facts line people see is the counts and 我们怎么核对 → only, o
     const view = page(location);
     const { line, seen: text, behind, all } = facts(view.container);
     seen[location] = text;
-    assert.doesNotMatch(text, MOVED, `${location}: ${text}`);
+    assert.doesNotMatch(all, MOVED, `${location}: ${all}`);
     assert.match(text, /^(\d+ 场 · \d+ 场免费|\d+ 条优惠与免费福利|\d+ 家新店与开业消息) · 我们怎么核对$/, location);
-    // The summary is still there for screen readers, in reading order: counts · promise or press count · 官网核对 … · the link.
-    assert.match(behind, /^(每条附官方链接|\d+ 条来自媒体报道)( · 官网核对 .+)? · $/, `${location}: ${behind}`);
-    assert.equal(all, `${text.replace(/我们怎么核对$/, '')}${behind}我们怎么核对`);
+    // Nothing behind the link: the line is the same for every reader.
+    assert.equal(line.querySelector('.sr-only'), null, location);
+    assert.deepEqual([behind, all], ['', text], location);
     assert.equal(line.querySelector('a')!.getAttribute('href'), '/about#about-method-title');
     assert.equal(line.querySelector('a')!.textContent, '我们怎么核对');
     cleanup();
   }
-  // /calendar has no counts in its head: the line people see is the link alone; the day's promise and dates are behind it.
+  // /calendar has no counts in its head (its day head says them): the line is the link alone, on a busy day and on a day
+  // past the catalog alike.
   const view = calendar();
   const { seen: text, behind, all } = facts(view.container);
-  assert.equal(text, '我们怎么核对');
-  assert.match(behind, /^(每条附官方链接|\d+ 条来自媒体报道) · 官网核对 .+ · $/, behind);
-  assert.equal(all, `${behind}我们怎么核对`);
-  // A day past the catalog lists nothing, so nothing sits behind the link either.
+  assert.deepEqual([text, behind, all], ['我们怎么核对', '', '我们怎么核对']);
   cleanup();
   const empty = facts(calendar(`/calendar?date=${addCalendarDays(model.EVENTS_INDEX.edition.throughDate, 400)}`).container);
   assert.deepEqual([empty.seen, empty.behind, empty.all], ['我们怎么核对', '', '我们怎么核对']);
   assert.ok(Object.keys(seen).length === views.length);
 });
 
-test('a press-sourced item is counted behind the link, never on the line itself (DECISIONS 17)', () => {
+test('a press-sourced item says so on its own card, never in the head (DECISIONS 17)', async () => {
   const view = page('/events?view=openings');
-  const { seen, behind } = facts(view.container);
-  const reports = model.INDEX_OPENINGS.filter(item => item.press || /媒体|媒體|news|press/i.test(item.sourceLabel ?? '')).length;
-  assert.doesNotMatch(seen, /媒体报道/);
-  if (reports) assert.match(behind, /^\d+ 条来自媒体报道/);
-  else assert.match(behind, /^每条附官方链接/);
+  const { all } = facts(view.container);
+  assert.doesNotMatch(all, /媒体报道|官网核对|每条附官方链接/);
+  const reports = model.INDEX_OPENINGS.filter(item => item.press || /媒体|媒體|news|press/i.test(item.sourceLabel ?? ''));
+  if (reports.length) {
+    // The board loads with its records; a press-sourced shop's card prints 媒体报道 · M/D 核对.
+    const { waitFor } = await import('@testing-library/react');
+    await waitFor(() => assert.ok(view.container.querySelector('.ui-feed-card, .ui-row-card')));
+    assert.match(view.container.textContent!, /媒体报道 · \d+\/\d+ 核对/);
+  }
 });
 
 test('zh-Hant and English: one short line with the same shape; English keeps a capital and its dates whole behind the link', async () => {
@@ -95,7 +98,7 @@ test('zh-Hant and English: one short line with the same shape; English keeps a c
       const { line, seen } = facts(page(location).container);
       assert.doesNotMatch(seen, MOVED, `${location}: ${seen}`);
       assert.match(seen, /^(\d+ events? · \d+ free|\d+ offers and free perks|\d+ new shops and openings) · How we check$/, `${location}: ${seen}`);
-      assert.doesNotMatch(line.querySelector('.sr-only')?.textContent ?? '', /\b[A-Z][a-z]{2} \d/, 'a date behind the link keeps its no-break space');
+      assert.equal(line.querySelector('.sr-only'), null, location);
       cleanup();
     }
     const { seen, all } = facts(calendar('/en/calendar').container);
@@ -113,9 +116,6 @@ test('简洁显示 hides the facts line through the events column\'s own [data-s
   // The rule lives in events.css (UI9-IMG-A1b / AFTER-A1 own that file); this lane relies on it, so it is pinned here on
   // purpose: an edit there that drops or renames it must move 简洁's hide with it (noted in this lane's PR.md).
   assert.match(readFileSync('src/features/events/events.css', 'utf8'), /html\[data-simple\] \.ev-page \[data-simple=hide\][^{]*\{ *display: *none/);
-  // sr-only is a Tailwind utility: Tailwind emits it because its content globs scan this file, so the line adds no stylesheet.
-  const tailwind = readFileSync('tailwind.config.js', 'utf8');
-  assert.ok(tailwind.includes('"./src/**/*.{js,ts,jsx,tsx}"'), 'Tailwind scans src/features/events/EventsFrame.tsx');
 });
 
 test('the per-card ✓ line stays on every listed card while the head drops its dates (DECISIONS 3 / 17)', () => {

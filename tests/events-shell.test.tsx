@@ -48,7 +48,6 @@ const editorPicks = WEEKEND_PICKS as Record<string, typeof PICKS_1010>;
 const publishedPicks = editorPicks['2026-10-10'];
 editorPicks['2026-10-10'] = PICKS_1010;
 after(() => { if (publishedPicks) editorPicks['2026-10-10'] = publishedPicks; else delete editorPicks['2026-10-10']; });
-const { officialCheckLine, checkSummary } = await import('../src/lib/check-dates');
 
 const originalFetch = globalThis.fetch;
 afterEach(() => { cleanup(); localStorage.clear(); globalThis.fetch = originalFetch; });
@@ -71,12 +70,11 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     assert.equal(page.querySelector('.ev-range')?.textContent, '本周末 · 10/10–11');
     const total = weekendEvents().length;
     const free = weekendEvents().filter(event => isFreeToAttend(event)).length;
-    // H02: the check dates of the listed events (most of them, and the latest), not the edition's 10/7, said as checks
-    // against the official pages (UI9-EVENTS G12), then the quiet 我们怎么核对 → link to /about#about-method-title. A press
-    // report (DECISIONS 17) is left out of the 官网核对 dates and counted instead of the 每条附官方链接 promise.
-    const reports = weekendEvents().filter(event => event.press).length;
-    const checked = officialCheckLine(checkSummary(weekendEvents().filter(event => !event.press).map(event => event.verifiedAt), today)!, zh => zh);
-    assert.equal(page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' '), `${total} 场 · ${free} 场免费 · ${reports ? `${reports} 条来自媒体报道` : '每条附官方链接'} · ${checked} · 我们怎么核对`);
+    // The counts, then the quiet 我们怎么核对 → link to /about#about-method-title; nothing else, for any reader (UI9-R1
+    // AFTER-A1: the check dates are on every card's own ✓ line, DECISIONS 3 / 17, not summarised behind the link).
+    const line = page.querySelector('.ev-lede-facts')!;
+    assert.equal(line.textContent!.replace(/\u00a0/g, ' '), `${total} 场 · ${free} 场免费 · 我们怎么核对`);
+    assert.equal(line.querySelector('.sr-only'), null);
     assert.equal(page.querySelector('.ev-lede-facts a')!.getAttribute('href'), '/about#about-method-title');
     const tabs = [...page.querySelectorAll('nav[aria-label="活动分区"] a')];
     assert.deepEqual(tabs.map(tab => [tab.textContent, tab.getAttribute('href')]), [['本周末', '/events'], ['日历·地图', '/calendar'], ['免费与优惠', '/events?view=perks'], ['新店', '/events?view=openings']]);
@@ -362,8 +360,10 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   assert.equal(days.find(day => day.getAttribute('aria-current') === 'date')?.querySelector('.ev-week__date')?.textContent, '9');
   assert.equal(days.find(day => day.getAttribute('aria-pressed') === 'true')?.querySelector('.ev-week__date')?.textContent, '10');
   const onDay = model.INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-10-10') === '2026-10-10');
-  // One wide lead cover (one-offs first, a real picture first), then rows 12 at a time, with 再看 for the rest.
-  assert.equal(view.container.querySelectorAll('.ev-calendar__lead .ui-feed-card').length, 1);
+  // The lead card (one-offs first, a real picture first) and, for a standard phone's 2-up row, the next event as a card
+  // whose row follows (CSS shows one of the two: UI9-R1 N18); then rows 12 at a time, with 再看 for the rest.
+  assert.equal(view.container.querySelectorAll('.ev-calendar__lead .ui-feed-card').length, Math.min(2, onDay.length));
+  assert.equal(view.container.querySelectorAll('.ev-calendar__pair-row > .ui-row-card').length, onDay.length > 1 ? 1 : 0);
   assert.equal(view.container.querySelectorAll('.ui-row-card').length, Math.min(12, onDay.length - 1));
   if (onDay.length > 13) {
     fireEvent.click(view.getByRole('button', { name: `再看 ${Math.min(12, onDay.length - 13)} 场` }));
@@ -372,7 +372,8 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   const leadHref = view.container.querySelector('.ev-calendar__lead a.ui-card-link')!.getAttribute('href')!;
   const lead = model.INDEX_EVENTS.find(event => leadHref.startsWith(`/events/${event.id}?`))!;
   assert.ok(model.hasRealCover('event', lead, today) || !onDay.some(event => model.hasRealCover('event', event, today)), 'a real photo leads the day when one exists');
-  assert.match(view.container.querySelector('#ev-calendar-day')!.textContent!, new RegExp(`10月10日 周六 · ${onDay.length} 场`));
+  // The day in the site's one date pattern (N06): 10/10 周六, not 10月10日.
+  assert.equal(view.container.querySelector('#ev-calendar-day')!.textContent!.replace(/\u00a0/g, ' '), `10/10 周六 · ${onDay.length} 场`);
   // Cities in one row: the rail prints the Chinese name and is named in both ("圣何塞 San Jose"); the sheet prints both.
   const cityChip = within(view.container.querySelector('.ev-cities')!).getAllByRole('button')[1];
   assert.match(cityChip.textContent!, /^\p{Script=Han}+$/u);
