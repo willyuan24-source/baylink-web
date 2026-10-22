@@ -9,11 +9,12 @@
 /* Base: font and focus come from the site (Tailwind preflight, tokens.css .site-app :focus-visible). */
 .together-page { color:var(--color-ink); font-size:var(--text-body); }
 .together-page :is(button,a) { touch-action:manipulation; }
-.together-page p { margin:0; }
 .together-page label { display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); color:var(--color-ink-2); }
 .together-page :is(input:not([type=checkbox]),textarea,select:not(.ui-select__field)) { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:var(--lh-ui); }
 /* After the field rule above and as specific ((0,2,1)), so a textarea keeps its height. */
 .together-page :is(textarea):not(.ui-select__field) { min-height:6.5rem; max-height:24rem; resize:none; field-sizing:content; line-height:var(--lh-read); }
+/* Where a textarea cannot grow with its text, the reader can still drag it taller. */
+@supports not (field-sizing:content) { .together-page :is(textarea):not(.ui-select__field) { resize:vertical; } }
 .together-page :is(input,textarea):disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); }
 .together-page .outing-check { flex-direction:row; align-items:flex-start; gap:var(--sp-3); min-height:var(--control-height); margin:var(--sp-4) 0; font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-2); }
 .together-page .outing-check input { flex:none; width:1.125rem; height:1.125rem; margin-top:var(--sp-1); accent-color:var(--color-brand); }
@@ -38,6 +39,9 @@
 /* Toggles (the list tabs and the cover picker's modes): the ui chip; on = the selected pair. */
 .together-page :is(.outing-tabs>button,.outing-cover-modes>button) { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; line-height:1.25; }
 .together-page :is(.outing-tabs>button,.outing-cover-modes>button)[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
+/* The toggles and the cover picker's choices are disabled while the form publishes: the token disabled look (N09). */
+.together-page :is(.outing-tabs>button,.outing-cover-modes>button,.outing-cover-options>button):disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+:where(.together-page) button:disabled { cursor:not-allowed; }
 
 /* Small print: 14px (N04), ink-3. */
 .together-page .outing-footnote { font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); }
@@ -73,17 +77,17 @@
 .together-page .outing-filter-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); margin-top:var(--sp-2); }
 .together-page .outing-associated { margin:var(--sp-4) 0; padding:var(--sp-3) var(--sp-4); border-left:3px solid var(--color-brand); font-size:var(--text-fact); line-height:var(--lh-read); }
 .together-page .outing-associated a { display:inline-flex; align-items:center; min-height:var(--control-height); font-weight:600; text-decoration:underline; text-underline-offset:var(--underline-offset); }
-.together-page :is(.outing-inspiration-context,.outing-surface,.outing-ai,.outing-ai-result,.outing-answer-history,.outing-draft-preview,.outing-cover-picker) { border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); }
+.together-page :is(.outing-inspiration-context,.outing-surface,.outing-ai,.outing-ai-result,.outing-answer-history,.outing-draft-preview) { border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); }
 .together-page .outing-inspiration-context h2 { font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .together-page .outing-inspiration-context p { font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-2); }
 
-/* Results: the area keeps the empty state's height while the list loads, so the footer does not move when it arrives
-   (desktop CLS 0.043 → 0, live-1021). */
+/* Results: the area keeps the empty state's height while the list loads, so nothing below it moves when the list arrives
+   (desktop CLS, live-1021). OutingsHub sets .is-reserved except on a cold load's first frame with the footer on screen. */
 .together-page .outing-toolbar { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); margin:var(--sp-5) 0; }
 .together-page .outing-toolbar>.outing-link-button { flex:none; }
 .together-page .outing-toolbar h2 { font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .together-page h2.outing-toolbar { margin-bottom:0; font-size:var(--text-card); font-weight:600; line-height:var(--lh-card); }
-.together-page .outing-results { min-height:20rem; }
+.together-page .outing-results.is-reserved { min-height:20rem; }
 .together-page .outing-read-status { padding:var(--sp-5) 0; font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
 .together-page .outing-empty { display:flex; flex-direction:column; align-items:center; gap:var(--sp-2); padding:var(--sp-5); text-align:center; }
 .together-page .outing-empty>svg { color:var(--color-brand); }
@@ -191,14 +195,20 @@
   .together-page .outing-draft-preview { padding:var(--sp-3); }
   .together-page .outing-draft-preview>div { grid-template-columns:minmax(0,1fr); gap:var(--sp-1); }
   .together-page .outing-form-footer { position:sticky; bottom:var(--sp-3); z-index:2; flex-wrap:wrap; padding:var(--sp-3); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); }
+  /* The note above, the form's one primary full width under it. */
+  .together-page .outing-form-footer>.outing-primary { flex:1 1 100%; }
 }
 @media (max-width:360px) {
   .together-page :is(.outing-filter-main,.outing-facts) { grid-template-columns:minmax(0,1fr); }
 }
 
-/* Outing covers (UI9-IMAGES: B1b / A1b own the cover look; unchanged here). */
+/* Outing covers (UI9-IMAGES: B1b / A1b own the cover look; unchanged here). The page's corners for them are base's:
+   every cover r-lg, the hub card's cover included (base's together-page.css mapping, (0,3,0) after outing-cover.css;
+   outing-cover.css on its own squares the card cover's corners), and the cover picker r-sm. */
 .outing-detail-head .outing-cover-caption>a{min-width:0;max-width:100%}
 .together-page .outing-cover{border-color:var(--color-line-strong);border-radius:var(--r-sm);background:var(--color-surface)}
+.together-page.ui-container .outing-cover,.together-page.ui-container .outing-grid .outing-card>.outing-cover{border-radius:var(--r-lg)}
+.together-page .outing-cover-picker{border:1px solid var(--color-line-strong);border-radius:var(--r-sm);background:var(--color-surface)}
 .together-page .outing-cover-caption{background:var(--color-surface)}
 .together-page .outing-cover-caption>a{min-height:var(--control-height);font-size:var(--text-fact);color:var(--color-brand)}
 .together-page .outing-cover-caption>a>span{white-space:normal;overflow:visible;text-overflow:clip}

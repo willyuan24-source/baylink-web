@@ -535,7 +535,8 @@ test('a verified host can start from a concrete filtered date while an unverifie
   t.mock.method(api, 'request', async () => ({ outings: [outing()], nextCursor: null }));
   const view = render(hub(host, '/together?date=2026-10-17')); await view.findByRole('link', { name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '发起小队' }));
-  assert.equal((view.getByLabelText('参加日期') as HTMLInputElement).value, '2026-10-17');
+  // The host form loads on demand (OutingDetail.tsx OutingForm).
+  assert.equal((await view.findByLabelText('参加日期') as HTMLInputElement).value, '2026-10-17');
   assert.equal((view.getByRole('button', { name: '发布小队' }) as HTMLButtonElement).disabled, true);
   const unverified = { ...user, isPhoneVerified: false }; signIn(unverified);
   view.rerender(hub(unverified, '/together?date=2026-10-17')); await view.findByRole('link', { name: initial.title });
@@ -775,7 +776,7 @@ test('a guide inspiration URL previews its cover, carries it into creation and s
   assert.equal(inspiration.getByRole('link', { name: `参考内容 · ${coverGuide.title}` }).getAttribute('href'), `https://www.baylink.us/guides/${coverGuide.slug}`);
   assert.equal(writes.length, 0, 'following a content link never publishes an outing');
   fireEvent.click(inspiration.getByRole('button', { name: '用这张配图发起小队' }));
-  const editor = within(view.getByRole('region', { name: '发起小队' }));
+  const editor = within(await view.findByRole('region', { name: '发起小队' }));
   assert.equal(editor.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
   assert.equal((editor.getByRole('textbox', { name: '公共集合地点' }) as HTMLInputElement).value, '', 'reference content must not invent a meeting place');
   assert.equal((editor.getByLabelText('参加日期') as HTMLInputElement).value, initial.date);
@@ -827,7 +828,7 @@ test('host editing reopens a saved guide cover and persists an explicit text-car
   });
   const view = render(detail(host));
   fireEvent.click(await view.findByRole('button', { name: '编辑安排' }));
-  assert.equal(view.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal((await view.findByRole('img')).getAttribute('src'), getGuideMedia(coverGuide).cover.src);
   assert.equal(view.getByRole('button', { name: '从攻略与资讯选图' }).getAttribute('aria-pressed'), 'true');
   fireEvent.click(view.getByRole('button', { name: '文字卡片' }));
   assert.equal(view.queryByRole('img'), null); assert.equal(writes.length, 0, 'cover changes remain a private unsaved draft');
@@ -837,7 +838,7 @@ test('host editing reopens a saved guide cover and persists an explicit text-car
   assert.equal(writes[0].revision, 4); assert.equal(writes[0].date, initial.date); assert.equal(writes[0].venue, initial.venue);
   assert.equal('planVersion' in writes[0], false, 'the server owns decisions about plan versions');
   fireEvent.click(view.getByRole('button', { name: '编辑安排' }));
-  assert.equal(view.getByRole('button', { name: '文字卡片' }).getAttribute('aria-pressed'), 'true');
+  assert.equal((await view.findByRole('button', { name: '文字卡片' })).getAttribute('aria-pressed'), 'true');
   assert.equal(view.queryByRole('img'), null);
 });
 

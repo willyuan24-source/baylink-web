@@ -4,18 +4,13 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { MONTHLY_EVENTS } from '../../data/monthly-edition';
 import { getBayAreaToday } from '../../lib/monthly';
 import { outings, type Outing, type OutingAiDraft, type OutingCreate, type OutingDraft, type OutingResult } from '../../lib/outings';
-import { outingDays, outingTimes, useOutingCopy } from './outing-copy';
+import { OUTING_DAYS_AHEAD, outingDays, outingTimes, useOutingCopy } from './outing-copy';
 import { Select } from '../../components/ui/Select';
 import { dateWords } from '../../components/ui/date-words';
 import { outingError, type OutingSession } from './outing-session';
 import { OutingCoverPicker } from './OutingCoverPicker';
 
-export const emptyOutingDraft = (eventId = '', date = ''): OutingDraft => {
-  const event = MONTHLY_EVENTS.find(row => row.id === eventId);
-  return { title: event ? `${event.title} · 一起去` : '', description: '', eventId: event?.id || null, date,
-    startTime: '', endTime: '', city: event?.city || '', venue: event?.venue || '', capacity: 4,
-    costNote: '', transport: 'own', language: 'any' };
-};
+// Loaded on demand (OutingDetail.tsx `OutingForm`): 发起小队 and 编辑安排 open it; the hub's first load does not carry it.
 type Props = { initial: OutingDraft; outing?: Outing; session: OutingSession; onSaved: (result: OutingResult) => void; onCancel: () => void; onRefresh?: () => void };
 export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefresh }: Props) {
   const { t, locale } = useOutingCopy(), words = dateWords(locale);
@@ -96,7 +91,7 @@ export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefr
         <OutingCoverPicker outing={draft} onChange={cover => set('cover', cover)} disabled={busy} />
       </section>
       <section className="outing-form-section"><h3><span className="outing-step">02</span>{t('把时间和地点说清楚', 'Set the time and meeting place')}</h3><div className="outing-fields">
-        <label>{t('参加日期', 'Outing date')}<Select required value={draft.date} onChange={e => set('date', e.target.value)}><option value="" disabled>{t('选择日期', 'Choose a date')}</option>{outingDays(getBayAreaToday(), 90, draft.date).map(value => <option key={value} value={value}>{words.day(value)}</option>)}</Select></label><label>{t('人数上限（包含你）', 'Capacity (including you)')}<Select value={draft.capacity} onChange={e => set('capacity', Number(e.target.value))}>{[2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</Select></label>
+        <label>{t('参加日期', 'Outing date')}<Select required value={draft.date} onChange={e => set('date', e.target.value)}><option value="" disabled>{t('选择日期', 'Choose a date')}</option>{outingDays(getBayAreaToday(), OUTING_DAYS_AHEAD, draft.date).map(value => <option key={value} value={value}>{words.day(value)}</option>)}</Select></label><label>{t('人数上限（包含你）', 'Capacity (including you)')}<Select value={draft.capacity} onChange={e => set('capacity', Number(e.target.value))}>{[2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</Select></label>
         <label>{t('集合时间', 'Meeting time')}<Select required value={draft.startTime} onChange={e => set('startTime', e.target.value)}><option value="" disabled>{t('选择时间', 'Choose a time')}</option>{outingTimes(draft.startTime).map(value => <option key={value} value={value}>{value}</option>)}</Select></label><label>{t('预计结束时间', 'Expected end time')}<Select required value={draft.endTime} onChange={e => set('endTime', e.target.value)}><option value="" disabled>{t('选择时间', 'Choose a time')}</option>{outingTimes(draft.endTime).map(value => <option key={value} value={value}>{value}</option>)}</Select></label>
         <p className="outing-footnote is-wide">{t('日期和时间均按湾区当地时间 America/Los_Angeles。多日活动请只选本小队实际参加的一天。', 'All dates and times use America/Los_Angeles. For a multi-day event, choose the one day this outing will attend.')}</p>
         <label>{t('城市', 'City')}<input required maxLength={80} value={draft.city} onChange={e => set('city', e.target.value)} /></label><label>{t('公共集合地点', 'Public meeting place')}<input required maxLength={200} value={draft.venue} onChange={e => set('venue', e.target.value)} placeholder={t('明确场所与入口，不填私人住址', 'Name the public place and entrance, not a home address')} /></label>

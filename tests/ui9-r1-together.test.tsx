@@ -21,7 +21,7 @@ const { MemoryRouter } = await import('react-router-dom');
 const { OutingsHub } = await import('../src/features/outings/OutingsHub');
 const { OutingForm } = await import('../src/features/outings/OutingForm');
 const { useOutingSession } = await import('../src/features/outings/outing-session');
-const { outingDays, outingTimes } = await import('../src/features/outings/outing-copy');
+const { outingDays, outingTimes, outingLastDay, OUTING_DAYS_AHEAD } = await import('../src/features/outings/outing-copy');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
 const { measureStyle } = await import('../scripts/check-style-ratchet.mjs');
@@ -53,6 +53,44 @@ test('the hub has no native date, time or select control: date chips (未来 7 �
   assert.equal((view.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).placeholder, '旧金山 / SF');
 });
 
+test('choosing the selected quick range again clears the dates; a URL range that is no quick range reads in words with no chip on', async t => {
+  const requests: URLSearchParams[] = [];
+  t.mock.method(api, 'request', async (path: string) => { requests.push(new URL(path, 'https://example.test').searchParams); return { outings: [], nextCursor: null }; });
+  const view = render(hub()); await view.findByText('还没有符合条件的小队');
+  const weekend = () => view.getByRole('button', { name: '本周末' });
+  await act(async () => { weekend().click(); }); await view.findByText('10月3日周六 — 10月4日周日');
+  assert.equal(weekend().getAttribute('aria-pressed'), 'true');
+  assert.equal(requests.at(-1)!.get('dateFrom'), '2026-10-03'); assert.equal(requests.at(-1)!.get('dateTo'), '2026-10-04');
+  await act(async () => { weekend().click(); }); await act(async () => {});
+  assert.equal(requests.at(-1)!.has('dateFrom'), false); assert.equal(requests.at(-1)!.has('dateTo'), false);
+  assert.equal(weekend().getAttribute('aria-pressed'), 'false');
+  assert.equal(view.queryByRole('button', { name: '清除日期' }), null);
+  cleanup();
+  const range = render(hub('/together?dateFrom=2026-10-08&dateTo=2026-10-12')); await range.findByText('还没有符合条件的小队');
+  const chips = within(range.getByRole('group', { name: '参加日期' })).getAllByRole('button');
+  assert.deepEqual(chips.filter(chip => chip.getAttribute('aria-pressed') === 'true').map(chip => chip.textContent), []);
+  assert.ok(range.getByText('10月8日周四 — 10月12日周一'));
+  assert.ok(range.getByRole('button', { name: '清除日期' }));
+});
+
+test('the results area reserves the empty state height while loading, except on a first frame with the site footer on screen', async t => {
+  let release = () => {};
+  t.mock.method(api, 'request', () => new Promise(resolve => { release = () => resolve({ outings: [], nextCursor: null }); }));
+  const plain = render(hub());
+  assert.ok(plain.container.querySelector('.outing-results.is-reserved'), 'no footer on screen: the area keeps its height from the first frame');
+  await act(async () => { release(); }); await plain.findByText('还没有符合条件的小队');
+  cleanup();
+  // A footer in view (jsdom lays everything out at top 0): a cold load's route-wait fallback left it on screen.
+  const footer = document.body.appendChild(document.createElement('footer')); footer.className = 'site-footer';
+  try {
+    const cold = render(hub());
+    assert.ok(cold.container.querySelector('.outing-results'));
+    assert.equal(cold.container.querySelector('.outing-results.is-reserved'), null, 'the first frame does not push an on-screen footer further');
+    await act(async () => { release(); }); await cold.findByText('还没有符合条件的小队');
+    assert.ok(cold.container.querySelector('.outing-results.is-reserved'), 'from the first loaded list on, loads keep the height');
+  } finally { footer.remove(); }
+});
+
 test('one filled primary in the head section: 筛选小队 is secondary; the empty and error states are the ui states', async t => {
   let fail = true;
   t.mock.method(api, 'request', async () => { if (fail) throw { status: 503 }; return { outings: [], nextCursor: null }; });
@@ -79,6 +117,10 @@ test('the host form picks days in words and quarter hours from the ui Select, ke
   assert.equal(date.value, '2026-10-17'); assert.equal(date.selectedOptions[0].textContent, '10月17日周六');
   assert.equal(start.value, '14:10', 'an AI or saved time off the quarter hours stays selectable');
   assert.doesNotMatch(view.container.textContent ?? '', /\d{1,2}\/\d{1,2}\/\d{4}/);
+  const days = [...date.options].map(option => option.value).filter(Boolean);
+  assert.equal(OUTING_DAYS_AHEAD, 180, 'the API takes outings up to 180 days ahead');
+  assert.equal(days[0], '2026-09-30'); assert.equal(days.at(-1), '2027-03-29'); assert.equal(outingLastDay('2026-09-30'), '2027-03-29');
+  assert.equal(outingDays('2026-09-30').length, 181);
   assert.equal(outingDays('2026-09-30', 90).length, 91); assert.equal(outingDays('2026-09-30', 90)[0], '2026-09-30');
   assert.deepEqual(outingDays('2026-09-30', 2, '2026-09-01'), ['2026-09-01', '2026-09-30', '2026-10-01', '2026-10-02']);
   assert.equal(outingTimes().length, 96); assert.deepEqual(outingTimes().slice(0, 3), ['00:00', '00:15', '00:30']);
@@ -109,7 +151,11 @@ test('disabled controls use the token look, small print is 14px, the page has no
   const decl = (selector: string, prop: string) => { let value = ''; outings.walkRules(rule => { if (rule.selector === selector && rule.parent?.type === 'root') rule.walkDecls(prop, d => { value = d.value; }); }); return value; };
   assert.equal(decl('.together-page .outing-footnote', 'font-size'), 'var(--text-fact)');
   assert.equal(decl('.together-page :is(.outing-primary,.outing-secondary):disabled', 'color'), 'var(--color-ink-3)');
-  assert.equal(decl('.together-page .outing-results', 'min-height'), '20rem');
+  assert.equal(decl('.together-page .outing-results.is-reserved', 'min-height'), '20rem');
+  assert.equal(decl('.together-page :is(.outing-tabs>button,.outing-cover-modes>button,.outing-cover-options>button):disabled', 'color'), 'var(--color-ink-3)', 'toggles and cover choices have the disabled look');
+  outings.walkRules(rule => { if (rule.selector.trim() === '.together-page p') assert.fail('a page-wide p margin reset outranks the component rules (cover picker, poll)'); });
+  assert.equal(decl('.together-page.ui-container .outing-cover,.together-page.ui-container .outing-grid .outing-card>.outing-cover', 'border-radius'), 'var(--r-lg)', 'covers keep base corners');
+  assert.equal(decl('.together-page .outing-cover-picker', 'border-radius'), 'var(--r-sm)');
   assert.match(outings.toString(), /select:not\(\.ui-select__field\)/, 'the page field rule leaves the ui Select alone');
   assert.match(css('src/pages/together-page.css'), /padding:var\(--sp-5\) var\(--page-gutter\) 0;/);
 });
