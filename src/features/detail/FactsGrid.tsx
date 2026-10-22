@@ -14,7 +14,7 @@ import './facts-grid.css';
 
 /**
  * "一眼看懂" (UI9-DETAIL, content arrangement 10-19; UI9-R1-DETAIL): one card, the facts in a fixed order per kind, one per
- * row (event 何时 · 在哪 · 多少钱 · 适合, the last two side by side on a phone when both are short, PAIR_UNITS; offer 有效期 ·
+ * row (event 何时 · 在哪 · 多少钱 · 适合, the last two side by side on a phone when both are short, PAIR_FOR_UNITS; offer 有效期 ·
  * 福利 | 要不要消费 · 在哪, its two short values side by side; opening 开业 · 在哪 · 类型). Each fact: an icon and a 14 px label, then the key on line 1 at 600 (适合's list at 400) and everything
  * after it as the note at 400. The label line has one quiet right slot: 地图 ↗ on 在哪,
  * and 官方页 ↗ / 商家官网 ↗ on 何时 / 有效期 / 开业 whenever the page's primary action is not the official link (`official`).
@@ -36,12 +36,15 @@ export type FactsLink = { href: string; label: string };
 export const NOTE_CLAMP_UNITS = 46;
 
 /**
- * H58 (UI9-R1-DETAIL review): on a phone in 标准 an event's 多少钱 | 适合 share a row again when both read on one line of a
- * half card (about 139px at 360 px, 154px at 390: 8 units at the 17px key) and the cost note, if any, fits two lines of it
- * (14px note); a longer 适合 or note takes the whole row (J1 P14), so the card is never taller than the one-per-row card.
+ * H58 (UI9-R1-DETAIL review): on a phone in 标准 an event's 多少钱 | 适合 share a row again when the price key reads on one
+ * line of a half card (about 139px at 360 px, 154px at 390: 8 units at the 17px key) and 适合 on at most two (16 units, at
+ * 400), so the card ends sooner above the fixed bar; a longer 适合 takes the whole row (J1 P14). In a half card the cost note
+ * clamps from PAIR_NOTE_UNITS (two lines at the 14px note on a 390 px phone, the pre-R1 threshold) instead of
+ * NOTE_CLAMP_UNITS, and keeps the fade and the 展开 line of its own.
  */
 export const PAIR_UNITS = 8;
-export const PAIR_NOTE_UNITS = 20;
+export const PAIR_FOR_UNITS = 16;
+export const PAIR_NOTE_UNITS = 22;
 
 /** Catalog text as a cell value or note, or undefined when no reader text is left (readerProse). */
 function readerNode(text: string | undefined, locale: Locale): ReactNode {
@@ -115,8 +118,7 @@ export function EventFacts({ event, today, official }: { event: MonthlyEvent; to
   const costNote = cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined;
   const costValue = price ? pick(price.text) : cost ? t('费用待确认', 'Cost not confirmed') : t('票价见官网', 'See the official site');
   const audienceText = audience.map(value => translateText(value, locale)).join(' / ');
-  const pair = !!audienceText && displayUnits(audienceText) <= PAIR_UNITS && displayUnits(costValue) <= PAIR_UNITS
-    && (!costNote || displayUnits(costNote) <= PAIR_NOTE_UNITS);
+  const pair = !!audienceText && displayUnits(audienceText) <= PAIR_FOR_UNITS && displayUnits(costValue) <= PAIR_UNITS;
   // The key is C's eventWhenLine as written (one date and one time style site-wide, N06). Several upcoming session days
   // follow as the note (on an ended page, all of them, so its archive keeps the whole run); a listing without sessions keeps
   // its own date line as the note while the key names no time. Whether it does is read from the zh line in every locale:
@@ -140,7 +142,7 @@ export function EventFacts({ event, today, official }: { event: MonthlyEvent; to
     // The value is always short (免费 / 部分免费 / $8–12 / 收费, design.md §4.9): the listing's cost sentence is the note under
     // it, never a paragraph in the key. With no price at all the key says so instead of guessing.
     { key: 'cost', icon: <Ticket aria-hidden="true" />, label: t('多少钱', 'Cost'),
-      value: costValue, note: costNote, clamp: !!costNote && displayUnits(costNote) > NOTE_CLAMP_UNITS },
+      value: costValue, note: costNote, clamp: !!costNote && displayUnits(costNote) > (pair ? PAIR_NOTE_UNITS : NOTE_CLAMP_UNITS) },
   ];
   if (audienceText) cells.push({ key: 'for', icon: <Users aria-hidden="true" />, label: t('适合', 'Good for'), value: audienceText });
   return <Facts cells={cells} label={t('一眼看懂', 'At a glance')} pair={pair} />;

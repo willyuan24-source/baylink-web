@@ -23,7 +23,7 @@ const { StaticRouter } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
-const { NOTE_CLAMP_UNITS, PAIR_UNITS, PAIR_NOTE_UNITS } = await import('../src/features/detail/FactsGrid');
+const { NOTE_CLAMP_UNITS, PAIR_UNITS, PAIR_FOR_UNITS, PAIR_NOTE_UNITS } = await import('../src/features/detail/FactsGrid');
 const { displayUnits } = await import('../src/lib/event-facts');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -77,9 +77,9 @@ test('J1 P14: one fact per row, the offer\'s two short values side by side, 适�
   assert.ok(NOTE_CLAMP_UNITS >= 44 && NOTE_CLAMP_UNITS <= 48, 'two lines of the full-width note');
 });
 
-test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) only when both fit one line of a half card', () => {
+test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) only when the price fits one line of a half card and 适合 two', () => {
   assert.equal(decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts[data-pair]', '(max-width:767px)')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
-  assert.ok(PAIR_UNITS <= 8 && PAIR_NOTE_UNITS <= 22, 'a half card is about 139 px at 360');
+  assert.ok(PAIR_UNITS <= 8 && PAIR_FOR_UNITS <= 16 && PAIR_NOTE_UNITS <= 22, 'a half card is about 139 px at 360');
   let paired = 0, single = 0;
   for (const item of localDiscoveries.filter(row => row.kind === 'event').slice(0, 60)) {
     const doc = page(`event:${discoveryShare(item).id}`);
@@ -88,13 +88,15 @@ test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) only when b
     const cost = facts.querySelector('[data-fact="cost"]');
     const costKey = cost?.querySelector('.detail-fact__key')?.textContent ?? '';
     const note = cost?.querySelector('dd>small')?.textContent ?? '';
+    const id = discoveryShare(item).id;
     if (facts.hasAttribute('data-pair')) {
       paired++;
-      assert.ok(forValue && displayUnits(forValue) <= PAIR_UNITS && displayUnits(costKey) <= PAIR_UNITS && displayUnits(note) <= PAIR_NOTE_UNITS, `${discoveryShare(item).id}: ${costKey} | ${forValue}`);
-      assert.equal(cost?.hasAttribute('data-clamp'), false);
+      assert.ok(forValue && displayUnits(forValue) <= PAIR_FOR_UNITS && displayUnits(costKey) <= PAIR_UNITS, `${id}: ${costKey} | ${forValue}`);
+      assert.equal(cost?.hasAttribute('data-clamp'), displayUnits(note) > PAIR_NOTE_UNITS, `${id}: the half card clamps from two of its lines`);
     } else {
       single++;
-      assert.ok(!forValue || displayUnits(forValue) > PAIR_UNITS || displayUnits(costKey) > PAIR_UNITS || displayUnits(note) > PAIR_NOTE_UNITS, discoveryShare(item).id);
+      assert.ok(!forValue || displayUnits(forValue) > PAIR_FOR_UNITS || displayUnits(costKey) > PAIR_UNITS, id);
+      assert.equal(!!cost?.hasAttribute('data-clamp'), displayUnits(note) > NOTE_CLAMP_UNITS, `${id}: the full row clamps from two of its lines`);
     }
   }
   assert.ok(paired > 0 && single > 0, `both kinds sampled (${paired} paired, ${single} one per row)`);

@@ -123,12 +123,15 @@ test('a 何时 line wraps only between its pieces: dates, and the time after " �
 });
 
 // H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note made the card run under the phone's action bar.
-// UI9-R1-DETAIL (J1 P14): the cost fact now has the card's whole row, so only a note longer than two lines of it (Petaluma,
-// Dickens) is clamped, with 展开 on a line of its own; a two-line note (Pleasanton) shows whole. The sentence stays whole in
-// the markup either way.
+// UI9-R1-DETAIL (J1 P14): a cost fact on the card's whole row (适合 too long to share it) clamps only a note longer than two
+// lines of it (Petaluma, Dickens), with 展开 on a line of its own; a two-line note (Pleasanton) shows whole. Beside a short
+// 适合 (data-pair, H58 review) the half card clamps from two of its own lines, the pre-R1 threshold. The sentence stays whole
+// in the markup either way.
+const wide = { audience: ['现场演出爱好者', '朋友结伴', '本地居民'], ageChip: undefined };
 test('a long cost note is marked for the two-line clamp with a 展开 toggle; a short one is not', () => {
   const long = '基础入场及停车免费；日间大迷宫6岁以上$9、5岁及以下免费；周五周六夜迷宫$13；其他项目、南瓜和餐饮另付。';
-  const doc = facts({ ...baseEvent(), cost: 'paid', price: { min: 9, max: 13 }, costLabel: long } as MonthlyEvent);
+  const doc = facts({ ...baseEvent(), ...wide, cost: 'paid', price: { min: 9, max: 13 }, costLabel: long } as MonthlyEvent);
+  assert.ok(!doc.querySelector('.detail-facts')!.hasAttribute('data-pair'), 'a long 适合 takes its own row');
   const cell = doc.querySelector('[data-fact="cost"]')!;
   assert.ok(cell.hasAttribute('data-clamp'), 'long note: clamped on a phone');
   const note = cell.querySelector('dd > small')!;
@@ -139,11 +142,18 @@ test('a long cost note is marked for the two-line clamp with a 展开 toggle; a 
   assert.equal(toggle.getAttribute('aria-controls'), note.id);
   assert.equal(toggle.getAttribute('aria-label'), '展开：多少钱');
   const twoLines = '18 岁以上 $28.80、4–17 岁 $22.80，3 岁及以下免费；停车 $15（只收刷卡和手机支付）。';
-  const whole = facts({ ...baseEvent(), cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: twoLines } as MonthlyEvent);
+  const whole = facts({ ...baseEvent(), ...wide, cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: twoLines } as MonthlyEvent);
   assert.ok(!whole.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'), 'two lines of the card: shown whole, no 展开');
-  const short = facts({ ...baseEvent(), cost: 'paid', price: { min: 20 }, costLabel: '普通 $20；会员 $15。' } as MonthlyEvent);
+  const short = facts({ ...baseEvent(), ...wide, cost: 'paid', price: { min: 20 }, costLabel: '普通 $20；会员 $15。' } as MonthlyEvent);
   assert.ok(!short.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'));
   assert.equal(short.querySelectorAll('.detail-fact__toggle').length, 0);
+  const narrow = { audience: ['全家'], ageChip: undefined };
+  const half = facts({ ...baseEvent(), ...narrow, cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: twoLines } as MonthlyEvent);
+  assert.ok(half.querySelector('.detail-facts')!.hasAttribute('data-pair'), '多少钱 | 适合 share the row');
+  assert.ok(half.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'), 'over two lines of the half card: clamped');
+  const halfShort = facts({ ...baseEvent(), ...narrow, cost: 'paid', price: { min: 20 }, costLabel: '普通 $20；会员 $15。' } as MonthlyEvent);
+  assert.ok(halfShort.querySelector('.detail-facts')!.hasAttribute('data-pair'));
+  assert.ok(!halfShort.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'));
   assert.ok(NOTE_CLAMP_UNITS >= 44 && NOTE_CLAMP_UNITS <= 48, 'about two lines of the 324px card at 14px');
 });
 

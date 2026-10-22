@@ -1,6 +1,7 @@
 /* 一眼看懂 (UI9-DETAIL; UI9-R1-DETAIL, J1 P14): a white card, one fact per row (何时 · 在哪 · 多少钱 · 适合; an opening's
    类型); an offer's two short values, 福利 | 要不要消费, share a row, and so do an event's 多少钱 | 适合 on a phone in 标准
-   when both fit one line of a half card (FactsGrid PAIR_UNITS, data-pair; H58: the card ends sooner above the bar). Line 1 of a fact is its key at 600 (适合 is a list,
+   when the price fits one line of a half card and 适合 two (FactsGrid PAIR_FOR_UNITS, data-pair; H58: the card ends sooner
+   above the bar; the note then clamps at two lines of the half card). Line 1 of a fact is its key at 600 (适合 is a list,
    so it stays at 400), the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. Loaded with FactsGrid
    (the detail route and its skeleton), not on every page; the page frame is local-discovery-detail.css. */
 .local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
