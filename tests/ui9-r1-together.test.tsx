@@ -210,7 +210,7 @@ test('UI9-R1 polish: 我的小队 for a guest leads with 登录后继续; the la
   // The filter Select keeps the pill (select.css --chip); every form Select takes the field corner.
   assert.ok(browse.container.querySelector('select[name=language]')!.classList.contains('ui-select__field--chip'));
   const field = browse.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement;
-  assert.equal(field.placeholder, '散步、看展、咖啡或集合地点');
+  assert.equal(field.placeholder, '散步、看展、咖啡或集合点');
   assert.notEqual(field.parentElement!.querySelector('svg')!.getAttribute('width'), '16', 'the magnifier is sized by CSS (1em), not a fixed 16px');
   const css = postcss.parse(readFileSync('src/features/outings/outings.css', 'utf8'));
   const decl = (selector: string, prop: string) => { let value: string | undefined; css.walkRules(rule => { if (rule.selector === selector && !(rule.parent?.type === 'atrule')) rule.walkDecls(prop, d => { value = d.value; }); }); return value; };

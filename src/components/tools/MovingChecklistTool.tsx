@@ -101,13 +101,14 @@ function MovingChecklistSession({ storageScope, onToast }: MovingChecklistProps)
         <label><input type="checkbox" checked={item.done} onChange={() => toggle(item.id)} /><span translate="no">{item.label}</span></label>
         <button type="button" className="ui-button" data-variant="secondary" aria-label={`删除待办：${item.label}`} onClick={() => { persist({ ...state, custom: state.custom.filter(task => task.id !== item.id) }); setInputError(null); }}>删除</button>
       </div>)}
-      {/* 新待办 (UI9-R1 N1): the field and 添加待办 share one row at one height, the hint under both; a short example, so
-          the placeholder is whole beside the button on a 390 phone. */}
+      {/* 新待办 (UI9-R1 N1): the field and its button share one row at one height, the hint under both. A short example and
+          a one-word button (named 添加待办 for assistive tech, under the field labelled 新待办), so the placeholder is whole
+          beside it on a 390 phone up to 家人版 (23px). */}
       <form className="tool-field tool-checklist-add" onSubmit={event => { event.preventDefault(); add(); }}>
         <label htmlFor={fieldId}>新待办</label>
         <div className="tool-checklist-add-row">
           <input id={fieldId} type="text" maxLength={MAX_MOVING_TASK_LENGTH} value={customText} placeholder="例如：第一晚用品" aria-describedby={`${fieldId}-hint${inputError ? ` ${fieldId}-error` : ''}`} onChange={event => { setCustomText(event.target.value); setInputError(null); }} onKeyDown={event => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) event.preventDefault(); }} />
-          <button type="submit" className="ui-button" data-variant="secondary">添加待办</button>
+          <button type="submit" className="ui-button" data-variant="secondary" aria-label="添加待办">添加</button>
         </div>
         <small id={`${fieldId}-hint`}>最多 80 个字符；自定义待办最多 20 条。</small>
       </form>

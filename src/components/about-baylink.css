@@ -28,6 +28,10 @@ html[data-simple] .about-more{display:none}
 .about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-ui)}
 .about-page .about-badge{position:static;display:inline-block;max-width:100%;white-space:normal}
 .about-contact{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-5);margin-top:var(--sp-3)}
+/* 反馈与报错 has its box from the first paint (UI9-R1: CLS 0.0023 on a desktop): its own sheet (feedback-entry.css) is
+   requested after the app's first render, and until then the prerendered button took the body size with no gap, so the
+   mail button sat beside it and dropped to the next row (52px) when the sheet arrived. The same metrics as that sheet. */
+.about-contact>.feedback-footer-link{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:var(--control-height);font-size:var(--text-fact)}
 .about-policies{margin:var(--sp-2) 0 0}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:var(--sp-1)}}
 @media(min-width:1024px){
