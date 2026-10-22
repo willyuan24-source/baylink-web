@@ -101,6 +101,13 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
 .gl-directory ul { columns:2 18rem; column-gap:var(--grid-gutter); margin:0; padding:0 0 var(--sp-3); list-style:none; }
 .gl-directory li { break-inside:avoid; }
 .gl-directory a { display:flex; align-items:center; min-height:2.75rem; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:none; }
+/* 本页图片来源 (GuidesHome GuidesImageCredits): one line per picture, the tier words first, as the event pages' credits. */
+.gl-credits { margin-top:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gl-credits>summary { display:flex; align-items:center; min-height:2.75rem; cursor:pointer; }
+.gl-credits ul { display:flex; flex-direction:column; gap:var(--sp-2); margin:0; padding:0 0 var(--sp-2); list-style:none; }
+.gl-credits li { display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); }
+.gl-credits li>span:first-child { color:var(--color-ink); }
+.gl-credits a { color:var(--color-brand); overflow-wrap:anywhere; }
 .gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-4); margin-top:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gl-footer p { margin:0; }
 .gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }

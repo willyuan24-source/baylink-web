@@ -25,7 +25,7 @@ import { PlannerWebSearch } from '../../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../../components/PlannerPlaceRecommendations';
 import type { CompleteOuting } from '../../lib/planner-outings';
 import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../../lib/planner-itinerary';
-import { createCoverPage, type CoverPage } from '../../lib/cover';
+import { createCoverPage, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import { eventDateChip, formatDateChip } from '../../lib/event-facts';
 import { PlannerDayPlans } from '../../components/PlannerDayPlans';
 import { PlannerCatalogCard, type PlannerCatalogItem } from '../../components/PlannerCatalogCard';
@@ -55,8 +55,10 @@ export type PlannerWorkspaceProps = {
   /** Whether the plan has stops: 这一天的安排 is then the page's first section, so 行程's weekend picks give way (H54). */
   onPlanOpen?: (open: boolean) => void;
   /** The page's cover registry (VISUAL-10): the weekend picks above claim their photos first, so a pick listed here shows its
-   *  information card. Absent: the workspace's own. */
+   *  next picture. Absent: the workspace's own. */
   coverPage?: CoverPage;
+  /** The pictures shown above the workspace (the weekend picks), credited first in 本页图片来源. */
+  creditsFirst?: readonly ResolvedCover[];
 };
 
 /**
@@ -64,7 +66,7 @@ export type PlannerWorkspaceProps = {
  * catalog (features/plan/plan-catalog.ts), on the reader's first interaction, at once for a link that opens a plan, or when
  * the saved days need it (H20). Node renders it in one pass with the catalog (tests, the prerender).
  */
-export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: pageCoverPage }: PlannerWorkspaceProps) {
+export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: pageCoverPage, creditsFirst }: PlannerWorkspaceProps) {
   const app = useApp();
   const location = useLocation();
   const navigate = useNavigate();
@@ -412,7 +414,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
       {status && <p className="planner-note" role="status">{status}</p>}
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>
     </aside></div>
-    <PlannerImageCredits covers={pageCovers} />
+    <PlannerImageCredits covers={creditsFirst?.length ? [...creditsFirst, ...pageCovers] : pageCovers} />
     {saveToast && <SaveToast message={saveToast} actionLabel={t('查看', 'View')} to="/my-week#saved" closeLabel={t('关闭提示', 'Dismiss')} onClose={() => setSaveToast('')} />}
   </div>;
 }

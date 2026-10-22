@@ -39,7 +39,7 @@ export const UsefulLikeButton = ({ post, onLike }: { post: PostData; onLike: (po
 
 /**
  * The post's cover: its first photo (Cloudinary-sized), a member-chosen stock cover (系统封面, letterboxed), or a coded
- * category cover (`data-cover="type"`) when there is no image or it fails to load.
+ * category cover (`data-cover="post-category"`: a member post, not a listing) when there is no image or it fails to load.
  */
 export function PostCover({ post, priority, sizes = '(max-width:767px) 50vw, 240px', children }: { post: PostData; priority?: boolean; sizes?: string; children?: ReactNode }) {
   const { t, pick } = useUiCopy();
@@ -56,7 +56,7 @@ export function PostCover({ post, priority, sizes = '(max-width:767px) 50vw, 240
     </div>;
   }
   const Icon = categoryIcons[post.category] || MapPin;
-  return <div className="ui-cover cm-cover cm-cover--type" data-cover="type" data-category={post.category}>
+  return <div className="ui-cover cm-cover cm-cover--type" data-cover="post-category" data-category={post.category}>
     <span className="cm-cover__type" aria-hidden="true"><Icon strokeWidth={1.5} /><span>{pick(categoryName(post.category))}</span></span>
     {children}
   </div>;

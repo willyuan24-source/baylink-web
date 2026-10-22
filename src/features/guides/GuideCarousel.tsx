@@ -50,8 +50,9 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   const Mark = TOPIC_MARKS[guideTopicOf(guide)];
   return <div className="gd-carousel" data-all={all ? '' : undefined}>
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
-      {/* data-cover="type": a coded card, counted as cover area and never as photo area (RC-31). */}
-      <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="type">
+      {/* data-cover="slide": a coded slide, counted as a picture slot and never as photo area (RC-31), like GuideDiagram's
+          data-cover="diagram"; not a listing cover, so the render probe of information cards skips it. */}
+      <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="slide">
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
@@ -61,7 +62,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source" data-template-note="">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
-      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="type">
+      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="slide">
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
         <h3 className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></h3>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}

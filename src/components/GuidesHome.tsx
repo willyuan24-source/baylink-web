@@ -6,7 +6,7 @@ import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } fro
 import { searchGuides } from '../lib/guide-search';
 import guidesIndex from '../data/generated/guides-index.json';
 import { GUIDE_BAND_SIZE as BAND_SIZE, telOf, type GuideIndexCard, type GuidesIndex } from '../features/guides/guide-records';
-import { createCoverPage, type ResolvedCover } from '../lib/cover';
+import { createCoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
@@ -19,7 +19,7 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover } from '../features/guides/GuideCover';
-import { useRowCredit } from './ui/CoverImage';
+import { creditAfterLabel, useRowCredit, useTierLabel } from './ui/CoverImage';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
@@ -283,6 +283,28 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <Button variant="quiet" className="gl-directory__toggle" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}</Button>
       <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
     </div>}
+    <GuidesImageCredits covers={[...covers.values()]} />
     <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about#about-method-title">{t('了解核验方法', 'How we check sources')}</Link></footer>
   </div>;
 };
+
+/**
+ * 本页图片来源 for /guides (DECISIONS 23: every picture the page shows is credited): the tier words, the credit and the licence
+ * of each picture the cards show, once each. A native <details> (no Disclosure on this route: route JS ≤ base); #page-credits
+ * with data-count is what NAV's footer link reads (G12).
+ */
+function GuidesImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
+  const { t, locale } = useUiCopy();
+  const label = useTierLabel();
+  const seen = new Set<string>();
+  const images = covers.filter((cover): cover is ImageCover => cover.tier !== 'type' && !seen.has(cover.image.src) && !!seen.add(cover.image.src));
+  if (!images.length) return null;
+  return <details id="page-credits" className="gl-credits" data-count={images.length} data-credits-at-end="">
+    <summary>{t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)}</summary>
+    <ul>{images.map(cover => { const words = label(cover), credit = creditAfterLabel(words, translateText(cover.image.credit, locale)); return <li key={cover.image.src}>
+      <span>{words}</span>
+      {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>}
+      {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
+    </li>; })}</ul>
+  </details>;
+}
