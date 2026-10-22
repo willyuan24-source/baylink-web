@@ -1,0 +1,632 @@
+{
+  "tile-today-1": {
+    "approvalId": "tile:today#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "today",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-group-of-people-sitting-on-top-of-a-lush-green-field-3kBIZZluhNc",
+    "photographer": "David Dvořáček",
+    "photographerUrl": "https://unsplash.com/@dafidvor",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:00-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by David Dvořáček on Unsplash",
+      "title": "A group of people sitting on top of a lush green field - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on October 29, 2021"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1635510238778-eb94974402c1?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 3257560,
+    "sha256": "91d3cb89c04567fbd0a2351983699fe201fabda1510a62496766e423d839eba6",
+    "sha1": "5262ffd98b1841d5ee1bb4c9fe8f2eaf644c78ad",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 102630,
+      "small480": {
+        "bytes": 14978,
+        "quality": 66
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q66) for the 15 KB tile budget. No other edits."
+  },
+  "tile-today-3": {
+    "approvalId": "tile:today#3",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "today",
+    "rank": 3,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/decorative-triangular-flags-and-glowing-string-lights-outdoors-OcXmujJx_9U",
+    "photographer": "Declan Sun",
+    "photographerUrl": "https://unsplash.com/@declansun",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:03-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Declan Sun on Unsplash",
+      "title": "Decorative triangular flags and glowing string lights outdoors - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on June 16, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1781595452029-400aef872fb0?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1747570,
+    "sha256": "a95c6b535c1a4f3a3b24437f35d571b2e846f969566be86735fd5ba196ea8390",
+    "sha1": "94b774652e4b05e3e118e205c48d9ca6e2edb1ee",
+    "output": {
+      "width": 1280,
+      "height": 693,
+      "bytes": 98292,
+      "small480": {
+        "bytes": 14852,
+        "quality": 42
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q42) for the 15 KB tile budget. No other edits."
+  },
+  "tile-free-1": {
+    "approvalId": "tile:free#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "free",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/wooden-footbridge-in-park-at-golden-hour-LdJUeKvOXaE",
+    "photographer": "Nikolett Emmert",
+    "photographerUrl": "https://unsplash.com/@niki_emmert",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:08-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Nikolett Emmert on Unsplash",
+      "title": "Wooden footbridge in park at golden hour - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": ""
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1792492731912-1f3b82db4ad3?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 5234997,
+    "sha256": "d50f8417e5eb26f2520706e0d8c04ff832d77f9a2b22dad0bd7c06d4b1d98d35",
+    "sha1": "782b1553302b90ba6c2b0efaa929c82a6abec1f9",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 322898,
+      "small480": {
+        "bytes": 34136,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-free-2": {
+    "approvalId": "tile:free#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "free",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/sunlight-streams-through-trees-onto-a-grassy-park-path-niHLQiccqCM",
+    "photographer": "Drew Brady",
+    "photographerUrl": "https://unsplash.com/@alphanum3ric",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:12-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Drew Brady on Unsplash",
+      "title": "Sunlight streams through trees onto a grassy park path - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on April 23, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1776955348841-334e5d58689e?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 2419948,
+    "sha256": "d96ea0e493bdaea2dd1acab7823f78338b6f9a4816eeab438c2c7111d2fa8623",
+    "sha1": "f5639661bd6e154495021d28f69b41baa4a5ae86",
+    "output": {
+      "width": 1280,
+      "height": 1040,
+      "bytes": 357984,
+      "small480": {
+        "bytes": 28376,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-free-3": {
+    "approvalId": "tile:free#3",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "free",
+    "rank": 3,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/legs-on-a-picnic-blanket-with-fruit-and-flowers-tc4I1P4DQdo",
+    "photographer": "Sou Jest",
+    "photographerUrl": "https://unsplash.com/@soujest",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:17-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Sou Jest on Unsplash",
+      "title": "Legs on a picnic blanket with fruit and flowers - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on July 27, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1785175659726-57c924344bd9?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 3814417,
+    "sha256": "099c2163ec1927173f76ef711de8e24ed44f7ed65c3a41eb7ed4793ee538ceb9",
+    "sha1": "b83b88bb1f778a1b0b968a8c2078cdda1f0454f9",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 80884,
+      "small480": {
+        "bytes": 13910,
+        "quality": 60
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q60) for the 15 KB tile budget. No other edits."
+  },
+  "tile-kids-1": {
+    "approvalId": "tile:kids#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "kids",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-silhouette-of-a-child-swinging-on-a-swing-set-BzU8qF6coIY",
+    "photographer": "Fujiphilm",
+    "photographerUrl": "https://unsplash.com/@fujiphilm",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:20-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Fujiphilm on Unsplash",
+      "title": "A silhouette of a child swinging on a swing set - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on June 25, 2023"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1687667754884-f038e5a45b0e?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 800161,
+    "sha256": "50b4434041e107fb4dba86bb873a4b71333362f8ac8e7753a3bad385b67ab56d",
+    "sha1": "cc83dcb18d137099e226e40854493590a5730d06",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 51562,
+      "small480": {
+        "bytes": 11934,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-kids-2": {
+    "approvalId": "tile:kids#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "kids",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/boy-and-woman-holding-hands-outdoor-5wTuk6vE-Kk",
+    "photographer": "Kelli McClintock",
+    "photographerUrl": "https://unsplash.com/@kelli_mcclintock",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:23-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Kelli McClintock on Unsplash",
+      "title": "Boy and woman holding hands outdoor - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on March 8, 2019"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1552028650-a96d3db96bfd?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1897786,
+    "sha256": "81cd605a1dd7fa75302ee4c70d994aabf564273364556abb2990afe3143bbd9f",
+    "sha1": "f231ca1eaa3e513c4de4293d5697b82ab14e2647",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 59334,
+      "small480": {
+        "bytes": 12746,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-kids-3": {
+    "approvalId": "tile:kids#3",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "kids",
+    "rank": 3,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/two-toddlers-walking-on-road-near-green-tree-L1o1WQY5kp0",
+    "photographer": "Kelly Sikkema",
+    "photographerUrl": "https://unsplash.com/@kellysikkema",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:27-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Kelly Sikkema on Unsplash",
+      "title": "Two toddler's walking on road near green tree - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on October 2, 2017"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1506958933531-3dfb8a27542f?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1478742,
+    "sha256": "27dcb2a9b7acde32b05b8add71e4c5c9f80a7f69aaea786bd63963461ab2c1e6",
+    "sha1": "5b714fc062a7515b2c4ba38edf533bcee77692a9",
+    "output": {
+      "width": 1280,
+      "height": 959,
+      "bytes": 183330,
+      "small480": {
+        "bytes": 15584,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-seniors-1": {
+    "approvalId": "tile:seniors#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "seniors",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/adults-on-wooden-park-bench-UOUD92ftrW0",
+    "photographer": "Barnabas Davoti",
+    "photographerUrl": "https://unsplash.com/@davotibarna",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:31-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Barnabas Davoti on Unsplash",
+      "title": "Adults on wooden park bench - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": ""
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1790609868376-1aa18fa84b95?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 10139266,
+    "sha256": "0e98320de2f9112c7e3d99096df0a5230edcac27a8307845eb2bbd763088cf70",
+    "sha1": "3cf5d86d61dd872a4f0a2e39733c688ea65ec6cc",
+    "output": {
+      "width": 1280,
+      "height": 854,
+      "bytes": 262648,
+      "small480": {
+        "bytes": 19160,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-seniors-2": {
+    "approvalId": "tile:seniors#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "seniors",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/couple-walking-by-a-river-at-sunset-W3NqqtlK8ic",
+    "photographer": "Anna Stampfli",
+    "photographerUrl": "https://unsplash.com/@annastampfli",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:34-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Anna Stampfli on Unsplash",
+      "title": "Couple walking by a river at sunset - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on January 20, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1768898548611-2dd94e452538?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 3337255,
+    "sha256": "4e0f0af3e1c470257a5287fc1e61d183a6fb426e639411b38f53a2d25a052149",
+    "sha1": "6d6b2dea542b05f257b2b4f925c2d08ca5c076e8",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 84320,
+      "small480": {
+        "bytes": 13498,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-rainy-day-1": {
+    "approvalId": "tile:rainy-day#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "rainy-day",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-window-with-rain-drops-on-it-at-night-1e60bqR1Ar0",
+    "photographer": "Max van den Oetelaar",
+    "photographerUrl": "https://unsplash.com/@maxvdo",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:38-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Max van den Oetelaar on Unsplash",
+      "title": "A window with rain drops on it at night - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on January 27, 2022"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1643287146701-93c795880dda?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 10032605,
+    "sha256": "cf7c5465f16660bbddcf30e23ae998b9d73bfb705d35df019bb0aa76149fb3d1",
+    "sha1": "c296e66a4848e7be17dd3bebaabee4d81546cd2f",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 223930,
+      "small480": {
+        "bytes": 23840,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-rainy-day-2": {
+    "approvalId": "tile:rainy-day#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "rainy-day",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-dimly-lit-library-with-bookshelves-and-a-large-window-UVdS0D3rDNM",
+    "photographer": "panpan ma",
+    "photographerUrl": "https://unsplash.com/@mymphoebe",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:41-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by panpan ma on Unsplash",
+      "title": "A dimly lit library with bookshelves and a large window - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on February 26, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1772081014501-cf52c3e0bf76?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1880624,
+    "sha256": "84054267587dd5167b2cf67479a2dba3a1d09c0be2400d54f2a7ce5cbda304e7",
+    "sha1": "36e87aef0322385c38772b75f26fc4b55b24f0ca",
+    "output": {
+      "width": 1280,
+      "height": 720,
+      "bytes": 87530,
+      "small480": {
+        "bytes": 14150,
+        "quality": 60
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q60) for the 15 KB tile budget. No other edits."
+  },
+  "tile-no-car-1": {
+    "approvalId": "tile:no-car#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "no-car",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/view-from-ship-deck-showing-san-francisco-skyline-across-bay-BNQMfrlor6k",
+    "photographer": "Mel Herrel",
+    "photographerUrl": "https://unsplash.com/@melllhrrl",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:45-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Mel Herrel on Unsplash",
+      "title": "View from ship deck showing san francisco skyline across bay - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on June 8, 2026"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1780920662856-d51cc98ec752?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1840109,
+    "sha256": "7fd6e7fb45392809baf8e213d987b14ff1f8f8be166a1c95c8039c87243b7cde",
+    "sha1": "3b9806fdbc45ca9de37843904f7859bb169f15b1",
+    "output": {
+      "width": 1280,
+      "height": 960,
+      "bytes": 74286,
+      "small480": {
+        "bytes": 9286,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-new-shops-1": {
+    "approvalId": "tile:new-shops#1",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "new-shops",
+    "rank": 1,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-dimly-lit-restaurant-with-tables-and-chairs-EjHiN2KxTO4",
+    "photographer": "Oliver Guhr",
+    "photographerUrl": "https://unsplash.com/@oliverguhr",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:48-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Oliver Guhr on Unsplash",
+      "title": "A dimly lit restaurant with tables and chairs - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on March 4, 2024"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1709548145082-04d0cde481d4?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 2439070,
+    "sha256": "5a18f87a1af6be398ab07514f7d4ae8335b4102986730f3730261e9cb7932bc9",
+    "sha1": "46742e4617f7087d0405adda22d2e05a8e2febf1",
+    "output": {
+      "width": 1280,
+      "height": 858,
+      "bytes": 50238,
+      "small480": {
+        "bytes": 10750,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-new-shops-2": {
+    "approvalId": "tile:new-shops#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "new-shops",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/breads-in-display-shelf-go3DT3PpIw4",
+    "photographer": "Yeh Xintong",
+    "photographerUrl": "https://unsplash.com/@blsnki",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:51-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Yeh Xintong on Unsplash",
+      "title": "Breads in display shelf - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on September 12, 2019"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 2095875,
+    "sha256": "14f8d5f736fbaed5f85dc607a880767ea9fd5e00648771076be48dafebab579c",
+    "sha1": "9f638ab11d4ebd25990ffab7323af84b6e33f04d",
+    "output": {
+      "width": 1280,
+      "height": 854,
+      "bytes": 147678,
+      "small480": {
+        "bytes": 17282,
+        "quality": 40
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
+  },
+  "tile-new-shops-3": {
+    "approvalId": "tile:new-shops#3",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "new-shops",
+    "rank": 3,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/wooden-tables-and-chairs-inside-white-room-k6w8miMpfUI",
+    "photographer": "Janosch Lino",
+    "photographerUrl": "https://unsplash.com/@janoschlino",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:55-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Janosch Lino on Unsplash",
+      "title": "Wooden tables and chairs inside white room - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on December 5, 2018"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1544031064-9de80864ade5?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 1982954,
+    "sha256": "e7244dd4f769080819a6a2a761ae08e36bad6ad9b3c6fad97c293af935293964",
+    "sha1": "5c514786049405d8daee4491e440474fc5e0e219",
+    "output": {
+      "width": 1280,
+      "height": 854,
+      "bytes": 118368,
+      "small480": {
+        "bytes": 13864,
+        "quality": 42
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q42) for the 15 KB tile budget. No other edits."
+  },
+  "tile-calendar-2": {
+    "approvalId": "tile:calendar#2",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "calendar",
+    "rank": 2,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/a-cup-of-coffee-and-a-notebook-on-a-marble-table-oy_l7T2nUlU",
+    "photographer": "Happy & Spice",
+    "photographerUrl": "https://unsplash.com/@happyandspice",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:21:58-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Happy & Spice on Unsplash",
+      "title": "A cup of coffee and a notebook on a marble table - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on January 28, 2024"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1706425459937-86d78161f205?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 3716383,
+    "sha256": "38a8c9a9b66ff38fa336b8966d0041facdfa75987a4b0322c013304cb7c2e9ec",
+    "sha1": "f7a240bd44b0a701ab99fc9b9230e7ecc5d737d0",
+    "output": {
+      "width": 1280,
+      "height": 840,
+      "bytes": 70492,
+      "small480": {
+        "bytes": 9756,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  },
+  "tile-calendar-3": {
+    "approvalId": "tile:calendar#3",
+    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+    "tile": "calendar",
+    "rank": 3,
+    "source": "unsplash",
+    "pageUrl": "https://unsplash.com/photos/white-spiral-notebook-on-brown-wooden-table-2q_frVRXWfQ",
+    "photographer": "Kelly Sikkema",
+    "photographerUrl": "https://unsplash.com/@kellysikkema",
+    "license": "Unsplash License",
+    "licenseUrl": "https://unsplash.com/license",
+    "pageReadAt": "2026-10-21T18:22:02-07:00",
+    "pageSays": {
+      "ogTitle": "Photo by Kelly Sikkema on Unsplash",
+      "title": "White spiral notebook on brown wooden table - Free Photo on Unsplash",
+      "license": "Free to use under the Unsplash License",
+      "published": "Published on February 3, 2021"
+    },
+    "originalUrl": "https://images.unsplash.com/photo-1612367980327-7454a7276aa7?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+    "retrievedAt": "2026-10-21T18:24:12-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 3202507,
+    "sha256": "385d63a9748100d5c96b290e35978d57e4290be06e74c9dd7f4292ed0cebbb72",
+    "sha1": "848ccfa37132570cce47464bbf73c97b5e526cab",
+    "output": {
+      "width": 1280,
+      "height": 853,
+      "bytes": 72934,
+      "small480": {
+        "bytes": 11286,
+        "quality": 72
+      }
+    },
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+  }
+}
