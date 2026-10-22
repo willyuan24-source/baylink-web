@@ -134,6 +134,7 @@ test('Desktop rail: the three cells share one height and hold Ask / BayBay (Engl
   assert.equal(value(cells, 'min-height', desk), '56px');
   assert.equal(value(cells, 'line-height', desk), 'var(--lh-tight)');
   assert.equal(value(`${rail}>.detail-actions__cell[data-cell=save]>.saves-control`, 'display', desk), 'grid', 'the ♡ button fills its stretched cell');
+  assert.equal(value(`${rail}>.detail-actions__cell[data-cell=save]>.saves-control`, 'align-items', desk), 'stretch', 'saves.css centres the ♡; the rail stretches it');
   assert.equal(value(`${rail} .detail-actions__cell[data-cell=ask] [data-label=long]`, 'white-space', desk), 'normal', 'Ask BayBay may wrap inside the cell');
   // The rail is the only place outside the elder modes and English phones where the cells give up DETAIL's fixed height.
   const heightAuto: string[] = [];

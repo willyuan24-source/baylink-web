@@ -124,7 +124,7 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
    grids, so the ♡ button fills them) and 发家人 to the same box, so the three borders line up. */
 @media (min-width:1024px) {
   .gd-rail .site-detail-actions.detail-actions.gd-bar { align-items:stretch; }
-  .gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],.gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],.gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; align-items:stretch; }
   .gd-rail .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding:var(--sp-1); line-height:var(--lh-tight); }
   .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { white-space:normal; text-align:center; }
 }
