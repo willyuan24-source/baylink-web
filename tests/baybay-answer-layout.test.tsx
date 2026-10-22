@@ -233,7 +233,8 @@ test('starter chips ask, prefill or open the right tool, in each language', asyn
     await setLocale(locale, false);
     const paths: string[] = [];
     const view = render(<BayBayAssistantEntry {...props} onNavigate={path => paths.push(path)} />);
-    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'Popular questions' : '常用问题' })).getAllByRole('button').length, 6);
+    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'Popular questions' : '常用问题' })).getAllByRole('button').length, 2, 'two cards; the other starters are chips under 也可以');
+    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'You can also' : '也可以' })).getAllByRole('button').length, 8);
     fireEvent.click(view.getByRole('button', { name: new RegExp(`^${letter}`) }));
     assert.equal((view.getByRole('textbox') as HTMLInputElement).value, draft, 'a draft starter waits for the reader');
     fireEvent.click(view.getByRole('button', { name: new RegExp(`^${screenshot}`) }));

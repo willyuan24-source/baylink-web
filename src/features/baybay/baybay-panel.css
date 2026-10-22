@@ -32,14 +32,14 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
    (56px at 标准; it scales with rem at 特大). UI9-INT: expose the header height on :root, then drop the fallback. */
 .baybay-sheet { height:calc(100dvh - var(--chrome-header-height, 3.5rem)); max-height:none; }
 .baybay-sheet .baybay-body { display:flex; flex-direction:column; gap:var(--sp-4); padding:var(--sp-4); }
-.baybay-sheet .ui-sheet__footer { display:block; padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); background:var(--color-surface); }
+.baybay-sheet .ui-sheet__footer { display:block; padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); }
 @media (min-width:768px) {
   .baybay-sheet-backdrop { justify-content:flex-end; align-items:stretch; padding:var(--sp-2); background:transparent; }
   .baybay-sheet { width:480px; max-width:100%; height:auto; border-radius:var(--r-xl); animation-name:ui-sheet-left; }
   .baybay-sheet-backdrop.is-closing .baybay-sheet { animation-name:ui-sheet-right; }
   .baybay-sheet .ui-sheet__handle { display:none; }
   .baybay-sheet .baybay-body { padding:var(--sp-5); }
-  .baybay-sheet .ui-sheet__footer { padding:var(--sp-4) var(--sp-5) var(--sp-5); border-radius:0 0 var(--r-xl) var(--r-xl); }
+  .baybay-sheet .ui-sheet__footer { padding:var(--sp-4) var(--sp-5) var(--sp-5); }
 }
 
 /* Header (≤72px): the 44px otter, h2 问 BayBay, "AI 助手 · 回答附来源", 新对话 once a turn exists, the shared close. */
@@ -58,7 +58,11 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 /* English, 特大 and 简洁显示 on a phone, and any phone below 360px: 新对话 closes the thread instead of the header. */
 .baybay-conversation .bb-thread-new { display:flex; justify-content:center; margin:0; }
 
-/* Welcome: one line, the page in view, six prompt cards (2 columns, ≥88px), 也可以, the details, the guest line. */
+/* Welcome: one line, the page in view, two prompt cards (2 columns; 1 at 特大, in 简洁 and below 360px), 也可以 (the other
+   starters, then its own four chips), the details, the guest line: with two cards, not six, the guest line is on the
+   first screen above the composer at 390×844 (J2 P19 / J3 P15). The cards are the panel's one card look (the plan,
+   outing and post cards: white, the 1px decorative line, --r-lg, --sp-3/--sp-4 inset), not a paper fill with a control
+   edge of its own (N12). */
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
 .baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
 .baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
@@ -69,7 +73,7 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .baybay-conversation :is(.bb-chips,.bb-also ul,.baybay-followups ul,.baybay-plan-followups) { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
 .baybay-conversation .bb-chips--page .ui-chip { border-color:var(--color-brand); color:var(--color-brand-deep); }
 .baybay-conversation .bb-prompts { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3); }
-.baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; min-height:88px; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-bg); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .baybay-conversation .bb-prompt__title { font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-prompt__hint { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-prompt:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
@@ -99,7 +103,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-thread { display:grid; gap:var(--sp-6); }
 .baybay-conversation .baybay-turn { display:grid; gap:var(--sp-4); min-width:0; }
 .baybay-conversation .baybay-user-question { display:flex; justify-content:flex-end; }
-.baybay-conversation .baybay-user-question>p { max-width:85%; margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation .baybay-user-question>p { max-width:85%; margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); border-end-end-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
 .baybay-conversation .member-baybay-answer { display:grid; gap:var(--sp-3); min-width:0; }
 .baybay-conversation .member-baybay-answer-label { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .member-baybay-answer-label>span { flex:1; }

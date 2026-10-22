@@ -346,7 +346,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   const fullNotice = bayBayFullNoticeTurns(turns);
 
   const newConversation = () => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); setTooShort(false); };
-  // 简洁显示 subtracts (content arrangement 10-19): four starters, no 也可以 group, 当前条件 hidden.
+  // 简洁显示 subtracts (content arrangement 10-19): four starters (two cards, two chips), none of 也可以's own four, 当前条件 hidden.
   const starters = simpleDisplay ? BAYBAY_STARTERS.filter(starter => starter.action === 'send' || starter.action === 'draft') : BAYBAY_STARTERS;
   const signInButton = onLoginNeeded && <Button variant="quiet" className="bb-signin" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</Button>;
   // 新对话 sits in the header where its words fit beside the title. In English, at 特大 and in 简洁显示 on a phone, and on
@@ -410,15 +410,17 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     {schoolContext && <p className="baybay-composer-note baybay-school-privacy" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
     {turns.length === 0 && <section className="bb-welcome" aria-label={copy('开始提问', 'Get started')}>
       {pageQuestions.length > 0 && <ul className="bb-chips bb-chips--page" aria-label={copy('围绕这一页提问', 'Ask about this page')}>{pageQuestions.map(prompt => <li key={prompt.label}><button type="button" className="ui-chip" disabled={loading} onClick={() => askBayBay(prompt.question)}>{prompt.label}</button></li>)}</ul>}
-      <ul className="bb-prompts" aria-label={copy('常用问题', 'Popular questions')}>{starters.map(starter => <li key={starter.id}><button type="button" className="bb-prompt" disabled={loading && starter.action === 'send'} onClick={() => startWith(starter)}>
+      {/* Two cards, then every other starter as a chip at the head of 也可以 (J3 P15: six equal cards read as a wall). */}
+      <ul className="bb-prompts" aria-label={copy('常用问题', 'Popular questions')}>{starters.map(starter => starter.lead && <li key={starter.id}><button type="button" className="bb-prompt" disabled={loading && starter.action === 'send'} onClick={() => startWith(starter)}>
         <span className="bb-prompt__title">{copy(starter.zh, starter.en)}</span><span className="bb-prompt__hint">{copy(starter.hint.zh, starter.hint.en)}</span></button></li>)}</ul>
-      {!simpleDisplay && <div className="bb-also" translate="no"><p>{copy('也可以', 'You can also')}</p>
+      <div className="bb-also" translate="no"><p>{copy('也可以', 'You can also')}</p>
         <ul aria-label={copy('也可以', 'You can also')}>
-          <li><button type="button" className="ui-chip" onClick={() => { const original = question.trim(), social = `${original}${copy('，我想找搭子一起去。', '. I want to find people to go with.')}`; askBayBay(original ? isBayBaySocialRequest(original) || social.length > 500 ? original : social : copy('我想找搭子一起去，请先问我城市和日期。', 'I want to find people to go with. Ask me which city and date first.'), contextPath, true); }}>{copy('找搭子一起去', 'Find a small group')}</button></li>
+          {starters.map(starter => !starter.lead && <li key={starter.id}><button type="button" className="ui-chip" disabled={loading && starter.action === 'send'} onClick={() => startWith(starter)}>{copy(starter.zh, starter.en)}</button></li>)}
+          {!simpleDisplay && <><li><button type="button" className="ui-chip" onClick={() => { const original = question.trim(), social = `${original}${copy('，我想找搭子一起去。', '. I want to find people to go with.')}`; askBayBay(original ? isBayBaySocialRequest(original) || social.length > 500 ? original : social : copy('我想找搭子一起去，请先问我城市和日期。', 'I want to find people to go with. Ask me which city and date first.'), contextPath, true); }}>{copy('找搭子一起去', 'Find a small group')}</button></li>
           <li><button type="button" className="ui-chip" onClick={() => { setQuestion(translateText('我想找本地服务：', locale)); inputRef.current?.focus(); }}>{copy('找本地服务', 'Find a local service')}</button></li>
           <li><button type="button" className="ui-chip" onClick={() => navigate('/tools?tool=communication')}>{copy('沟通帮手', 'Message helper')}</button></li>
-          <li><button type="button" className="ui-chip" onClick={() => { setQuestion(translateText(BAYBAY_SCHOOL_STARTER, locale)); inputRef.current?.focus(); }}>{copy('学校与入学', 'Schools and enrollment')}</button></li>
-        </ul></div>}
+          <li><button type="button" className="ui-chip" onClick={() => { setQuestion(translateText(BAYBAY_SCHOOL_STARTER, locale)); inputRef.current?.focus(); }}>{copy('学校与入学', 'Schools and enrollment')}</button></li></>}
+        </ul></div>
       <Disclosure className="bb-details" summary={copy('检索、额度与对话说明', 'Search, limits and conversation details')}>
         <p className="baybay-composer-note">{memberWebAccess
           ? searchMode === 'site' ? copy('只参考站内资料', 'Site information only') : copy('已登录 · 可按需联网；额度或服务受限时会说明，并保留站内结果。', 'Signed in · Web lookups are available when needed, subject to limits and availability. Site results remain available.')
