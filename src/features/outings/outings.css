@@ -28,6 +28,10 @@
    text does not move in. A trailing chevron gives back its own drawn inset (lucide draws it 5px inside its box). */
 .together-page .outing-link-button { min-height:var(--control-height); margin-inline:calc(-1 * var(--sp-2)); padding:0 var(--sp-2); background:transparent; color:var(--color-brand); text-decoration:underline; text-underline-offset:var(--underline-offset); text-decoration-thickness:var(--underline-thickness); }
 .together-page .outing-link-button>.lucide-chevron-right:last-child { margin-inline-end:calc(-1 * var(--sp-1)); }
+/* Side by side (接受 + 婉拒, 婉拒 + 屏蔽, 移除成员 + 屏蔽) the shared edge is no content edge: the targets keep 8px apart
+   instead of overlapping, the words 16px from a button and 24px from another link. */
+.together-page :is(.outing-primary,.outing-secondary)+.outing-link-button { margin-inline-start:0; }
+.together-page .outing-link-button+:is(.outing-primary,.outing-secondary,.outing-link-button) { margin-inline-start:var(--sp-2); }
 .together-page .outing-danger { color:var(--color-danger); }
 @media (hover:hover) and (pointer:fine) {
   .together-page .outing-primary:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }

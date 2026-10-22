@@ -72,3 +72,13 @@ test('verify-release pins the account shell\'s full-screen height in the built d
   assert.match(script, /dist\/\$\{locale\}account-shell\.html/);
   assert.match(script, /css\.includes\('\.account-shell\{min-height:100svh'\)/);
 });
+
+test('/together text links: the edge margin is given back only on a content edge, never between neighbours', () => {
+  const css = 'src/features/outings/outings.css';
+  assert.equal(rules(css, '.together-page .outing-link-button')['margin-inline'], 'calc(-1 * var(--sp-2))');
+  assert.equal(rules(css, '.together-page :is(.outing-primary,.outing-secondary)+.outing-link-button')['margin-inline-start'], '0');
+  assert.equal(rules(css, '.together-page .outing-link-button+:is(.outing-primary,.outing-secondary,.outing-link-button)')['margin-inline-start'], 'var(--sp-2)');
+  // The host's member row (接受 + 婉拒, 婉拒 / 移除成员 + 屏蔽) is an 8px-gap flex row: with the rules above the 44px targets
+  // keep 8px apart (8 gap - 8 + 8) and never overlap.
+  assert.equal(rules(css, '.together-page .outing-member-actions').gap, 'var(--sp-2)');
+});
