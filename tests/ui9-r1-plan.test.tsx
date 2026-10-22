@@ -150,7 +150,14 @@ test('CSS: no bespoke button looks, no native marker or grip, measure caps, sect
   // N10: the conflict edge is a border, not an inset shadow.
   assert.ok(!all.some(rule => /inset/.test(rule.decls['box-shadow'] || '')));
   // N15: sections sit --section-gap apart; the page keeps no bottom padding of its own.
-  assert.ok(planner.some(rule => rule.selector === '.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(.planner-error,.planner-offline)))' && rule.decls['margin-block'] === 'var(--section-gap) 0'));
+  // The slot's notices keep their own margins: they are its only paragraphs (the rule skips p children).
+  assert.ok(planner.some(rule => rule.selector === '.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(p)))' && rule.decls['margin-block'] === 'var(--section-gap) 0'));
+  for (const file of ['src/features/plan/PlannerWorkspace.tsx', 'src/features/plan/PlanWorkspaceSlot.tsx']) {
+    const slots = [...readFileSync(file, 'utf8').matchAll(/return <div className="planner-data-slot"[\s\S]*?\n {2}<\/div>;/g)].map(match => match[0]).join('\n');
+    const paragraphs = [...slots.matchAll(/^ {4}(?:\{[^\n]*?)?<p className="([^"]+)"/gm)].map(match => match[1]);
+    assert.ok(paragraphs.includes('planner-offline'), file);
+    assert.deepEqual(paragraphs.filter(name => !/^planner-(offline|error)$/.test(name)), [], `${file}: a paragraph in the slot is a notice`);
+  }
   assert.ok(planner.some(rule => rule.selector === 'main .planner-page.ui-container' && rule.decls['padding-bottom'] === '0'));
   assert.ok(planner.some(rule => /home-section-head__more/.test(rule.selector) && rule.decls['margin-block'] === '-8px'), 'the head link does not make the head row taller than its h2');
   // N05: the wrapped copy has a measure.

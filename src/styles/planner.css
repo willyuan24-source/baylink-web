@@ -22,8 +22,9 @@
 .planner-page:where(.ui-container) :where([open])>summary::after { content:'−'; content:'−' / ''; }
 .planner-page:where(.ui-container) textarea { resize:none; }
 /* N15: one gap between the page's sections (the two that open on a bare heading give back its half-leading, so the
-   visible gap is the same); 行程 keeps no bottom padding of its own (pre-footer = the footer's margin). */
-.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(.planner-error,.planner-offline))) { margin-block:var(--section-gap) 0; }
+   visible gap is the same); 行程 keeps no bottom padding of its own (pre-footer = the footer's margin). The slot's only
+   paragraphs are its notices (.planner-offline, .planner-error), which keep their own margins. */
+.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(p))) { margin-block:var(--section-gap) 0; }
 .planner-page .plan-days { margin-top:calc(var(--section-gap) - 8px); }
 /* The head's link may not make its row taller than the h2 (a row on desktop in every mode, on phones in the standard one),
  * so the h2 starts the section whether the head wraps or not. */
