@@ -10,7 +10,7 @@ import { discoverRelatedGuides } from '../src/lib/guide-discovery';
 import { coverInCurrentLanguage, guideRegionsOf, keepInlineImage } from '../src/features/guides/guide-data';
 import { slimListingImage } from '../src/lib/listing-image';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
-import { coverFor, relatedForToday, type GuidesIndex } from '../src/features/guides/guide-records';
+import { coverFor, expandGuidesIndex, relatedForToday, type GuidesIndexFile } from '../src/features/guides/guide-records';
 import { isGuideSlug, loadGuide, peekGuide, readGuide } from '../src/features/guides/guide-store';
 import guidesIndex from '../src/data/generated/guides-index.json';
 
@@ -20,7 +20,7 @@ import guidesIndex from '../src/data/generated/guides-index.json';
  * keep the corpus out of both pages' static imports. A failure after a content change means: run `npm run generate:home`.
  */
 const plain = <T,>(value: T): T => (value === undefined ? value : JSON.parse(JSON.stringify(value)));
-const index = guidesIndex as GuidesIndex;
+const index = expandGuidesIndex(guidesIndex as GuidesIndexFile);
 
 test('the index lists every published guide in corpus order with the card facts the pages used to compute', () => {
   assert.deepEqual(index.guides.map(card => card.slug), guides.map(guide => guide.slug));

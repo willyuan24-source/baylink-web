@@ -143,3 +143,44 @@ test('item 9 checks: a heavy stock picture comes last; city-sights only on city 
   const home = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8'));
   if (home.weekends['2026-11-01']) assert.notEqual(home.weekends['2026-11-01'].ids[0], 'nov2026-fruitvale-dia-muertos', 'the 11/01 lead has a ① or ② picture');
 });
+
+// CI fix 2 (the /guides route budget, captain 10-22 02:50 decision 4): /guides moves a card to its second ③ only when its own
+// picture is already on the page or within ADJACENT_CARDS cards (guide-facts.ts guideCover on one CoverPage). The index ships
+// that second only on cards whose own picture another card also shows (another guide's cover, or a shipped second), and
+// every picture more than one card shows once, by file.
+test('a /guides card ships its second ③ only when its own picture is not unique on the page; a shared picture ships once', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { expandGuidesIndex } = await import('../src/features/guides/guide-records');
+  const { guideCover } = await import('../src/features/guides/guide-facts');
+  const { GUIDE_TOPICS, guideTopicOf } = await import('../src/data/guide-topics');
+  const file = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'utf8'));
+  const { guides } = expandGuidesIndex(file);
+  const files = (covers: Record<string, unknown>) => ['zh-Hans', 'zh-Hant', 'en'].map(locale => (covers[locale] as { src: string } | undefined)?.src).filter(Boolean) as string[];
+  const shown = new Map<string, number>();
+  for (const card of guides) for (const src of new Set(files(card.covers))) shown.set(src, (shown.get(src) ?? 0) + 1);
+  const seconds = new Set(guides.flatMap(card => card.covers.stock ? files(card.covers.stock) : []));
+  for (const card of guides) {
+    const shared = files(card.covers).some(src => shown.get(src)! > 1 || seconds.has(src));
+    assert.equal(!!card.covers.stock, shared, `${card.slug}: ${shared ? 'its picture is not unique on /guides, so it ships a second' : 'its picture is unique on /guides, so it ships no second'}`);
+  }
+  // The rule matters on crowded pools (guide-school, guide-housing …) and leaves the rest without one.
+  assert.ok(guides.some(card => card.covers.stock) && guides.some(card => !card.covers.stock));
+  // One record per picture: no card repeats a record another card or the shared table already ships.
+  const records = [...Object.values(file.images), ...file.guides.filter((card: { covers?: unknown }) => card.covers).map((card: { covers: unknown }) => card.covers)].map(record => JSON.stringify(record));
+  assert.equal(new Set(records).size, records.length, 'a picture record ships once');
+  // On any view (the whole index in either order, each topic's list) a card without a second finds its own picture unclaimed
+  // and not yet shown by another card, so it shows it without a repeat.
+  const today = getBayAreaToday();
+  const lists = [guides, [...guides].reverse(), ...GUIDE_TOPICS.map(topic => guides.filter(card => guideTopicOf(card) === topic.id))];
+  const mine = (slug: string) => (id: string) => id === slug || id.endsWith(`:${slug}`);
+  for (const list of lists) {
+    const page = createCoverPage();
+    for (const card of list) {
+      if (!card.covers.stock) {
+        const src = card.covers['zh-Hans'].src, claimant = page.claims.get(src);
+        assert.ok((!claimant || mine(card.slug)(claimant)) && [...(page.shared?.get(src)?.keys() ?? [])].every(mine(card.slug)), `${card.slug}: ${src} is already on the page`);
+      }
+      assert.notEqual(guideCover(card, today, page).tier, 'type', card.slug);
+    }
+  }
+});

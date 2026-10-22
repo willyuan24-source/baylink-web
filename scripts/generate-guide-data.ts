@@ -4,7 +4,7 @@ import { guides, type Guide } from '../src/data/guides';
 import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
 import { coverInCurrentLanguage, guideRecordOf, guideStockPool, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
 import { getBayAreaToday } from '../src/lib/monthly';
-import type { GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
+import type { GuideCovers, GuideIndexFileCard, GuideRecord, GuidesIndex, GuidesIndexFile } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
 import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
 import { answeredHookFields } from '../src/lib/guide-hook-highlight';
@@ -18,7 +18,7 @@ import { slimListingImage } from '../src/lib/listing-image';
  * changes; deterministic for a given catalog. Run with the English scopes (generate-english-scopes.ts, from generate:home in
  * prebuild and pretest), which read the same index and records.
  */
-export type GuideData = { index: GuidesIndex; records: GuideRecord[] };
+export type GuideData = { index: GuidesIndexFile; records: GuideRecord[] };
 
 export async function buildGuideData(): Promise<GuideData> {
   const previous = getLocale();
@@ -39,8 +39,8 @@ export async function buildGuideData(): Promise<GuideData> {
   }
   // UI9-IMG-A1b: every guide carries a second picture, its next ③ stock picture (the first of its category's pool its cover
   // is not), so a page that already shows its cover (①② once per page) or shows the same ③ picture within ADJACENT_CARDS
-  // cards gives the card that picture instead of repeating one (captain 10-22 02:50: worth the /guides +5.5 KiB gzip, within
-  // its ceiling; a guide page's 接下来 cards get theirs from distinctRelated below).
+  // cards gives the card that picture instead of repeating one (captain 10-22 02:50, decision 4; a guide page's 接下来 cards get
+  // theirs from distinctRelated below). The /guides index ships it only on the cards its page can move to it (secondPictureCards).
   const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => {
     const own = mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!);
     const pool = poolPerLanguage.get(slug)!;
@@ -81,17 +81,46 @@ export async function buildGuideData(): Promise<GuideData> {
   // (src/lib/listing-image.ts slimListingImage). The article records keep the whole picture record.
   const slim = (covers: GuideCovers): GuideCovers => Object.fromEntries(Object.entries(covers)
     .map(([key, value]) => [key, key === 'stock' ? slim(value as GuideCovers) : slimListingImage(value as GuideImage)])) as GuideCovers;
-  // The cards' second pictures come from a few category pools: the index ships each once (stockImages) and a card names its
-  // own by file (withIndexStock puts it back), not a copy per card in three languages.
-  const stockImages: Record<string, Omit<GuideCovers, 'stock'>> = {};
-  const indexCard = (card: GuidesIndex['guides'][number]) => {
-    const { stock, ...own } = slim(card.covers);
-    if (!stock) return withHook({ ...card, covers: own });
-    stockImages[stock['zh-Hans'].src] ??= stock;
-    return withHook({ ...card, covers: own, stockSrc: stock['zh-Hans'].src });
+  // A card ships its second picture only where /guides can show it (secondPictureCards), and a picture more than one card
+  // shows ships once (`images`): a card names it by file and expandGuidesIndex puts it back, not a copy per card in three
+  // languages (CI fix 2: the /guides route budget).
+  const cards = index.guides.map(card => { const { stock, ...own } = slim(card.covers); return { card, own, stock }; });
+  const second = secondPictureCards(index.guides);
+  const images: GuidesIndexFile['images'] = {};
+  for (const { card, stock } of cards) if (stock && second.has(card.slug)) images[stock['zh-Hans'].src] ??= stock;
+  const records = new Map<string, number>();
+  for (const { own } of cards) records.set(JSON.stringify(own), (records.get(JSON.stringify(own)) ?? 0) + 1);
+  const indexCard = ({ card, own, stock }: typeof cards[number]): GuideIndexFileCard => {
+    const { covers, ...rest } = card;
+    void covers;
+    const src = own['zh-Hans'].src, json = JSON.stringify(own);
+    const shared = images[src] ? JSON.stringify(images[src]) === json : records.get(json)! > 1;
+    if (shared) images[src] ??= own;
+    return withHook({ ...rest, ...(shared ? { coverSrc: src } : { covers: own }), ...(stock && second.has(card.slug) ? { stockSrc: stock['zh-Hans'].src } : {}) });
   };
-  const guidesCards = index.guides.map(indexCard);
-  return { index: { ...index, guides: guidesCards, stockImages }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
+  const guidesCards = cards.map(indexCard);
+  return { index: { ...index, guides: guidesCards, images }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
+}
+
+/**
+ * The /guides cards that ship their second (③) picture (UI9-IMG-A1b, CI fix 2 for the /guides route budget). /guides resolves
+ * its cards on one CoverPage (GuidesHome, guide-facts.ts guideCover): a card moves to its second only when its own picture is
+ * already on the page (a ①② file) or within ADJACENT_CARDS cards (a ③). That can happen only to a card whose own picture
+ * another card also shows: one more guide with the same cover file, or a card that ships that file as its second. Every other
+ * card's own picture is unique on every /guides view (browse, topic lists, search), so its second was never shown: those
+ * ship none. Fixed point: a card that ships a second can put it on the page, so the card whose own picture that is ships one too.
+ */
+export function secondPictureCards(cards: readonly Pick<GuidesIndex['guides'][number], 'slug' | 'covers'>[]): Set<string> {
+  const files = (covers: Omit<GuideCovers, 'stock'>) => new Set((['zh-Hans', 'zh-Hant', 'en'] as const).map(locale => covers[locale]?.src).filter((src): src is string => !!src));
+  const shown = new Map<string, number>();
+  for (const card of cards) for (const src of files(card.covers)) shown.set(src, (shown.get(src) ?? 0) + 1);
+  const second = new Set(cards.filter(card => [...files(card.covers)].some(src => shown.get(src)! > 1)).map(card => card.slug));
+  for (let grew = true; grew;) {
+    grew = false;
+    const seconds = new Set(cards.filter(card => second.has(card.slug) && card.covers.stock).flatMap(card => [...files(card.covers.stock!)]));
+    for (const card of cards) if (!second.has(card.slug) && [...files(card.covers)].some(src => seconds.has(src))) { second.add(card.slug); grew = true; }
+  }
+  return new Set(cards.filter(card => second.has(card.slug) && card.covers.stock).map(card => card.slug));
 }
 
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]*$/u;
