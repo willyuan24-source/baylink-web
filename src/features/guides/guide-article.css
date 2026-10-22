@@ -95,6 +95,13 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
 }
+/* 大 / 特大 / 简洁 at 390–1023 px: a row has no room for the glyph beside the number, so the primary holds its phone glyph above
+   the number, as each cell holds its icon above its label, at the cells' height. */
+@media (min-width:390px) and (max-width:1023px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { flex-direction:column; justify-content:center; gap:2px; height:auto; min-height:56px; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary>svg { display:inline-block; }
+  html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { align-self:stretch; }
+}
 /* 家人版 (特大 + 简洁): icon + number (the arrangement). */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
 /* Below 390 px one row cannot hold [📞 number] (360–389 px standard hid the glyph and the verb): the call on top at full
@@ -127,10 +134,14 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
    under text, in any mode or language. One icon stroke (N13): 1.75 like every site icon (the component passes 1.25); quieter
    at 特大, where the text is larger. */
 .gd-slide__mark { position:absolute; right:-6cqw; bottom:-6cqw; width:30cqw; height:30cqw; color:var(--color-surface); opacity:.12; stroke-width:1.75; pointer-events:none; clip-path:inset(0 6cqw 6cqw 0 round 0 0 var(--r-lg) 0); }
-html[data-reading=extra-large] .gd-slide__mark { opacity:.07; }
+/* 特大: a smaller corner zone (14cqw visible, beside the one-line source), so the larger lines above keep their width. */
+html[data-reading=extra-large] .gd-slide__mark { right:-4cqw; bottom:-4cqw; width:18cqw; height:18cqw; opacity:.07; clip-path:inset(0 4cqw 4cqw 0 round 0 0 var(--r-lg) 0); }
 .gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
 .gd-slide--cover :is(.gd-slide__line,.gd-slide__source) { padding-right:24cqw; }
 .gd-slide--cover .gd-answer:nth-last-child(2) { max-width:calc(100% - 24cqw); }
+html[data-reading=extra-large] .gd-slide--cover .gd-slide__line { padding-right:0; }
+html[data-reading=extra-large] .gd-slide--cover .gd-slide__source { padding-right:16cqw; }
+html[data-reading=extra-large] .gd-slide--cover .gd-answer:nth-last-child(2) { max-width:calc(100% - 16cqw); }
 .gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2); }
 .gd-slide__kicker { color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
