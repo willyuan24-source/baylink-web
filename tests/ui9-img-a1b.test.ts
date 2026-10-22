@@ -23,3 +23,15 @@ test('every detail hero and rail card is a picture (0 information cards)', () =>
   }
   assert.deepEqual(typed, []);
 });
+
+// /plan (UI9-IMG-A1b): every live event stop resolves to a picture with the plan extras' candidates and images.
+test('every live /plan event stop is a picture (plan extras coverKeys)', async () => {
+  const { buildPlanCatalog } = await import('../scripts/generate-plan-catalog');
+  const { getCover } = await import('../src/lib/cover');
+  const catalog = buildPlanCatalog();
+  const today = getBayAreaToday();
+  const typed = catalog.events.filter(event => event.endDate >= today).filter(event => getCover(
+    { kind: 'event', id: event.id, imageKey: event.imageKey, ...(catalog.coverKeys?.[event.id] ? { imageKeys: catalog.coverKeys[event.id] } : {}) },
+    { images: key => catalog.images[key], today }).tier === 'type').map(event => event.id);
+  assert.deepEqual(typed, []);
+});

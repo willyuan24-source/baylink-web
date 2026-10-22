@@ -2,7 +2,7 @@ import type { CoverItem, ResolvedCover } from './cover';
 import { readerMonthDay } from './event-facts';
 import { typeCoverProvenance } from './image-provenance';
 import { eventFor, placeFor, type SavedPlan, type Stop } from './planner-core';
-import { PLAN_COVER_IMAGES } from './planner-source';
+import { PLAN_COVER_IMAGES, PLAN_COVER_KEYS } from './planner-source';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../data/scene3d-postcards';
 
 /**
@@ -12,7 +12,10 @@ import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../data/scene3d-p
  * illustration falls through to the postcard (labelled 3D 场景插图) or to a TypeCover.
  */
 export function stopCoverItem(stop: Stop): CoverItem {
-  if (stop.kind === 'event') return { kind: 'event', id: stop.id, imageKey: eventFor(stop.id)?.imageKey };
+  if (stop.kind === 'event') {
+    const keys = Object.hasOwn(PLAN_COVER_KEYS, stop.id) ? PLAN_COVER_KEYS[stop.id] : undefined;
+    return { kind: 'event', id: stop.id, imageKey: eventFor(stop.id)?.imageKey, ...(keys ? { imageKeys: keys } : {}) };
+  }
   const place = placeFor(stop.id);
   const postcardKey = SCENE3D_POSTCARD_FOR[stop.id] ?? (place?.guideSlug ? SCENE3D_POSTCARD_FOR[place.guideSlug] : undefined);
   return { kind: 'place', id: stop.id, imageKey: place?.imageKey ?? (place?.guideSlug ? `guide-cover:${place.guideSlug}` : undefined), postcardKey };
