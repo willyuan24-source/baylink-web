@@ -290,8 +290,16 @@ test('no article shows the same picture twice: a related guide, an inline figure
 
 // UI9-IMG-B1b2: a guide card has one candidate (its own cover), so when two "read next" guides share an approved AI cover
 // (the 'everyday' illustration) cover.ts shows it on both, side by side (it never falls back to an information card).
-// UI9-IMG-A1b gives guide cards their ③ category photos (DECISIONS 22: ③ before ④), which ends these repeats.
-test('no article repeats a ③④ pool picture either', { todo: 'UI9-IMG-A1b: guide cards get their ③ candidates' }, () => {
+// UI9-IMG-A1b gives guide cards their ③ category photos (DECISIONS 22: ③ before ④), which ends these repeats: A1b sets
+// KNOWN_POOL_REPEATS to []. Until then the list is pinned, so any other ③④ repeat (a hero shown again in its "read next",
+// another shared picture side by side) fails here.
+const KNOWN_POOL_REPEATS = [
+  'bay-area-household-bills-annual-review-2026: /guides/editorial/everyday-illustration.webp',
+  'san-jose-digital-help-sj-access-update-2026: /guides/editorial/everyday-illustration.webp',
+  'bay-area-bulky-items-ewaste-hhw-guide: /guides/editorial/everyday-illustration.webp',
+  'bay-area-311-211-local-help-guide: /guides/editorial/everyday-illustration.webp',
+];
+test('no article repeats a ③④ pool picture either, beyond the four known "read next" repeats A1b removes', () => {
   const repeats: string[] = [];
   for (const guide of guides) {
     const seen = new Set<string>();
@@ -302,5 +310,5 @@ test('no article repeats a ③④ pool picture either', { todo: 'UI9-IMG-A1b: gu
       seen.add(src);
     }
   }
-  assert.deepEqual(repeats, []);
+  assert.deepEqual([...repeats].sort(), [...KNOWN_POOL_REPEATS].sort());
 });
