@@ -27,7 +27,7 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
   const timeInfo = post.timeInfo?.trim();
 
   return (
-    <div className="w-full rounded-2xl border border-black/[0.08] bg-baylink-bg-alt/60 p-4 shadow-[0_4px_20px_rgba(23,32,42,0.08)]">
+    <div className="w-full rounded-2xl border border-black/[0.08] bg-baylink-bg-alt/60 p-4 shadow-sm">
       <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[0.8125rem] font-semibold text-baylink-green">
         {category}
       </span>

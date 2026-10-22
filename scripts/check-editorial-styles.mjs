@@ -28,6 +28,8 @@ export const editorialStyleScopes = [
   // UI9-PREP: the UI9-F2 primitives' own sheets (imported by Disclosure.tsx and TextLink.tsx only).
   { file: 'src/components/ui/disclosure.css' },
   { file: 'src/components/ui/links.css' },
+  // UI9-R1: the form primitives' own sheet (Select.tsx and DateChips.tsx only).
+  { file: 'src/components/ui/select.css' },
   { file: 'src/features/feedback/feedback.css' },
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },

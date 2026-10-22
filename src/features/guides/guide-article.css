@@ -11,6 +11,11 @@
 .gd-article.bl-guide-article { box-sizing:content-box; display:flex; flex-direction:column; max-width:var(--container-wide); margin:0 auto; padding:var(--sp-3) var(--page-gutter) var(--sp-6); }
 .gd-article>* { min-width:0; }
 .gd-page.bl-guide-detail { padding-bottom:0; }
+/* N13: three icon sizes on an article — 1rem beside text (links, chips, meta), 1.25rem in buttons and controls, 1.5rem in the
+   bar's cells and on a slide title — plus the cover's corner mark. The borrowed parts follow: a phone chip's glyph was 1em of
+   its chip (14 · 16 · 17 px), the photo's 查看大图 15 px, 这条信息有误 18 px, 返回湾区指南 24 px. */
+.gd-article :is(.phone-chip svg,.guide-figure-zoom svg,.bl-guide-tip>span>svg) { flex:none; width:1rem; height:1rem; }
+.gd-article :is(.feedback-report-link svg,.bl-guide-return>svg) { width:1.25rem; height:1.25rem; }
 
 /* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → two meta lines. */
 .gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -26,17 +31,17 @@
 .gd-meta__item { white-space:nowrap; }
 .gd-meta__item+.gd-meta__item::before { content:"·"; padding-inline:var(--sp-2); color:var(--color-ink-3); }
 .gd-meta__item[data-edition] { color:var(--color-ink); }
-.gd-meta a { position:relative; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-meta a { position:relative; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 /* The link keeps a 44 px tap area (48 in 简洁) without making its line taller. */
 .gd-meta a::after { content:""; position:absolute; inset:50% -.25rem auto; height:2.75rem; transform:translateY(-50%); }
 html[data-simple] .gd-meta a::after { height:3rem; }
 .gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin-block:calc(var(--sp-3) * -1); margin-inline:calc(var(--sp-1) * -1) calc(var(--sp-2) * -1); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
-.gd-meta__info>svg { width:1.125rem; height:1.125rem; }
+.gd-meta__info>svg { width:1.25rem; height:1.25rem; }
 .gd-about p { margin:0 0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); }
 .gd-about a { color:var(--color-brand); }
 
 /* Lead: the title picture with its credit line (and under it a pilot guide's carousel), then 30 秒看懂 or the summary. */
-.gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-4); }
+.gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-5); }
 .gd-lead__side { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
 .gd-lead__visual { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
 .gd-lead .bl-freebie-jump { align-self:flex-start; }
@@ -44,7 +49,7 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 /* G13: one 13 px credit line under a guide photo — kind · credit · licence (never on a 3D postcard). */
 .gd-credit { display:flex; flex-wrap:wrap; margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
 .gd-credit>span+span::before { content:"·"; padding-inline:var(--sp-1); }
-.gd-credit a { color:inherit; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-credit a { color:inherit; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-summary p { margin:0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); }
 .gd-summary .gd-summary__audience { margin-top:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 
@@ -53,11 +58,11 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 /* The bar's call: [📞 拨打 number]. The number never breaks, shortens or clips. Where the primary is narrow the verb goes first
    and the 20 px phone glyph stays (DETAIL's 9.5em step would hide it, so the guide's call keeps it); the glyph goes only where
    glyph + number do not fit. Steps in em of the button's own size (content box): a 12-character number needs 10.9em with the
-   verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads BayBay beside the otter on
-   a phone and in the desktop rail (critic, DETAIL's short label), and the send cell reads 发家人 / Family in the rail too (DETAIL's
-   desktop 发给家人 / "Send to family" breaks out of the rail's 72–85 px cell at 特大 and in English), so every cell keeps its
-   icon and label inside. On a phone from 360 px the guide's cells and the bar keep 4 / 8 px side paddings (DETAIL: 8 / 8–12 px),
-   which gives the call the ~10 px that [📞 拨打 800-510-2020] needs at 390 px; a 1-800 number keeps [📞 number] there. */
+   verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads 问 BayBay (below), and the
+   send cell reads 发家人 / Family in the rail too (DETAIL's desktop 发给家人 / "Send to family" breaks out of the rail's 72–85 px
+   cell at 特大 and in English), so every cell keeps its icon and label inside. On a phone from 360 px the guide's cells and the
+   bar keep 4 / 8 px side paddings (DETAIL: 8 / 8–12 px), which gives the call the ~10 px that [📞 拨打 800-510-2020] needs at
+   390 px; a 1-800 number keeps [📞 number] there. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-bar.site-detail-actions.detail-actions .gd-bar__call.detail-actions__primary { gap:var(--sp-1); padding-inline:var(--sp-2); }
 .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:inline-block; flex:none; width:1.25rem; height:1.25rem; }
@@ -65,28 +70,63 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 @container detail-primary (max-width:10.9em) { .gd-bar__verb { display:none; } }
 @container detail-primary (max-width:9.75em) { .site-detail-actions.detail-actions.gd-bar .gd-bar__call[data-long]>svg { display:none; } }
 @container detail-primary (max-width:8.6em) { .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:none; } }
-.site-detail-actions.detail-actions.gd-bar [data-label=long] { display:none; }
-.site-detail-actions.detail-actions.gd-bar [data-label=tight] { display:inline; }
 .site-detail-actions.detail-actions.gd-bar [data-label=desk] { display:none; }
 .site-detail-actions.detail-actions.gd-bar [data-label=phone] { display:inline; }
+/* J2 P14 / DECISIONS 18: the ask cell reads 问 BayBay in every mode, on a phone and in the rail (where the bar has two rows
+   the cells' row holds it down to 320 px). The html prefix and the cell class outrank DETAIL's 家人版 swap to BayBay. */
+html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { display:inline; }
+html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=tight] { display:none; }
 @media (min-width:360px) and (max-width:1023px) {
   .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-2); }
   .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
 }
+/* N18 / N25: from 390 px one row in every mode — ♡ 收藏 · 发家人 · 问 BayBay, then the primary, rightmost — so a phone at 特大 or
+   in 简洁显示 pins the head and one bar (≤ 20% of an 844 px screen), not a two-row bar. At 大 / 特大 / 简洁 the ask cell reads
+   问 / BayBay on two lines and the cells grow to hold it (no fixed 56 px); the bar's height token holds the otter (1.5rem),
+   the two lines of --fs-meta and the cells' and the bar's 4 px paddings. The rail's narrow cells do the same. An English
+   phone at 标准 reads Ask / BayBay on two lines inside the 56 px cell, so the 1-800 number keeps its glyph. */
+@media (min-width:390px) {
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding-block:var(--sp-1); line-height:var(--lh-tight); }
+}
+@media (min-width:390px) and (max-width:1023px) {
+  html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
+  html:lang(en):not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; line-height:1; }
+  /* 家人版 (特大 + 简洁): the cells drop their side padding (48 px wide at least) and the primary keeps 4 px; the bar keeps 4 px
+     sides, so the call's tile stays off the screen's edge. A 1-800 number (data-long, 192 px at 22.5 px) needs those 8 px to
+     keep one line beside three labelled cells, so that bar alone runs to the edges. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) { padding-inline:0; }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { min-width:48px; padding-inline:0; }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
+}
+/* 大 / 特大 / 简洁 at 390–1023 px: a row has no room for the glyph beside the number, so the primary holds its phone glyph above
+   the number, as each cell holds its icon above its label, at the cells' height. */
+@media (min-width:390px) and (max-width:1023px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { flex-direction:column; justify-content:center; gap:2px; height:auto; min-height:56px; border-radius:var(--r-lg); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary>svg { display:inline-block; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { align-self:stretch; }
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
+}
 /* 家人版 (特大 + 简洁): icon + number (the arrangement). */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
-/* Two rows where one row cannot hold [📞 number] (below 390 px, and 大 / 特大 / 简洁显示 on a phone): the call on top at full
-   width, the three cells under it. The bar's height token grows with it (3rem call + 56 px cells + DETAIL's 4 px paddings and
-   gap), so the page's bottom padding, the toast and 回到顶部 clear the bar. */
+/* Below 390 px one row cannot hold [📞 number] (360–389 px standard hid the glyph and the verb): the call on top at full
+   width, the three cells under it. The bar's height token grows with it (3rem call + 56 px cells + DETAIL's 4 px paddings
+   and gap; the selector outranks site-chrome's 简洁 76 px), so the page's bottom padding and the toast clear the bar. */
 @media (max-width:389px) {
-  html:has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
+  html:root:has(.gd-bar.site-detail-actions) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
   .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
   .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
 }
-@media (max-width:479px) {
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
+/* The rail card (desktop): three bordered cells with 4 px paddings and one height. 问 BayBay keeps one line at 标准 in Chinese;
+   in English (Ask / BayBay in the 79 px cell at 1440) and at 大 / 特大 / 简洁 (above) it takes two lines. The cells grow to hold
+   the otter and both lines inside their borders (no fixed 56 px), and the row stretches 收藏 (its cell and save control are
+   grids, so the ♡ button fills them) and 发家人 to the same box, so the three borders line up. */
+@media (min-width:1024px) {
+  .gd-rail .site-detail-actions.detail-actions.gd-bar { align-items:stretch; }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],.gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; align-items:stretch; }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding:var(--sp-1); line-height:var(--lh-tight); }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { white-space:normal; text-align:center; }
 }
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-actions__status:empty { display:none; }
@@ -101,9 +141,20 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
    brand-deep (the cover). */
 .gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }
 .gd-slide--cover { border-color:transparent; background:var(--color-brand-deep); color:var(--color-surface); }
-/* The topic mark is a corner decoration, cropped by the card's top-right corner and clear of the question and the title. */
-.gd-slide__mark { position:absolute; top:-10cqw; right:-10cqw; width:46cqw; height:46cqw; color:var(--color-surface); opacity:.12; pointer-events:none; clip-path:inset(10cqw 10cqw 0 0 round 0 var(--r-lg) 0 0); }
+/* J3 P20: the topic mark is a corner decoration in a safe zone — the card's bottom-right corner, cropped by it — and the text
+   that can reach that zone keeps out of it: the source line at the bottom and an answer right above it (no summary line). The
+   summary line sits above the source, clear of the zone, and keeps the slide's full width (a 24cqw inset there left 医保 on a
+   line of its own and started an English line with "·"). The lane probe counts 0 text boxes under the mark in every mode and
+   language. One icon stroke (N13): 1.75 like every site icon (the component passes 1.25); quieter at 特大, where the text is
+   larger. */
+.gd-slide__mark { position:absolute; right:-6cqw; bottom:-6cqw; width:30cqw; height:30cqw; color:var(--color-surface); opacity:.12; stroke-width:1.75; pointer-events:none; clip-path:inset(0 6cqw 6cqw 0 round 0 0 var(--r-lg) 0); }
+/* 特大: a smaller corner zone (14cqw visible, beside the one-line source), so the larger lines above keep their width. */
+html[data-reading=extra-large] .gd-slide__mark { right:-4cqw; bottom:-4cqw; width:18cqw; height:18cqw; opacity:.07; clip-path:inset(0 4cqw 4cqw 0 round 0 0 var(--r-lg) 0); }
 .gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
+.gd-slide--cover .gd-slide__source { padding-right:24cqw; }
+.gd-slide--cover .gd-answer:has(+.gd-slide__source) { max-width:calc(100% - 24cqw); }
+html[data-reading=extra-large] .gd-slide--cover .gd-slide__source { padding-right:16cqw; }
+html[data-reading=extra-large] .gd-slide--cover .gd-answer:has(+.gd-slide__source) { max-width:calc(100% - 16cqw); }
 .gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2); }
 .gd-slide__kicker { color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
@@ -129,6 +180,11 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
 .gd-slide__phones { display:flex; flex-direction:column; gap:var(--sp-2); }
 .gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-1) var(--sp-3); }
 .gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:2.75rem; color:var(--color-brand); text-decoration:none; }
+/* J1 P26: in the two-column number grid (3+ numbers) a phone's 12-character number reads at body size with tabular figures,
+   so it keeps clear of the card's right edge at 390 px (18 px filled the 147 px column). 大 / 特大 / 简洁 keep their sizes:
+   特大 and 简洁 read the slides as one list, one number per row. */
+html:not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number { font-size:var(--fs-body); }
+:is(html[data-reading=extra-large],html[data-simple]) .gd-slide__phones[data-count=many] { grid-template-columns:minmax(0, 1fr); }
 .gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide__phone-number { font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-section); }
@@ -141,16 +197,10 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
   .gd-slide__body { font-size:var(--fs-reading); }
   .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-title); }
 }
-/* H67 (GR-12): 48px previous / next buttons on touch phones too, not only swipe. */
+/* H67 (GR-12): 48px previous / next buttons on touch phones too, not only swipe. J2 P19: on every screen they sit under the
+   slide beside the dots and the counter, never over the slide's corner. */
 .gd-carousel .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; width:3rem; height:3rem; }
 .gd-carousel .ui-carousel__controls { margin-top:var(--sp-2); }
-/* A phone keeps the buttons inside the slide, bottom right (the slide's own 1/9 is its counter), so the head, the cover and
-   the first 30 秒看懂 row share the first screen; the source line leaves them room. */
-@media (max-width:767px) {
-  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel .ui-carousel__controls { position:absolute; right:var(--sp-2); bottom:var(--sp-2); margin:0; gap:var(--sp-1); }
-  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel :is(.ui-carousel__dots,.ui-carousel__counter) { display:none; }
-  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel .gd-slide__source { padding-right:6.75rem; }
-}
 /* 看全部 N 张卡片 shows in 特大 only (below). */
 .gd-carousel__all { display:none; align-items:center; justify-content:center; gap:var(--sp-2); width:100%; min-height:3rem; margin-top:var(--sp-3); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); cursor:pointer; }
 .gd-carousel__all>svg { width:1.25rem; height:1.25rem; transition:transform var(--dur-2) var(--ease-std); }
@@ -180,8 +230,10 @@ html[data-simple] .gd-page[data-pilot] .gd-lead__visual>.gd-carousel { display:n
 /* H08: the fallback card quotes whole sentences, so its values read at body weight and size. */
 .gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--fs-body); line-height:var(--lh-read); font-weight:400; overflow-wrap:break-word; }
 .gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
-/* The ① mark: caption glyph, ≥ .5rem from the text before it, a 44px tap area (48px in 简洁显示, rule 5). */
-.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:var(--sp-2); vertical-align:super; color:var(--color-brand); font-size:var(--fs-badge); line-height:var(--lh-tight); font-weight:400; text-decoration:none; }
+/* The ① mark (J2 P15): the circled digit draws at about three quarters of its font size, so it takes the card step (an 18 px
+   glyph is a 13–14 px circle; the caption step drew 9–10 px), on the text's line rather than raised, in a 24 px box with a
+   44 px tap area (48px in 简洁显示, rule 5); ≥ .5rem from the text before it with the box's own inset. */
+.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:var(--sp-1); vertical-align:baseline; color:var(--color-brand); font-size:var(--fs-card); line-height:1; font-weight:400; text-decoration:none; }
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
 html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 
@@ -210,10 +262,10 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contact__languages { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:var(--sp-1) 0 0; }
 .gd-contact__note,.gd-contact__address { margin:0; max-width:var(--measure); color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:var(--lh-ui); }
 .gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gd-contact__places a { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
-.gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
+.gd-contact__places a { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+.gd-contact__places svg { flex:none; width:1rem; height:1rem; }
 .gd-contact__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-2); }
-.gd-contact__actions>.ui-button>svg { width:1.125rem; height:1.125rem; }
+.gd-contact__actions>.ui-button>svg { width:1.25rem; height:1.25rem; }
 .gd-contact__call>svg { color:var(--color-brand); }
 .gd-contact__call-number { display:none; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-contact__status { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -227,7 +279,7 @@ html[data-simple] .gd-contact__call { width:100%; }
 .gd-opus { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-3); margin-top:var(--sp-4); padding:var(--sp-2) var(--sp-3); min-height:3rem; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
 @media (hover:hover) and (pointer:fine) {
   .gd-opus:hover { border-color:var(--color-brand); }
-  .gd-opus:hover .gd-opus__text strong { text-decoration:underline; text-underline-offset:4px; }
+  .gd-opus:hover .gd-opus__text strong { text-decoration:underline; text-underline-offset:var(--underline-offset); }
 }
 .gd-opus:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 /* The postcard is a .ui-cover (width:100% in ui.css, which loads later): the child selector keeps its 7.5rem column. */
@@ -269,10 +321,13 @@ html[data-simple] .gd-contact__call { width:100%; }
 /* The copy template: F's secondary Button. */
 .gd-article .bl-guide-template-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); }
 .gd-article .bl-guide-template-heading h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
-.gd-article .bl-guide-template-heading>.ui-button>svg { width:1.125rem; height:1.125rem; }
+.gd-article .bl-guide-template-heading>.ui-button>svg { width:1.25rem; height:1.25rem; }
 
 /* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源" (F2's Disclosure). */
-.gd-step { margin-top:var(--section-gap); }
+/* N15: steps are sections: at least 48 px apart on a phone (--section-gap is 40 there), 64 on a desktop; the head and the lead
+   24 px apart; a source row keeps 8 px above and below (its link keeps a 44 px target), so blank bands inside a section stay
+   under the gaps between sections. */
+.gd-step { margin-top:max(var(--section-gap), var(--sp-7)); }
 .gd-step:first-child,.gd-main>.bl-guide-prose+.gd-step { margin-top:var(--sp-6); }
 .gd-step__head { display:flex; align-items:flex-start; gap:var(--sp-3); }
 /* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width. */
@@ -280,10 +335,17 @@ html[data-simple] .gd-contact__call { width:100%; }
 .gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-step__head h2 { margin:var(--sp-1) 0 0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
 .gd-step__conclusion { margin:var(--sp-2) 0 0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-read); }
-.gd-step__more { margin:var(--sp-2) 0 0 3.25rem; }
+/* N02: a step heading is at least 1.25× the largest text in its step, in every mode. 标准: the step's text reads at --fs-body
+   (20 / 16, as its conclusion already did; 17 px gave 1.18). 大 (24.75 / 19.1) and 特大 (30 / 22) already pass. 简洁显示 keeps
+   its 20 px reading text and lifts the heading to the kept 24 step (26 / 20; 家人版 35 / 25) — elder text never gets smaller. */
+.gd-step { --gd-step-indent:calc(2.5rem + var(--sp-3)); }
+.gd-article .gd-step :is(.bl-guide-prose>p,.bl-guide-bullet-list,.bl-guide-tip p) { font-size:var(--fs-body); }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .gd-step :is(.bl-guide-prose>p,.bl-guide-bullet-list,.bl-guide-tip p) { font-size:var(--fs-reading); }
+html[data-simple] .gd-article .gd-step__head h2 { font-size:var(--fs-keep-24); }
+.gd-step__more { margin:var(--sp-2) 0 0 var(--gd-step-indent); }
 .gd-step__more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
 .gd-step__more .bl-guide-prose { padding-bottom:var(--sp-2); }
-.gd-step>.bl-guide-prose { margin-left:3.25rem; }
+.gd-step>.bl-guide-prose { margin-left:var(--gd-step-indent); }
 /* Below 360 px (the family link on a small phone) the step number is smaller and the folded text uses the full column. */
 @media (max-width:359px) {
   .gd-step__head { gap:var(--sp-2); }
@@ -317,7 +379,7 @@ html[data-simple] .gd-contact__call { width:100%; }
 .gd-diagram strong { overflow-wrap:break-word; }
 .gd-diagram__text { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-diagram__tel { display:inline-flex; align-items:center; gap:var(--sp-2); align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
-.gd-diagram__tel>svg { flex:none; width:1.125rem; height:1.125rem; }
+.gd-diagram__tel>svg { flex:none; width:1rem; height:1rem; }
 html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-diagram__number { font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-diagram__body { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
@@ -366,10 +428,17 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:var(--sp-3); }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>.gd-diagram__bay { display:none; }
+/* J1 P26: below 400 px the county tiles are one list too (name left, the number right, tabular): two tiles a row left the
+   AAA numbers against, or past, the tile's right edge at 390 px. */
+@media (max-width:399px) {
+  .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
+  .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:var(--sp-3); }
+  .gd-diagram__map>.gd-diagram__bay { display:none; }
+}
 .gd-diagram__tel:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (min-width:768px) {
   .gd-diagram { padding:var(--inset-panel); }
-  .gd-step>.gd-diagram, .gd-step>.guide-figure { margin-left:3.25rem; }
+  .gd-step>.gd-diagram, .gd-step>.guide-figure { margin-left:var(--gd-step-indent); }
   .gd-diagram__flow { flex-direction:row; gap:var(--sp-3); }
   .gd-diagram__flow>li { flex:1 1 0; flex-direction:column; padding-bottom:0; }
   .gd-diagram__flow>li:not(:last-child)::before { top:calc(1rem - 1px); bottom:auto; left:2.5rem; right:-6px; width:auto; height:2px; }
@@ -390,9 +459,9 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-article .gd-sources h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
 .gd-article .gd-sources>p { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-article .gd-sources ul { margin:var(--stack-head) 0 0; padding:0; list-style:none; border-top:1px solid var(--color-line); }
-.gd-article .gd-sources li { margin:0; padding:var(--sp-3) 0; border-top:0; border-bottom:1px solid var(--color-line); }
-.gd-article .gd-sources li+li { margin-top:0; padding-top:var(--sp-3); border-top:0; }
-.gd-article .gd-sources li>a { display:inline-flex; align-items:flex-start; justify-content:flex-start; gap:var(--sp-1); min-height:2.75rem; padding-block:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-article .gd-sources li { margin:0; padding:var(--sp-2) 0; border-top:0; border-bottom:1px solid var(--color-line); }
+.gd-article .gd-sources li+li { margin-top:0; padding-top:var(--sp-2); border-top:0; }
+.gd-article .gd-sources li>a { display:inline-flex; align-items:flex-start; justify-content:flex-start; gap:var(--sp-1); min-height:2.75rem; padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-article .gd-sources li>a>svg { flex:none; width:1rem; height:1rem; margin-top:.3em; }
 .gd-article .gd-sources li p { max-width:var(--measure); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-sources__date { color:var(--color-ink-2); }
@@ -405,7 +474,11 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 }
 .gd-sources-more { margin-top:var(--sp-2); }
 .gd-sources-more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
-.gd-article .bl-guide-source-note { max-width:var(--measure); margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+/* N05: the source note is a footnote of mixed Chinese, names and dates; at --measure (36em) its lines ran to 63 characters
+   (a Latin name is half an em) and to 89 in English (66ch). 20em keeps a mixed Chinese line within 40 characters and 32em an
+   English one within 75. */
+.gd-article .bl-guide-source-note { max-width:20em; margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-article .bl-guide-source-note:lang(en) { max-width:32em; }
 /* The outing link's small line (outing-inspiration.css) reads at meta size inside an article. */
 .gd-article .outing-inspiration-link small { font-size:var(--fs-meta); }
 
@@ -417,14 +490,14 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-related__head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-3); }
 /* H52: at 大 / 特大 / 简洁 the section link sits under its heading instead of squeezing it. */
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-related__head { flex-direction:column; align-items:flex-start; gap:0; }
-.gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-related__rows { margin:0; padding:0; list-style:none; }
 .gd-related .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; }
 .gd-related__grid { display:none; }
 .gd-related .ui-provenance { white-space:normal; text-overflow:clip; }
 .gd-related .ui-feed-card__meta { white-space:normal; }
 .gd-related__topic { display:none; margin:0; }
-.gd-related__topic a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:3rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-related__topic a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:3rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-related__topic a>svg { width:1.25rem; height:1.25rem; }
 
 /* 本页图片来源 (#page-credits), last. */
@@ -442,14 +515,26 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-to-top[hidden] { display:none; }
 .gd-to-top>svg { width:1.5rem; height:1.5rem; }
 .gd-to-top:active { scale:.94; }
+/* N18: at 大 / 特大 and in 简洁显示 a phone or tablet pins only the head and the bar (≤ 20% of the screen), so 回到顶部 is not a
+   third pinned layer there: it is a labelled button at the end of the page (its name, shown), always present. Its display
+   outranks the button's hidden attribute on purpose: GuideToTop still sets hidden until the reader is two screens down, which
+   only the floating button (标准, desktop) follows. */
+@media (max-width:1023px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top { position:static; display:flex; align-items:center; justify-content:center; gap:var(--sp-2); width:auto; height:auto; min-height:3rem; margin:0 var(--page-gutter) var(--sp-6); padding:0 var(--sp-4); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after { content:attr(aria-label); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top>svg { width:1.25rem; height:1.25rem; }
+}
 
-:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-related__head a,.gd-related__topic a,.gd-credits a,.gd-about a,.gd-toc__list a,.gd-rail__sources,.gd-to-top,.gd-carousel__all,.gd-credit a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-related__head a,.gd-related__topic a,.gd-credits a,.gd-about a,.gd-toc__list a,.gd-rail__sources,.gd-to-top,.gd-carousel__all,.gd-credit a,.gd-diagram__tel,.gd-keyfacts__sources):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
+/* N23: every link and control of the article answers a pointer. Links take the darker brand on hover, as .ui-link does (a
+   2 px underline alone hardly changed the look: the 官方来源 links, the map links and the ① marks read as dead); a slide's
+   number underlines in the darker brand. */
 @media (hover:hover) and (pointer:fine) {
-  :is(.gd-crumbs a,.gd-related__head a,.gd-related__topic a,.gd-credit a,.gd-about a):hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.2em; }
-  :is(.gd-meta a,.gd-contact__places a,.gd-credits a,.gd-article .gd-sources li>a):hover { text-decoration-thickness:2px; }
+  :is(.gd-crumbs a,.gd-related__head a,.gd-related__topic a,.gd-credit a,.gd-about a,.gd-meta a,.gd-contact__places a,.gd-credits a,.gd-article .gd-sources li>a,.gd-rail__sources,.gd-source-mark,.gd-diagram__tel,.gd-keyfacts__sources):hover { color:var(--color-brand-hover); text-decoration-line:underline; text-decoration-thickness:2px; text-underline-offset:var(--underline-offset); }
+  :is(.gd-slide__phone:hover .gd-slide__phone-number,.gd-answer a:hover) { color:var(--color-brand-hover); text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+  .gd-slide--cover .gd-answer a:hover { color:inherit; }
   :is(.gd-meta__info,.gd-carousel__all,.gd-to-top):hover { background:var(--color-surface-2); }
-  .gd-rail__sources:hover { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.2em; }
-  .gd-step__more .ui-disclosure__summary:hover,.gd-sources-more .ui-disclosure__summary:hover { text-decoration:underline; text-underline-offset:.2em; }
+  .gd-step__more .ui-disclosure__summary:hover,.gd-sources-more .ui-disclosure__summary:hover { text-decoration:underline; text-underline-offset:var(--underline-offset); }
 }
 
 /* 简洁显示: one column in reading order — head → 30 秒看懂 → 联系电话 (48 px 拨打 with the number) → the lead diagram → 目录 → steps →
@@ -485,7 +570,7 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   .gd-page[data-board] .gd-article>.gd-boards { grid-column:1 / -1; }
   .gd-rail__inner { position:sticky; top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); display:flex; flex-direction:column; gap:var(--sp-2); }
   .gd-rail .site-detail-actions.detail-actions { margin-top:0; }
-  .gd-rail__sources { display:inline-flex; align-items:center; gap:var(--sp-1); align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+  .gd-rail__sources { display:inline-flex; align-items:center; gap:var(--sp-1); align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
   .gd-rail__sources>svg { width:1rem; height:1rem; }
   .gd-title__rest { font-size:var(--fs-body); }
   .gd-lead { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); column-gap:var(--grid-gutter); row-gap:var(--sp-4); align-items:stretch; margin-top:var(--sp-5); }
@@ -502,6 +587,19 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   html[data-simple] .gd-related__grid { display:none; }
   .gd-related__grid .ui-feed-grid { --ui-feed-ratio:3 / 2; }
   .gd-to-top { right:var(--sp-6); bottom:var(--sp-6); }
+  /* J1 P23: a pilot's slide and 30 秒看懂 are one height and end on one line: the slide fills its column above the carousel's
+     controls, and the card leaves the controls' height (3rem + the gap) free under it. 特大 lists the cover alone. */
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] :is(.gd-lead__visual,.gd-lead__visual>.gd-carousel,.gd-carousel>.ui-carousel) { display:flex; flex:1 1 auto; flex-direction:column; }
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__track { flex:1 1 auto; }
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead__side>.gd-keyfacts { margin-bottom:calc(3rem + var(--sp-2)); }
+}
+/* J3 P16: a tablet reads a pilot's lead in two columns (slide | 30 秒看懂) instead of one 700 × 930 slide that was a third empty;
+   the slide keeps the phone's cap (3:4 up to 22.5rem tall, gd-slide). 特大 keeps one column: it lists the cover alone (no 3:4
+   slide) above 看全部, which beside a long 30 秒看懂 left most of the left column empty, as on a desktop (J1 P23). */
+@media (min-width:768px) and (max-width:1023px) {
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead[data-visual] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--sp-5); align-items:start; }
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__slide { flex-basis:100%; }
 }
 @media (min-width:1200px) {
   .gd-article.bl-guide-article { --gd-main:1 / span 9; --gd-rail:10 / span 3; --gd-body:4 / span 6; }

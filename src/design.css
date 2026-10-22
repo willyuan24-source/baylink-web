@@ -7,11 +7,12 @@ html { scroll-padding-top:80px; overflow-x:clip; }
 body { background:var(--color-bg); overflow-x:clip; height:auto; min-height:100%; }
 #root { overflow:visible; height:auto; min-height:100dvh; }
 ::selection { color:var(--color-brand-deep); background:var(--color-highlight); }
-:where(button,a,input,select,textarea,summary):focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
+/* The one focus ring (tokens.css --focus-ring-*), also for the dialogs, sheets and toasts portalled outside .site-app. */
+:where(button,a,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 button:disabled { cursor:not-allowed; }
 @media (hover:hover) and (pointer:fine) { .bay-button-dark:hover { background:var(--color-brand-hover); transform:translateY(-1px); } }
 .bay-home { max-width:1370px; padding:27px 32px 24px; margin:auto; }
-.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:12px; background:var(--color-brand-deep); color:var(--color-surface); border-radius:var(--r-md); padding:13px 16px; min-height:44px; font-size:.8125rem; font-weight:600; transition:background .2s,transform .2s; }
+.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:12px; background:var(--color-brand-deep); color:var(--color-surface); border-radius:var(--r-md); padding:13px 16px; min-height:44px; font-size:.8125rem; font-weight:600; transition:background var(--dur-3) var(--ease-std),transform var(--dur-3) var(--ease-std); }
 .bay-feed-empty { background:var(--color-surface); border:1px dashed var(--color-line); border-radius:var(--r-lg); text-align:center; padding:36px 14px; color:var(--color-ink-3); }
 .bay-feed-empty>svg { margin:0 auto 16px; }
 .bay-feed-empty h3 { font-size:1.0625rem; color:var(--color-ink-2); margin-bottom:8px; }

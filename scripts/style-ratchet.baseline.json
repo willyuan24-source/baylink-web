@@ -6,19 +6,19 @@
     "fontSizePx": 0,
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 19,
-    "radiusKinds": 31,
-    "shadowKinds": 23,
+    "radiusKinds": 28,
+    "shadowKinds": 20,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 45,
     "baylinkClasses": 330,
     "arrowUpRight": 29,
-    "buttonLooks": 33,
+    "buttonLooks": 32,
     "fontSizeOffLadder": 27,
-    "fontSizeLiteral": 376,
+    "fontSizeLiteral": 365,
     "fontWeightBold": 2,
     "durationOffScale": 0,
-    "durationLiteral": 36,
-    "spacingOffScale": 1486,
+    "durationLiteral": 28,
+    "spacingOffScale": 1352,
     "englishUiUntranslated": 104,
     "lazyCssDuplicateSelectors": 0
   },
@@ -165,8 +165,6 @@
     ],
     "radius": [
       "0",
-      "0 0 var(--r-xl) var(--r-xl)",
-      "12px",
       "tw:rounded-2xl",
       "tw:rounded-3xl",
       "tw:rounded-[24px]",
@@ -182,7 +180,6 @@
       "var(--r-lg) 0 0 var(--r-lg)",
       "var(--r-lg) var(--r-lg) 0 0",
       "var(--r-lg) var(--r-lg) var(--r-lg) var(--r-sm)",
-      "var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg)",
       "var(--r-lg) var(--r-sm) var(--r-lg) var(--r-lg)",
       "var(--r-md)",
       "var(--r-md) var(--r-md) 0 0",
@@ -205,13 +202,10 @@
       "0 0 0 3px rgb(var(--color-line-control-rgb) / .09)",
       "0 0 0 3px var(--color-brand-tint)",
       "0 0 0 3px var(--color-danger-tint)",
-      "0 0 0 3px var(--color-highlight),0 4px 12px rgb(var(--color-brand-deep-rgb) / .22)",
       "0 0 0 4px var(--color-surface)",
       "inset 0 0 0 1px var(--color-brand)",
-      "inset 4px 0 0 var(--color-warning,var(--color-line-strong))",
       "none",
       "tw:shadow-2xl",
-      "tw:shadow-[0_4px_20px_rgba(23,32,42,0.08)]",
       "tw:shadow-card",
       "tw:shadow-elevated",
       "tw:shadow-lg",
@@ -224,7 +218,6 @@
     "button": [
       "var(--color-brand) | var(--color-surface) | -",
       "var(--color-brand) | var(--color-surface) | 0",
-      "var(--color-brand) | var(--color-surface) | 1px solid transparent",
       "var(--color-brand) | var(--color-surface) | 1px solid var(--color-brand)",
       "var(--color-brand) | var(--color-surface) | var(--color-brand)",
       "var(--color-brand) | white | 1px solid var(--color-brand)",
@@ -278,7 +271,6 @@
       "baylinkClasses": 1
     },
     "src/components/calendar-event-map.css": {
-      "fontSizeLiteral": 10,
       "spacingOffScale": 21
     },
     "src/components/CityCurrentCard.tsx": {
@@ -319,8 +311,7 @@
       "arrowUpRight": 1
     },
     "src/components/guides-ui.css": {
-      "durationLiteral": 1,
-      "spacingOffScale": 128
+      "durationLiteral": 1
     },
     "src/components/GuideVisuals.tsx": {
       "arrowUpRight": 1
@@ -335,7 +326,7 @@
       "spacingOffScale": 2
     },
     "src/components/local-discovery-detail.css": {
-      "spacingOffScale": 5
+      "spacingOffScale": 4
     },
     "src/components/monthly-deals.css": {
       "spacingOffScale": 5
@@ -360,7 +351,7 @@
       "spacingOffScale": 4
     },
     "src/components/planner-web-library.css": {
-      "spacingOffScale": 5
+      "spacingOffScale": 4
     },
     "src/components/PlannerWebSearch.tsx": {
       "arrowUpRight": 1
@@ -389,7 +380,6 @@
       "arrowUpRight": 3
     },
     "src/components/site-chrome.css": {
-      "durationLiteral": 2,
       "spacingOffScale": 13
     },
     "src/components/site-dialogs.css": {
@@ -420,7 +410,7 @@
     },
     "src/components/ui/cards.css": {
       "fontSizeLiteral": 2,
-      "spacingOffScale": 8
+      "spacingOffScale": 9
     },
     "src/components/ui/confirm.tsx": {
       "baylinkClasses": 11
@@ -458,7 +448,6 @@
       "hexOccurrences": 2
     },
     "src/design.css": {
-      "durationLiteral": 2,
       "fontSizeLiteral": 4,
       "spacingOffScale": 13
     },
@@ -500,6 +489,9 @@
     "src/features/detail/DetailActionBar.tsx": {
       "arrowUpRight": 1
     },
+    "src/features/detail/facts-grid.css": {
+      "spacingOffScale": 1
+    },
     "src/features/events/events.css": {
       "spacingOffScale": 2
     },
@@ -515,7 +507,7 @@
       "spacingOffScale": 10
     },
     "src/features/guides/guide-article.css": {
-      "spacingOffScale": 10
+      "spacingOffScale": 7
     },
     "src/features/member-ui.css": {
       "durationLiteral": 10,
@@ -666,11 +658,9 @@
       "spacingOffScale": 20
     },
     "src/styles/planner.css": {
-      "fontSizeLiteral": 1,
-      "spacingOffScale": 72
+      "spacingOffScale": 69
     },
     "src/tokens.css": {
-      "durationLiteral": 4,
       "fontWeightBold": 1,
       "spacingOffScale": 5
     }

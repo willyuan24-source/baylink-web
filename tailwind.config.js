@@ -6,6 +6,17 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 // keep working and map to the nearest token (the hex each one used to hold is noted).
 const token = name => `rgb(var(--color-${name}-rgb) / <alpha-value>)`;
 
+// UI9-R1 (N10 / N11 / N24): the shape, depth and motion scales are the tokens too, so a Tailwind class cannot add a radius,
+// shadow, duration or easing the site does not have. These replace Tailwind's defaults (theme, not extend): every
+// rounded-*, shadow-*, duration-* and ease-* resolves to a --r-* / --e* / --dur-* / --ease-* token from src/tokens.css
+// (rounded-lg 8 and rounded-xl 12 → --r-md 10; rounded / rounded-md → --r-sm 6; rounded-2xl → --r-lg 16; rounded-3xl and
+// rounded-card → --r-xl 24; small shadows → --e1, large ones → --e2; durations → the five steps, which reduced motion and
+// 简洁显示 set to 0). tests/ui9-r1-foundation.test.ts compiles them.
+const radius = { none: '0', sm: 'var(--r-sm)', DEFAULT: 'var(--r-sm)', md: 'var(--r-sm)', lg: 'var(--r-md)', xl: 'var(--r-md)', '2xl': 'var(--r-lg)', '3xl': 'var(--r-xl)', full: 'var(--r-pill)', card: 'var(--r-xl)', 'card-lg': 'var(--r-xl)' };
+const shadow = { none: 'none', sm: 'var(--e1)', DEFAULT: 'var(--e1)', md: 'var(--e1)', lg: 'var(--e2)', xl: 'var(--e2)', '2xl': 'var(--e2)', soft: 'var(--e1)', card: 'var(--e1)', 'card-hover': 'var(--e2)', search: 'var(--e1)', nav: 'var(--e1)', rest: 'var(--e1)', elevated: 'var(--e2)' };
+const duration = { 0: '0ms', DEFAULT: 'var(--dur-2)', 75: 'var(--dur-1)', 100: 'var(--dur-1)', 150: 'var(--dur-2)', 200: 'var(--dur-3)', 300: 'var(--dur-5)' };
+const easing = { DEFAULT: 'var(--ease-std)', linear: 'linear', in: 'var(--ease-in)', out: 'var(--ease-out)', 'in-out': 'var(--ease-std)' };
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -13,7 +24,14 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // N23: hover: utilities only where a pointer can hover — wrapped in @media (hover:hover) and (pointer:fine), like the
+  // site's own hover rules, so a tap on a phone never leaves a card lifted or a button darkened.
+  future: { hoverOnlyWhenSupported: true },
   theme: {
+    borderRadius: radius,
+    boxShadow: shadow,
+    transitionDuration: duration,
+    transitionTimingFunction: easing,
     extend: {
       colors: {
         baylink: {
@@ -49,19 +67,6 @@ export default {
       fontFamily: {
         sans: ['var(--font-sans)'],
       },
-      borderRadius: {
-        'card': '1.5rem',
-        'card-lg': '1.5rem',
-      },
-      boxShadow: {
-        'soft': '0 8px 24px -6px rgba(22, 166, 106, 0.08)',
-        'card': '0 2px 16px -4px rgba(23, 32, 42, 0.05)',
-        'card-hover': '0 4px 20px -6px rgba(23, 32, 42, 0.07)',
-        'search': '0 2px 12px -2px rgba(23, 32, 42, 0.06)',
-        'nav': '0 -4px 24px -4px rgba(23, 32, 42, 0.08)',
-        'rest': '0 1px 2px rgba(23, 32, 42, 0.04), 0 1px 8px rgba(23, 32, 42, 0.03)',
-        'elevated': '0 8px 32px rgba(23, 32, 42, 0.08)',
-      }
     },
   },
   plugins: [tailwindcssAnimate],

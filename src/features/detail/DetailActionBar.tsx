@@ -20,8 +20,9 @@ export type DetailPrimary =
  * 问 BayBay, then the one primary, always last. A cell that does not apply is left out, never disabled. On a phone or a
  * tablet it is fixed at the bottom (64 px + the safe area) and replaces the tab bar: SiteChrome hides the tab bar on a
  * `chrome:'detail'` route once an element with the class `site-detail-actions` is on the page (WEB-SHELL2). On a desktop it
- * is the second card of the sticky aside: the primary full width, then the cells in one row. Generic: guides render it with
- * their own cells; every rule is keyed on `.site-detail-actions.detail-actions` (local-discovery-detail.css).
+ * is the second card of the aside, sticky to the end of the body: the primary full width, then the cells in one row.
+ * Generic: guides render it with their own cells; every rule is keyed on `.site-detail-actions.detail-actions`
+ * (local-discovery-detail.css).
  */
 export function DetailActionBar({ cells, primary }: { cells: ReactNode; primary: ReactNode }) {
   const { t } = useUiCopy();
@@ -48,7 +49,11 @@ export function FamilyCell({ path, title }: { path: string; title: string }) {
   </button>;
 }
 
-/** 问 BayBay: opens the assistant with this page as its "正在看" capsule. Where a phone cell has no room, it reads BayBay. */
+/**
+ * 问 BayBay: opens the assistant with this page as its "正在看" capsule. The label is 问 BayBay / Ask BayBay from 360 px in
+ * every reading mode (家人版 included, UI9-R1); only a phone narrower than 360 px reads BayBay beside the otter
+ * (local-discovery-detail.css), and the name always says 问 BayBay 这一页.
+ */
 export function AskCell() {
   const { t } = useUiCopy();
   const app = useApp() as AppContextValue | undefined;

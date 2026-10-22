@@ -125,8 +125,10 @@ function openPageCredits() {
 /**
  * The global footer (content arrangement §5): the otter, BAYLINK and the tagline; one line on what the site is, with
  * 免费 · 不用登录 under captain decision 4 (lib/ui-navigation.ts footerClaim); 关于 BAYLINK · 我们怎么核对 · 反馈 at 16px;
- * 内容目录 · 条款 · 隐私 · 短信说明 at 14px (简洁显示 drops 内容目录); the page's image credits last, when it has a block
- * mid-page. 反馈 is a button (WEB-FEEDBACK's sheet), so the prerendered footer has only same-language links (verify-release).
+ * 内容目录 · 条款 · 隐私 · 短信说明 at 14px; the page's image credits last, when it has a block mid-page. Every link is a
+ * 44px target (48 in 简洁显示, N25). 简洁显示 (D6) keeps the two link lines only: it drops the brand column and 内容目录
+ * (site-chrome.css). 反馈 is a button (WEB-FEEDBACK's sheet), so the prerendered footer has only same-language links
+ * (verify-release).
  */
 export function SiteFooter({ onFeedback = openSiteFeedback }: { onFeedback?: () => void }) {
   const locale = useLocale();

@@ -118,8 +118,9 @@ test('elder modes: no heading or text step is smaller than on the old ladder (ph
       assert.ok(now[key] + 0.01 >= old[key], `${key} ${now[key]}px < ${old[key].toFixed(2)}px at ${JSON.stringify(c)}`);
     }
   }
+  // UI9-R1 (N01): 特大 renders whole pixels, the elder steps rounded up to the next rung (32.5 → 35, 27.5 → 30).
   const phoneXl = resolveSteps({ width: 390, reading: 'extra-large' });
-  assert.equal(phoneXl.title, 32.5); assert.equal(phoneXl.section, 27.5);
+  assert.equal(phoneXl.title, 35); assert.equal(phoneXl.section, 30);
   const phoneLarge = resolveSteps({ width: 390, reading: 'large' });
   assert.equal(phoneLarge.title, 29.25); assert.equal(phoneLarge.section, 24.75);
   // 标准 keeps the tokens v2 ladder (24 / 20 on a phone, 32 / 24 on a desktop); only the elder sizes keep the old steps.
@@ -266,7 +267,6 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
   ]],
   ['src/styles/planner.css', [
     ['', '.planner-map-disclosure>summary::after', 22, 20],
-    ['@media (min-width:1024px)', '.planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button)', 15, 14],
   ]],
 ];
 
@@ -286,8 +286,9 @@ function fontSizes(file: string) {
 }
 
 test('elder modes: no component size the ladder codemod lowered is smaller than before tokens v2 (大 / 特大 / 简洁, phone to desktop)', () => {
-  // 69 since UI9-INT dropped the .discovery-modal h2 pin with its dead rule (no markup since the sheets moved to F's Sheet).
-  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 69);
+  // 69 since UI9-INT dropped the .discovery-modal h2 pin with its dead rule (no markup since the sheets moved to F's Sheet);
+  // 68 since UI9-R1-PLAN dropped the planner's own desktop button sizes (行程's buttons are the UI Button: 16px, not 15).
+  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 68);
   const cases: Case[] = [];
   for (const width of [390, 768, 1023, 1024, 1440]) for (const reading of [undefined, 'large', 'extra-large'] as const) for (const simple of [false, true]) cases.push({ width, reading, simple });
   const resolvers = cases.map(c => ({ c, px: fsPx(c) }));
@@ -307,9 +308,10 @@ test('elder modes: no component size the ladder codemod lowered is smaller than 
       }
     }
   }
-  // The phone 特大 heads the captain named: /me 设置 27.5px (not 25), the 404 H1 and a post sheet's H1 32.5px (not 30).
+  // The phone 特大 heads the captain named: /me 设置 27.5px (not 25), the 404 H1 and a post sheet's H1 32.5px (not 30); UI9-R1
+  // rounds them up to whole pixels on the 特大 ladder (30, 35).
   const phoneXl = fsPx({ width: 390, reading: 'extra-large' });
-  assert.deepEqual([phoneXl('--fs-keep-20'), phoneXl('--fs-keep-24')], [27.5, 32.5]);
+  assert.deepEqual([phoneXl('--fs-keep-20'), phoneXl('--fs-keep-24')], [30, 35]);
 });
 
 test('every --fs-keep-<px> a stylesheet reads is a token whose 标准 size is <px>', () => {

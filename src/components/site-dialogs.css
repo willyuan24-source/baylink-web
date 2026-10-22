@@ -87,9 +87,12 @@ html[data-simple] .quick-result { min-height:64px; }
 .reading-sheet-card .reading-sizes>button { display:grid; justify-items:center; align-content:center; gap:2px; min-height:96px; padding:var(--sp-3) var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .reading-sheet-card .reading-sizes>button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand-deep); font-weight:var(--fw-regular); }
 .reading-sheet-card .reading-sizes>button:active { scale:.97; }
-.reading-sheet-card .reading-sample { line-height:1.2; font-size:var(--fs-section); }
-.reading-sheet-card .reading-sample[data-size=large] { font-size:calc(var(--fs-section) * 1.125); }
-.reading-sheet-card .reading-sample[data-size=extra-large] { font-size:calc(var(--fs-section) * 1.25); }
+/* The samples sit on whole pixels of each mode's ladder (UI9-R1-CHROME, N01): the kept steps, 20 · 24 · 28 at 标准, 30 · 35
+   · 40 at 特大; in 简洁显示 one step up (26 · 30 · 34; 35 · 40 · 43 with 特大), never below the old 24 · 27 · 30. */
+.reading-sheet-card .reading-sample { line-height:1.2; font-size:var(--fs-keep-20); }
+.reading-sheet-card .reading-sample[data-size=large],html[data-simple] .reading-sheet-card .reading-sample { font-size:var(--fs-keep-24); }
+.reading-sheet-card .reading-sample[data-size=extra-large],html[data-simple] .reading-sheet-card .reading-sample[data-size=large] { font-size:var(--fs-keep-28); }
+html[data-simple] .reading-sheet-card .reading-sample[data-size=extra-large] { font-size:var(--fs-keep-32); }
 .reading-sheet-card .reading-size-name { display:inline-flex; align-items:center; gap:var(--sp-1); }
 .reading-sheet-card .reading-sizes small { flex-basis:auto; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .reading-sheet-card .reading-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }

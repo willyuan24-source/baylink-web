@@ -8,6 +8,7 @@ import { PlannerPlaceOutingOptions } from './PlannerOutingOptions';
 import { plannerNoticeText } from '../lib/planner-copy';
 import type { ResolvedCover } from '../lib/cover';
 import { PlannerOptionCover } from './PlannerStopCover';
+import { Button } from './ui/Button';
 
 /** `covers`: one per suggestion, in order (the page resolves every cover once, in display order). */
 export function PlannerPlaceRecommendations({ suggestions, filters, message, onChoose, onStart, covers }: {
@@ -37,7 +38,7 @@ export function PlannerPlaceRecommendations({ suggestions, filters, message, onC
       <a onClick={() => recordProductEvent('official_source_click')} href={place.officialUrl} target="_blank" rel="noopener noreferrer">{text('查看地点来源与最新安排 ↗', 'Check the place source and latest details ↗')}</a>
       {place.planning?.schedule && <small>{text('时段资料核查：', 'Hours checked: ')}{place.planning.schedule.verifiedAt}</small>}
       <PlannerPlaceOutingOptions placeId={place.id} date={suggestion.date} filters={filters} message={message} onChoose={onChoose} />
-      <button type="button" className="planner-primary" onClick={() => onStart([stop], suggestion.date, place.title, filters)}>{text('以这里为起点', 'Start with this place')}</button>
+      <Button block onClick={() => onStart([stop], suggestion.date, place.title, filters)}>{text('以这里为起点', 'Start with this place')}</Button>
     </article>;
   })}</div>;
 }

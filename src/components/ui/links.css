@@ -1,19 +1,20 @@
-/* Links (UI9-F2, added by UI9-PREP): two looks, one underline offset (.2em, as the hover underline in tokens.css).
+/* Links (UI9-F2, added by UI9-PREP): two looks, one underline (tokens.css --underline-offset .2em, --underline-thickness
+   1px, never skip-ink: J1 P7, the CJK underline broke into pieces; UI9-R1).
    .ui-link sits in text, underlined at rest (standalone, on a line of its own: a 44px target, 48 in 简洁显示); .ui-more is
    "看全部 →", underlined on hover, a 44px target. Imported by TextLink.tsx only, so it ships with the pages that use it. */
-.ui-link { color:var(--color-brand); text-decoration:underline 1px; text-underline-offset:.2em; }
+.ui-link { color:var(--color-brand); text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
 :is(.ui-link[data-standalone],.ui-more) { display:inline-flex; align-items:center; min-height:var(--control-height); }
 /* An in-text link with a 44px target (`hit`; 48 in 简洁显示, where --control-height is 3rem): a transparent box centred on
    the link, --control-height tall and at least as wide, so the line height, the look and the focus ring stay as they are.
    It hit-tests as the link. A link that wraps onto a second line keeps its own boxes only. */
 .ui-link[data-hit] { position:relative; }
 .ui-link[data-hit]::before { content:""; position:absolute; inset-inline:min(0px, (100% - var(--control-height)) / 2); top:calc(50% - var(--control-height) / 2); height:var(--control-height); }
-.ui-more { gap:var(--sp-1); color:var(--color-brand); font-weight:var(--fw-regular); text-underline-offset:.2em; }
+.ui-more { gap:var(--sp-1); color:var(--color-brand); font-weight:var(--fw-regular); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
 .ui-more__arrow { flex:none; width:1em; height:1em; }
 @media (hover:hover) and (pointer:fine) {
   .ui-link:hover { color:var(--color-brand-hover); }
-  .ui-more:hover { text-decoration:underline 1px; }
+  .ui-more:hover { text-decoration:underline var(--underline-thickness); }
 }
 .ui-more:active { scale:.96; }
-:is(.ui-link,.ui-more):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+:is(.ui-link,.ui-more):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 html[data-simple] :is(.ui-link[data-standalone],.ui-more) { min-height:3rem; }

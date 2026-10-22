@@ -28,7 +28,7 @@ const openingsView = retryableLazy(withBoards(() => import('./OpeningsView')));
 
 /**
  * 活动 (plan D3, design.md §4.11; UI9-EVENTS G17 + G12): one head — H1 活动 with the range on its baseline (本周末 · 10/24–25,
- * 今天 · 10/19 周一, 全部日期 · 收录至 2/28 …), a 14px facts line (counts · 每条附官方链接 · 官网核对 … · 我们怎么核对 →) —
+ * 今天 · 10/19 周一, 全部日期 · 收录至 2/28 …), a one-line 14px facts line (counts · 我们怎么核对 →; UI9-R1) —
  * then the four views as D3's segmented control (not sticky): 本周末 | 日历·地图 | 免费与优惠 | 新店. /events opens on 本周末,
  * /this-month on 全部日期, /calendar on its day view. A switch keeps the previous body, dimmed, until the next view is in.
  */
@@ -98,7 +98,12 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
     : column === 'calendar' || !events ? ''
     : english ? `${inScope.length} ${inScope.length === 1 ? 'event' : 'events'} · ${free} free` : t(`${inScope.length} 场 · ${free} 场免费`, `${inScope.length} events · ${free} free`);
 
-  const facts = [counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2').replace(/^[a-z]/, letter => letter.toUpperCase());
+  // UI9-R1 (J1 P11 / J2 P10): the line people see is the counts and 我们怎么核对 → only, one line at 390px in every language.
+  // The promise (or the press count) and the 官网核对 dates sit behind that link as screen-reader text, in the same order, since
+  // each card still prints its own ✓ line (DECISIONS 3 / 17). 简洁显示 hides the whole line (D6; events.css [data-simple=hide]).
+  // A no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
+  // ("Oct 16"), so a wrap never splits it. The promise leads (a capital or a count in English), so no case change is needed.
+  const behind = [promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2');
 
   const tabs = [
     { id: 'list', label: t('本周末', 'Weekend'), to: '/events' },
@@ -138,11 +143,10 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
           <h1 className="ui-page-header__title">{t('活动', 'Events')}</h1>
           <p className="ev-range" {...scope}>{rangeLine}</p>
         </div>
-        <p className="ev-lede-facts" {...scope}>
-          {/* a no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
-              ("Oct 16"), so a wrap never splits it; an English line that opens on the promise (/calendar) starts with a capital */}
-          {facts}
-          <span className="ev-lede-facts__how">{facts && <span aria-hidden="true">{'\u00a0· '}</span>}<MoreLink to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}</MoreLink></span>
+        <p className="ev-lede-facts" data-simple="hide" {...scope}>
+          {counts}{counts && '\u00a0· '}
+          {behind && <span className="sr-only">{`${behind}\u00a0· `}</span>}
+          <MoreLink to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}</MoreLink>
         </p>
       </header>
       <div className="ev-tabs-bar"><SegmentedTabs className="ev-tabs" label={t('活动分区', 'Event views')} items={tabs} value={current} onChange={id => setPending(id === column ? undefined : id)} /></div>

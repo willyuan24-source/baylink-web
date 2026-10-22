@@ -15,3 +15,5 @@
 @media (hover:hover) and (pointer:fine) { .site-app .site-account-panel nav>:is(a,button):hover,.site-app .site-account-panel>button:hover { background:var(--color-surface-2); } }
 .site-app .site-account-panel nav .site-unread { margin-left:auto; }
 .site-app .site-account-panel>button { margin-top:var(--sp-1); }
+/* The unread count on the avatar (the badge look of site-chrome.css .site-unread, 18px wide at least), in this chunk only. */
+.site-app .site-header-notification { position:absolute; top:2px; right:0; min-width:1.125rem; padding:0 var(--sp-1); border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:1.5; text-align:center; }
