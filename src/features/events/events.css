@@ -217,6 +217,10 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--color-ink); }
 .ev-week__day:focus-visible,.ev-month__day:focus-visible,.ev-week__range:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (max-width:767px) { html:is([data-reading=large],[data-reading=extra-large]) .ev-week__date { min-width:2rem; height:2rem; padding:0; font-size:var(--fs-keep-18); } }
+/* Where the day head's first ink is its text (no toggle in 简洁显示; at 大 / 特大 on a phone the two-line H2 is taller than the
+   centred toggle) the line's half-leading adds to the gap: a smaller margin keeps it at 40 ± 4 (64 ± 4 on desktop). */
+html[data-simple] .ev-week { margin-bottom:calc(var(--section-gap) - var(--sp-2)); }
+@media (max-width:767px) { html:is([data-reading=large],[data-reading=extra-large]):not([data-simple]) .ev-week { margin-bottom:calc(var(--section-gap) - var(--sp-3)); } }
 /* The day head: the H2 takes the room left of 列表 | 地图 and wraps there (the toggle never drops to a row of its own). The
    date and the count each stay whole; at 大 / 特大 on a phone the count takes its own line (no "·" to start it). */
 .ev-calendar__head { display:grid; grid-template-columns:minmax(0, 1fr) auto; align-items:center; gap:var(--sp-2) var(--sp-3); margin:0 0 var(--stack-head); }
