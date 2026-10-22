@@ -56,13 +56,14 @@ test('the four stylesheets: every :hover gated (N23), motion from tokens (N24), 
   }
 });
 
-test('/me sits on the wide frame (x = 112 at 1440), tiles on the grid, sections in columns 1-8; sub-views on the same frame (N16)', () => {
+test('/me sits on the wide frame (x = 112 at 1440), tiles on the grid, sections, notice and actions in columns 1-8; sub-views on the same frame (N16)', () => {
   const file = 'src/features/profile/me-hub.css';
   assert.equal(one(file, '.me-hub')['max-width'], 'var(--container-wide)');
   assert.equal(one(file, '.me-hub')['box-sizing'], 'content-box');
   assert.equal(one(file, '.me-hub,.me-subview', '(min-width:1024px)')['padding-inline'], '32px');
   assert.equal(one(file, '.me-tiles', '(min-width:1024px)')['column-gap'], 'var(--grid-gutter)');
-  assert.equal(one(file, '.me-section', '(min-width:1024px)')['max-width'], 'calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter))');
+  // The signed-in account notice and the actions row (with the share link's fallback field) keep to the same columns.
+  assert.equal(one(file, '.me-section,.me-hub__notice,.me-hub__actions', '(min-width:1024px)')['max-width'], 'calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter))');
   assert.equal(one(file, '.me-subview')['max-width'], 'var(--container-wide)');
   assert.equal(one(file, '.me-subview>*')['max-width'], 'var(--container-reading)');
 });
@@ -75,16 +76,23 @@ test('pre-footer (N15): /me, my-week, /about and the 404 end at most 24px above 
   assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-5)');
   const page = one('src/components/not-found.css', '.nf-page');
   assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-4)');
-  // A 404 shorter than the window: the page fills <main> and the free space goes above 反馈与报错, not above the footer.
-  assert.equal(page.flex, '1 0 auto');
-  assert.equal(one('src/components/not-found.css', '.site-main:has(>.nf-page)')['flex-direction'], 'column');
-  assert.equal(one('src/components/not-found.css', '.nf-feedback')['margin-top'], 'auto');
+  // 反馈与报错 stays 8px under the actions (no fill that would strand it above the footer on a tall window), and the
+  // page stylesheet leaves the chrome's <main> alone.
+  assert.equal(page.flex, undefined);
+  assert.equal(one('src/components/not-found.css', '.nf-actions').margin, 'var(--section-gap) 0 var(--sp-2)');
+  assert.equal(one('src/components/not-found.css', '.nf-feedback')['margin-top'], undefined);
+  assert.doesNotMatch(readFileSync('src/components/not-found.css', 'utf8'), /site-main/);
 });
 
 test('the account shell (first paint of the account pages) is a title bar over skeleton rows, the window tall (J1 P21 / J3 P23)', () => {
   const file = 'src/features/profile/me-hub.css';
   assert.equal(one(file, '.account-shell')['min-height'], '100svh');
   assert.equal(one(file, '.account-shell::before').content, '""');
+  // These rules reach account-shell.html only through the /me prerender: scripts/prerender.tsx renders the shell for /me,
+  // so the file links the /me route's CSS, which carries me-hub.css (ProfileView imports it). Either link breaking drops the
+  // rules silently (the built file itself is checked after the build, not here: npm test runs before npm run build).
+  assert.match(readFileSync('scripts/prerender.tsx', 'utf8'), /renderPage\(\{[^}]*path: '\/me'[^}]*\}, <AccountShell \/>, ACCOUNT_SHELL_FILE\)/);
+  assert.match(readFileSync('src/features/profile/ProfileView.tsx', 'utf8'), /^import '\.\/me-hub\.css';$/m);
 });
 
 test('the 404 uses the site Button (N12) and an input-cornered search field (N11), in three languages', async () => {

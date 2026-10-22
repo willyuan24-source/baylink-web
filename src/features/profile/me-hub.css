@@ -115,7 +115,9 @@ html[data-simple] .me-language button { min-height:3.75rem; }
 @media (min-width:1024px) {
   .me-hub,.me-subview { padding-inline:32px; }
   .me-tiles { column-gap:var(--grid-gutter); }
-  .me-section { max-width:calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter)); }
+  /* Everything below the header and the tiles reads in columns 1-8: the sections, the account notice and the actions row
+     (with the share link's fallback field). */
+  .me-section,.me-hub__notice,.me-hub__actions { max-width:calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter)); }
   /* The guest card spans the frame as a banner: its text on the left, 登录 / 注册 at the right, level with it. */
   .me-guest-card { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:var(--grid-gutter); align-items:center; }
   .me-guest-card>:not(.ui-button) { grid-column:1; }
