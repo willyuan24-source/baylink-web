@@ -152,6 +152,7 @@ test('UI9-R1 polish: one chevron hint on the four /me tiles, 小队与预约 sid
   const icon = one('src/features/saves/my-week.css', '.my-week__legacy .imported-event-empty>svg');
   assert.equal(icon.background, 'var(--color-brand-tint)');
   assert.equal(icon['border-radius'], 'var(--r-circle)');
+  assert.equal(icon.padding, 'var(--sp-4)', 'a 64px circle on the spacing scale');
   // 反馈与报错 on /about: the metrics of feedback-entry.css, which only arrives after the app's first render.
   const feedback = one('src/components/about-baylink.css', '.about-contact>.feedback-footer-link');
   const entry = readFileSync('src/features/feedback/feedback-entry.css', 'utf8');
@@ -159,7 +160,7 @@ test('UI9-R1 polish: one chevron hint on the four /me tiles, 小队与预约 sid
   assert.deepEqual([feedback.display, feedback['align-items'], feedback.gap, feedback['min-height'], feedback['font-size']], ['inline-flex', 'center', 'var(--sp-2)', 'var(--control-height)', 'var(--text-fact)']);
 });
 
-test('UI9-R1 polish: my-week\'s 行程 loads in the empty line\'s box, so 收藏 below does not jump when there are no plans', () => {
+test('UI9-R1 polish: my-week\'s 行程 loads in the empty line\'s box, so 收藏 below does not jump when there are no plans', async () => {
   const sheet = 'src/features/saves/my-week.css';
   const line = one(sheet, '.my-week__empty-line');
   assert.equal(line['line-height'], '1.625');
@@ -173,4 +174,13 @@ test('UI9-R1 polish: my-week\'s 行程 loads in the empty line\'s box, so 收藏
   // The 行程 section is the one whose loading block follows its head directly (收藏's follows its note).
   const page = readFileSync('src/pages/MyWeekPage.tsx', 'utf8');
   assert.match(page, /<\/Button><\/div>\s*\{library\.loading \? <SkeletonFeed rows count=\{2\} \/>/);
+  // The rule keys on SkeletonFeed's rows markup (components/ui/SkeletonCard.tsx): one aria-busy block of RowCards right
+  // where it is rendered. A change there must fail here, not silently bring the 0.0413 shift back.
+  const { SkeletonFeed } = await import('../src/components/ui/SkeletonCard');
+  const block = render(<SkeletonFeed rows count={2} />).container.firstElementChild!;
+  assert.equal(block.getAttribute('aria-busy'), 'true');
+  assert.equal(block.querySelectorAll(':scope>.ui-row-card').length, 2);
+  // It reads as loading: the skeleton's shimmer, none under reduced motion.
+  assert.equal(busy.animation, 'ui-shimmer calc(6 * var(--dur-3)) linear infinite', 'the skeleton\'s 1.2s, from the motion tokens');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]', '(prefers-reduced-motion:reduce)').animation, 'none');
 });

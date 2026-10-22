@@ -19,9 +19,10 @@
 .my-week__legacy :is(.planner-account-compact,.planner-preference-footer) button { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:600; }
 .my-week__legacy :is(.planner-account-compact,.planner-preference-footer) button:disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); }
 /* 我导入的活动 with nothing upcoming (UI9-R1): the site's empty state (ui.css .ui-state, components/ui/States.tsx), not the
-   panel's own dashed box: no frame, the icon in the brand-tint circle, the line centred in the body size under it. */
+   panel's own dashed box: no frame, the icon in a 64px brand-tint circle (a section's state, a step under the page
+   state's 72), the line centred in the body size under it. */
 .my-week__legacy .imported-event-empty { flex-direction:column; justify-content:center; gap:var(--sp-2); padding:var(--sp-5); border:0; border-radius:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; text-align:center; }
-.my-week__legacy .imported-event-empty>svg { box-sizing:content-box; width:2rem; height:2rem; margin-bottom:var(--sp-2); padding:1.25rem; border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); }
+.my-week__legacy .imported-event-empty>svg { box-sizing:content-box; width:2rem; height:2rem; margin-bottom:var(--sp-2); padding:var(--sp-4); border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); }
 .my-week__legacy .imported-event-empty>p { max-width:28em; margin:0; text-wrap:balance; }
 
 .my-week__offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -37,8 +38,10 @@
 /* 行程 while the planner library loads (UI9-R1 polish: a desktop cold load measured CLS 0.0413 in 2 of 7 runs): the
    empty line's box (one line of text on a desktop, two on a phone) instead of two 88px skeleton rows, so 收藏 below does
    not jump 168px up when the library answers with no plans, a first visit's state. A timeline grows from it as it grew
-   from the rows. The rows and their hidden 正在加载 status stay in the DOM. */
-.my-week__head+[aria-busy=true] { box-sizing:content-box; min-height:calc(1.625 * var(--text-body)); margin:0 0 12px; padding:16px; border-radius:var(--r-md); background:var(--color-surface-2); }
+   from the rows. The rows and their hidden 正在加载 status stay in the DOM; the box carries the skeleton's shimmer (ui.css
+   ui-shimmer; none under reduced motion), so it reads as loading, not as an empty bar. */
+.my-week__head+[aria-busy=true] { box-sizing:content-box; min-height:calc(1.625 * var(--text-body)); margin:0 0 12px; padding:16px; border-radius:var(--r-md); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer calc(6 * var(--dur-3)) linear infinite; }
+@media (prefers-reduced-motion:reduce) { .my-week__head+[aria-busy=true] { animation:none; } }
 .my-week__head+[aria-busy=true]>.ui-row-card { display:none; }
 @media (max-width:767px) { .my-week__head+[aria-busy=true] { min-height:calc(2 * 1.625 * var(--text-body)); } }
 .my-week__filters { margin-bottom:8px; }

@@ -96,7 +96,8 @@ function OutingsSession({ app }: { app: AppContextValue }) {
   const [reserve, setReserve] = useState(footerBelowFold);
   const settled = useCallback(() => setReserve(true), []);
   // One solid primary per view (UI9-R1): the head's 发起小队 steps down to secondary while the list shows its own primary
-  // (重试 after a failed load, 登录后继续 on 我的小队 for a guest) or a draft / cover hand-off offers the same step with context.
+  // (登录后继续 on 我的小队 for a guest, known from the first paint; 重试 after a failed load, which the list reports) or a
+  // draft / cover hand-off offers the same step with context.
   const [listLeads, setListLeads] = useState(false);
   const filters = discoveryFilters(params), eventId = filters.eventId || '', date = filters.date || '';
   const event = MONTHLY_EVENTS.find(row => row.id === eventId);
@@ -104,7 +105,7 @@ function OutingsSession({ app }: { app: AppContextValue }) {
   const planDraft = params.get('draft') === 'plan' ? readOutingPlanHandoff(location.state, app.user?.id) : null;
   const initialDraft = planDraft || { ...emptyOutingDraft(event?.id, date), ...(cover ? { cover } : {}) };
   const mine = params.get('view') === 'mine', detailId = params.get('outing');
-  const headAction = listLeads || !!planDraft || (!!cover && !mine) ? 'outing-secondary' : 'outing-primary';
+  const headAction = listLeads || (mine && !app.user) || !!planDraft || (!!cover && !mine) ? 'outing-secondary' : 'outing-primary';
   const changeView = (view: 'browse' | 'mine') => { const next = new URLSearchParams(params); next.delete('outing'); if (view === 'mine') next.set('view', 'mine'); else next.delete('view'); setParams(next); };
   const create = () => { if (!app.user) { app.setShowLogin(true); return; } setCreating(true); };
   const apply = (values: OutingFilters) => { const next = new URLSearchParams(params); discoveryKeys.forEach(key => next.delete(key)); for (const [key,value] of Object.entries(values)) if (value && key !== 'eventId') next.set(key,value); setParams(next); };
@@ -149,9 +150,9 @@ function OutingList({ app, mine, filters, create, reserve, settled, leads }: { a
   }, [app.user, mine, eventId, date, city, q, dateFrom, dateTo, language, seats, sort, session, t]);
   useEffect(() => { void load(); return () => { ++serial.current; lock.current = false; }; }, [load]);
   useEffect(() => { if (!loading) settled(); }, [loading, settled]);
-  // The list's own primary (重试, 登录后继续) takes the view's one solid button from the head while it shows.
-  const ownPrimary = (mine && !app.user) || !!error;
-  useEffect(() => { leads(ownPrimary); }, [ownPrimary, leads]);
+  // The list's 重试 takes the view's one solid button from the head while it shows (the guest case is the session's own).
+  const failed = !!error;
+  useEffect(() => { leads(failed); }, [failed, leads]);
   useEffect(() => () => leads(false), [leads]);
   if (mine && !app.user) return <EmptyState icon={Users} title={t('登录查看你的申请和小队', 'Sign in to see your outings')} body={t('这里汇总你发起、申请和加入的小队。收藏活动不会自动创建小队或公开你的资料。', 'See outings you host, requested or joined. Saving an event does not create an outing or publish your profile.')} actions={<Button variant="primary" onClick={() => app.setShowLogin(true)}>{t('登录后继续', 'Sign in to continue')}</Button>} />;
   // Keep a user's own records reachable after blocking a host so they can withdraw.
