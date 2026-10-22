@@ -70,11 +70,20 @@ test('a picture whose file fails becomes its ③ fallback, then the LQIP colour 
   const cover = getCover({ kind: 'event', id: 'fleet', imageKeys: ['dvids-blue-angels-sffw-2024', ...stock] }, { images: GUIDE_IMAGES, today });
   assert.ok(cover.tier !== 'type' && cover.fallback, 'a ①② picture carries its next ③ picture');
   const view = wrap(<EventCover event={fleetWeek} today={today} cover={cover} />);
+  assert.equal(view.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
   fireEvent.error(view.container.querySelector('img')!);
   assert.equal(view.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES[stock[0]].src);
+  // The stand-in is a ③ picture: its own badge words and tier, never the failed picture's ① / ② words (DECISIONS 23/24).
+  assert.equal(view.container.querySelector('[data-provenance]')?.textContent, '示意图');
+  assert.equal(view.container.querySelector('[data-cover="image"]')?.getAttribute('data-tier'), 'stock');
+  assert.equal(view.container.querySelector('[data-cover="image"]')?.getAttribute('data-fit'), 'cover');
   fireEvent.error(view.container.querySelector('img')!);
   assert.equal(view.container.querySelector('img'), null, 'the LQIP colour shows');
   assert.ok(view.container.querySelector('[data-cover="image"]'), 'the same frame stays (CLS 0)');
+  // The same mounted card given another picture starts again from that picture (the failure belongs to the failed file).
+  const other = getCover({ kind: 'event', id: 'fleet', imageKeys: [stock[1]] }, { images: GUIDE_IMAGES, today });
+  view.rerender(<MemoryRouter><EventCover event={fleetWeek} today={today} cover={other} /></MemoryRouter>);
+  assert.equal(view.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES[stock[1]].src);
 });
 
 // The primitives' three sheets in load order (UI9-PREP split ui.css; the cover rules are in covers.css).

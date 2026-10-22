@@ -37,6 +37,8 @@ export type CoverImageProps = {
   kind?: CoverListingKind;
   /** What the picture becomes when its file fails to load (UI9-IMAGES DECISIONS 21): a ③ stock picture of the same kind. */
   fallback?: Src;
+  /** The ③ badge words the fallback shows (示意图 / Stock photo): a stand-in never keeps the failed picture's ① or ② words. */
+  fallbackLabel?: string;
   /** Overlays other than the badge (none on listing covers since UI9-C: ♡ is the card's). */
   children?: ReactNode;
   className?: string;
@@ -55,11 +57,19 @@ const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.com
  * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
  * (`image.scene3d`) and the pictures outside the listing feeds keep their frame and top-left ink badge (DECISIONS 1, 2).
  */
-export function CoverImage({ image, label, tier, fit = 'cover', focal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, children, className }: CoverImageProps) {
-  // 0: the cover's own file; 1: its fallback; 2: neither loaded (the LQIP colour shows).
-  const [failed, setFailed] = useState(0);
-  const fail = () => setFailed(step => step === 0 && fallback && fallback.src !== image.src ? 1 : 2);
-  const shown: Src = failed === 1 && fallback ? fallback : image;
+export function CoverImage({ image, label: ownLabel, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, children, className }: CoverImageProps) {
+  // 1: the cover's own file failed and its fallback shows; 2: neither loaded (the LQIP colour shows). Tied to the file: the
+  // same mounted card given another picture (a filter, a list change) starts again from that picture.
+  const [failure, setFailure] = useState<{ src: string; step: 1 | 2 }>();
+  const failed = failure?.src === image.src ? failure.step : 0;
+  const fail = () => setFailure({ src: image.src, step: failed === 0 && fallback && fallback.src !== image.src ? 1 : 2 });
+  const standIn = failed === 1 && !!fallback;
+  const shown: Src = standIn ? fallback : image;
+  // The stand-in is a ③ stock photo: its own badge words and tier, cropped like any photo (never a poster's board).
+  const label = standIn ? fallbackLabel : ownLabel;
+  const tier = standIn ? 'stock' : ownTier;
+  const fit = standIn ? 'cover' : ownFit;
+  const focal = standIn ? [50, 50] as const : ownFocal;
   const style = { '--ui-lqip': image.lqip } as CSSProperties;
   // A poster's own shape (--ui-img-ratio, covers.css) lets the flyer fill its board however narrow `sizes` says the slot is.
   const imgStyle = (fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : { '--ui-img-ratio': image.width / image.height }) as CSSProperties;
@@ -109,8 +119,10 @@ export function useTierLabel() {
 export function Cover({ cover, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
   const label = useTierLabel();
   if (cover.tier === 'type') return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
-  return <CoverImage image={cover.image} label={label(cover, sizes === COVER_SIZES.thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
-    sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}>{children}</CoverImage>;
+  const thumb = sizes === COVER_SIZES.thumb;
+  return <CoverImage image={cover.image} label={label(cover, thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
+    sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
+    fallbackLabel={cover.fallback ? label({ tier: 'stock', image: cover.image }, thumb) : undefined}>{children}</CoverImage>;
 }
 
 /** The empty picture frame (LQIP ground, same box): what a cover shows while it has no picture to show. */
