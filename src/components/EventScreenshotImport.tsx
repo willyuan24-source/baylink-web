@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Check, ImagePlus, LoaderCircle, Sparkles, X } from 'lucide-react';
-import { ModalShell } from './ui/Modal';
+import { ArrowRight, CalendarDays, Check, ImagePlus, LoaderCircle, Sparkles } from 'lucide-react';
+import { ModalShell, useClosing } from './ui/Modal';
+import { CloseButton } from './ui/CloseButton';
 import { api } from '../lib/api';
 import { EMPTY_EVENT, EVENT_LIMITS, downloadImportedEvent, eventDraftError, parseEventDraft, type EventDraft, type ImportedEvent } from '../lib/imported-events';
 import { useImportedEvents } from '../lib/useImportedEvents';
@@ -31,6 +32,8 @@ export function EventScreenshotImport({ userId }: { userId?: string }) {
 export function EventImportDialog({ userId, event, onClose }: { userId?: string; event?: ImportedEvent; onClose: () => void }) {
   const locale = useLocale(); const t = (text: string) => translateText(text, locale);
   const library = useImportedEvents(userId); const headingId = useId(); const fieldId = useId();
+  // N24: ✕, 取消, Esc and the scrim play the dialog's exit before it goes (useClosing; event-import.css); not while saving.
+  const [closing, leave] = useClosing(onClose); const close = () => { if (!library.busy) leave(); };
   const [draft, setDraft] = useState<EventDraft>(event || { ...EMPTY_EVENT });
   const [image, setImage] = useState(''); const [fileName, setFileName] = useState('');
   const [stage, setStage] = useState<'image' | 'edit'>(event ? 'edit' : 'image');
@@ -85,9 +88,9 @@ export function EventImportDialog({ userId, event, onClose }: { userId?: string;
     <span>{t(label)}{required && <span aria-hidden="true"> *</span>}</span>
     <input id={`${fieldId}-${key}`} type={type} value={draft[key]} required={required} maxLength={EVENT_LIMITS[key]} translate="no" disabled={library.busy} onChange={e => update(key, e.target.value)} />
   </label>;
-  return <ModalShell onClose={() => { if (!library.busy) onClose(); }} className="event-import-backdrop" labelledBy={headingId}>
+  return <ModalShell onClose={close} className={`event-import-backdrop${closing ? ' is-closing' : ''}`} labelledBy={headingId}>
     <div className="event-import-dialog">
-      <header className="event-import-header"><div><span className="event-import-eyebrow">BAYBAY · {t('活动小帮手')}</span><h2 id={headingId}>{t(saved ? '活动已留好。' : event ? '修改私人活动' : '把截图变成一次出发')}</h2></div><button type="button" className="event-icon-button" disabled={library.busy} aria-label={t('关闭')} onClick={onClose}><X size={22} /></button></header>
+      <header className="event-import-header"><div><span className="event-import-eyebrow">BAYBAY · {t('活动小帮手')}</span><h2 id={headingId}>{t(saved ? '活动已留好。' : event ? '修改私人活动' : '把截图变成一次出发')}</h2></div><CloseButton disabled={library.busy} onClick={close} /></header>
       {saved ? <div className="event-import-success"><div className="event-success-icon"><Check size={28} /></div><h3 translate="no">{saved.title}</h3><p translate="no">{saved.date}{saved.startTime && ` · ${saved.startTime}`}</p><p>{t(userId ? '仅自己可见，已保存到你的账号。' : '仅保存在此浏览器，请导出日历留一份。')}</p><div className="event-import-actions"><Link className="event-primary" to="/my-week" onClick={onClose}>{t('查看我的这周')} <ArrowRight size={16} /></Link><button type="button" onClick={() => downloadImportedEvent(saved)}><CalendarDays size={16} />{t('导出日历')}</button></div></div> : <>
         {!event && <ol className="event-import-steps" aria-label={t('导入步骤')}><li aria-current={stage === 'image' ? 'step' : undefined}><span>1</span>{t('选一张截图')}</li><li aria-current={stage === 'edit' ? 'step' : undefined}><span>2</span>{t('核对并保存')}</li></ol>}
         <div className={`event-import-body ${stage === 'edit' && image ? 'has-preview' : ''}`}>
@@ -119,7 +122,7 @@ export function EventImportDialog({ userId, event, onClose }: { userId?: string;
           <button type="button" disabled={recognizing || preparing} onClick={() => { cancel(); setStage('edit'); }}>{t('手动填写')}</button>
           {recognizing ? <button type="button" onClick={cancel}>{t('停止识别')}</button> : <button type="button" className="event-primary" disabled={!image || preparing} onClick={() => void recognize()}><Sparkles size={17} />{t('识别活动')}</button>}
         </> : <>
-          {!event ? <button type="button" disabled={library.busy} onClick={() => { setError(''); setStage('image'); }}>{t('返回截图')}</button> : <button type="button" disabled={library.busy} onClick={onClose}>{t('取消')}</button>}
+          {!event ? <button type="button" disabled={library.busy} onClick={() => { setError(''); setStage('image'); }}>{t('返回截图')}</button> : <button type="button" disabled={library.busy} onClick={close}>{t('取消')}</button>}
           <button type="button" className="event-primary" disabled={!confirmed || library.busy || library.loading} onClick={() => void save()}>{library.busy ? <LoaderCircle className="event-spin" size={17} /> : <Check size={17} />}{t(library.busy ? '正在保存…' : event ? '保存修改' : '保存到我的这周')}</button>
         </>}</footer>
       </>}

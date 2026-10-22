@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { X, Loader2, BadgeCheck } from 'lucide-react';
-import { ModalShell } from './ui/Modal';
+import { Loader2, BadgeCheck } from 'lucide-react';
+import { ModalShell, useClosing } from './ui/Modal';
+import { CloseButton } from './ui/CloseButton';
 
 export type OfficialVerificationType =
   | 'realtor'
@@ -60,6 +61,8 @@ const OfficialVerificationForm = ({
   const [loading, setLoading] = useState(false);
   const mounted = useRef(true);
   const submitting = useRef(false);
+  // N24: ✕ and Esc play the dialog's exit before it goes (useClosing); so does a sent application.
+  const [closing, leave] = useClosing(onClose);
   useLayoutEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,7 +85,7 @@ const OfficialVerificationForm = ({
       if (!res?.user) throw { error: '提交失败，请稍后再试' };
       onSuccess(res.user);
       showToast(res.message || '认证申请已提交，BAYLINK 会尽快审核。', 'success');
-      onClose();
+      leave();
     } catch (err: any) {
       if (!mounted.current) return;
       const msg = String(err?.error || err?.message || '').trim();
@@ -98,13 +101,13 @@ const OfficialVerificationForm = ({
     }
   };
 
+  const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in pointer-events-none' : 'animate-in fade-in ease-out';
   return (
     // 认证申请表单，误触遮罩不关闭
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label="申请官方认证" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md">
-      <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-6 shadow-elevated backdrop-blur-xl">
-        <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
-          <X size={18} />
-        </button>
+    // N10 / N11 / N13 / N24: the site's one scrim (no blur), the --r-xl card (rounded-3xl), F's close button, in and out.
+    <ModalShell onClose={leave} closeOnBackdrop={false} label="申请官方认证" className={`fixed inset-0 z-[100] flex items-center justify-center bg-[color:var(--scrim)] p-4 duration-200 ${motion}`}>
+      <div className={`relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl border border-black/[0.04] bg-baylink-bg-alt p-6 shadow-elevated duration-200 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`}>
+        <CloseButton className="absolute right-4 top-4" onClick={leave} />
         <div className="mb-5 flex flex-col items-center text-center">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-100">
             <BadgeCheck size={24} />

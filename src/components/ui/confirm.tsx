@@ -2,7 +2,7 @@
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ModalShell } from './Modal';
+import { ModalShell, useClosing } from './Modal';
 
 export type ConfirmOptions = {
   title?: string;
@@ -16,16 +16,17 @@ export type ConfirmOptions = {
 };
 
 type Resolver = (value: boolean | string | null) => void;
-type PendingConfirm = { opts: ConfirmOptions; resolve: Resolver };
+type PendingConfirm = { id: number; opts: ConfirmOptions; resolve: Resolver };
 
 let pushRequest: ((req: PendingConfirm) => void) | null = null;
+let nextId = 0;
 
 /** 确认框。resolve true=确认 / false=取消。Host 未挂载时退回原生 confirm。 */
 export const confirmDialog = (opts: ConfirmOptions | string): Promise<boolean> =>
   new Promise((resolve) => {
     const options: ConfirmOptions = typeof opts === 'string' ? { message: opts } : opts;
     if (!pushRequest) { resolve(window.confirm(options.message)); return; }
-    pushRequest({ opts: options, resolve: (v) => resolve(v === true) });
+    pushRequest({ id: ++nextId, opts: options, resolve: (v) => resolve(v === true) });
   });
 
 /** 带输入框的确认（替代 prompt）。resolve 输入内容 / null=取消。 */
@@ -33,23 +34,29 @@ export const promptDialog = (opts: ConfirmOptions): Promise<string | null> =>
   new Promise((resolve) => {
     if (!pushRequest) { resolve(window.prompt(opts.message, opts.input?.defaultValue || '')); return; }
     pushRequest({
+      id: ++nextId,
       opts: { ...opts, input: opts.input || {} },
       resolve: (v) => resolve(typeof v === 'string' ? v : null),
     });
   });
 
-const ConfirmDialog = ({ opts, onResolve }: { opts: ConfirmOptions; onResolve: Resolver }) => {
+// N10 / N11 / N24: the site's one scrim (no blur), the --r-xl card (rounded-3xl), and an exit: the answer goes back at once,
+// the card fades and shrinks to 95% over --dur-3 before it unmounts (useClosing; at once under reduced motion and in 简洁显示).
+const ConfirmDialog = ({ opts, onResolve, onGone }: { opts: ConfirmOptions; onResolve: Resolver; onGone: () => void }) => {
   const [inputValue, setInputValue] = useState(opts.input?.defaultValue || '');
+  const [closing, leave] = useClosing(onGone);
   const hasInput = !!opts.input;
-  const confirm = () => onResolve(hasInput ? inputValue : true);
-  const cancel = () => onResolve(hasInput ? null : false);
+  const answer = (value: boolean | string | null) => { if (closing) return; onResolve(value); leave(); };
+  const confirm = () => answer(hasInput ? inputValue : true);
+  const cancel = () => answer(hasInput ? null : false);
+  const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in pointer-events-none' : 'animate-in fade-in ease-out';
   return (
     <ModalShell
       onClose={cancel}
       label={opts.title || '确认操作'}
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-6 backdrop-blur-sm animate-in fade-in duration-150"
+      className={`fixed inset-0 z-[130] flex items-center justify-center bg-[color:var(--scrim)] p-6 duration-200 ${motion}`}
     >
-      <div className="w-full max-w-xs rounded-[24px] border border-black/[0.04] bg-white p-5 shadow-elevated animate-in zoom-in-95 fade-in duration-150">
+      <div className={`w-full max-w-xs rounded-3xl border border-black/[0.04] bg-white p-5 shadow-elevated duration-200 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`}>
         <div className="flex items-start gap-3">
           {opts.danger && (
             <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
@@ -118,10 +125,6 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const current = queue[0];
   if (!current) return null;
 
-  const resolveAndNext: Resolver = (v) => {
-    current.resolve(v);
-    setQueue((q) => q.slice(1));
-  };
-
-  return <ConfirmDialog key={queue.length} opts={current.opts} onResolve={resolveAndNext} />;
+  // The answer resolves at once; the dialog leaves the queue when its exit has played, and the next one opens after it.
+  return <ConfirmDialog key={current.id} opts={current.opts} onResolve={current.resolve} onGone={() => setQueue((q) => q.filter((p) => p !== current))} />;
 };

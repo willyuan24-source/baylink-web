@@ -41,8 +41,11 @@ const PostNotFoundView = lazyChunk(() => import('../components/PostNotFoundView'
 
 const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 
-/** A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link). */
-const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>;
+/**
+ * A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link): on the site's
+ * one scrim (N10), the dialog's own, so the page does not flash white before the dialog arrives.
+ */
+const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[color:var(--scrim)]"><span className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></span></div>;
 /**
  * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): F's Sheet frame (the .ui-sheet
  * classes of ui.css, without importing the Sheet into the shell) titled like the sheet that replaces it and at its size
@@ -171,7 +174,7 @@ export function OverlayHost(props: OverlayHostProps) {
     />)}
 
     {post.id && post.loading && post.selected?.id !== post.id && (
-      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></ModalShell>
+      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--scrim)] p-6"><div className="flex flex-col items-center gap-4 rounded-3xl bg-white px-8 py-6 shadow-lg"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></div></ModalShell>
     )}
     {post.id && post.missing && lazyDialog(postClose, <PostNotFoundView onBack={postClose} />)}
     {post.id && post.error && !post.loading && <ModalShell onClose={postClose} label={t('暂时无法加载信息', 'This could not load')} className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{post.error}</p><button type="button" className="btn-primary px-6 py-3" onClick={post.retry}>{t('重试加载', 'Try again')}</button><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></ModalShell>}

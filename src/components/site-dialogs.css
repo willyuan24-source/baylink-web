@@ -85,7 +85,9 @@ html[data-simple] .quick-result { min-height:64px; }
    file; .reading-overlay, .reading-dialog, .reading-close and .reading-preview are dead, listed for UI9-INT). */
 .reading-sheet-card .reading-sizes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--sp-2); margin:var(--sp-2) 0 var(--sp-3); }
 .reading-sheet-card .reading-sizes>button { display:grid; justify-items:center; align-content:center; gap:2px; min-height:96px; padding:var(--sp-3) var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.reading-sheet-card .reading-sizes>button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand-deep); font-weight:var(--fw-regular); }
+/* The chosen size wears the site's one selected pair (UI9-R1-FOUNDATION: ink fill, white text), its caption too. */
+.reading-sheet-card .reading-sizes>button[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); font-weight:var(--fw-regular); }
+.reading-sheet-card .reading-sizes>button[aria-pressed=true] small { color:var(--selected-fg); }
 .reading-sheet-card .reading-sizes>button:active { scale:.97; }
 /* The samples sit on whole pixels of each mode's ladder (UI9-R1-CHROME, N01): the kept steps, 20 · 24 · 28 at 标准, 30 · 35
    · 40 at 特大; in 简洁显示 one step up (26 · 30 · 34; 35 · 40 · 43 with 特大), never below the old 24 · 27 · 30. */
@@ -99,9 +101,9 @@ html[data-simple] .reading-sheet-card .reading-sample[data-size=extra-large] { f
 .reading-sheet-card .reading-simple-switch { border-radius:var(--r-lg); }
 @media (hover:hover) and (pointer:fine) { .reading-sheet-card .reading-sizes>button:not([aria-pressed=true]):hover { background:var(--color-surface-2); } }
 
-/* The picture viewer (ImageViewer): the warm photo scrim, the picture fading in from 96%, F's close button; out over
-   --dur-3 while OverlayHost keeps it mounted. No blur behind it (N10). */
-.site-image-viewer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:rgb(var(--color-scrim-rgb) / .92); animation:site-viewer-in var(--dur-3) var(--ease-out); }
+/* The picture viewer (ImageViewer): the site's one scrim (N10), the picture fading in from 96%, F's close button; out over
+   --dur-3 while OverlayHost keeps it mounted. No blur behind it. */
+.site-image-viewer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:var(--scrim); animation:site-viewer-in var(--dur-3) var(--ease-out); }
 .site-image-viewer__img { max-width:100%; max-height:90vh; border-radius:var(--r-lg); object-fit:contain; box-shadow:var(--e2); animation:site-image-in var(--dur-4) var(--ease-out); }
 .site-image-viewer__close { position:absolute; top:calc(env(safe-area-inset-top,0px) + var(--sp-5)); right:var(--sp-5); }
 .site-image-viewer.is-closing { animation:site-viewer-out var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
