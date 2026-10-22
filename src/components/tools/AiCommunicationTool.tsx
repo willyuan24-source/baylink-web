@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { Copy } from 'lucide-react';
 import { api } from '../../lib/api';
-import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import {
   buildCommunicationIntent, COMMUNICATION_FACTS_LIMIT, COMMUNICATION_LANGUAGES,
@@ -141,10 +141,10 @@ export function AiCommunicationTool({ onToast }: Props) {
       </div>
       <p id={`${fieldId}-consent`} className="tool-note">点击生成会交给 AI 处理，确认后自行发送。本页不自动保存内容。</p>
       <div className="tool-actions">
-        <Button variant="primary" disabled={loading || !facts.trim()} onClick={() => { void generate(); }}>
+        <button type="button" className="ui-button" data-variant="primary" disabled={loading || !facts.trim()} onClick={() => { void generate(); }}>
           {loading ? '正在生成…' : hasDraft ? '重新生成草稿' : '生成消息草稿'}
-        </Button>
-        {loading && <Button variant="secondary" onClick={() => { invalidate(); setStatus('已取消生成，可调整内容后重试。'); }}>取消生成</Button>}
+        </button>
+        {loading && <button type="button" className="ui-button" data-variant="secondary" onClick={() => { invalidate(); setStatus('已取消生成，可调整内容后重试。'); }}>取消生成</button>}
       </div>
       {loading && <p role="status" className="tool-note">正在整理消息，可继续修改输入或取消生成。</p>}
       {error && <p role="alert" className="tool-error">{error}</p>}
@@ -156,9 +156,9 @@ export function AiCommunicationTool({ onToast }: Props) {
         </div>
         <p id={`${fieldId}-output-note`} className="tool-note">请核对金额、日期和称呼。修改上方事实或选项后，需要重新生成。</p>
         <div className="tool-actions">
-          <Button variant="secondary" disabled={copying || !output.trim()} onClick={() => { void copyOutput(); }}>
-            {copying ? '正在复制…' : '复制草稿'}
-          </Button>
+          <button type="button" className="ui-button" data-variant="secondary" disabled={copying || !output.trim()} onClick={() => { void copyOutput(); }}>
+            <Copy size={16} aria-hidden="true" />{copying ? '正在复制…' : '复制草稿'}
+          </button>
         </div>
       </div>}
       {status && <p role="status" className="tool-note">{status}</p>}

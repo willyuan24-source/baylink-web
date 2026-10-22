@@ -17,7 +17,8 @@ import './loan-calculator.css';
 const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket, receipt: ReceiptText };
 
 /** 生活工具箱 (/tools, WEB-SECONDARY-A): PageHeader, a list of the eight tools, then the open tool's workspace. Forms use the
- * shared primitives (UI9-R1-TOOLS): Button / IconButton looks, Select, the selected pair on the open tool. */
+ * shared primitives (UI9-R1-TOOLS): the Button / IconButton looks as their ui.css classes (ui-button + data-variant,
+ * ui-icon-button; no Button chunk on this route, as HomeHead does), the Select, the selected pair on the open tool. */
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
