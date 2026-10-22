@@ -57,7 +57,7 @@ const ProfileTagField = ({
   };
   return (
     <div className="profile-tag-field">
-      <label htmlFor={inputId} className="mb-1 block text-xs font-bold text-gray-500 ml-1">{label}</label>
+      <label htmlFor={inputId} className="mb-1 block text-[length:var(--text-fact)] font-bold text-gray-500 ml-1">{label}</label>
       <p className="mb-2 text-[length:var(--text-caption)] text-baylink-muted ml-1">{hint}</p>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {presets.map((p) => (
@@ -94,7 +94,7 @@ const ProfileTagField = ({
       <div className="flex gap-2">
         <input
           id={inputId}
-          className="flex-1 rounded-xl bg-white px-3 py-2 text-xs outline-none shadow-sm focus:ring-2 focus:ring-green-500/20"
+          className="flex-1 rounded-xl bg-white px-3 py-2 text-[length:var(--text-fact)] outline-none shadow-sm focus:ring-2 focus:ring-green-500/20"
           placeholder="自定义标签，回车添加"
           value={custom}
           maxLength={20}

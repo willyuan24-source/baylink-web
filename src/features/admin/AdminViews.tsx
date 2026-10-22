@@ -156,7 +156,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                   <Avatar src={r.avatar} name={r.nickname} size={10} className="shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-baylink-text">{r.nickname}</div>
-                    <div className="mt-1 text-xs text-baylink-text-secondary">
+                    <div className="mt-1 text-[length:var(--text-caption)] text-baylink-text-secondary">
                       申请类型：{getOfficialTypeLabel(r.officialVerification?.type) || '—'}
                     </div>
                     <div className="mt-0.5 text-[length:var(--text-caption)] text-baylink-muted">
@@ -177,7 +177,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                   </div>
                 )}
                 {r.officialVerification?.description && (
-                  <p className="mt-3 text-xs leading-relaxed text-baylink-text-secondary">{r.officialVerification.description}</p>
+                  <p className="mt-3 text-[length:var(--text-fact)] leading-relaxed text-baylink-text-secondary">{r.officialVerification.description}</p>
                 )}
                 <div className="mt-2 space-y-1 text-[length:var(--text-caption)] text-baylink-muted">
                   {r.officialVerification?.website && <p>网站：{r.officialVerification.website}</p>}
@@ -187,21 +187,21 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                 {rejectingId === requestUserId ? (
                   <div className="mt-3 space-y-2">
                     <textarea
-                      className="w-full rounded-xl border border-baylink-border/50 p-2 text-xs outline-none"
+                      className="w-full rounded-xl border border-baylink-border/50 p-2 text-[length:var(--text-fact)] outline-none"
                       placeholder="拒绝原因（可选）"
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
                       rows={2}
                     />
                     <div className="flex gap-2">
-                      <button type="button" disabled={updatingId === requestUserId} onClick={() => handleReject(requestUserId)} className="flex-1 rounded-lg bg-red-500 py-2 text-xs font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">确认拒绝</button>
-                      <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="rounded-lg border border-baylink-border/60 px-3 py-2 text-xs font-semibold">取消</button>
+                      <button type="button" disabled={updatingId === requestUserId} onClick={() => handleReject(requestUserId)} className="flex-1 rounded-lg bg-red-500 py-2 text-[length:var(--text-fact)] font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">确认拒绝</button>
+                      <button type="button" onClick={() => { setRejectingId(null); setRejectReason(''); }} className="rounded-lg border border-baylink-border/60 px-3 py-2 text-[length:var(--text-fact)] font-semibold">取消</button>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-3 flex gap-2">
-                    <button type="button" disabled={updatingId === requestUserId} onClick={() => handleApprove(requestUserId)} className="flex-1 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">通过</button>
-                    <button type="button" disabled={updatingId === requestUserId} onClick={() => setRejectingId(requestUserId)} className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">拒绝</button>
+                    <button type="button" disabled={updatingId === requestUserId} onClick={() => handleApprove(requestUserId)} className="flex-1 rounded-lg bg-baylink-green py-2 text-[length:var(--text-fact)] font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">通过</button>
+                    <button type="button" disabled={updatingId === requestUserId} onClick={() => setRejectingId(requestUserId)} className="flex-1 rounded-lg border border-baylink-border/60 py-2 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">拒绝</button>
                   </div>
                 )}
               </div>
@@ -390,14 +390,14 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
               <div key={r.id} className="rounded-2xl border border-baylink-border/50 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-baylink-muted">{new Date(r.createdAt).toLocaleString()}</div>
+                    <div className="text-[length:var(--text-caption)] text-baylink-muted">{new Date(r.createdAt).toLocaleString()}</div>
                     <div className="mt-1 text-sm font-semibold text-baylink-text">
                       {REPORT_REASON_LABELS[r.reason] || r.reason}
-                      <span className="ml-2 text-xs font-normal text-baylink-muted">
+                      <span className="ml-2 text-[length:var(--text-caption)] font-normal text-baylink-muted">
                         · {r.targetType === 'post' ? '帖子举报' : r.targetType === 'message' ? '私信举报' : r.targetType === 'outing' ? '小队举报' : r.targetType === 'outing_message' ? '小队消息举报' : '用户举报'}
                       </span>
                     </div>
-                    {r.detail && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
+                    {r.detail && <p className="mt-1 text-[length:var(--text-fact)] text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
                     {r.reporter && (
                       <p className="mt-2 text-[length:var(--text-caption)] text-baylink-muted">
                         举报人：{r.reporter.nickname}
@@ -425,7 +425,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                       <p className="mt-1 text-[length:var(--text-caption)] text-baylink-muted">关联帖子已不存在</p>
                     )}
                     {r.targetType === 'message' && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-sm"><strong>选中私信的审核内容</strong>{r.evidence?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2" translate="no">{r.evidence.text}</blockquote>}{r.evidence?.attachmentOmitted && <p className="mt-2">联系方式与附件已省略；未上传整段会话。</p>}<p className="mt-2 text-baylink-muted">仅包含服务器核验的选中消息。</p></div>}
-                    {r.outingId && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-xs"><a href={outingUrl(r.outingId)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{r.evidence?.title || '查看关联小队'} ↗</a><p>{r.evidence?.date} {r.evidence?.startTime}–{r.evidence?.endTime} · {r.evidence?.city} · {r.evidence?.venue}</p>{r.evidence?.description && <p className="mt-1 whitespace-pre-wrap break-words">{r.evidence.description}</p>}{r.evidence?.message?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2">{r.evidence.message.text}</blockquote>}<p className="mt-2 text-baylink-muted">举报提交时的内容快照</p></div>}
+                    {r.outingId && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-[length:var(--text-fact)]"><a href={outingUrl(r.outingId)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{r.evidence?.title || '查看关联小队'} ↗</a><p>{r.evidence?.date} {r.evidence?.startTime}–{r.evidence?.endTime} · {r.evidence?.city} · {r.evidence?.venue}</p>{r.evidence?.description && <p className="mt-1 whitespace-pre-wrap break-words">{r.evidence.description}</p>}{r.evidence?.message?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2">{r.evidence.message.text}</blockquote>}<p className="mt-2 text-baylink-muted">举报提交时的内容快照</p></div>}
                     {r.adminNote && <p className="mt-1 text-[length:var(--text-caption)] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>
                   <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[length:var(--text-caption)] font-bold text-amber-700">{statusLabel(r.status)}</span>
@@ -433,29 +433,29 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === 'open' && (
                     <>
-                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'reviewed')} className="flex-1 min-w-[120px] rounded-lg bg-baylink-green py-2 text-xs font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">标记已处理</button>
-                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'dismissed')} className="flex-1 min-w-[120px] rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">忽略</button>
+                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'reviewed')} className="flex-1 min-w-[120px] rounded-lg bg-baylink-green py-2 text-[length:var(--text-fact)] font-bold text-white disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">标记已处理</button>
+                      <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'dismissed')} className="flex-1 min-w-[120px] rounded-lg border border-baylink-border/60 py-2 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">忽略</button>
                     </>
                   )}
                   {(r.status === 'reviewed' || r.status === 'dismissed') && (
-                    <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'open')} className="w-full rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">重新打开</button>
+                    <button type="button" disabled={updatingId === r.id} onClick={() => handleStatus(r.id, 'open')} className="w-full rounded-lg border border-baylink-border/60 py-2 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">重新打开</button>
                   )}
                   {r.targetType === 'post' && postId && (
                     <button
                       type="button"
                       disabled={updatingId === postId}
                       onClick={() => handleHidePost(postId, postHidden)}
-                      className="w-full rounded-lg border border-amber-200 bg-amber-50 py-2 text-xs font-semibold text-amber-800 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent"
+                      className="w-full rounded-lg border border-amber-200 bg-amber-50 py-2 text-[length:var(--text-fact)] font-semibold text-amber-800 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent"
                     >
                       {postHidden ? '恢复帖子公开' : '隐藏帖子'}
                     </button>
                   )}
-                  {r.outingId && <button type="button" disabled={updatingId === r.outingId} onClick={() => void handleCancelOuting(r.outingId!)} className="w-full rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-semibold text-red-700 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">关闭小队</button>}
+                  {r.outingId && <button type="button" disabled={updatingId === r.outingId} onClick={() => void handleCancelOuting(r.outingId!)} className="w-full rounded-lg border border-red-200 bg-red-50 py-2 text-[length:var(--text-fact)] font-semibold text-red-700 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">关闭小队</button>}
                   {r.targetUser && (
                     <div className="flex w-full flex-wrap gap-2">
-                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'limited')} className="flex-1 min-w-[90px] rounded-lg border border-orange-200 bg-orange-50 py-2 text-xs font-semibold text-orange-800 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">限制账号</button>
-                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'suspended')} className="flex-1 min-w-[90px] rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-semibold text-red-700 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">暂停账号</button>
-                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'active')} className="flex-1 min-w-[90px] rounded-lg border border-baylink-border/60 py-2 text-xs font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">恢复正常</button>
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'limited')} className="flex-1 min-w-[90px] rounded-lg border border-orange-200 bg-orange-50 py-2 text-[length:var(--text-fact)] font-semibold text-orange-800 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">限制账号</button>
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'suspended')} className="flex-1 min-w-[90px] rounded-lg border border-red-200 bg-red-50 py-2 text-[length:var(--text-fact)] font-semibold text-red-700 disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">暂停账号</button>
+                      <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'active')} className="flex-1 min-w-[90px] rounded-lg border border-baylink-border/60 py-2 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent">恢复正常</button>
                     </div>
                   )}
                 </div>
@@ -506,7 +506,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     return (
                       <div key={log.id} className="rounded-xl border border-baylink-border/40 bg-baylink-section/20 px-3 py-2.5">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs font-semibold text-baylink-text">
+                          <p className="text-[length:var(--text-fact)] font-semibold text-baylink-text">
                             {MODERATION_ACTION_LABELS[log.action] || log.action}
                           </p>
                           <span className="shrink-0 text-[length:var(--text-caption)] text-baylink-muted">

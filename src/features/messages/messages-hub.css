@@ -1,6 +1,6 @@
 /* 消息 /messages (WEB-ACCOUNT, design.md T17): three round entries (联系请求 · 小队 · 预约), a notifications-off prompt,
    contact requests and RowCard threads; system notices in a thread are cards. Tokens and rem only. */
-.msg-hub { box-sizing:content-box; max-width:var(--container-content); margin:0 auto; padding:var(--sp-5) var(--page-gutter) calc(env(safe-area-inset-bottom, 0) + var(--sp-6)); color:var(--color-ink); }
+.msg-hub { box-sizing:content-box; max-width:var(--container-content); margin:0 auto; padding:var(--sp-5) var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-6)); color:var(--color-ink); }
 .msg-hub .ui-page-header { margin-bottom:var(--sp-4); }
 
 .msg-rounds { display:flex; gap:var(--sp-2); margin:0 0 var(--sp-4); padding:0; list-style:none; }

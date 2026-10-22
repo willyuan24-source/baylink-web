@@ -108,7 +108,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               {commonInterests.length > 0 && <section className="profile-common-interests" aria-label="你们的共同兴趣"><h3><Sparkles size={15} />你们的共同兴趣</h3><p>从共同喜欢的事，开始一段对话。</p><div>{commonInterests.map(interest => <span key={interest} translate="no">{interest}</span>)}</div></section>}
 
               <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[length:var(--text-caption)] text-baylink-text-secondary">
-                <p className="font-semibold text-baylink-text mb-2 text-xs">信任信息</p>
+                <p className="font-semibold text-baylink-text mb-2 text-[length:var(--text-fact)]">信任信息</p>
                 <div className="space-y-1.5">
                   {joinDays != null && <p>{translateText('已加入 BAYLINK {days} 天', locale).replace('{days}', String(joinDays))}</p>}
                   <p>{translateText('已发布 {count} 条本地信息', locale).replace('{count}', String(profile.postCount))}</p>
@@ -125,7 +125,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               </div>
 
               <div className="mt-4">
-                <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
+                <h5 className="text-[length:var(--text-fact)] font-bold text-baylink-text">最近发布</h5>
                 {profile.recentPosts.length > 0 ? (
                   <>
                   <p className="mb-2 text-[length:var(--text-caption)] text-baylink-muted">查看 TA 最近的本地信息</p>
@@ -189,7 +189,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                   if (!currentUser) { onLoginNeeded?.(); return; }
                   onReportUser?.(profile.id);
                 }}
-                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
+                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
               >
                 <Flag size={13} /> 举报用户
               </button>
@@ -199,7 +199,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                   if (!currentUser) { onLoginNeeded?.(); return; }
                   onToggleBlockUser?.(profile.id);
                 }}
-                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-xs font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
+                className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-baylink-border/60 py-2.5 text-[length:var(--text-fact)] font-semibold text-baylink-text-secondary hover:bg-baylink-section/50"
               >
                 <UserX size={13} /> {isBlocked ? '取消屏蔽' : '屏蔽用户'}
               </button>

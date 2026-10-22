@@ -8,7 +8,7 @@
 .modern-chat-header{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4) var(--sp-5);background:linear-gradient(115deg,var(--color-surface),var(--chat-wash));border-bottom:1px solid var(--color-line);flex-shrink:0}
 .modern-chat-icon{display:grid;place-items:center;min-width:40px;height:40px;border-radius:var(--r-md);color:var(--color-ink-3);flex-shrink:0;transition:background var(--dur-2) var(--ease-std)}
 @media (hover:hover) and (pointer:fine){.modern-chat-icon:hover{background:var(--color-brand-tint)}}
-.modern-chat-icon:disabled{background:var(--color-surface-2);color:var(--color-ink-3)}
+.modern-chat-icon:disabled{background:transparent;color:rgb(var(--color-ink-3-rgb) / .55)}
 .modern-chat-person{display:flex;align-items:center;gap:var(--sp-3);min-width:0;flex:1;text-align:left;border-radius:var(--r-md)}
 .modern-chat-person>img,.modern-chat-person>div{flex-shrink:0}
 .modern-chat-person-copy{min-width:0;display:flex;flex-direction:column;gap:var(--sp-1)}
@@ -36,7 +36,7 @@
 .modern-chat-message-actions button{display:grid;place-items:center;width:30px;height:26px;border-radius:var(--r-sm);color:var(--color-ink-3);transition:background var(--dur-2) var(--ease-std),color var(--dur-2) var(--ease-std)}
 .modern-chat-message-actions button[aria-expanded=true]{color:var(--color-brand);background:var(--color-line)}
 @media (hover:hover) and (pointer:fine){.modern-chat-message-actions button:hover{color:var(--color-brand);background:var(--color-line)}}
-.modern-chat-message-actions button:disabled{background:var(--color-surface-2);color:var(--color-ink-3)}
+.modern-chat-message-actions button:disabled{background:transparent;color:rgb(var(--color-ink-3-rgb) / .55)}
 .modern-chat-quote{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-2) var(--sp-3);border-left:3px solid var(--color-line-control);border-radius:var(--r-sm) var(--r-sm) var(--r-sm) var(--r-sm);margin-bottom:var(--sp-2);background:var(--color-brand-tint);font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
 .modern-chat-quote strong{font-size:var(--text-caption);font-weight:600}
 .modern-chat-quote span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
@@ -64,7 +64,7 @@
 .modern-chat-compose-meta{display:flex;align-items:center;gap:var(--sp-3);justify-content:space-between;margin-top:var(--sp-2);color:var(--color-ink-3);font-size:var(--text-caption)}
 .modern-chat-compose-meta button{display:flex;align-items:center;gap:var(--sp-1);min-height:27px;color:var(--color-ink-3);font-size:var(--text-caption)}
 @media (hover:hover) and (pointer:fine){.modern-chat-compose-meta button:hover{color:var(--color-brand-hover)}}
-.modern-chat-compose-meta button:disabled{background:var(--color-surface-2);color:var(--color-ink-3)}
+.modern-chat-compose-meta button:disabled{background:transparent;color:rgb(var(--color-ink-3-rgb) / .55)}
 .modern-chat-key-hint{display:flex;align-items:center;gap:var(--sp-1);margin-left:auto}
 .modern-chat-draft-note{font-size:var(--text-caption);color:var(--color-ink-3);line-height:1.6;margin-top:0}
 .modern-chat-draft-note.is-error{color:var(--color-danger)}
@@ -102,4 +102,4 @@
 /* Unconfirmed sends inside a conversation. */
 .modern-chat-pending{padding:var(--sp-3) var(--sp-4);margin:var(--sp-3) 0 var(--sp-4);border:1px solid var(--color-line-strong);background:var(--color-warm-tint);border-radius:var(--r-lg);color:var(--color-warning);font-size:var(--text-caption);line-height:1.7}
 .modern-chat-pending details{margin:var(--sp-2) 0}.modern-chat-pending summary{cursor:pointer}.modern-chat-pending details p{padding:var(--sp-2);background:rgb(var(--color-surface-rgb) / .6);border-radius:var(--r-sm);white-space:pre-wrap;overflow-wrap:anywhere;color:var(--color-warning)}
-.modern-chat-pending>div{display:flex;flex-wrap:wrap;gap:var(--sp-3)}.modern-chat-pending button{text-decoration:underline;text-underline-offset:var(--underline-offset);min-height:34px}.modern-chat-pending button:disabled{background:var(--color-surface-2);color:var(--color-ink-3)}
+.modern-chat-pending>div{display:flex;flex-wrap:wrap;gap:var(--sp-3)}.modern-chat-pending button{text-decoration:underline;text-underline-offset:var(--underline-offset);min-height:34px}.modern-chat-pending button:disabled{background:transparent;color:rgb(var(--color-ink-3-rgb) / .55)}
