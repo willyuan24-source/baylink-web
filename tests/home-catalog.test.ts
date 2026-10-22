@@ -107,7 +107,8 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
   const reviewed = currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation').map(item => ({ ...item, ...listingImageKeys('offer', item) }));
   const reviewedIds = new Set(reviewed.map(item => item.id));
   const shipped = new Set(HOME_OFFERS.map(item => item.id));
-  let urgentDays = 0, wideDays = 0;
+  let urgentDays = 0, wideDays = 0, illustratedDays = 0;
+  const own = new Set(['official', 'photo', 'venue']);
   for (const day of Object.keys(snapshots)) {
     const leads = offerLeadsRail(GUIDE_IMAGES, day);
     const rail = selectHomeOffers(HOME_OFFERS, day, 6, offerHasPhoto(GUIDE_IMAGES, day), leads);
@@ -121,8 +122,16 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
     const brand = (item: { brand: string }) => item.brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
     const urgent = rail.flatMap((item, index) => item.endDate! <= tomorrow && !rail.slice(0, index).some(other => brand(other) === brand(item)) ? [index] : []);
     if (urgent.length) urgentDays++;
-    const wide = rail.length > 0 && offerRailOpensWide(rail, getCover(coverItemFor('offer', rail[0]), { images: GUIDE_IMAGES, today: day }), day);
+    const cover = (item: (typeof rail)[number]) => getCover(coverItemFor('offer', item), { images: GUIDE_IMAGES, today: day });
+    const wide = rail.length > 0 && offerRailOpensWide(rail, cover(rail[0]), day);
     if (wide) wideDays++;
+    // The wide ticket leads the rail: the offer's own picture (① or ②), never a ③ category photo or a ④ AI illustration
+    // (UI9-IMAGES DECISIONS 24 and 26), though both show on 1:1 tickets, labelled.
+    if (wide) assert.ok(own.has(cover(rail[0]).tier), `${day}: the wide ticket shows ${rail[0].id}'s ${cover(rail[0]).tier} picture`);
+    if (rail.some(item => !own.has(cover(item).tier) && cover(item).tier !== 'type')) illustratedDays++;
+    // The photo steps (H19, "the brand's own image") count ① and ② only.
+    const hasPhoto = offerHasPhoto(GUIDE_IMAGES, day);
+    for (const item of rail) assert.equal(hasPhoto(item), own.has(cover(item).tier), `${day}: ${item.id} (${cover(item).tier})`);
     urgent.forEach((index, rank) => assert.ok(index <= rank + 1 && index < (wide ? 3 : Math.max(4, urgent.length)), `${day}: ${rail[index].id} ends by tomorrow and is ticket ${index + 1}`));
     // Every brand with a reviewed offer usable this week that ends today or tomorrow is on the rail, inside a narrow
     // desktop rail's window (four tickets, three after a wide one), up to the window: no photo step pushes one out.
@@ -135,6 +144,7 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
   }
   assert.ok(urgentDays > 0, 'some snapshot day has an offer ending by the next day');
   assert.ok(wideDays > 0, 'some snapshot day opens with the wide ticket');
+  assert.ok(illustratedDays > 0, 'some snapshot day\'s rail carries a ③ or ④ picture, so the wide-ticket check above bites');
 });
 
 test('the wide offer ticket only takes a landscape image (no square or banner letterboxed on its blur)', () => {
@@ -146,5 +156,9 @@ test('the wide offer ticket only takes a landscape image (no square or banner le
   assert.equal(canLeadOfferRail(photo(1440, 929, 'contain')), true);
   assert.equal(canLeadOfferRail(photo(1000, 750, 'contain')), false);
   assert.equal(canLeadOfferRail({ tier: 'type', label: { zh: '', en: '' }, reason: 'no-image' }), false);
+  // Only the offer's own picture leads the rail: ① or ② (a venue photo), never ③ or ④ however landscape (DECISIONS 24/26).
+  assert.equal(canLeadOfferRail({ ...photo(1440, 929), tier: 'venue' }), true);
+  assert.equal(canLeadOfferRail({ ...photo(1440, 960), tier: 'stock' }), false, 'a ③ category photo never takes the wide ticket');
+  assert.equal(canLeadOfferRail({ ...photo(1440, 960), tier: 'ai' }), false, 'a ④ AI illustration never takes the wide ticket');
   assert.equal(canLeadOfferRail(undefined), false);
 });

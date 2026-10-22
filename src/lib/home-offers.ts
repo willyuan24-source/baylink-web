@@ -1,6 +1,6 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
 import { isPublicBenefit } from './event-facts';
-import { coverItemFor, getCover, type CoverContext, type ResolvedCover } from './cover';
+import { coverItemFor, getCover, type CoverContext, type ImageCover, type ResolvedCover } from './cover';
 
 /** An offer as the home ticket rail needs it (scripts/generate-home-catalog.ts): no requirement text, no source URL. */
 export type HomeOffer = Pick<FreebieOffer, 'id' | 'title' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'kind' | 'verifiedAt' | 'region'>
@@ -97,21 +97,31 @@ const offerCover = (offer: Pick<HomeOffer, 'id' | 'imageKey'>, images: CoverCont
   getCover(coverItemFor('offer', offer), { images, today });
 
 /**
- * H19: the wide first ticket (3:2 on a phone, about 2:1 on a desktop) only takes a landscape image: a photo the cover crops
- * from 1.3:1, a brand image shown whole (`fit: 'contain'`) from 1.5:1, so it fills a phone's ticket and leaves at most a
- * quarter of a desktop's to its blurred copy. A square image or a banner stays a 1:1 ticket (it would sit letterboxed).
+ * The offer's own picture: ① its official image or ② its venue's photo (UI9-IMAGES DECISIONS 22). A ③ category photo or a
+ * ④ approved AI illustration still shows on the offer's ticket, labelled 示意图 / AI 示意图, but it is no picture of the
+ * offer: the rail's photo steps (H19, "the brand's own image") do not put it first, and it never takes the wide ticket
+ * that leads the rail (DECISIONS 24: AI never leads; DECISIONS 26: a lead shows ① or ②).
+ */
+const ownPicture = (cover: ResolvedCover | undefined): cover is ImageCover =>
+  !!cover && (cover.tier === 'official' || cover.tier === 'photo' || cover.tier === 'venue');
+
+/**
+ * H19: the wide first ticket (3:2 on a phone, about 2:1 on a desktop) only takes the offer's own picture (`ownPicture`) in
+ * landscape: a photo the cover crops from 1.3:1, a brand image shown whole (`fit: 'contain'`) from 1.5:1, so it fills a
+ * phone's ticket and leaves at most a quarter of a desktop's to its blurred copy. A square image or a banner stays a 1:1
+ * ticket (it would sit letterboxed).
  */
 export function canLeadOfferRail(cover: ResolvedCover | undefined): boolean {
-  if (!cover || cover.tier === 'type') return false;
+  if (!ownPicture(cover)) return false;
   const { width, height } = cover.image;
   if (!width || !height) return false;
   const aspect = width / height;
   return aspect >= (cover.fit === 'cover' ? 1.3 : 1.5) && aspect <= 2.4;
 }
 
-/** Whether the ladder accepts the offer's own image (the rail's photo-first steps); one test for the generator and the page. */
+/** Whether the offer's cover is its own picture (the rail's photo-first steps, `ownPicture`); one test for the generator and the page. */
 export const offerHasPhoto = (images: CoverContext['images'], today: string) =>
-  (offer: Pick<HomeOffer, 'id' | 'imageKey'>) => offerCover(offer, images, today).tier !== 'type';
+  (offer: Pick<HomeOffer, 'id' | 'imageKey'>) => ownPicture(offerCover(offer, images, today));
 
 /** Whether the offer's photo can be the wide first ticket (`canLeadOfferRail`). */
 export const offerLeadsRail = (images: CoverContext['images'], today: string) =>
