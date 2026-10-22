@@ -132,23 +132,32 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   onClose: () => void;
   onChange: (patch: Partial<AdData>) => void;
   onSave: () => void;
-}) => (
-  // 表单弹层，误触遮罩不关闭（关闭会丢弃草稿）
-  <ModalShell onClose={onClose} closeOnBackdrop={false} label="管理推广信息" className="cm-ad-dialog">
-    <div className="cm-ad-dialog__panel cm-ad-dialog__panel--form" onClick={(e) => e.stopPropagation()}>
-      <div className="cm-ad-dialog__head"><h3>管理推广信息</h3></div>
-      <div className="cm-ad-dialog__body cm-ad-form">
-        <input className="cm-ad-field" aria-label="标题" placeholder="标题" value={editingAd.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
-        <textarea className="cm-ad-field" aria-label="内容描述；可附相关帖子或商家提供的完整 https:// 链接" rows={4} placeholder="内容描述；可附相关帖子或商家提供的完整 https:// 链接" value={editingAd.content || ''} onChange={(e) => onChange({ content: e.target.value })} />
-        <input className="cm-ad-field" aria-label="图片直链 URL（可选，需 .jpg/.png/.webp）" placeholder="图片直链 URL（可选，需 .jpg/.png/.webp）" value={editingAd.imageUrl || ''} onChange={(e) => onChange({ imageUrl: e.target.value })} />
+}) => {
+  // The admin's form: its labels go through the reader's language like the rest of the promotions.
+  const { t } = useAdCopy();
+  const fields = {
+    title: t('标题', 'Title'),
+    content: t('内容描述；可附相关帖子或商家提供的完整 https:// 链接', 'Description; you may add the full https:// link of a related post or the business'),
+    imageUrl: t('图片直链 URL（可选，需 .jpg/.png/.webp）', 'Direct image URL (optional; .jpg, .png or .webp)'),
+  };
+  return (
+    // 表单弹层，误触遮罩不关闭（关闭会丢弃草稿）
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={t('管理推广信息', 'Manage promotions')} className="cm-ad-dialog">
+      <div className="cm-ad-dialog__panel cm-ad-dialog__panel--form" onClick={(e) => e.stopPropagation()}>
+        <div className="cm-ad-dialog__head"><h3>{t('管理推广信息', 'Manage promotions')}</h3></div>
+        <div className="cm-ad-dialog__body cm-ad-form">
+          <input className="cm-ad-field" aria-label={fields.title} placeholder={fields.title} value={editingAd.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
+          <textarea className="cm-ad-field" aria-label={fields.content} rows={4} placeholder={fields.content} value={editingAd.content || ''} onChange={(e) => onChange({ content: e.target.value })} />
+          <input className="cm-ad-field" aria-label={fields.imageUrl} placeholder={fields.imageUrl} value={editingAd.imageUrl || ''} onChange={(e) => onChange({ imageUrl: e.target.value })} />
+        </div>
+        <div className="cm-ad-dialog__foot">
+          <button type="button" onClick={onClose} className="ui-button" data-variant="secondary">{t('取消', 'Cancel')}</button>
+          <button type="button" onClick={onSave} className="ui-button" data-variant="primary">{t('保存发布', 'Save and publish')}</button>
+        </div>
       </div>
-      <div className="cm-ad-dialog__foot">
-        <button type="button" onClick={onClose} className="ui-button" data-variant="secondary">取消</button>
-        <button type="button" onClick={onSave} className="ui-button" data-variant="primary">保存发布</button>
-      </div>
-    </div>
-  </ModalShell>
-);
+    </ModalShell>
+  );
+};
 
 /**
  * One promotion tile (the board's row and the list): the picture, the 推广信息 label, the title and two lines of text, the
@@ -183,7 +192,7 @@ const AdTile = ({ ad, copy, isAdmin, onOpenDetail, onDelete }: {
         {adRelationshipDisclosure(ad.id) && <p className="cm-ad__disclosure">{adRelationshipDisclosure(ad.id)}</p>}
       </div>
       {isAdmin && (
-        <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(ad.id); }} className="ui-icon-button cm-ad__delete" aria-label="删除推广" title="删除推广">
+        <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(ad.id); }} className="ui-icon-button cm-ad__delete" aria-label={copy.t('删除推广', 'Delete promotion')} title={copy.t('删除推广', 'Delete promotion')}>
           <Trash2 aria-hidden="true" strokeWidth={1.75} />
         </button>
       )}
@@ -250,12 +259,12 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
       <p className={NOTE_TEXT}>平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
   );
-  const loadingState = <div className="cm-ads__track" aria-hidden="true"><span className="ui-skeleton cm-ad cm-ad--loading" /></div>;
+  const loadingState = <div className="cm-ads__track" aria-hidden="true"><span className="ui-skeleton cm-ad-skeleton" /></div>;
 
   // WEB-COMMUNITY (D20): a reader is not shown an empty promotions box; the admin still sees it and its 添加 button.
   if (!isAdmin && !adsLoading && visibleAds.length === 0) return null;
   return (
-    <section className="cm-ads" data-layout={layout} aria-labelledby={layout === 'carousel' ? 'cm-ads-title' : undefined} aria-label={layout === 'list' ? '推广信息列表' : undefined}>
+    <section className="cm-ads" data-layout={layout} aria-labelledby={layout === 'carousel' ? 'cm-ads-title' : undefined} aria-label={layout === 'list' ? copy.t('推广信息列表', 'Promotions list') : undefined}>
       {(layout === 'carousel' || isAdmin) && <div className="cm-ads__head">
         {layout === 'carousel' && <h2 id="cm-ads-title" className="cm-board__subhead"><Megaphone aria-hidden="true" strokeWidth={1.75} />{copy.t('推广信息', 'Promotions')}</h2>}
         {isAdmin && (

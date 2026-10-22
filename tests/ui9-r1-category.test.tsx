@@ -29,7 +29,7 @@ const { setLocale } = await import('../src/i18n/locale');
 const { default: CommunityBoard } = await import('../src/pages/CommunityBoard');
 const { PostCard } = await import('../src/features/posts/PostCard');
 const { formatPostPrice } = await import('../src/features/posts/post-price');
-const { AdDetailModal } = await import('../src/features/ads/OfficialAds');
+const { AdDetailModal, OfficialAds } = await import('../src/features/ads/OfficialAds');
 const { DEFAULT_COVERS } = await import('../src/lib/constants');
 
 const ADS = [{ id: 'ad-1', title: '房地产经纪-Will Yuan', content: '湾区房地产经纪，房屋买卖，管理，Airbnb经营，长长的介绍文字一直写下去', imageUrl: 'https://example.com/qr.jpg' }];
@@ -82,6 +82,8 @@ test('N06: a post price groups its digits with Intl, and leaves words, small amo
     ['1900-2200元', '1,900-2,200元'], ['1800~2200美元', '1,800~2,200美元'], ['$1900, negotiable', '$1,900, negotiable'],
     ['$1900,可议', '$1,900,可议'], ['$2,000-2500', '$2,000-2,500'], ['$1,900-2200', '$1,900-2,200'], ['1900块', '1,900块'],
     ['$12345678901234567', '$12,345,678,901,234,567'], ['$1900,2200', '$1900,2200'], ['$12,34', '$12,34'], ['$0123', '$0123'],
+    // 元 in 元旦 / 元宵 / 元月 is not money: the year before it stays as written (review round 2)
+    ['2027元旦起租', '2027元旦起租'], ['2027元宵后入住，3300元', '2027元宵后入住，3,300元'], ['2027元月起租', '2027元月起租'],
   ];
   for (const [input, expected] of cases) assert.equal(formatPostPrice(input), expected, input);
   assert.equal(formatPostPrice('$1900', 'en'), '$1,900');
@@ -117,6 +119,17 @@ test('N22: a stock cover keeps its 系统封面 note and drops the photo count (
   assert.ok(media.querySelector('.cm-cover__note'), '系统封面');
   assert.equal(media.querySelectorAll('.ui-sticker').length, 0);
   assert.equal(view.container.querySelector('.cm-card__price'), null);
+});
+
+test('N10: while /ads is pending the promotions show the shared shimmer tile (not a .cm-ad, whose surface hides it)', () => {
+  // first in the file: the ads cache is still empty, so the block starts loading (the request never answers here)
+  api.request = (() => new Promise(() => {})) as typeof api.request;
+  try {
+    const view = render(<OfficialAds isAdmin={false} showToast={noop} onOpenDetail={noop} />);
+    const track = view.container.querySelector('.cm-ads__track[aria-hidden=true]')!;
+    assert.equal(track.innerHTML, '<span class="ui-skeleton cm-ad-skeleton"></span>');
+    assert.equal(view.container.querySelector('.cm-ad'), null);
+  } finally { api.request = boardApi; }
 });
 
 test('J1: the breadcrumb says 邻里信息 and the H1 carries the one quiet (neutral) 测试中 chip', async () => {
@@ -165,6 +178,10 @@ test('N10 / N11: the promotion dialog is the site scrim (no blur), a --r-xl pane
   const panel = declarations('.cm-ad-dialog__panel');
   assert.equal(panel['border-radius'], 'var(--r-xl)');
   assert.equal(panel['box-shadow'], 'var(--e2)');
+  // the ad's title is never smaller than the base's text-xl (1.25rem) in any reading mode (长辈模式字号不变小)
+  assert.equal(declarations('.cm-ad-dialog__title')['font-size'], 'var(--fs-keep-20)');
+  const keep20 = [...readFileSync('src/tokens.css', 'utf8').matchAll(/--fs-keep-20:([\d.]+)rem/g)].map(match => Number(match[1]));
+  assert.ok(keep20.length >= 3 && keep20.every(size => size >= 1.25), String(keep20));
   const tile = declarations('.cm-ad');
   assert.equal(tile['box-shadow'], 'var(--e1)');
   assert.equal(tile['border-radius'], 'var(--r-lg)');
@@ -179,12 +196,20 @@ test('N09 / N02 / N16 / N15: search edge, section headings, the page gutter and 
   for (const selector of [':where(.cm-board:not([data-mode=home]) .cm-board__notes) .cm-board__subhead', '.cm-guides__title']) assert.equal(declarations(selector)['font-size'], 'var(--text-section)', selector);
   assert.equal(declarations('.cm-ads__head>.cm-board__subhead').margin, '0', 'the promotions heading keeps its row margin');
   // one rounded ring around the search field on keyboard focus, none on the inner input
-  assert.equal(declarations('.site-app .cm-search input').outline, '0');
-  assert.equal(declarations('.cm-search:has(input:focus-visible)').outline, 'var(--focus-ring-width) solid var(--color-brand)');
+  // (only where :has() works: an older browser keeps the site's ring on the input)
+  const hasSupport = 'selector(:has(*))';
+  assert.equal(declarations('.site-app .cm-search input', hasSupport).outline, '0');
+  assert.equal(declarations('.site-app .cm-search input').outline, undefined, 'the input keeps its ring without :has()');
+  assert.equal(declarations('.cm-search:has(input:focus-visible)', hasSupport).outline, 'var(--focus-ring-width) solid var(--color-brand)');
   // the promotions skeleton and the admin's empty box are not pressable; the dialog head leaves room for the close ring
   assert.equal(declarations('.cm-ad:active').scale, undefined);
-  assert.equal(declarations('.cm-ad:not(.cm-ad--empty, .cm-ad--loading):active').scale, '.985');
-  assert.equal(declarations('.cm-ad.cm-ad--loading').cursor, 'default');
+  assert.equal(declarations('.cm-ad:not(.cm-ad--empty):active').scale, '.985');
+  // the loading tile is the shared shimmer about a tile's size, not a .cm-ad (whose surface would cover the gradient)
+  const skeleton = declarations('.cm-ad-skeleton');
+  assert.equal(skeleton.background, undefined);
+  assert.equal(skeleton.height, '11rem');
+  assert.equal(declarations('.cm-ad-skeleton', '(min-width:1024px)').height, '8.25rem');
+  assert.doesNotMatch(css, /cm-ad--loading/);
   assert.match(declarations('.cm-ad-dialog__head').padding, /^var\(--sp-2\) var\(--sp-3\) var\(--sp-2\)/);
   assert.equal(declarations('.cm-card .ui-sticker[data-tone=price]')['font-size'], undefined, 'no price sticker rule left');
   const page = declarations('.bay-home:not(.bay-home-editorial)');
@@ -194,4 +219,15 @@ test('N09 / N02 / N16 / N15: search edge, section headings, the page gutter and 
   assert.doesNotMatch(css, /data-quiet/, 'the quiet-board line is a plain line like the count, not a tinted box');
   assert.doesNotMatch(readFileSync('src/pages/CommunityBoard.tsx', 'utf8'), /data-quiet/);
   assert.doesNotMatch(css, /text-underline-offset:3px/);
+});
+
+test('admin copy on the promotions goes through the reader\'s language (the tile\'s delete button, the form)', async () => {
+  await setLocale('en', false);
+  const view = render(<OfficialAds isAdmin showToast={noop} onOpenDetail={noop} />);
+  await waitFor(() => assert.ok(view.container.querySelector('.cm-ad__delete')));
+  const remove = view.container.querySelector('.cm-ad__delete')!;
+  assert.equal(remove.getAttribute('aria-label'), 'Delete promotion');
+  assert.equal(remove.getAttribute('title'), 'Delete promotion');
+  const source = readFileSync('src/features/ads/OfficialAds.tsx', 'utf8');
+  assert.doesNotMatch(source, /aria-label="[^"]*[\u3400-\u9fff]/, 'no Chinese-only aria-label');
 });

@@ -25,9 +25,12 @@
 .cm-search input::placeholder { color:var(--color-ink-3); }
 .cm-search:focus-within { border-color:var(--color-brand); }
 /* One rounded ring around the whole field on keyboard focus (FOUNDATION's focus contract), not the site's square ring on
-   the inner input as well: the input never draws its own outline (.site-app beats the site rule's .site-app :where()). */
-.site-app .cm-search input { outline:0; }
-.cm-search:has(input:focus-visible) { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
+   the inner input as well: the input never draws its own outline (.site-app beats the site rule's .site-app :where()).
+   Only where :has() works: an older browser keeps the site's own ring on the input. */
+@supports selector(:has(*)) {
+  .site-app .cm-search input { outline:0; }
+  .cm-search:has(input:focus-visible) { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
+}
 /* The submit is the WEB-UI text button (no fill of its own: one button family less on the board, SYS ≤5). */
 .cm-search .cm-search__submit { flex:none; min-height:2.75rem; padding:0 .75rem; }
 
@@ -70,9 +73,9 @@
 .cm-ads__track::-webkit-scrollbar { display:none; }
 .cm-ads[data-layout=list] .cm-ads__track { display:grid; grid-template-columns:minmax(0, 1fr); overflow:visible; }
 .cm-ad { position:relative; display:grid; grid-template-columns:4.5rem minmax(0, 1fr); align-items:start; gap:var(--sp-3); flex:0 0 min(100%, 26rem); min-width:0; padding:var(--sp-3); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); color:var(--color-ink); cursor:pointer; scroll-snap-align:start; transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.cm-ad:not(.cm-ad--empty, .cm-ad--loading):active { scale:.985; }
+.cm-ad:not(.cm-ad--empty):active { scale:.985; }
 .cm-ad:focus-visible,.cm-ad-link:focus-visible,.cm-ad-field:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
-@media (hover:hover) and (pointer:fine) { .cm-ad:not(.cm-ad--empty, .cm-ad--loading):hover { border-color:var(--color-line-control); } }
+@media (hover:hover) and (pointer:fine) { .cm-ad:not(.cm-ad--empty):hover { border-color:var(--color-line-control); } }
 .cm-ad__thumb { display:block; width:4.5rem; height:4.5rem; border-radius:var(--r-md); }
 div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad__body { display:grid; gap:2px; min-width:0; }
@@ -85,7 +88,11 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad-note { margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-read); }
 .cm-ad__delete { position:absolute; top:var(--sp-1); right:var(--sp-1); color:var(--color-danger); }
 .cm-ad.cm-ad--empty { display:block; flex-basis:100%; cursor:default; box-shadow:none; }
-.cm-ad.cm-ad--loading { height:6.5rem; padding:0; border:0; border-radius:var(--r-lg); box-shadow:none; cursor:default; }
+/* The loading tile is the shared shimmer (.ui-skeleton, not .cm-ad: community.css loads after it and .cm-ad's surface would
+   cover the gradient), about a loaded tile's size so the page below does not jump when /ads answers: 176px on phone and
+   tablet (the text wraps to 2–4 lines), 131px once the right column reaches the 26rem tile (≥1024px). */
+.cm-ad-skeleton { flex:0 0 min(100%, 26rem); height:11rem; border-radius:var(--r-lg); }
+@media (min-width:1024px) { .cm-ad-skeleton { height:8.25rem; } }
 
 /* The promotion dialog and the admin's form (OfficialAds): the site scrim (no blur), the --r-xl panel with e2, the one close
    button and the site buttons. The panel is portalled outside .site-app, so the focus rings are set here. */
@@ -97,7 +104,7 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad-dialog__body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:var(--sp-4) var(--sp-5); }
 .cm-ad-dialog__labels { margin:var(--sp-3) 0 0; }
 .cm-ad-dialog__body>.cm-ad-dialog__labels:first-child { margin-top:0; }
-.cm-ad-dialog__title { margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-ui); font-weight:600; overflow-wrap:anywhere; }
+.cm-ad-dialog__title { margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:var(--lh-ui); font-weight:600; overflow-wrap:anywhere; }
 .cm-ad-dialog__text { margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); white-space:pre-wrap; overflow-wrap:anywhere; }
 .cm-ad-dialog__disclosure { margin:var(--sp-3) 0 0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:600; }
 .cm-ad-dialog__links { display:grid; gap:var(--sp-2); margin:var(--sp-4) 0 0; }

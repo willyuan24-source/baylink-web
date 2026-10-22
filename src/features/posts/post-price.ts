@@ -6,15 +6,16 @@ import type { Locale } from '../../i18n/locale';
  * Only an amount that is clearly money is grouped: after a dollar sign (and the second end of that range), before
  * 美元 / 美金 / 元 / 块 / 刀 / USD (both ends of a range), or a price field that is only digits. An amount the poster already
  * grouped stays as written and still lets the other end of its range be grouped ("$1,900-2200" → "$1,900-2,200"); a comma
- * that is not followed by a digit ends the amount ("$1900, negotiable"). Years, phone numbers, room counts and words
- * (议价, Negotiable) stay as written; amounts under 1,000 are unchanged. The group sign comes from Intl.NumberFormat in the
- * reader's language (all three use a comma); the digits are grouped as text, so a long run keeps every digit.
+ * that is not followed by a digit ends the amount ("$1900, negotiable"). Years (also before 元旦 / 元宵 / 元月), phone
+ * numbers, room counts and words (议价, Negotiable) stay as written; amounts under 1,000 are unchanged. The group sign
+ * comes from Intl.NumberFormat in the reader's language (all three use a comma); the digits are grouped as text, so a
+ * long run keeps every digit.
  */
 const INTL_LOCALE: Record<Locale, string> = { 'zh-Hans': 'zh-CN', 'zh-Hant': 'zh-TW', en: 'en-US' };
 // An amount is already grouped (1,900) or a plain run of digits, and is not followed by another digit or by ",<digit>";
 // a range is "<amount> - / – / ~ / 至 / 到 <amount>". Written out in full: the ratchet reads composed strings as UI copy.
 const DOLLARS = /([$＄]\s?)(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d)(?:(\s?[-–~至到]\s?[$＄]?\s?)(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d))?/g;
-const BEFORE_UNIT = /(^|[^\d,.])(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d)(?:(\s?[-–~至到]\s?)(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d))?(?=\s?(?:美元|美金|元|块|刀|USD\b))/g;
+const BEFORE_UNIT = /(^|[^\d,.])(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d)(?:(\s?[-–~至到]\s?)(\d{1,3}(?:,\d{3})+|\d+)(?!\d|,\d))?(?=\s?(?:美元|美金|元(?![旦宵月])|块|刀|USD\b))/g;
 
 export function formatPostPrice(text: string, locale: Locale = 'zh-Hans'): string {
   if (!text) return text;
