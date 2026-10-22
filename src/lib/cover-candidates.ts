@@ -106,7 +106,9 @@ export const ROUTE_STOCK = 2;
 export function listingImageKeys(kind: CoverKind, record: CandidateRecord, keep: (key: string) => boolean = () => true, tables: CoverTables = COVER_TABLES, limits: CandidateLimits = {}): { imageKey?: string; imageKeys?: string[] } {
   const keys = coverCandidates(kind, record, tables, limits).filter(keep);
   const own = record.imageKey && keep(record.imageKey) ? record.imageKey : undefined;
-  return { ...(own ? { imageKey: own } : {}), ...(keys.length > (own ? 1 : 0) ? { imageKeys: keys } : {}) };
+  // The candidates add to the own key unless they are only that key (an own approved-AI image the route cap left out of
+  // `keys` makes any one ③ key a real addition).
+  return { ...(own ? { imageKey: own } : {}), ...(keys.length > (own && keys.includes(own) ? 1 : 0) ? { imageKeys: keys } : {}) };
 }
 
 /**

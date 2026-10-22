@@ -43,9 +43,9 @@ const cards = listingCards.map(({ share, photo }) => ({ image: shareCardPath(sha
   .concat(HUB_CARD_NAMES.map(name => ({ image: hubCardPath(name), path: HUB_PATHS[name], photo: false })));
 /**
  * Read from the pixels: a photo card is paper from edge to edge just under its band (y 350–365; the palette dithers it by
- * a few levels), where a TypeCover card has its coloured cover panel beside the paper (at most ~61% paper; a hub card its
+ * a few levels), where a card without a picture (none since UI9-IMG-A1b) had its coloured panel beside the paper (at most ~61% paper; a hub card its
  * brand panel), and its band (y 90–260) is a picture, not a few flat colours: text cards measured at most 131 distinct
- * colours there, the 57 photo bands 209–256 (10-14). Every TypeCover background is 16+ levels from the paper.
+ * colours there, the 57 photo bands 209–256 (10-14). Every such panel was 16+ levels from the paper.
  */
 // UI9-IMG-A1b: with a picture on every listing card the 192-colour palette serves far more photos: a dark ③ cinema picture
 // draws its band in 127–149 colours, and a busy one dithers a few specks into the paper (93% paper under the band), still
@@ -71,7 +71,7 @@ for (const card of cards) for (const locale of LOCALES) {
   const png = PNG.sync.read(await readFile(file(card.image, locale)));
   assert.equal(png.width, 1200, `${card.image} ${locale}`);
   assert.equal(png.height, 630, `${card.image} ${locale}`);
-  if (photoCard(png) !== card.photo) wrongBand.push(`${file(card.image, locale)}: ${card.photo ? 'expected the photo band' : 'expected a TypeCover'}`);
+  if (photoCard(png) !== card.photo) wrongBand.push(`${file(card.image, locale)}: ${card.photo ? 'expected the photo band' : 'expected a card without a picture'}`);
   // the QR sits in the bottom-right corner of every layout: decode that region only (a ninth of the pixels)
   const [x0, y0, width, height] = [900, 380, 300, 250];
   const region = new Uint8ClampedArray(width * height * 4);

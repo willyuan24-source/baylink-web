@@ -4,7 +4,7 @@
  * is a share of its parent, never below --text-caption), so the root Aa scale (html[data-reading], WEB-TOKENS-A) grows
  * them once, never with a second --reading-scale multiplier; colours come from tokens.
  *
- * Colours come from the palette in src/tokens.css (TOKENS-B moved the TypeCover pairs, status colours, badge and
+ * Colours come from the palette in src/tokens.css (TOKENS-B moved the category tone pairs, status colours, badge and
  * highlight there); this file defines no palette names, only element-scoped layout variables (--ui-cover-ratio,
  * --ui-feed-*, --tc-bg/--tc-fg per tone). Every fg/bg pair is checked ≥4.5:1 by
  * tests/token-contrast.test.ts and scripts/check-editorial-styles.mjs.
@@ -113,8 +113,7 @@
 .ui-save:focus-visible { box-shadow:0 0 0 3px var(--color-brand-tint); }
 
 /* Simple mode (html[data-simple], WEB-TOKENS-A): text ≥16px comes from the tokens (--text-caption and --text-fact are
-   1rem there, the build floors every smaller rem/em size at var(--text-floor), and the TypeCover clamp floors above
-   carry it explicitly); targets 48px. */
+   1rem there, and the build floors every smaller rem/em size at var(--text-floor)); targets 48px. */
 html[data-simple] :is(.ui-chip,.ui-segmented,.ui-tabs__item,.ui-button) { min-height:3rem; }
 html[data-simple] .ui-icon-button::before { inset:-4px; }
 html[data-simple] .ui-save::before { inset:-8px; }

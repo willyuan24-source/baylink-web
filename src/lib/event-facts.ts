@@ -260,7 +260,7 @@ const TONE_LABELS: Record<CoverTone, Copy> = {
 /** The truthful category label. A neighbour-colour rotation may change the palette, never this label. */
 export const toneLabel = (tone: CoverTone): Copy => TONE_LABELS[tone];
 
-// Offers (TypeCover family B) -------------------------------------------------------------------
+// Offers -------------------------------------------------------------------------------------------
 
 export type OfferFactsInput = Pick<FreebieOffer, 'brand' | 'title' | 'endDate' | 'availability'> & Partial<Pick<FreebieOffer, 'kind'>>
   & { valueText?: string; publicBenefit?: boolean };
@@ -378,7 +378,7 @@ export type OpeningFactsInput = Pick<SeptemberOpening, 'status' | 'openedOn'>;
  * (numeric in English as well: "Soft open Sep 28" is wider than a share card's cover at its 44 px floor), "预计 11/20
  * 开业" for an announced day, "试营业" for a soft opening without a day, and "已开业" for a shop its source calls open
  * without naming the first day (EVT13-02: 33 open shops read 即将开业). Only an announced shop is "即将开业". Never a
- * guessed date. The opening cards, TypeCover, BayBay's cards and the share cards all print this chip, so every form
+ * guessed date. The opening cards, BayBay's cards and the share cards all print this chip, so every form
  * must fit the share card's cover (tests/cnt-hotfix-1013.test.ts).
  */
 export function openingChip(opening: OpeningFactsInput, today: string): Copy {

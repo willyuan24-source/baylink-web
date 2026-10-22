@@ -1,6 +1,6 @@
 /**
  * The lime phrase of a guide cover's hook (UI9-C, G19; guide-hook-highlight.ts holds the listed phrases and the card logic).
- * These run inside the headline family (cover-guide.tsx) and at generate time.
+ * These run on the guide cards' hook lines and at generate time.
  */
 // A fee ($46, $6.50), a phone number (800-510-2020, 1‑800‑434‑0222 with kept hyphens), a share (62.5%) or a number with its
 // unit (21 天, 40 个工作积分, 5 years, 10/26–27). The unit is one CJK word or one English word, so the phrase stays short.

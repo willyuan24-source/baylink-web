@@ -286,13 +286,13 @@ const OFFER_RULES: readonly Rule[] = [
   ['shopping', /ikea|target|world market|sephora|ulta|safeway|lowe|staples|registry|eos|购物|折|volvo|赠品|会员/i],
 ];
 
-/** An offer's photo category: transit and birthday perks by what they are, then by brand and title. */
 /** UI9-IMG-A1b: the offers OFFER_RULES leave out still get a picture of what they are (DECISIONS 21), never none. */
 const OFFER_FALLBACK_RULES: readonly Rule[] = [
   ['dining', /便当|bento|餐|饭|寿司|拉面|onigil/i],
   ['swap-meet', /换装|換裝|交换|交換|swap|exchange/i],
   ['green-volunteer', /粉碎|shred|回收|recycl/i],
 ];
+/** An offer's photo category: transit and birthday perks by what they are, then by brand and title. */
 export function offerPhotoCategory(offer: OfferFields): PhotoCategoryId | undefined {
   const text = `${offer.brand ?? ''} | ${offer.title}`;
   return override('offer', offer.id) ?? firstMatch(OFFER_RULES, text) ?? firstMatch(OFFER_FALLBACK_RULES, text)
@@ -360,7 +360,6 @@ const BULLETIN_RULES: readonly Rule[] = [
   ['guide-safety', /停电|预警|安全|诈骗|空气|火/],
 ];
 
-/** A regional bulletin's photo category (most are route changes or library services). */
 /**
  * UI9-IMG-A1b: a planner place's photo category, for a place with no picture of its own and no 3D postcard (its row then
  * shows a ③ 示意图 of the kind of place, never an information card): a library or museum by its name, else a restaurant,
@@ -376,6 +375,7 @@ export function placePhotoCategory(place: { id: string; title?: string; category
   return undefined;
 }
 
+/** A regional bulletin's photo category (most are route changes or library services). */
 export function bulletinPhotoCategory(bulletin: BulletinFields): PhotoCategoryId | undefined {
   return override('bulletin', bulletin.id) ?? firstMatch(BULLETIN_RULES, `${bulletin.label ?? ''} ${bulletin.title}`);
 }

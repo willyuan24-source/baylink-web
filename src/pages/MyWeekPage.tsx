@@ -1,4 +1,3 @@
-import { coverCandidates } from '../lib/cover-candidates';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ChevronDown, Trash2, WifiOff } from 'lucide-react';
@@ -15,6 +14,7 @@ import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { readerMonthDay } from '../lib/event-facts';
 import { coverItemFor, createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
+import { coverCandidates } from '../lib/cover-candidates';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { ImportedEventsPanel } from '../components/ImportedEventsPanel';

@@ -52,7 +52,6 @@ const offersById = new Map(currentFreebies.map(offer => [offer.id, offer]));
 const openingsById = new Map(currentOpenings.map(shop => [shop.id, shop]));
 const GUIDE_COVER = 'guide-cover:';
 
-/** Resolve one saved entry against today's catalogs. */
 /**
  * A saved guide's cover: its own, then its category's stock pictures (an own AI illustration after them, ④; UI9-IMG-A1b,
  * DECISIONS 21/22), so a saved row shows a picture, never an information card.
@@ -63,6 +62,7 @@ function guideSavedCover(guide: Guide): CoverItem {
   return { kind: 'guide', id: guide.slug, imageKey: own, imageKeys: isAiIllustration(getGuideMedia(guide).cover as CoverAsset) ? [...stock, own] : [own, ...stock] };
 }
 
+/** Resolve one saved entry against today's catalogs. */
 export function savedItemView(entry: SavedEntry): SavedItemView {
   const kindLabel = SAVED_KIND_LABELS[entry.kind];
   const base = { entry, kindLabel, title: entry.id, meta: [] };

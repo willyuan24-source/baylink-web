@@ -43,6 +43,12 @@
 .ui-cover[data-fit=contain] { container-type:size; display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); place-items:center; padding:var(--sp-3) var(--sp-3) var(--sp-6); background:var(--color-surface-2); }
 .ui-cover[data-fit=contain] .ui-cover__img { position:static; width:100%; width:min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2))); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
 
+/* A tall flyer on a small board (a phone pick, an 88 px row thumbnail at 特大) keeps at least 4.5rem of width, 64 px of picture
+   inside its mat, and gives up its bottom edge instead (UI9-IMG-A1b review: "每张卡恰好一张看得见的 img（宽 ≥ 64 px）"). With
+   cq units the width above is the flyer's own shape, so the crop only happens where that floor applies. */
+@supports (width:1cqh) {
+  .ui-cover[data-fit=contain] .ui-cover__img { width:max(min(100%, 4.5rem), min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2)))); object-fit:cover; object-position:50% 0; }
+}
 /* The plate (BayBay's [n] tags and citation chips). */
 .ui-plate { display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:0 var(--sp-2); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); outline:1px solid var(--color-surface); outline-offset:calc(-1 * var(--sp-1)); font-variant-numeric:lining-nums tabular-nums; }
 /* A row thumbnail keeps its own corners. */

@@ -28,7 +28,7 @@ import { chunkLoader } from '../lib/chunk-recovery';
 // commits without waiting for them (UI9-HOME measured +0.97 s to the first commit when the layout's boundary waited); the
 // fallback is the prerendered copy of the same section (SectionHold), so its box keeps its height and nothing shifts (CLS
 // 0) until the real one replaces it. Node (the prerender and the tests) and the dev server render them as they are
-// (`import.meta.env?.PROD`, as cover-defer does), so the prerendered page carries both sections. A load that still fails
+// (`import.meta.env?.PROD`), so the prerendered page carries both sections. A load that still fails
 // after chunkLoader's retry leaves the section out rather than the page. The views take the home's intents, topic names
 // and ticket count as props and import nothing from the home's own modules, so the home's chunk exports nothing to them and
 // keeps its manifest entry (src/pages/HomePage.tsx, which scripts/verify-release.mjs reads).
