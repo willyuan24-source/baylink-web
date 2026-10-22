@@ -1,7 +1,7 @@
-// UI9-C: the cover system. Seven families chosen by content and fixed by the item id (src/lib/cover-family.ts), every type
-// cover prints one fact from the record that is not the caption title (N19), the 6–24 h bar draws the record's own window
-// (G20), the one card date/time line (eventWhenLine, G18 / N06), the one status map (N08), the guide hooks' lime phrases
-// (G19), the detail hero and the cover sheet's rules (N02 / N22 / G6).
+// The cover system after UI9-IMAGES (DECISIONS 21): every listing cover is a picture (①–④), the one card date/time line
+// (eventWhenLine, G18 / N06), the one status map (N08), the guide hooks' lime phrases (G19, the guide pages' answers), the
+// detail hero and the cover sheet's rules (N02 / N22 / G6). The seven UI9-C families (date board, ticket, shop sign, title
+// and number plates) are gone.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { registerHooks } from 'node:module';
@@ -19,116 +19,21 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, cleanup, act } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
-const { EventTypeCover, OfferTypeCover, OpeningTypeCover, GuideTypeCover, CoverImage, StatusChip, statusLook } = await import('../src/components/ui');
+const { CoverImage, StatusChip, statusLook, COVER_SIZES } = await import('../src/components/ui');
 const { setLocale, translateText } = await import('../src/i18n/locale');
-const { chooseCover } = await import('../src/lib/cover-family');
-const { TOPIC_MARKS, topicMark } = await import('../src/components/ui/cover-guide');
-const { eventTimeWindow, eventWhenLine } = await import('../src/lib/event-facts');
-const { GUIDE_HOOK_HIGHLIGHTS, guideCardHook, hookHighlight, splitTitleHook } = await import('../src/lib/guide-hook-highlight');
+const { eventWhenLine } = await import('../src/lib/event-facts');
+const { GUIDE_HOOK_HIGHLIGHTS, hookHighlight, splitTitleHook } = await import('../src/lib/guide-hook-highlight');
 const { splitGuideTitle } = await import('../src/features/guides/guide-facts');
-const { guideTopicOf } = await import('../src/data/guide-topics');
 const { GUIDE_COVER_ANSWERS } = await import('../src/data/guide-editorial/answers');
 const { DetailHero } = await import('../src/features/detail/DetailHero');
 const { LEGACY_STATUS_TONES } = await import('../src/components/ui/Badges');
+const { getCover } = await import('../src/lib/cover');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(async () => { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); });
 const wrap = (node: React.ReactNode) => render(<MemoryRouter>{node}</MemoryRouter>);
 const today = '2026-10-19';
-const typeCover = { tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } } as const;
-type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
-const LOCALES: Locale[] = ['zh-Hans', 'zh-Hant', 'en'];
-const eventsIndex = JSON.parse(readFileSync('src/data/generated/events-index.json', 'utf8'));
 const guidesIndex = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'utf8'));
-const homeCatalog = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8'));
-const attributes = (root: Element | null) => root ? ['data-cover', 'data-family', 'data-kind', 'data-mark'].map(name => root.getAttribute(name)).join('|') : 'none';
-
-test('the chooser: a photo or poster always wins, the type families follow the listing kind, and nothing depends on position', () => {
-  const photo = { tier: 'official' as const, fit: 'cover' as const }, poster = { tier: 'photo' as const, fit: 'contain' as const }, type = { tier: 'type' as const };
-  assert.equal(chooseCover('event', photo, { id: 'a', date: '10/17' }).family, 'photo');
-  assert.equal(chooseCover('offer', poster, { id: 'a', value: '免费' }).family, 'poster');
-  assert.deepEqual(chooseCover('event', type, { id: 'a', date: '周六 10/17', time: '11:00–16:00' }), { family: 'date', keyFact: '周六 10/17 · 11:00–16:00', mark: 'calendar' });
-  assert.deepEqual(chooseCover('offer', type, { id: 'a', value: '免费' }), { family: 'ticket', keyFact: '免费', mark: 'ticket' });
-  assert.deepEqual(chooseCover('opening', type, { id: 'a', sells: '拉面', opened: '10/11 开业' }), { family: 'shop', keyFact: '拉面 · 10/11 开业', mark: 'shopfront' });
-  assert.deepEqual(chooseCover('guide', type, { id: 'a', hook: '先打 800-510-2020', phone: true, mark: topicMark('elders') }), { family: 'number', keyFact: '先打 800-510-2020', mark: 'plate' });
-  assert.equal(chooseCover('guide', type, { id: 'a', hook: '押金：搬出后 21 天', mark: topicMark('housing') }).family, 'headline');
-  // One mark per topic (G3): the item's own facts decide it, never its id's position or a neighbour.
-  for (const [topic, mark] of Object.entries(TOPIC_MARKS)) for (const id of ['x', 'bay-area-commute-guide', 'yy']) {
-    assert.equal(chooseCover('guide', type, { id, hook: 'h', mark: topicMark(topic) }).mark, mark);
-  }
-  assert.equal(chooseCover('guide', type, { id: 'x', hook: 'h' }).mark, 'slide');
-});
-
-test('the same item gets the same family and mark in zh-Hans, zh-Hant and en, and reordering a list changes nothing', async () => {
-  const events = eventsIndex.events.slice(0, 24), offers = eventsIndex.offers.slice(0, 16), openings = eventsIndex.openings.slice(0, 12);
-  const draw = (list: { events: typeof events; offers: typeof offers; openings: typeof openings }) => {
-    const view = wrap(<>
-      {list.events.map((event: { id: string }) => <div key={event.id} data-id={event.id}><EventTypeCover event={event as never} today={today} /></div>)}
-      {list.offers.map((offer: { id: string }) => <div key={offer.id} data-id={offer.id}><OfferTypeCover offer={offer as never} today={today} /></div>)}
-      {list.openings.map((shop: { id: string }) => <div key={shop.id} data-id={shop.id}><OpeningTypeCover opening={shop as never} today={today} /></div>)}
-    </>);
-    const found = Object.fromEntries([...view.container.querySelectorAll('[data-id]')].map(node => [node.getAttribute('data-id'), attributes(node.firstElementChild)]));
-    cleanup();
-    return found;
-  };
-  const results: Record<string, string>[] = [];
-  for (const locale of LOCALES) {
-    await act(async () => { await setLocale(locale, false); });
-    results.push(draw({ events, offers, openings }));
-    results.push(draw({ events: [...events].reverse(), offers: [...offers].reverse(), openings: [...openings].reverse() }));
-  }
-  for (const result of results.slice(1)) assert.deepEqual(result, results[0]);
-});
-
-test('every type cover built from events-index.json, guides-index.json and home-catalog.json prints a key fact that is not the caption title', async () => {
-  for (const locale of ['zh-Hans', 'en'] as const) {
-    await act(async () => { await setLocale(locale, false); });
-    const failures: string[] = [];
-    const check = (node: React.ReactNode, caption: string, id: string) => {
-      const view = wrap(node);
-      const root = view.container.querySelector('[data-cover="type"]');
-      const key = root?.getAttribute('data-key')?.trim() ?? '';
-      if (!key) failures.push(`${id}: empty key`);
-      else if (caption && (key === caption.trim() || caption.includes(key) && key.length > 8)) failures.push(`${id}: key repeats the caption "${caption}"`);
-      cleanup();
-    };
-    for (const event of eventsIndex.events.slice(0, 160)) check(<EventTypeCover event={event} today={today} />, translateText(event.title, locale), event.id);
-    for (const offer of eventsIndex.offers.slice(0, 120)) check(<OfferTypeCover offer={offer} today={today} />, translateText(offer.title, locale), offer.id);
-    for (const shop of eventsIndex.openings) check(<OpeningTypeCover opening={shop} today={today} />, shop.name, shop.id);
-    for (const guide of [...guidesIndex.guides, ...homeCatalog.guides]) {
-      const title = translateText(guide.title, locale);
-      const { hook, hi, caption } = guideCardHook(guide, title, locale, (zh: string) => translateText(zh, locale));
-      check(<GuideTypeCover slug={guide.slug} topic={guide.topic ?? guideTopicOf(guide)} topicLabel="topic" hook={hook} hi={hi} />, caption === undefined ? title : caption, guide.slug);
-    }
-    assert.deepEqual(failures, [], locale);
-  }
-});
-
-test('the 6–24 h bar: only one day with one structured window, placed and sized by that window', () => {
-  const base = { id: 'x', title: '讲座', startDate: '2026-10-24', endDate: '2026-10-24', occurrenceDates: undefined, city: 'Oakland', category: 'culture' as const, cost: 'free' as const, audience: [] };
-  const one = { ...base, sessions: [{ date: '2026-10-24', start: '10:30', end: '11:30' }] };
-  assert.deepEqual(eventTimeWindow(one, '2026-10-24'), { open: 630, close: 690 });
-  const view = wrap(<EventTypeCover event={one} today={today} />);
-  const bar = view.container.querySelector('.tc-bar') as HTMLElement;
-  assert.ok(bar, 'a one-day event with a window draws the bar');
-  assert.equal(bar.style.getPropertyValue('--tb-from'), '25.0%', '(10:30 − 6:00) / 18 h');
-  assert.equal(bar.style.getPropertyValue('--tb-span'), '5.6%', '1 h / 18 h');
-  assert.equal(view.container.querySelector('.tc-cal__time')?.textContent, '10:30–11:30');
-  cleanup();
-  for (const [name, event] of [
-    ['no window', base],
-    ['an open end', { ...base, sessions: [{ date: '2026-10-24', start: '10:30' }] }],
-    ['two sessions', { ...base, sessions: [{ date: '2026-10-24', start: '10:00', end: '11:00' }, { date: '2026-10-24', start: '14:00', end: '15:00' }] }],
-    ['a two-day run', { ...base, endDate: '2026-10-25', sessions: undefined }],
-  ] as const) {
-    const other = wrap(<EventTypeCover event={event as never} today={today} />);
-    assert.equal(other.container.querySelector('.tc-bar'), null, name);
-    cleanup();
-  }
-  const late = wrap(<EventTypeCover event={{ ...base, sessions: [{ date: '2026-10-24', start: '19:00', end: '01:00' }] }} today={today} />);
-  const lateBar = late.container.querySelector('.tc-bar') as HTMLElement;
-  assert.equal(lateBar.style.getPropertyValue('--tb-from'), '72.2%');
-  assert.equal(lateBar.style.getPropertyValue('--tb-span'), '27.8%', 'past midnight runs to 24:00');
-});
 
 test('eventWhenLine: one date pattern and one time pattern, "周六 10/17 · 11:00–16:00" / "Sat, Oct 17 · 11am–4pm"', () => {
   const event = { startDate: '2026-10-17', endDate: '2026-10-17', occurrenceDates: undefined, sessions: [{ date: '2026-10-17', start: '11:00', end: '16:00' }] };
@@ -179,7 +84,7 @@ test('each lime phrase is a substring of its answer in zh, zh-Hant and en; a hoo
     assert.ok(answer.en.includes(phrase.en), `${slug}: "${phrase.en}" in "${answer.en}"`);
     assert.ok(translateText(answer.zh, 'zh-Hant').includes(translateText(phrase.zh, 'zh-Hant')), `${slug}: zh-Hant`);
   }
-  // Answers that are a phone number print on the plate and carry no lime phrase.
+  // Answers that are a phone number carry no lime phrase.
   for (const [slug, answer] of Object.entries(GUIDE_COVER_ANSWERS)) if (!Object.hasOwn(GUIDE_HOOK_HIGHLIGHTS, slug)) assert.match(answer.zh, /\d{3}-\d{3}-\d{4}/, `${slug} needs a lime phrase`);
   assert.equal(hookHighlight('看房、转账、签合同前先检查什么'), '看房');
   assert.equal(hookHighlight('押金最多一个月房租，搬出后 21 天退还'), '21 天');
@@ -190,9 +95,6 @@ test('each lime phrase is a substring of its answer in zh, zh-Hant and en; a hoo
     const ours = splitTitleHook(guide.title), theirs = splitGuideTitle(guide.title);
     assert.deepEqual([ours.head, ours.rest], [theirs.head, theirs.rest], guide.slug);
   }
-  // The cover renders exactly one lime phrase.
-  const view = wrap(<GuideTypeCover slug="california-tenant-deposit-rights-help-guide" topic="housing" topicLabel="住房" hook="押金：搬出后 21 天" hi="21 天" />);
-  assert.deepEqual([...view.container.querySelectorAll('.tc-hook em')].map(node => node.textContent), ['21 天']);
 });
 
 test('answered guide cards carry their hook from the generator; /guides no longer imports answers.ts', () => {
@@ -200,57 +102,51 @@ test('answered guide cards carry their hook from the generator; /guides no longe
   assert.equal(answered.length, Object.keys(GUIDE_COVER_ANSWERS).filter(slug => guidesIndex.guides.some((guide: { slug: string }) => guide.slug === slug)).length);
   for (const guide of answered) assert.deepEqual(guide.hook, GUIDE_COVER_ANSWERS[guide.slug]);
   assert.doesNotMatch(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /guide-editorial\/answers/);
-  const titled = guidesIndex.guides.find((guide: { hook?: unknown; title: string }) => !guide.hook && /[：:]/.test(guide.title));
-  const { hook, caption } = guideCardHook(titled, titled.title, 'zh-Hans', (zh: string) => zh);
-  assert.equal(`${caption}${titled.title.slice(caption!.length, titled.title.length - hook.length)}${hook}`, titled.title, 'head on the caption, the rest on the cover');
 });
 
-test('DetailHero: with no photo the family cover fills the 16:9 frame, with the day, the time bar and the labels', async () => {
+test('DetailHero: always a picture in the 16:9 frame with its badge and credit line (UI9-IMAGES DECISIONS 21)', async () => {
   const event = { id: 'e', title: '中秋书法纸灯笼', startDate: '2026-10-25', endDate: '2026-10-25', city: 'Portola Valley', venueShort: 'Portola Valley 图书馆', category: 'culture', cost: 'free', audience: ['长者'], sessions: [{ date: '2026-10-25', start: '10:30', end: '11:30' }] };
-  const view = wrap(<DetailHero record={{ item: { kind: 'event', event } } as never} cover={typeCover} today={today} ended={false} />);
+  const stock = Object.keys(GUIDE_IMAGES).find(key => key.startsWith('stock-library-'))!;
+  const cover = getCover({ kind: 'event', id: 'e', imageKeys: [stock] }, { images: GUIDE_IMAGES, today });
+  assert.equal(cover.tier, 'stock');
+  const view = wrap(<DetailHero record={{ item: { kind: 'event', event } } as never} cover={cover} today={today} ended={false} />);
   const figure = view.container.querySelector('figure.detail-hero')!;
-  assert.equal(figure.hasAttribute('data-compact'), false, 'no band');
-  assert.equal(figure.hasAttribute('data-slim'), false);
-  const root = figure.querySelector('[data-cover="type"]')!;
-  assert.deepEqual(['data-family', 'data-ratio', 'data-ratio-lock'].map(name => root.getAttribute(name)), ['date', '16:9', '']);
-  assert.equal(root.querySelector('.tc-cal__top')?.textContent, '周日');
-  assert.equal(root.querySelector('.tc-cal__day')?.textContent, '10/25');
-  assert.ok(root.querySelector('.tc-bar'), 'the time bar');
-  assert.deepEqual([...root.querySelectorAll('.tc-bar__ticks span')].map(node => node.textContent), ['6', '12', '18', '24']);
-  assert.equal(root.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  cleanup();
-  const offer = wrap(<DetailHero record={{ item: { kind: 'offer', offer: { id: 'o', brand: 'IKEA', title: '会员咖啡半价', endDate: '2026-10-26', availability: 'dated' } } } as never} cover={typeCover} today={today} ended={false} />);
-  const ticket = offer.container.querySelector('[data-cover="type"]')!;
-  assert.deepEqual([ticket.getAttribute('data-family'), ticket.querySelector('.tc-ticket__value')?.textContent, ticket.querySelector('.tc-ticket__stub')?.textContent], ['ticket', '半价', '10/26截止']);
-  cleanup();
-  const shop = wrap(<DetailHero record={{ item: { kind: 'opening', shop: { id: 's', name: 'Marufuku', city: 'Burlingame', status: 'open', openedOn: '2026-10-11', openingType: 'new-restaurant', category: '拉面' } } } as never} cover={typeCover} today={today} ended={false} />);
-  assert.equal(shop.container.querySelector('.tc-sign')?.textContent, '拉面10/11 开业');
+  const root = figure.querySelector('[data-cover="image"]')!;
+  assert.deepEqual(['data-ratio', 'data-ratio-lock', 'data-tier'].map(name => root.getAttribute(name)), ['16:9', '', 'stock']);
+  const img = root.querySelector('img')!;
+  assert.equal(img.getAttribute('loading'), 'eager', 'the LCP image');
+  assert.equal(img.getAttribute('fetchpriority'), 'high');
+  assert.equal(root.querySelector('[data-provenance]')?.textContent, '示意图');
+  assert.match(figure.querySelector('figcaption')?.textContent ?? '', /^示意图/);
+  assert.equal(view.container.querySelector('[data-cover="type"],.tc-cal,.tc-ticket,.tc-sign'), null);
 });
 
-test('the cover sheet: no uppercase, nothing larger than the page H1, tokens only; a photo has at most two overlays and the 3D postcards keep their badge', () => {
+test('the cover sheet: no uppercase, nothing larger than the page H1, tokens only; a picture has at most two overlays and the 3D postcards keep their badge', () => {
   const css = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.doesNotMatch(css, /text-transform:\s*uppercase/);
   assert.doesNotMatch(css, /letter-spacing:\s*[\d.]+(?:em|px)/, 'no letter-spaced caps (G6)');
   postcss.parse(css).walkDecls('font-size', declaration => assert.match(declaration.value, /^var\(--(?:fs-(?:badge|meta|body|card|card-lg|section|title)|text-caption)\)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`));
   const size = css.replace(/\r\n/g, '\n').length; // the content, not the checkout's line endings (a Windows clone has CRLF)
-  assert.ok(size <= 15 * 1024, `covers.css ${size} B ≤ 15 KB`);
+  assert.ok(size <= 8 * 1024, `covers.css ${size} B ≤ 8 KB (the information-card families are gone)`);
+  assert.doesNotMatch(css, /ui-type-cover|\.tc-|@container tc/, 'no information-card rules');
   assert.doesNotMatch(css.replace(/\.ui-provenance \{[^}]*\}/, ''), /#[\da-f]{3,8}\b|\d+ms\b/i, 'no colour or duration literal');
-  // A listing photo: the image and the chip, nothing else (the ♡ is the card's).
+  // A listing picture: the image and the chip, nothing else (the ♡ is the card's).
   const photo = { src: '/p.webp', alt: '', width: 1200, height: 900 };
-  const view = wrap(<CoverImage image={photo} label="官方图" kind="event" />);
+  const view = wrap(<CoverImage image={photo} label="官方图" tier="official" kind="event" />);
   const cover = view.container.querySelector('[data-cover="image"]')!;
   assert.equal(cover.children.length, 2);
-  assert.deepEqual(['data-family', 'data-kind', 'data-mark'].map(name => cover.getAttribute(name)), ['photo', 'event', 'focal']);
+  assert.deepEqual(['data-family', 'data-kind', 'data-tier'].map(name => cover.getAttribute(name)), ['photo', 'event', 'official']);
   assert.equal(cover.querySelector('[data-chip]')?.textContent, '官方图');
   cleanup();
   const poster = wrap(<CoverImage image={photo} label="官方图" fit="contain" kind="event" />);
   assert.equal(poster.container.querySelectorAll('img').length, 1, 'no blurred backdrop');
   assert.equal(poster.container.querySelector('[data-cover]')?.getAttribute('data-family'), 'poster');
   cleanup();
-  // A picture outside the listing feeds (no kind: /explore, plan stops) keeps its badge as it was.
+  // DECISIONS 23: one badge per picture at its bottom-left, the chip look, outside the listing feeds too (a guide's title
+  // picture, a detail photo); only the 3D postcards keep their own badge.
   const outside = wrap(<CoverImage image={photo} label="资料图 · 2024" />);
   assert.equal(outside.container.querySelector('[data-cover="image"]')?.hasAttribute('data-family'), false);
-  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), false);
+  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
   cleanup();
   // The 3D postcards: the same markup as before UI9-C (no family, no chip attribute) and the same badge rule.
   const postcard = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" ratio="16:9" ratioLock kind="place" />);
@@ -261,114 +157,27 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   postcss.parse(css).walkRules(rule => { if (rule.selector.includes('.ui-provenance') && rule.selector !== '.ui-provenance') assert.match(rule.selector, /\[data-chip\]/, `${rule.selector} excludes the 3D postcards`); });
 });
 
-test('a number plate prints the number on one line in every mode, and a thumbnail never prints it', () => {
-  const view = wrap(<GuideTypeCover slug="bay-area-medicare-hicap-medi-cal-guide" topic="health" topicLabel="医疗保险" hook="免费 1-800-434-0222" />);
-  const plate = view.container.querySelector('.tc-plate')!;
-  assert.equal(plate.classList.contains('ui-plate'), true, 'the shared plate class');
-  assert.equal(plate.querySelector('[data-phone]')?.textContent, '1‑800‑434‑0222', 'non-breaking hyphens');
-  assert.equal(plate.textContent, '免费1‑800‑434‑0222');
-  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.tc-plate \[data-phone\] \{[^}]*white-space:nowrap/);
-  cleanup();
-  const thumb = wrap(<GuideTypeCover slug="bay-area-medicare-hicap-medi-cal-guide" topic="health" topicLabel="医疗保险" hook="免费 1-800-434-0222" size="mini" />);
-  assert.doesNotMatch(thumb.container.textContent ?? '', /\d{3}/, 'a thumb never prints a phone number');
-  assert.ok(thumb.container.querySelector('.tc-mark svg'), 'it shows the topic mark');
-});
-
-test('review fixes: the stated close past midnight, families after the page drawn in one pass in Node, legacy thumbnails, short thumbnail facts, terms on a value-less ticket, one-clause hooks', async () => {
+test('review fixes: a poster fills its board at its own shape; the feed default is 3:2; 88 px thumbnails wrap their chip; 简洁 rows drop the ♡; skeletons reserve the 3:2 cover', async () => {
   const late = { id: 'l', title: '夜市', startDate: '2026-10-24', endDate: '2026-10-24', city: 'Fremont', category: 'food', cost: 'free', audience: [], sessions: [{ date: '2026-10-24', start: '19:00', end: '01:00' }] };
-  // The card's line prints the record's own close; only the bar runs to 24:00.
+  // The card's line prints the record's own close past midnight.
   assert.deepEqual(eventWhenLine(late as never, today), { zh: '周六 10/24 · 19:00–1:00', en: 'Sat, Oct 24 · 7pm–1am' });
-  assert.deepEqual(eventTimeWindow(late as never, '2026-10-24'), { open: 1140, close: 1440 });
-  // A label-only legacy thumbnail (a plan stop, a saved place) prints its words, never an empty tile.
-  const { TypeCover } = await import('../src/components/ui');
-  const legacy = wrap(<TypeCover tone="outdoors" label="景点" size="mini" />);
-  assert.equal(legacy.container.querySelector('.tc-thumb')?.textContent, '景点');
-  cleanup();
-  // A BayBay guide card's legacy cover prints the title after its colon, not the caption's title.
-  const baybay = wrap(<TypeCover tone="culture" label="指南" title="湾区新手第一个月：先办这 3 件事" />);
-  assert.equal(baybay.container.querySelector('.tc-hook')?.textContent, '先办这 3 件事');
-  cleanup();
-  // A date thumbnail without a time prints a short venue, else the city (never a long venue that clips at 特大).
-  const noTime = { ...late, sessions: undefined, venueShort: 'Library / Parks and Recreation Center' };
-  const thumb = wrap(<EventTypeCover event={noTime as never} today={today} days={['2026-10-24']} size="mini" />);
-  assert.equal(thumb.container.querySelector('.tc-thumb')?.textContent, translateText('Fremont', 'zh-Hans'));
-  cleanup();
-  const shortVenue = wrap(<EventTypeCover event={{ ...noTime, venueShort: 'SFMOMA' } as never} today={today} days={['2026-10-24']} size="mini" />);
-  assert.equal(shortVenue.container.querySelector('.tc-thumb')?.textContent, 'SFMOMA');
-  cleanup();
-  // A place or city with a Latin word over 9 letters would break mid-word in the tile at 家人版: the price leads instead, else
-  // the date label. Up to 9 letters fit ("San Francisco", "Petaluma"; the mini tile keeps a 4 px side padding).
-  const longCity = { ...noTime, city: 'Pleasanton', venueShort: 'Alameda County Fairgrounds' };
-  const priced = wrap(<EventTypeCover event={longCity as never} today={today} days={['2026-10-24']} size="mini" />);
-  assert.equal(priced.container.querySelector('.tc-thumb')?.textContent, '免费');
-  cleanup();
-  const unpriced = wrap(<EventTypeCover event={{ ...longCity, cost: undefined } as never} today={today} days={['2026-10-24']} size="mini" />);
-  assert.match(unpriced.container.querySelector('.tc-thumb')?.textContent ?? '', /10\/24/);
-  cleanup();
-  const petaluma = wrap(<EventTypeCover event={{ ...longCity, city: 'Petaluma' } as never} today={today} days={['2026-10-24']} size="mini" />);
-  assert.equal(petaluma.container.querySelector('.tc-thumb')?.textContent, 'Petaluma');
-  cleanup();
-  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-type-cover\[data-size=mini\] \{ padding:var\(--sp-2\) var\(--sp-1\);/);
-  // The families a page draws after its first screen render in one pass in Node, so the prerendered HTML carries them.
-  const { DeferredGuideTypeCover, DeferredOfferTypeCover } = await import('../src/components/ui/cover-defer');
-  const guide = wrap(<DeferredGuideTypeCover slug="california-tenant-deposit-rights-help-guide" topic="housing" topicLabel="住房" hook="押金：搬出后 21 天" />);
-  assert.equal(guide.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'headline');
-  assert.equal(guide.container.querySelector('.tc-hook em')?.textContent, '21 天');
-  cleanup();
-  // An offer without a stated value leads with what it asks of you; the stub keeps the deadline day.
-  const terms = wrap(<DeferredOfferTypeCover offer={{ id: 'o', brand: 'IKEA', title: '会员咖啡', kind: 'purchase', endDate: '2026-10-26', availability: 'dated' } as never} today={today} />);
-  const ticket = terms.container.querySelector('[data-cover="type"]')!;
-  assert.deepEqual([ticket.getAttribute('data-family'), ticket.querySelector('.tc-ticket__value')?.textContent, ticket.querySelector('.tc-ticket__stub')?.textContent], ['ticket', '需消费', '10/26截止']);
-  cleanup();
-  // A hook that is one clause gets no lime phrase rather than a lime hook from end to end.
-  assert.equal(hookHighlight('合租前先讲清楚这些事'), '');
-  const plain = wrap(<GuideTypeCover slug="x" topic="housing" topicLabel="住房" hook="合租前先讲清楚这些事" />);
-  assert.equal(plain.container.querySelector('.tc-hook em'), null);
-  assert.equal(plain.container.querySelector('.tc-hook')?.textContent, '合租前先讲清楚这些事');
-  cleanup();
-  // A poster keeps its own shape on the board and fills it, whatever `sizes` says (review 10-19: the flyer was drawn at its
-  // srcset size, half a single-column board): the board is a size container, the width is the smaller of the board's width
-  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even. `width:100%` comes
-  // first with object-fit:contain (UI9-C carry-over, applied in UI9-INT): a browser without cq units (iOS 15, a build target)
-  // drops the min() and the flyer fills the board's width whole (0.94–0.98 of the board in 特大 / 家人版, not 0.52), letterboxed
-  // where max-height caps it; never the generic object-fit:cover, which crops the flyer to a band.
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.match(sheet, /\.ui-cover\[data-fit=contain\] \{ container-type:size;/);
   assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*position:static; width:100%; width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var\(--sp-1\)/);
   const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
   assert.equal(flyer.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '3');
   cleanup();
-  const still = wrap(<CoverImage image={{ src: '/p.webp', alt: '', width: 1200, height: 900 }} label="官方图" kind="event" />);
-  assert.equal(still.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '', 'a photo has no flyer shape');
-  // zh-Hant on Windows: a type cover's Latin letters and digits come from Segoe UI like the titles (tokens.css H51).
-  assert.match(readFileSync('src/tokens.css', 'utf8'), /html:lang\(zh-Hant\) :is\([^)]*\.ui-type-cover\) \{ font-family:'BL Hant Latin'/);
-  cleanup();
   assert.match(sheet, /aspect-ratio:var\(--ui-feed-ratio, var\(--ui-cover-ratio, 3 \/ 2\)\)/, 'the feed default is 3:2 (decision 20)');
-});
-
-test('review fixes 2: thumbnails without a kind wrap their provenance, 简洁 rows drop the ♡, skeletons reserve the 3:2 cover', async () => {
-  const { COVER_SIZES } = await import('../src/components/ui');
   const photo = { src: '/p.webp', alt: '', width: 1200, height: 900 };
-  // A plan stop's or a saved item's 88 px thumb (no listing kind): the chip look, which wraps, never the plain badge that keeps
-  // 56 px for a ♡ and cuts the words (N22). Bigger pictures without a kind and the 3D postcards keep the plain badge.
   const thumb = wrap(<CoverImage image={photo} label="官方图 · 照片" sizes={COVER_SIZES.thumb} />);
   assert.equal(thumb.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
-  assert.equal(thumb.container.querySelector('[data-cover="image"]')?.hasAttribute('data-family'), false, 'no family: not a listing cover');
   cleanup();
   const postcardThumb = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" sizes={COVER_SIZES.thumb} />);
   assert.equal(postcardThumb.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), false);
   cleanup();
-  const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   const rules = new Map<string, string>();
   postcss.parse(sheet).walkRules(rule => { if (rule.parent?.type === 'root') rules.set(rule.selector, rule.nodes.map(node => node.toString()).join('; ')); });
-  // 简洁 / 家人版 (both set html[data-simple]): a discovery list row's ♡ is hidden (decision 16); only the save controls, so the
-  // calendar rows' 加入这天计划 stays, and not in 我的收藏 (#saved), where the ♡ is the only way to remove a saved item.
   assert.equal(rules.get('[data-simple] .ui-row-card__trailing:not(#saved *) :is(.ui-save,.planner-heart)'), 'display:none');
-  // The loading card's cover is the 3:2 the card draws (ui.css's skeleton still says 3:4; this rule has its specificity and
-  // covers.css loads after ui.css).
   assert.equal(rules.get('.ui-skeleton-card>[data-shape=cover]'), 'aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2))');
-  assert.ok(sheet.indexOf('.ui-skeleton-card>[data-shape=cover]') > sheet.indexOf('.ui-cover,.ui-type-cover {'));
-  // The calendar page keeps its bottom room with or without a time line (one rule on the page instead of two).
-  assert.match(rules.get('.tc-cal') ?? '', /padding-bottom:var\(--sp-2\)/);
-  assert.equal(rules.has('.tc-cal__day:last-child'), false);
+  assert.ok(sheet.indexOf('.ui-skeleton-card>[data-shape=cover]') > sheet.indexOf('.ui-cover {'));
 });

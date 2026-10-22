@@ -1,10 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ChipRow, Cover, FeedCard, FilterChip } from '../../components/ui';
-import { DeferredGuideTypeCover } from '../../components/ui/cover-defer';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { FamilyLinkButton } from '../../components/FamilyLinkButton';
-import { translateText } from '../../i18n/locale';
 import type { HomeIntentId } from '../../data/home-pathways';
 import type { ResolvedCover } from '../../lib/cover';
 import type { Copy } from '../../lib/event-facts';
@@ -17,25 +15,14 @@ type TopicLabels = Readonly<Record<string, Copy>>;
 const GRID_SIZES = '(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 290px';
 
 /**
- * A guide title's head before its first colon (≥4 characters), from the already-translated title — the same rule as the
- * guide pages' splitGuideTitle (features/guides/guide-facts.ts, which loads the guide catalog, so it is not imported here).
- * It lives in this view (UI9-C put it in home-model.ts): the view imports nothing from the home's own modules.
+ * A guide's cover: its picture with its badge (its own photo, else a ③ 示意图 of its topic; UI9-IMAGES DECISIONS 21: never
+ * a title plate); the caption prints the whole title.
  */
-const guideTitleHead = (title: string): string => /^(.{4,}?)\s*[：:｜|]\s*.+$/su.exec(title.trim())?.[1] ?? title.trim();
-
-/**
- * A guide's cover: its photo (provenance chip), or the headline / number cover (UI9-C, G19) with the title after its colon
- * (the whole title when it has none); the caption then shows the head only (or nothing), so the cover never repeats it.
- * The family loads after the page (cover-defer.tsx): the rail is below the home's first screen.
- */
-function GuideCard({ guide, cover, topicLabels }: { guide: HomeGuide; cover: ResolvedCover; topicLabels: TopicLabels }) {
-  const { t, pick, locale } = useUiCopy();
+function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover }) {
+  const { t } = useUiCopy();
   const sources = guide.sources ? t(`${guide.sources} 个官方来源`, `${guide.sources} official source${guide.sources === 1 ? '' : 's'}`) : '';
-  const title = translateText(guide.title, locale), head = guideTitleHead(title);
-  const caption = head === title ? '' : head, hook = caption ? title.slice(head.length).replace(/^\s*[：:｜|]\s*/u, '') : title;
-  const fallback = <DeferredGuideTypeCover slug={guide.slug} topic={guide.topic} topicLabel={pick(topicLabels[guide.topic])} hook={hook} ratio="3:2" ariaHidden />;
-  return <FeedCard title={guide.title} titleShown={cover.tier === 'type' ? caption : undefined} to={`/guides/${guide.slug}`} className="home-guide"
-    cover={<Cover cover={cover} kind="guide" fallback={fallback} ratio="3:2" sizes={GRID_SIZES} decorative />}
+  return <FeedCard title={guide.title} to={`/guides/${guide.slug}`} className="home-guide"
+    cover={<Cover cover={cover} kind="guide" ratio="3:2" sizes={GRID_SIZES} decorative />}
     meta={[sources, t(`约 ${guide.readMinutes} 分钟`, `${guide.readMinutes} min read`)].filter(Boolean).join(' · ')} />;
 }
 
@@ -63,7 +50,7 @@ export function GuideRailView({ intents, topicLabels, intent, onIntent, guides, 
       {intents.map(item => <FilterChip key={item.id} selected={item.id === intent} aria-controls="home-guides-rail" onClick={() => onIntent(item.id)}>{t(item.label, item.en)}</FilterChip>)}
     </ChipRow>
     <ul id="home-guides-rail" className="home-guides__rail" aria-label={t(selected.label, selected.en)}>
-      {guides.map((guide, index) => <li key={guide.slug}><GuideCard guide={guide} cover={covers[index]} topicLabels={topicLabels} /></li>)}
+      {guides.map((guide, index) => <li key={guide.slug}><GuideCard guide={guide} cover={covers[index]} /></li>)}
     </ul>
     <div className="home-guides__more">
       {topic ? <Link to={`/guides?topic=${selected.topic}`} className="home-section-head__more">{t(`看全部「${topic.zh}」指南`, `All ${topic.en} guides`)}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>

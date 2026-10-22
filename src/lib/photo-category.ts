@@ -254,7 +254,11 @@ export function eventPhotoCategory(event: EventFields): PhotoCategoryId | undefi
   if (event.category === 'outdoors') return kidsish ? 'family-outdoor' : 'nature-walk';
   if (event.category === 'food') return 'food-festival';
   if (event.category === 'family') return setting === 'outdoor' || PARK_VENUE.test(venue) ? 'family-outdoor' : 'kids-play';
-  return undefined;
+  // UI9-IMG-A1b: every event has a ③ category (DECISIONS 21: no information card, past listings' detail pages included):
+  // the rest by what they are — music or a night out, else a community gathering.
+  if (/音乐|音樂|music|party|派对|派對|夜生活|nightlife|dj\b/i.test(`${text} ${(event.audience ?? []).join(' ')}`)) return 'concert';
+  if (event.category === 'seniors') return 'seniors';
+  return 'community-festival';
 }
 
 const OFFER_RULES: readonly Rule[] = [

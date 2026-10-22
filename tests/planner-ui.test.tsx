@@ -453,22 +453,33 @@ test('a saved day opened with ?edit= reads 已保存 until a detail changes; a n
   assert.equal(stored().details.startTime, '13:30');
 });
 
-test('a stop listed twice on 行程 shows its photo once: the first saved day keeps it, later rows show the information card', async () => {
+test('a stop listed twice on 行程 keeps a picture in every listing: a repeat takes its next candidate, else its own picture again, never an information card', async () => {
   const { appendToDay } = await import('../src/lib/planner-library');
   await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
   await appendToDay(undefined, '2026-09-28', { kind: 'place', id: 'golden-gate' }, '9/28 计划', '2026-09-23');
   const view = await openPlanner();
   for (let page = 0; page < 40 && !view.container.querySelector('[id="catalog-place:golden-gate"]'); page++) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
   assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"]'), `the list reaches the same place (${view.container.querySelectorAll('.planner-catalog .planner-place').length} rows)`);
-  // A letterboxed poster draws its file twice inside one cover (the blurred fill); count each cover's files once.
-  const sources = [...view.container.querySelectorAll('[data-cover]')].flatMap(cover => [...new Set([...cover.querySelectorAll('img')].map(image => image.getAttribute('src')))]);
-  assert.deepEqual(sources.filter((src, index) => sources.indexOf(src) !== index), [], 'no image file appears in two covers on the page');
-  // Each plan by its heading (getAllByRole('article') inside 已排的日子 exhausted jsdom's memory on this page).
+  // UI9-IMAGES DECISIONS 21: every stop is a picture. Different stops never share a ①② file on the page; the same place
+  // listed again shows a ③ picture of its kind when it has one, else its own picture (the Golden Gate Bridge is a
+  // landmark: city-sights stock is never used on a specific place, so it has no ③ picture).
+  const covers = [...view.container.querySelectorAll('[data-cover]')];
+  assert.equal(covers.filter(cover => cover.getAttribute('data-cover') === 'type').length, 0);
   const [first, second] = ['9/27 计划', '9/28 计划'].map(name => within(view.getByTestId('plan-days')).getByRole('heading', { level: 3, name }).closest('article')!);
-  assert.ok(first.querySelector('[data-cover] img'), 'the first saved day keeps the photo');
-  assert.equal(second.querySelector('img'), null);
-  assert.ok(second.querySelector('[data-cover="type"]'), 'the repeat shows its information card');
-  assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"] [data-cover="type"]'), 'so does the list row');
+  const src = (root: Element | null) => root?.querySelector('[data-cover] img')?.getAttribute('src');
+  assert.ok(src(first), 'the first saved day keeps the photo');
+  // The bridge's next candidate is its 3D postcard; a third listing has none left and shows its own photo again.
+  assert.ok(src(second), 'the repeat shows a picture');
+  assert.notEqual(src(second), src(first), 'its next candidate');
+  assert.ok(src(view.container.querySelector('[id="catalog-place:golden-gate"]')), 'so does the list row');
+  const owners = new Map<string, string>();
+  for (const cover of covers) {
+    const file = cover.querySelector('img')?.getAttribute('src');
+    const row = cover.closest('[id^="catalog-"], article')?.querySelector('h3, h4')?.textContent ?? '';
+    if (!file || /category-stock/.test(file)) continue;
+    if (owners.has(file)) assert.match(`${owners.get(file)} | ${row}`, /金门|Golden Gate/, `${file} is not shared by two different stops`);
+    owners.set(file, row);
+  }
 });
 
 test('offline, 行程 says what still works: a guest’s saved days and draft stay, suggestions and the map wait for a connection', async () => {

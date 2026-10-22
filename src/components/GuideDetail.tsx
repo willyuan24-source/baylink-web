@@ -31,7 +31,7 @@ import { createCoverPage, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
 import { SegmentedTitle } from './SegmentedTitle';
-import { CoverImage } from './ui/CoverImage';
+import { CoverImage, useTierLabel } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';
@@ -44,8 +44,7 @@ import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { quickFactsEligible } from '../features/guides/guide-kind';
 import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
-import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { DeferredGuideTypeCover } from './ui/cover-defer';
+import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features/guides/GuidePageParts';
 import { editionState, guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
@@ -95,12 +94,12 @@ function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { rela
     </div>
     <ul className="gd-related__rows" data-simple="hide" aria-label={t('相关指南', 'Related guides')}>{related.slice(0, 3).map((guide, index) => <li key={guide.slug}>
       <RowCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
+        thumb={<GuideCover guide={guide} cover={covers[index]} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </li>)}</ul>
     <div className="gd-related__grid" data-simple="hide"><FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
-      <FeedCard title={translateText(guide.title, locale)} titleShown={guideCaption(guide, locale, covers[index])} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        cover={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="3:2" sizes={COVER_SIZES.feed} />}
+      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
+        cover={<GuideCover guide={guide} cover={covers[index]} ratio="3:2" sizes={COVER_SIZES.feed} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </FeedItem>)}</FeedGrid></div>
     <p className="gd-related__topic" data-simple="show"><Link to={`/guides?topic=${topic}`}>{t(`更多「${pick(topicCopy(topic))}」指南`, `More ${pick(topicCopy(topic))} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></p>
@@ -137,6 +136,7 @@ const GuideDetailSession = ({
   const record = suppliedRecord ?? peekGuide(slug);
   const guide = record?.guide;
   const { t, english } = useUiCopy();
+  const tierLabel = useTierLabel();
   const today = useBayAreaToday(suppliedToday);
   const editorial: GuideEditorial | undefined = record?.editorial;
   // 简洁显示: each number keeps two tap targets, the bar's 拨打 and its contact's; its other copies print as text.
@@ -153,7 +153,7 @@ const GuideDetailSession = ({
     const cover = guideCover({ slug: guide.slug, covers: record.covers }, today, coverPage);
     // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
     // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
-    // claims its place before the related guides resolve, so their covers fall back to a TypeCover instead of repeating it.
+    // claims its place before the related guides resolve, so their covers move to their next picture instead of repeating it.
     // The record's inline pictures already passed keepInlineImage (guide-data.ts) and its board pictures are getOfferImage's.
     const boardImages = record.boardImages ?? [];
     const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
@@ -260,7 +260,7 @@ const GuideDetailSession = ({
     </ol>
   );
   const visual = editorial ? <GuideCarousel guide={guide} editorial={editorial} />
-    : cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={english ? cover.label.en : translateText(cover.label.zh)} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
+    : cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover)} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
       {!cover.image.scene3d && <GuideCoverCredit image={cover.image} />}</figure> : null;
   // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
   const call = guideCallOf(editorial);

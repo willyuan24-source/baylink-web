@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { EventCover, EventWhen } from '../../components/ui/cover-date';
+import { EventCover, EventWhen } from '../../components/ui/Cover';
 import { FeedCard } from '../../components/ui/Card';
 import { FeedGrid, FeedItem } from '../../components/ui/FeedGrid';
 import { useUiCopy } from '../../components/ui/ui-copy';

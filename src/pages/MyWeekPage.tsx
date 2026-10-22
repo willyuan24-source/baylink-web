@@ -33,7 +33,6 @@ import { COVER_SIZES } from '../components/ui/cover-sizes';
 import { ErrorState } from '../components/ui/States';
 import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
-import { EventTypeCover } from '../components/ui/TypeCover';
 import { confirmDialog } from '../components/ui/confirm';
 import '../features/saves/my-week.css';
 
@@ -87,7 +86,7 @@ function WeekEvents({ events, today, coverPage, english }: { events: { event: Mo
     const title = translateText(event.title, locale);
     return <li key={event.id} className="my-week__event">
       <RowCard title={title} to={`/events/${event.id}`} heading="h3"
-        thumb={<Cover cover={covers[index]} sizes={COVER_SIZES.thumb} decorative fallback={<EventTypeCover event={event} today={today} days={[date]} size="mini" ariaHidden />} />}
+        thumb={<Cover cover={covers[index]} sizes={COVER_SIZES.thumb} decorative kind="event" />}
         date={<><span>{t('本次', 'This visit')} </span><time dateTime={date}>{dayLabel(date, english)}</time></>}
         meta={`${translateText(event.city, locale)} · ${translateText(event.costLabel, locale)} · ${t('活动期间', 'Runs')} ${translateText(event.dateLabel, locale)}`}
         trailing={<SaveHeart kind="event" id={event.id} title={title} />} />

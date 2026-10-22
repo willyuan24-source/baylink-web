@@ -18,17 +18,14 @@ import { Button } from './ui/Button';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
-import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { DeferredGuideTypeCover, preloadCoverFamilies } from './ui/cover-defer';
+import { GuideCover } from '../features/guides/GuideCover';
+import { useRowCredit } from './ui/CoverImage';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
 import { settleChunk } from '../lib/chunk-recovery';
 import { editionState, GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
-
-// /guides draws the headline / number family on its first screen: start its chunk as this page loads (UI9-IMG-A0).
-void preloadCoverFamilies(['guide']);
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
@@ -155,7 +152,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     });
   }, [elderBand, today]);
 
-  // One cover page in reading order, so an image never appears twice; each coded cover keeps its own family (cover-family.ts).
+  // One cover page in reading order, so a ①② picture never appears twice and a ③ picture not within ADJACENT_CARDS cards.
   const covers = useMemo(() => {
     const coverPage = createCoverPage();
     const order: GuideIndexCard[] = browse ? [...elderBand, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
@@ -164,18 +161,19 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const photo = (guide: GuideIndexCard) => { const cover = covers.get(guide.slug); return !!cover && cover.tier !== 'type'; };
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
-  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
-  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
+  // A ①② thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard and a ③④ picture keep their badge on it.
+  const credit = useRowCredit();
+  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'scene3d' ? credit(cover) : undefined;
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
   const lines = (guide: GuideIndexCard) => { const { when, meta } = guideCardLines(guide, today); return { when: pick(when), meta: meta && pick(meta) }; };
-  /** A row: C's mini cover (its key fact only), the full title (never clamped), the time line and the sources line. */
+  /** A row: the 88 px picture, the full title (never clamped), the time line and the sources line. */
   const row = (guide: GuideIndexCard, options: { snippet?: string; section?: string; call?: boolean } = {}) => {
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
@@ -183,12 +181,12 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
         {t('拨打', 'Call')} <span className="gl-call__number">{guide.call.number}</span></Button>}
     </>;
   };
-  /** A cover card (desktop, and 2-up photo cards on a phone): 3:2, C's hook sentence on a coded cover. */
+  /** A cover card (desktop, and 2-up photo cards on a phone): the 3:2 picture. */
   const feed = (guide: GuideIndexCard, priority = false) => {
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
-    return <FeedCard title={guideTitle(guide)} titleShown={cover ? guideCaption(guide, locale, cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+    return <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;

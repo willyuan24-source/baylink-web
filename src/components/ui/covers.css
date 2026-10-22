@@ -1,7 +1,7 @@
 /*
- * Covers (UI9-C): the provenance chip, the status map and the seven families, chosen by content and fixed by the item id
- * (src/lib/cover-family.ts). Tokens only. A type cover prints one fact the record has ([data-key]), never only its category
- * or the caption title, and no cover type is larger than --fs-title (the page H1). Loads with ui.css, before cards.css.
+ * Covers (UI9-C; UI9-IMAGES DECISIONS 21): the provenance chip, the status map and the picture frame. Every cover is a
+ * picture (①–④, src/lib/cover.ts); a frame with no picture keeps its LQIP colour ([data-cover=lqip]). Tokens only. Loads with
+ * ui.css, before cards.css.
  */
 
 /* Provenance: the AI 3D postcards keep this badge exactly (top-left, ink chip; captain decision 1). Every other cover's
@@ -9,7 +9,7 @@
 .ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
 /* The chip (N22): bottom-left, 13 px, wraps, never cut; with the card's ♡ the only overlay. */
 .ui-provenance[data-chip] { top:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:normal; text-overflow:clip; }
-.ui-type-cover>.ui-provenance[data-chip],.ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
+.ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
 
 /* Stickers: facts printed on a member's photo (community posts only; listing covers carry none). */
 .ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
@@ -27,13 +27,13 @@
 .ui-status[data-tone=ended] { color:var(--color-ink-3); }
 
 /* Covers. One ratio per feed: 3:2 by default (captain decision 20), a ratio a caller sets stays. */
-.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2)); border-radius:var(--r-lg); }
-:is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
-:is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 2); }
+.ui-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2)); border-radius:var(--r-lg); }
+.ui-cover[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
+.ui-cover[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
+.ui-cover[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
+.ui-cover[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
+.ui-cover[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
+.ui-cover[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 2); }
 .ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }
 .ui-cover__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
@@ -43,92 +43,10 @@
 .ui-cover[data-fit=contain] { container-type:size; display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); place-items:center; padding:var(--sp-3) var(--sp-3) var(--sp-6); background:var(--color-surface-2); }
 .ui-cover[data-fit=contain] .ui-cover__img { position:static; width:100%; width:min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2))); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
 
-/* Type covers: DOM text in flow (the cover grows rather than clip at 特大 / 简洁); --tc-deep = the category's deep shade. */
-.ui-type-cover { --tc-deep:var(--tc-fg, var(--color-brand)); --tc-badge-room:calc(var(--fs-badge) * var(--lh-snug) + var(--sp-3)); container:tc / inline-size; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--sp-2); padding:var(--sp-3); padding-top:calc(var(--sp-3) + var(--tc-badge-room)); overflow:clip; background:var(--color-surface-2); color:var(--color-ink); text-align:start; font-weight:400; }
-.ui-type-cover[data-tone=family] { --tc-fg:var(--tc-family-fg); }
-.ui-type-cover[data-tone=culture] { --tc-fg:var(--tc-culture-fg); }
-.ui-type-cover[data-tone=outdoors] { --tc-fg:var(--tc-outdoors-fg); }
-.ui-type-cover[data-tone=food] { --tc-fg:var(--tc-food-fg); }
-.ui-type-cover[data-tone=seniors] { --tc-fg:var(--tc-seniors-fg); }
-.ui-type-cover[data-tone=free] { --tc-fg:var(--tc-free-fg); }
-.ui-type-cover :where(p) { margin:0; }
-.tc-eyebrow { margin-bottom:auto; padding-inline-end:var(--sp-7); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; }
-.tc-num { font-variant-numeric:lining-nums tabular-nums; }
-
-/* date: an upright calendar page (weekday band in the deep shade, the day, the time) and the 6–24 h bar. */
-.tc-cal { display:inline-flex; flex-direction:column; align-self:flex-start; padding-bottom:var(--sp-2); min-width:min(100%, 40%); max-width:100%; overflow:hidden; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); text-align:center; }
-.tc-cal__top { padding:var(--sp-1) var(--sp-3); background:var(--tc-deep); color:var(--color-surface); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.tc-cal__day { padding:var(--sp-1) var(--sp-3) 0; font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
-.tc-cal__time { padding:0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.tc-bar { position:relative; height:var(--sp-3); border-radius:var(--r-sm); background:var(--color-line); }
-.tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
-.tc-bar__ticks { display:flex; justify-content:space-between; margin-top:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-
-/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right; the value breaks between
-   words (hyphenated in English). */
-.tc-ticket { position:relative; display:flex; align-items:stretch; margin-block:auto; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); }
-.tc-ticket__main { display:flex; flex:1; flex-direction:column; justify-content:center; gap:var(--sp-1); min-width:0; padding:var(--sp-3); }
-.tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:break-word; hyphens:auto; }
-.tc-ticket__cond { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.tc-ticket__stub { position:relative; display:flex; flex:none; flex-direction:column; justify-content:center; align-items:center; padding:var(--sp-2) var(--sp-3); border-left:2px dashed var(--color-line-strong); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); text-align:center; }
-.tc-ticket__day { color:var(--color-ink); font-size:var(--fs-card-lg); line-height:var(--lh-tight); }
-/* the perforation: a notch in each side, the ground showing through */
-.tc-ticket::before,.tc-ticket::after { content:""; position:absolute; top:calc(50% - var(--sp-2)); left:calc(-1 * var(--sp-2)); width:var(--sp-4); height:var(--sp-4); border-radius:var(--r-circle); background:var(--color-surface-2); }
-.tc-ticket::after { left:auto; right:calc(-1 * var(--sp-2)); }
-
-/* headline: the deep-green slide, the hook with one lime phrase, a cropped topic mark. */
-.ui-type-cover[data-family=headline] { background:var(--color-brand-deep); color:var(--color-bg); }
-.ui-type-cover[data-family=headline] .tc-eyebrow { color:var(--color-on-brand-muted); }
-.tc-hook { position:relative; z-index:1; max-width:92%; font-size:var(--fs-card-lg); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; overflow-wrap:anywhere; }
-.tc-hook em { font-style:normal; color:var(--color-highlight); }
-.tc-hook[data-long] { font-size:var(--fs-body); }
-.tc-mark { position:absolute; right:calc(-1 * var(--sp-4)); bottom:calc(-1 * var(--sp-4)); width:var(--sp-9); height:var(--sp-9); color:var(--color-bg); opacity:.18; pointer-events:none; }
-.tc-mark>svg { width:100%; height:100%; }
-
-/* number: the plate (shared: BayBay's [n] tags and citation chips reuse .ui-plate), the number on one line. */
+/* The plate (BayBay's [n] tags and citation chips). */
 .ui-plate { display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:0 var(--sp-2); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); outline:1px solid var(--color-surface); outline-offset:calc(-1 * var(--sp-1)); font-variant-numeric:lining-nums tabular-nums; }
-.tc-plate { align-self:stretch; font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.tc-plate [data-phone] { font-size:var(--fs-card-lg); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
-.ui-type-cover[data-family=number] .tc-mark { color:var(--color-brand); opacity:.14; }
-
-/* shop: one shopfront, the awning and the sign (what it sells, the opening day). */
-.tc-awning { position:absolute; top:0; left:0; right:0; height:22%; background:repeating-linear-gradient(90deg, var(--color-brand-deep) 0 var(--sp-4), var(--color-surface) var(--sp-4) var(--sp-6)); }
-.tc-sign { align-self:center; display:flex; flex-direction:column; align-items:center; max-width:100%; margin-block:auto; padding:var(--sp-2) var(--sp-4); border-radius:var(--r-md); background:var(--color-brand-deep); color:var(--color-bg); outline:1px solid var(--color-bg); outline-offset:calc(-1 * var(--sp-1)); box-shadow:var(--e1); text-align:center; }
-.tc-sign__sells { font-size:var(--fs-card-lg); line-height:var(--lh-tight); font-weight:600; overflow-wrap:anywhere; }
-.tc-sign__date { color:var(--color-on-brand-muted); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.ui-type-cover[data-family=shop] { padding-top:calc(22% + var(--sp-3)); }
-
-/* Two-up phone cards (≤ 240 px): the facts anchor to the bottom, the ♡ keeps the top right. */
-@container tc (max-width:240px) {
-  .ui-type-cover:not([data-family=ticket]) .tc-eyebrow,.tc-bar__ticks,.tc-ticket__cond { display:none; }
-  .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); }
-  .tc-ticket__main,.tc-ticket__stub,.tc-plate { padding:var(--sp-2); }
-  .tc-ticket[data-long] .tc-ticket__stub { display:none; }
-  .tc-hook,.tc-plate [data-phone],.tc-sign__sells { font-size:var(--fs-body); }
-  .tc-mark { width:var(--sp-8); height:var(--sp-8); }
-  .tc-sign { padding:var(--sp-2) var(--sp-3); }
-}
-/* Desktop cards and single-column phone feeds (≥ 260 px): a short hook a step larger. */
-@container tc (min-width:260px) { .tc-hook:not([data-long]) { font-size:var(--fs-section); } }
-/* Hero-size covers (≥ 480 px: the detail hero, desktop picks): the fact sits in the middle of the frame. */
-@container tc (min-width:480px) {
-  .tc-cal,.tc-ticket,.tc-sign,.tc-plate { align-self:center; margin-block:auto; }
-  .tc-cal>span { padding-inline:var(--sp-6); }
-  .tc-ticket,.tc-plate { width:70%; }
-}
-/* A 320 px phone: the key numeral stays below the page H1 at 特大 / 家人版 (N02). */
-@media (max-width:340px) { .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); } }
-/* Thumbnails (≤ 140 px): the key fact only (Card.tsx moves the chip's words into the row meta). */
-@container tc (max-width:140px) {
-  .tc-mark { position:static; width:var(--sp-7); height:var(--sp-7); opacity:1; color:var(--color-highlight); }
-  .ui-type-cover[data-family=number] .tc-mark { color:var(--color-surface); opacity:1; }
-  .tc-thumb { font-size:var(--fs-meta); line-height:var(--lh-tight); font-weight:600; overflow-wrap:anywhere; }
-}
-.ui-type-cover[data-size=mini] { padding:var(--sp-2) var(--sp-1); justify-content:center; align-items:center; text-align:center; }
-.ui-type-cover[data-size=mini][data-family=date] .tc-thumb { color:var(--tc-deep); }
-.ui-type-cover[data-size=mini][data-family=number] { background:var(--color-brand); }
-.ui-type-cover[data-size=mini][data-family=shop] { padding-top:calc(22% + var(--sp-2)); }
-.ui-type-cover[data-size=mini],.ui-row-card__thumb :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-md); }
+/* A row thumbnail keeps its own corners. */
+.ui-row-card__thumb .ui-cover { border-radius:var(--r-md); }
 
 /* The 2-line card meta (G18; Card.tsx, HeroCard.tsx): line 1 when, line 2 status and venue (wraps, never cut). */
 .ui-card-when { margin:0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); font-variant-numeric:tabular-nums; }
@@ -137,7 +55,9 @@
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__when { font-size:var(--fs-body); } }
 /* A row's thumbnail drops its chip; the same words sit in the row as a 13 px line. */
 .ui-row-card__credit { margin:0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-snug); }
-.ui-row-card:has(.ui-row-card__credit) .ui-row-card__thumb .ui-provenance[data-chip] { display:none; }
+/* A ①② thumbnail's badge words move into the row's 13 px line (Card.tsx `credit`); a ③ 示意图 / ④ AI 示意图 badge stays on
+   the picture in every size and mode (UI9-IMAGES DECISIONS 23), at 12 px so the short English fits 88 px. */
+.ui-row-card:has(.ui-row-card__credit) .ui-row-card__thumb .ui-provenance[data-chip]:not([data-tier=stock],[data-tier=ai]) { display:none; }
 /* 简洁 / 家人版: list rows drop the ♡, saving is on the detail page (decision 16); not 我的收藏 (#saved), where it
    removes the item; calendar rows keep 加入这天计划. */
 [data-simple] .ui-row-card__trailing:not(#saved *) :is(.ui-save,.planner-heart) { display:none; }

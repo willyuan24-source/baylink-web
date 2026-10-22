@@ -160,7 +160,7 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-calendar__rows" aria-live="polite">
       {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
       : shownEvents.length ? <>
-        <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead" coverCredit={false}>
+        <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
           <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} oneDay={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
         </FeedGrid>
         {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} oneDay action={addToDay(event)} />)}

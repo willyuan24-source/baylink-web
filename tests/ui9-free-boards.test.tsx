@@ -260,10 +260,9 @@ test('line 2 of an English opening card keeps what the shop sells after the lead
   } finally { await setLocale('zh-Hans', false); }
 });
 
-test('the coded-cover note prints once per board, under the last section, on cards and on rows (H12 / SV13-02)', async () => {
+test('every board card and row is a picture: no information card and no info-card note (UI9-IMAGES DECISIONS 21)', async () => {
   const css = readFileSync('src/features/events/boards.css', 'utf8');
-  assert.match(css, /\.fb-board \.ui-feed>\.ui-cover-credit \{ display:none; \}/, 'each grid\'s own copy is hidden');
-  assert.doesNotMatch(css, /:not\(:last-child\)/);
+  assert.doesNotMatch(css, /ui-cover-credit|tc-thumb/, 'the info-card rules are gone');
   for (const simple of [false, true]) {
     if (simple) {
       localStorage.setItem('baylink.simple-display.v1', '1');
@@ -274,14 +273,10 @@ test('the coded-cover note prints once per board, under the last section, on car
       await waitFor(() => assert.ok(page.container.querySelector('.fb-section')));
       const board = page.container.querySelector('.fb-board')!;
       assert.ok(board.querySelector(simple ? '.fb-rows' : '.ui-feed'), `${view}: ${simple ? 'rows' : 'cards'}`);
-      const notes = [...board.querySelectorAll('.ui-cover-credit')].filter(note => !note.closest('.ui-feed'));
-      // The note explains information cards; since the owner approved AI covers (2026-10-21) a board can have none.
-      const typed = board.querySelectorAll('[data-cover="type"]').length;
-      assert.equal(notes.length, typed ? 1 : 0, `${view} (简洁 ${simple}): one note for the board when it has an information card`);
-      if (typed) {
-        assert.equal(notes[0].previousElementSibling?.className, 'fb-sections', 'under the last section');
-        assert.match(notes[0].textContent!, /^没有照片的条目用 BAYLINK 信息卡/);
-      }
+      assert.equal(board.querySelectorAll('[data-cover="type"], .ui-cover-credit').length, 0, `${view} (简洁 ${simple}): no information card`);
+      const items = [...board.querySelectorAll('.ui-feed-card, .ui-row-card')];
+      assert.ok(items.length > 0);
+      for (const item of items) assert.equal(item.querySelectorAll('[data-cover="image"] img').length, 1, `${view} (简洁 ${simple}): ${item.querySelector('h3')?.textContent}`);
       page.unmount();
     }
   }
@@ -374,9 +369,10 @@ test('an empty filter offers one primary that widens the narrower filter, with i
   }
 });
 
-test('简洁 and 家人版 rows keep the 示意图 / AI 示意图 words on a ③ category photo and an approved AI cover (UI9-IMAGES DECISIONS 23)', async () => {
-  // A row thumbnail shows no chip once the row has a source line (covers.css), and 简洁 drops a ①② photo's words; a ③
-  // picture still says 示意图 and a ④ one AI 示意图 in every size and mode, so their words stay in the row's source line.
+test('简洁 and 家人版 rows keep the 示意图 / AI 示意图 chip on a ③ category photo and an approved AI cover (UI9-IMAGES DECISIONS 23)', async () => {
+  // A ①② thumbnail's words move into the row's source line (and leave it in 简洁); a ③ picture says 示意图 and a ④ one
+  // AI 示意图 on the picture itself in every size and mode (covers.css keeps their chip on the thumbnail), never twice.
+  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-row-card__thumb \.ui-provenance\[data-chip\]:not\(\[data-tier=stock\],\[data-tier=ai\]\) \{ display:none; \}/);
   const { images } = model.coverContext(today);
   const aiKey = Object.keys(images).find(key => images[key].aiCoverApproved);
   const stockKey = Object.keys(images).find(key => key.startsWith('stock-'));
@@ -405,7 +401,10 @@ test('简洁 and 家人版 rows keep the 示意图 / AI 示意图 words on a ③
             opening: card(<OpeningFeedCard opening={shop} cover={shopCover} today={today} row simple={simple} />),
           };
           for (const [kind, row] of Object.entries(rows)) {
-            assert.match(row.querySelector('.ui-row-card__credit')?.textContent ?? '', words[locale], `${locale} ${kind} row (简洁 ${simple}) names the ${tier} picture`);
+            const chip = row.querySelector('.ui-row-card__thumb .ui-provenance[data-chip]');
+            assert.match(chip?.textContent ?? '', words[locale], `${locale} ${kind} row (简洁 ${simple}) names the ${tier} picture on it`);
+            assert.equal(chip?.getAttribute('data-tier'), tier);
+            assert.doesNotMatch(row.querySelector('.ui-row-card__credit')?.textContent ?? '', words[locale], `${locale} ${kind} row: one label per picture`);
           }
         }
       }

@@ -140,14 +140,14 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-container[data-size=reading] { max-width:var(--container-reading); }
 
 /* Titles wrap between words (a2 SegmentedTitle; units are at most 8 Han / 14 Latin characters, which fit a 173px card). */
-:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title,.ui-page-header__title) .title-keep { white-space:nowrap; }
+:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title,.ui-page-header__title) .title-keep { white-space:nowrap; }
 /* H55 / H63: in a card title a Latin name group of two or more words (SegmentedTitle data-latin) may break at its spaces,
    so "免费 Día de los Muertos" does not leave 免费 alone on the first line, and "Santa Rosa" never runs past a narrow
    card at 特大; Chinese units keep their line. Card titles avoid a one-word last line (text-wrap:pretty). */
-:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep[data-latin] { white-space:normal; }
+:is(.ui-feed-card__title,.ui-row-card__title) .title-keep[data-latin] { white-space:normal; }
 /* GR-13: a Chinese unit wider than a narrow card's whole line (320px at 特大: "农夫市集：" in a 237px /plan card) wraps inside
    itself instead of running past the card; any unit that fits the line still moves to the next line whole. */
-:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
+:is(.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
 /* H63: under 360px a page title scales with the width (no container above it, so cq units are the viewport's) between
    20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale): 24px at 320
    (30 at 特大), the full size from about 347px. What keeps a long title inside the line is the title units' wrapping

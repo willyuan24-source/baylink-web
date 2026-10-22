@@ -57,7 +57,7 @@ export function HeroPicks({ picks, covers, today, start, end, total, checked }: 
       {/* The separator keeps the heading's name readable ("本周末先看这几件，10/24–25"); the date shows as a kicker. */}
       <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end, english)}</span></h2>
     </div>
-    {picks.length ? <ul className="home-picks__list" role="list" aria-label={t('本周末精选', 'This weekend’s picks')} data-cover-credit="">
+    {picks.length ? <ul className="home-picks__list" role="list" aria-label={t('本周末精选', 'This weekend’s picks')}>
       {picks.map((item, index) => <li key={item.event.id} {...weekend}><PickCard pick={item} cover={covers[index]} today={today} lead={index === 0} /></li>)}
     </ul> : <div className="home-empty" {...weekend}>
       {/* The lead's slot holds a text panel when there is nothing to show: none confirmed (0), or no picks for a day the

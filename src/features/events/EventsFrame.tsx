@@ -19,10 +19,8 @@ import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 
 // The two other boards load on demand: /events itself stays small (RC-33), and their skeleton and retry states are real.
-// A board waits for its info-card family too (UI9-IMG-A0), so it first renders with its tickets / shop signs, not their
-// empty frames; the skeleton stands in until both are in.
-const perksView = retryableLazy(async () => { const module = await import('./PerksView'); await module.preloadCovers(); return module; });
-const openingsView = retryableLazy(async () => { const module = await import('./OpeningsView'); await module.preloadCovers(); return module; });
+const perksView = retryableLazy(() => import('./PerksView'));
+const openingsView = retryableLazy(() => import('./OpeningsView'));
 
 /**
  * 活动 (plan D3, design.md §4.11; UI9-EVENTS G17 + G12): one head — H1 活动 with the range on its baseline (本周末 · 10/24–25,

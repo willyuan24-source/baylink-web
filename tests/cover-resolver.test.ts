@@ -40,7 +40,7 @@ const contextPhotos = {
 const ctx = { images, today, contextPhotos };
 const event = (id: string, imageKey?: string): CoverItem => ({ kind: 'event', id, imageKey });
 
-test('the honesty ladder: official → dated photo → approved venue → 3D postcard → TypeCover', () => {
+test('the honesty ladder: official → dated photo → approved venue → 3D postcard → no picture (type)', () => {
   assert.equal(getCover(event('e1', 'poster'), ctx).tier, 'official');
   assert.equal(getCover(event('e1', 'pressKit'), ctx).tier, 'official', 'a recorded press-kit basis is official');
   assert.equal(getCover(event('e1', 'recent'), ctx).tier, 'photo');
@@ -120,7 +120,7 @@ test('labels come only from getImageProvenance, and posters are letterboxed, nev
   assert.deepEqual(getCover(event('e1', 'recent'), ctx).tier !== 'type' && getCover(event('e1', 'recent'), ctx).focal, [50, 40]);
 });
 
-test('the same image appears once per page; the second item falls back to a TypeCover', () => {
+test('the same image appears once per page; the second item with no other candidate resolves to no picture (type)', () => {
   const shared = { ...images, twin: { ...images.recent } };
   const covers = resolveCovers([event('a', 'recent'), event('b', 'twin'), event('c', 'recent')], { ...ctx, images: shared });
   assert.deepEqual(covers.map(cover => cover.tier === 'type' ? cover.reason : cover.tier), ['photo', 'duplicate', 'duplicate'], 'same file under another key is still a duplicate');

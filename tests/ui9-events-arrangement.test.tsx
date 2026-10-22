@@ -244,7 +244,7 @@ test('a press report never says 官网核对: the index flags it from the source
   } else assert.match(facts, /每条附官方链接/);
 });
 
-test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook and the coded-cover note', () => {
+test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook', () => {
   const view = page('/events');
   const end = view.container.querySelector('nav.ev-end')!;
   const links = [...end.querySelectorAll('a.ev-end__item')].map(link => link.textContent);
@@ -252,21 +252,17 @@ test('page end: alerts in the shared Disclosure, one quiet list of links, 本页
   const credits = view.container.querySelector('#page-credits')!;
   assert.ok(credits.hasAttribute('data-credits-at-end'));
   assert.equal(Number(credits.getAttribute('data-count')), credits.querySelectorAll('li').length);
-  assert.equal(view.container.querySelectorAll('.ui-cover-credit').length, 0, 'the feed does not repeat the note');
-  if (view.container.querySelector('.ev-feed [data-cover="type"]')) assert.match(credits.textContent!, /没有照片的条目用 BAYLINK 信息卡/);
+  assert.equal(view.container.querySelectorAll('.ui-cover-credit, [data-cover="type"]').length, 0, 'every card is a picture (UI9-IMAGES DECISIONS 21)');
+  assert.doesNotMatch(credits.textContent!, /BAYLINK 信息卡/);
   const alerts = view.container.querySelector('.ev-alerts');
   if (alerts) assert.ok(alerts.querySelector('details.ui-disclosure'));
 });
 
-test('ImageCredits and FeedGrid: the note is said once, and FeedGrid can leave its own line out', () => {
+test('ImageCredits credits each picture once and says nothing for a frame without one; FeedGrid prints no note', () => {
   const credits = render(<ImageCredits covers={[{ tier: 'type' } as never]} />);
-  assert.equal(credits.container.querySelector('#page-credits')!.getAttribute('data-count'), '0');
-  assert.match(credits.container.textContent!, /没有照片的条目用 BAYLINK 信息卡/);
+  assert.equal(credits.container.querySelector('#page-credits'), null);
   cleanup();
-  const grid = render(<FeedGrid label="x" coverCredit={false}><li>a</li></FeedGrid>);
-  assert.equal(grid.container.querySelector('.ui-cover-credit'), null);
-  cleanup();
-  assert.ok(render(<FeedGrid label="x"><li>a</li></FeedGrid>).container.querySelector('.ui-cover-credit'), 'the default stays');
+  assert.equal(render(<FeedGrid label="x"><li>a</li></FeedGrid>).container.querySelector('.ui-cover-credit'), null);
 });
 
 test('DayChips: a radio group on the chip look, none checked gives the first the tab stop, arrows select, a click never unchecks; `part` wraps the later radios in the same group', () => {

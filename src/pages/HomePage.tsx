@@ -6,11 +6,6 @@ import { HomeDiscovery } from '../components/HomeDiscovery';
 import { loadSearchConversion } from '../i18n/locale';
 import type { CommunityBoardProps } from './CommunityBoard';
 import { communityBoardFailure, loadCommunityBoard, LoadedCommunityBoard } from './community-board-loader';
-import { preloadDateFamily } from '../components/ui/cover-date';
-
-// The home lead and picks draw the date family on the first screen: start its chunk as this page loads (UI9-IMG-A0;
-// the prerendered page already preloads it), so the app's first render has it.
-void preloadDateFamily();
 
 // The homepage (/) and the shell of category pages, /?q= searches and the /posts/:id, /users/:id deep links. The
 // community board itself is a separate chunk (CommunityBoard.tsx, WEB-HOMEPREP): the homepage's first load does not

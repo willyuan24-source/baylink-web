@@ -73,12 +73,14 @@ test('official posters are letterboxed whole with their responsive sources; phot
   assert.equal(second.getByRole('link', { name: '许可' }).getAttribute('href'), photo.licenseUrl);
 });
 
-test('unknown media becomes the information card, never an unrelated illustration', () => {
+test('unknown media leaves the empty LQIP frame, never an unrelated illustration or an information card', () => {
+  // (No listed record ends here: tests/report-cover-coverage.test.ts keeps every record on a picture, UI9-IMAGES DECISIONS 21.)
   const { cover, view } = card('ui-test-nonexistent');
   assert.equal(cover.tier, 'type');
   assert.equal(view.container.querySelector('img'), null);
-  assert.ok(view.container.querySelector('[data-cover="type"]'));
-  // UI9-EVENTS: 本页图片来源 then only says what an information card is (no credit list).
+  assert.equal(view.container.querySelector('[data-cover="type"]'), null);
+  assert.ok(view.container.querySelector('[data-cover="lqip"]'));
+  // 本页图片来源 has nothing to credit.
   assert.equal(view.container.querySelector('.ev-credits li, .ev-credits__list'), null, 'no credit list without a photo');
 });
 

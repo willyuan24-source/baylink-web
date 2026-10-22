@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ChipRow, CoverCredit, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
+import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { coverItemFor, createCoverPage, resolveCovers } from '../../lib/cover';
 import { isFreeToAttend } from '../../lib/monthly';
@@ -14,11 +14,6 @@ import { ImageCredits } from './ImageCredits';
 import { OptionSheetFilter, RegionFilter } from './RegionFilter';
 import { useBoardMode, useSetRegion } from './board-mode';
 import './boards.css';
-import { preloadCoverFamilies } from '../../components/ui/cover-defer';
-
-/** EventsFrame loads this board's info-card family with the board, before its first render (UI9-IMG-A0). */
-// eslint-disable-next-line react-refresh/only-export-components
-export const preloadCovers = () => preloadCoverFamilies(['ticket']);
 
 /** "再看 N 条" adds this many to a section. */
 const MORE = 12;
@@ -30,7 +25,7 @@ const NO_EXTRA: Readonly<Record<OfferSectionId, number>> = { week: 0, later: 0, 
 /**
  * 免费与优惠 (content arrangement 10-19): the filter row, then three sections by end date — 这 7 天 · 7 天以后 · 长期有效,
  * each an h2 with its count and its own 再看 N 条 — ending soonest first, photo first within a day, sold-out offers last.
- * Cards: C's 1:1 ticket or the brand's image, line 1 when, line 2 [status] · condition · brand, the source line. The weekend's
+ * Cards: the 1:1 picture (the brand's image, its venue's photo or a ③ 示意图; DECISIONS 21/22), line 1 when, line 2 [status] · condition · brand, the source line. The weekend's
  * free events and the three guides close the page. On a phone at 大 / 特大 / 简洁 the filter row is two Sheet chips and the
  * cards are rows; 简洁 shows 3 per section (家人版 2), hides sold-out offers and keeps one guide link.
  */
@@ -59,7 +54,6 @@ export default function PerksView({ today, region }: { today: string; region: Mo
     return new Map(flat.map((offer, index) => [offer.id, resolved[index]]));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the ids shown
   }, [shownKey, today]);
-  const coded = [...covers.values()].some(cover => cover.tier === 'type');
   const weekend = getMonthlyDateRange('weekend', today);
   // The weekend is in the route's own events; on a build over two weeks old the link is left out instead of loading the rest (WEB-PERF-2).
   const weekendDays = listWindow(weekend, today);
@@ -102,9 +96,6 @@ export default function PerksView({ today, region }: { today: string; region: Mo
         {more > 0 && <div className="ev-more"><Button variant="secondary" block onClick={() => setExtra(previous => ({ ...previous, [section.id]: previous[section.id] + MORE }))}>{t(`再看 ${more} 条`, `Show ${more} more`)}</Button></div>}
       </section>;
     })}</div> : <EmptyState headingLevel="h3" title={t('这个条件下暂时没有优惠', 'No offers match this yet')} body={t('换个条件或地区再看看。', 'Try another condition or region.')} actions={widen} />}
-    {/* The coded-cover note once for the whole board, under the last section, in grid and row layouts alike (H12 / SV13-02;
-        boards.css hides each grid's own copy). EVENTS' ImageCredits takes it over in INT-1. */}
-    {coded && <CoverCredit />}
     <nav className="ev-end" aria-label={t('优惠指南', 'Offer guides')}>
       {!mode.simple && freeEvents > 0 && <Link className="ev-end__item" to="/events?cost=free">{t(`本周末 ${freeEvents} 场免费活动`, `${freeEvents} free ${freeEvents === 1 ? 'event' : 'events'} this weekend`)}</Link>}
       <Link className="ev-end__item" to={DEALS_GUIDE}>{t('这一期的优惠怎么领', 'How to claim this month’s offers')}</Link>

@@ -92,7 +92,7 @@ test('the trust line says 官网核对, never 人工核对, and links the one me
   assert.ok(trust.textContent!.startsWith(`✓ ${OFFICIAL_LINKS.zh}`));
 });
 
-test('the credits line is #page-credits with its photo count, last in the home, and names the info card once', () => {
+test('the credits line is #page-credits with its photo count, last in the home', () => {
   const doc = home();
   const credits = doc.querySelector('#page-credits')!;
   assert.equal(credits, doc.querySelector('.home-discovery')!.lastElementChild);
@@ -100,7 +100,6 @@ test('the credits line is #page-credits with its photo count, last in the home, 
   const items = credits.querySelectorAll('details li').length;
   assert.equal(Number(credits.getAttribute('data-count')), items);
   assert.match(credits.querySelector('summary')?.textContent ?? '', new RegExp(`本页图片来源（${items}）`));
-  assert.match(CSS, /\.home-discovery :is\(\.ui-feed,\.home-offers\)>\.ui-cover-credit \{ display:none; \}/, 'the lists\' own notes are hidden on the home');
   // Every credited image is shown on the page.
   const shown = new Set([...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')));
   assert.ok(items <= shown.size);
@@ -122,23 +121,12 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 // (size, crop, place) are unchanged, and the postcard pixels with them.
 const POSTCARD_RULES_SHA = 'f391a71deb13491f';
 
-test('the coded-cover note is printed once, in the credits line, exactly when the page shows a coded cover', () => {
-  const typeCover = { tier: 'type', reason: 'no-image', label: { zh: '信息卡', en: 'Info card' } } as const;
-  const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
-  const credits = (covers: Parameters<typeof HomeImageCredits>[0]['covers']) => new JSDOM(renderToStaticMarkup(<HomeImageCredits covers={covers} />)).window.document;
-  // A coded cover on the page: the line names it once, beside the photo credits.
-  const mixed = credits([photo, typeCover, typeCover]);
-  assert.equal(mixed.querySelectorAll('.ui-cover-credit').length, 1);
-  assert.equal(mixed.querySelector('#page-credits')!.getAttribute('data-count'), '1');
-  // Photos only: no note at all.
-  const photos = credits([photo]);
-  assert.equal(photos.querySelectorAll('.ui-cover-credit').length, 0);
-  assert.equal(photos.querySelector('#page-credits')!.getAttribute('data-count'), '1');
-  // On the home the lists' own notes are hidden (home-discovery.css), so the reader sees the credits line's one.
-  // Since the owner's category photos (③, 2026-10-21) the home may show no coded cover at all: then the line has no note.
+test('no information card and no info-card note on the home: every card is a picture, credited once in the credits line (UI9-IMAGES DECISIONS 21)', () => {
+  const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer', caption: '' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
+  const credits = new JSDOM(renderToStaticMarkup(<HomeImageCredits covers={[photo, photo]} />)).window.document;
+  assert.equal(credits.querySelector('#page-credits')!.getAttribute('data-count'), '1', 'one credit per file');
   const doc = home();
-  const coded = doc.querySelectorAll('.home-discovery [data-cover="type"]').length;
-  assert.equal(doc.querySelectorAll('#page-credits .ui-cover-credit').length, coded ? 1 : 0, `the note is there exactly when the home shows a coded cover (${coded})`);
+  assert.equal(doc.querySelectorAll('.home-discovery [data-cover="type"], .ui-cover-credit').length, 0);
 });
 
 test('长辈常用电话 with no numbers: nothing in standard, 长辈与家属指南 → in 简洁 only', () => {

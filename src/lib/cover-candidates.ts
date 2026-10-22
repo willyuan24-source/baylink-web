@@ -1,7 +1,7 @@
 import venuePhotoFile from '../data/venue-photos.json';
 import categoryPhotoFile from '../data/category-photos.json';
 import aiCoverApprovalFile from '../data/ai-cover-approvals.json';
-import { photoCategoryOf, type PhotoCategoryId } from './photo-category';
+import { photoCategoryOf, placePhotoCategory, type PhotoCategoryId } from './photo-category';
 import type { CoverKind } from './cover';
 
 /**
@@ -90,4 +90,18 @@ export function listingImageKeys(kind: CoverKind, record: CandidateRecord, keep:
   const keys = coverCandidates(kind, record, tables).filter(keep);
   const own = record.imageKey && keep(record.imageKey) ? record.imageKey : undefined;
   return { ...(own ? { imageKey: own } : {}), ...(keys.length > (own ? 1 : 0) ? { imageKeys: keys } : {}) };
+}
+
+/**
+ * A place's ③ pictures on /explore (UI9-IMG-A1b), for a place with no usable picture of its own and no 3D postcard: its
+ * guide's photo category pool, never city-sights (those show real landmarks, so never on a specific place: B1b review).
+ */
+export function attractionStockKeys(guide: { slug: string; title: string; category?: string }, tables: CoverTables = COVER_TABLES): string[] {
+  const sights = new Set(tables.categories['city-sights'] ?? []);
+  const keys = coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category }, tables).filter(key => !sights.has(key));
+  if (keys.length) return keys;
+  // A city guide's own pool is city-sights: the place's kind by its name (library, museum, …), else the outdoors.
+  const pool = tables.categories[placePhotoCategory({ id: guide.slug, title: guide.title }) ?? 'nature-walk'] ?? [];
+  const start = idSpot(guide.slug, pool.length);
+  return pool.map((_, i) => pool[(start + i) % pool.length]);
 }

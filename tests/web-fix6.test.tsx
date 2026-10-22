@@ -22,7 +22,6 @@ const { monthDay: homeMonthDay, weekendRange } = await import('../src/features/h
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { fitSize, textWidth } = await import('../src/lib/share-card-svg');
 const { TrustLine, EventRowCard } = await import('../src/features/events/EventCards');
-const { TypeCover } = await import('../src/components/ui/TypeCover');
 const { NotificationPreferencesCard } = await import('../src/features/profile/NotificationPreferencesCard');
 const original = api.request;
 afterEach(async () => { cleanup(); api.request = original; localStorage.clear(); await setLocale('zh-Hans', false); });
@@ -141,16 +140,13 @@ test('/me 通知: while the preferences load, the lead claims no state (not the 
   }
 });
 
-test('the attraction cards\' fallback cover is keyed by the attraction id, so every language draws the same family and mark', async () => {
+test('an attraction without its own picture or postcard shows a ③ 示意图 of its kind, never city-sights and never an information card', async () => {
   const source = readFileSync(new URL('../src/components/AttractionExplorer.tsx', import.meta.url), 'utf8');
-  assert.match(source, /<TypeCover tone="outdoors" family="guide"[^>]*\sseed=\{item\.id\}/u);
-  const art = (title: string) => {
-    const view = render(<TypeCover tone="outdoors" family="guide" label="" title={title} seed="golden-gate-park" ratio="3:2" ratioLock ariaHidden />);
-    const cover = view.container.querySelector('[data-cover="type"]');
-    const value = cover ? `${cover.getAttribute('data-family')}/${cover.getAttribute('data-mark')}` : undefined;
-    cleanup();
-    return value;
-  };
-  assert.ok(art('金门公园'));
-  assert.equal(art('金门公园'), art('Golden Gate Park'));
+  assert.doesNotMatch(source, /TypeCover/u);
+  assert.match(source, /attractionStockKeys\(guide\)/u);
+  const { attractionStockKeys, COVER_TABLES } = await import('../src/lib/cover-candidates');
+  const sights = new Set(COVER_TABLES.categories['city-sights'] ?? []);
+  const keys = attractionStockKeys({ slug: 'golden-gate-park-guide', title: '金门公园', category: 'city' });
+  assert.ok(keys.length > 0);
+  for (const key of keys) assert.ok(!sights.has(key), key);
 });

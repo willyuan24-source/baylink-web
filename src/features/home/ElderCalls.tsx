@@ -19,7 +19,7 @@ export function ElderCalls({ calls, covers = [] }: { calls: readonly ElderCall[]
   return <section className="home-elder" aria-labelledby="home-elder-title">
     <div className="home-section-head"><h2 id="home-elder-title">{t('长辈常用电话', 'Phone lines for seniors')}</h2></div>
     {calls.map((call, index) => <RowCard key={call.slug} title={pick(call.title)} to={`/guides/${call.slug}`} meta={pick(call.label)}
-      thumb={covers[index] && covers[index].tier !== 'type' ? <Cover cover={covers[index]} ratio="1:1" sizes={COVER_SIZES.thumb} decorative fallback={null} /> : null}
+      thumb={covers[index] && covers[index].tier !== 'type' ? <Cover cover={covers[index]} ratio="1:1" sizes={COVER_SIZES.thumb} decorative /> : null}
       trailing={<Button href={`tel:${call.tel}`} aria-label={t(`拨打 ${pick(call.label)} ${call.number}`, `Call ${call.label.en} ${call.number}`)}>{t('拨打', 'Call')} {call.number}</Button>} />)}
   </section>;
 }

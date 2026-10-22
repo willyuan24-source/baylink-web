@@ -1,9 +1,9 @@
 import { useMemo, useState, type MouseEvent } from 'react';
 import { Check, Heart } from 'lucide-react';
 import { EventCover, OfferCover, OpeningCover, Cover, EventWhen, OfferWhen } from '../../components/ui/Cover';
+import { useRowCredit } from '../../components/ui/CoverImage';
 import { FeedCard, RowCard } from '../../components/ui/Card';
 import { StatusChip } from '../../components/ui/Status';
-import { EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from '../../components/ui/TypeCover';
 import { COVER_SIZES } from '../../components/ui/cover-sizes';
 import { useBayBayCopy } from './copy';
 import { translateText } from '../../i18n/locale';
@@ -58,27 +58,19 @@ function CardMeta({ model, today }: { model: BayBayCardModel; today: string }) {
   return <span className="bb-card__meta">{pick(guideTypeLabel(model.guide.category))}</span>;
 }
 
+/** A card's 3:2 picture (UI9-IMAGES DECISIONS 21: answer-cards.ts resolves every card to one of the four tiers). */
 function CardCover({ model, today }: { model: BayBayCardModel; today: string }) {
-  const { pick } = useBayBayCopy();
   const slot = { cover: model.cover, ratio: '3:2' as const, ratioLock: true, decorative: true, sizes: '264px' };
   if (model.kind === 'event') return <EventCover {...slot} event={model.event} today={today} days={model.day ? [model.day] : []} />;
   if (model.kind === 'offer') return <OfferCover {...slot} offer={model.offer} today={today} />;
   if (model.kind === 'opening') return <OpeningCover {...slot} opening={model.shop} today={today} />;
-  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio="3:2" ratioLock ariaHidden />} />;
+  return <Cover {...slot} kind="guide" />;
 }
 
-/**
- * A row card's 112px thumbnail, as EVENTS' EventRowCard builds it: the photo (its provenance moves to the row's credit
- * line), else the family's mini cover, which prints the one key fact a thumbnail has room for (never a full-size cover
- * cropped into the square).
- */
-function RowThumb({ model, today }: { model: BayBayCardModel; today: string }) {
-  const { pick } = useBayBayCopy();
+/** A row card's thumbnail, as EVENTS' EventRowCard builds it: the picture (a ①② badge moves to the row's credit line). */
+function RowThumb({ model }: { model: BayBayCardModel; today?: string }) {
   const slot = { cover: model.cover, ratio: '1:1' as const, sizes: COVER_SIZES.thumb, decorative: true };
-  if (model.kind === 'event') return <Cover {...slot} kind="event" fallback={<EventTypeCover event={model.event} today={today} days={model.day ? [model.day] : []} size="mini" ariaHidden />} />;
-  if (model.kind === 'offer') return <Cover {...slot} kind="offer" fallback={<OfferTypeCover offer={model.offer} today={today} size="mini" ariaHidden />} />;
-  if (model.kind === 'opening') return <Cover {...slot} kind="opening" fallback={<OpeningTypeCover opening={model.shop} today={today} size="mini" ariaHidden />} />;
-  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} size="mini" ariaHidden />} />;
+  return <Cover {...slot} kind={model.kind === 'event' || model.kind === 'offer' || model.kind === 'opening' ? model.kind : 'guide'} />;
 }
 
 /** The listing a card saves, in the one save model's kinds (D19): events, offers, openings and guides. */
@@ -115,7 +107,8 @@ function CardSave({ model }: { model: BayBayCardModel }) {
  * at most 2. BayBay cards carry no 加入这天计划 (captain decision 16): it stays on the detail bar and the calendar rows.
  */
 export function BayBayCardRailView({ cards, sources = [], today, onNavigate, label }: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
-  const { t, english, locale, pick } = useBayBayCopy();
+  const { t, english, locale } = useBayBayCopy();
+  const rowCredit = useRowCredit();
   const simple = useSimpleDisplay();
   const models = useMemo(() => bayBayCardModels(cards, today), [cards, today]);
   const citations = useMemo(() => bayBayCardCitations(models, sources), [models, sources]);
@@ -146,7 +139,7 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
       const rowMeta = <>{meta}{check && <span className="bb-card__check"><Check aria-hidden="true" strokeWidth={1.75} />{check}</span>}</>;
       return <li key={model.key} className="bb-card" data-kind={model.kind} data-card-key={model.key}>
         {simple ? <RowCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
-          thumb={<RowThumb model={model} today={today} />} when={when} meta={rowMeta} credit={model.cover.tier === 'type' ? undefined : pick(model.cover.label)} />
+          thumb={<RowThumb model={model} today={today} />} when={when} meta={rowMeta} credit={rowCredit(model.cover)} />
           : <FeedCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
             cover={<CardCover model={model} today={today} />} when={when} meta={meta}
             trust={check || undefined} save={model.ended ? undefined : <CardSave model={model} />} />}

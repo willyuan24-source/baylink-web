@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { translateText } from '../../i18n/locale';
-import { EventCover, EventTypeCover, EventWhen, FeedCard, HeroCard, RowCard, Cover, COVER_SIZES } from '../../components/ui';
+import { EventCover, EventWhen, FeedCard, HeroCard, RowCard, COVER_SIZES, useRowCredit } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
 import { eventPlace, eventPriceChip, eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
@@ -107,8 +107,8 @@ export function EventLeadCard({ event, cover, today, days, kicker, reason, save 
     trust={<TrustLine day={event.verifiedAt} press={event.press} />} save={save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined} />;
 }
 
-/** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below; ♡ on the cover. (Kept as
- *  an export; /events leads with EventLeadCard since UI9-EVENTS.) */
+/** 4:5 editor's pick: the picture with the title on the scrim; ♡ on the cover. (Kept as an export; /events leads with
+ *  EventLeadCard since UI9-EVENTS.) */
 export function EventHeroCard({ event, cover, today, date, reason, priority }: { event: IndexEvent; cover: ResolvedCover; today: string; date: string; reason?: { zh: string; en: string }; priority?: boolean }) {
   const { pick, t, locale } = useUiCopy();
   const price = eventPriceChip(facts(event));
@@ -125,17 +125,16 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
 
 /**
  * Row (a 112px 4:3 thumbnail in events.css): line 1, the title, line 2 and ✓ 官网核对 — the calendar, the share strip, the
- * desktop pick rows and every events feed at 大 / 特大 and in 简洁显示. A thumbnail without a photo shows C's time window
- * (EventTypeCover mini). `oneDay` prints line 1 as the time window alone; the share strip keeps the card's own day. The one
+ * desktop pick rows and every events feed at 大 / 特大 and in 简洁显示. The thumbnail is a picture (DECISIONS 21) whose ①②
+ * badge words sit in the row's 13 px line (a ③④ badge stays on it). `oneDay` prints line 1 as the time window alone; the share strip keeps the card's own day. The one
  * trailing control: `action` (the calendar's 加入这天计划, WEB-SAVES), else ♡ when `save`.
  */
 export function EventRowCard({ event, cover, today, day, oneDay, action, save = false }: { event: IndexEvent; cover: ResolvedCover; today: string; day: string; oneDay?: boolean; action?: ReactNode; save?: boolean }) {
-  const { pick } = useUiCopy();
-  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="event"
-    fallback={<EventTypeCover event={facts(event)} today={today} days={[day]} size="mini" ariaHidden />} />;
+  const credit = useRowCredit();
+  const thumb = <EventCover event={facts(event)} cover={cover} today={today} days={[day]} ratio="1:1" sizes={COVER_SIZES.thumb} decorative />;
   return <RowCard title={event.title} to={`/events/${event.id}?date=${day}`} thumb={thumb} className={action ? 'ev-row ev-card--action' : 'ev-row'}
     when={<WhenLine event={event} today={today} days={[day]} oneDay={oneDay ? day : undefined} />} meta={<EventStatusLine event={event} />}
-    trust={<TrustLine day={event.verifiedAt} press={event.press} />} credit={cover.tier === 'type' ? undefined : pick(cover.label)}
+    trust={<TrustLine day={event.verifiedAt} press={event.press} />} credit={credit(cover)}
     trailing={action ?? (save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined)} />;
 }
 

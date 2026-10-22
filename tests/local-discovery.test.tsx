@@ -331,8 +331,9 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
       const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(fixture)} today="2026-09-15" /></StaticRouter>);
       const page = new JSDOM(body);
       assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : item.kind === 'opening' ? openingHeading(discoveryShare(item).title, item.shop.city) : discoveryShare(item).title);
-      assert.equal(page.window.document.querySelector('.detail-hero [data-cover="image"]'), null);
-      assert.ok(page.window.document.querySelector('.detail-hero [data-cover="type"]'), 'a TypeCover stands in');
+      // UI9-IMAGES DECISIONS 21/22: the hero is the record's next candidate (a ③ 示意图 of its kind), never an information card.
+      assert.equal(page.window.document.querySelector('.detail-hero [data-cover="type"]'), null);
+      assert.ok(page.window.document.querySelector('.detail-hero [data-cover="image"] img'), 'a picture stands in');
       assert.ok(officialLink(page.window.document));
       page.window.close();
     }

@@ -51,7 +51,8 @@ test('one saved list: every kind as a row with a cover, and the /me count equals
   assert.ok(section.getByRole('link', { name: guide.title }));
   assert.equal(section.getByRole('link', { name: post.title }).querySelector('[translate="no"]')!.textContent, post.title, 'user text is never translated');
   assert.equal(view.queryByText('Bob only'), null, 'another account’s device list stays apart');
-  for (const row of rows) assert.ok(row.querySelector('[data-cover]'), 'every row carries a cover: a photo or its TypeCover');
+  for (const row of rows) assert.ok(row.querySelector('[data-cover]'), 'every row carries a cover frame');
+  assert.equal([...rows].some(row => row.querySelector('[data-cover="type"]')), false, 'never an information card (UI9-IMAGES DECISIONS 21)');
   assert.ok(section.getByRole('group', { name: '按类型筛选收藏' }));
 });
 

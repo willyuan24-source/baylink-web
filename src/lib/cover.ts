@@ -19,12 +19,12 @@ import type { Copy } from './event-facts';
  *   stock      ③ a licensed stock picture of the item's category (rights basis 'stock'), any age → 示意图
  *   ai         ④ an AI illustration the owner approved (src/data/ai-cover-approvals.json → aiCoverApproved) → AI 示意图
  *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
- *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
+ *   type       no picture at all: the page shows the empty frame in its LQIP colour (<Cover>). UI9-IMAGES DECISIONS 21: no
+ *              listed record may end here — tests/report-cover-coverage.test.ts (report:covers --fail-on-info) keeps it at 0.
  * Never: an unapproved AI illustration or a theme photo; AI on a lead; a ①② file twice on one page, or a ③④ picture
  * twice within ADJACENT_CARDS cards (the item tries its next candidate, else the pool picture shown farthest away); a
- * cropped poster (`fit: 'contain'`).
- * `label` is today's badge (getImageProvenance); cover-labels.ts tierLabelOf(cover) gives the DECISIONS 23 badge A1 prints.
- * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
+ * cropped poster (`fit: 'contain'`). A picture carries `fallback`, its next ③ candidate, for <CoverImage>'s onError.
+ * `label` is getImageProvenance's words (image credits); the pages print cover-labels.ts tierLabelOf(cover) (DECISIONS 23).
  */
 
 export type CoverKind = 'event' | 'offer' | 'opening' | 'place' | 'guide' | 'bulletin';
@@ -78,6 +78,8 @@ export type ImageCover = {
   fit: 'cover' | 'contain';
   focal: readonly [number, number];
   year?: number;
+  /** The item's next ③ stock picture (another file): what the page shows when this file fails to load (DECISIONS 21). */
+  fallback?: Pick<CoverAsset, 'src' | 'srcSet'>;
 };
 export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string };
 export type ResolvedCover = ImageCover | TypeCoverResolution;
@@ -217,7 +219,7 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
     const { cover } = outcome;
     const src = cover.image.src;
     if (cover.tier === 'stock' || cover.tier === 'ai') {
-      if (!page) return cover;
+      if (!page) return withFallback(cover, attempts, ctx.images);
       const shared = page.shared ??= new Map<string, Map<string, number>>();
       const shown = shared.get(src) ?? shared.set(src, new Map()).get(src)!;
       let gap = Infinity;
@@ -232,11 +234,21 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       continue;
     }
     page?.claims.set(src, me);
-    return cover;
+    return withFallback(cover, attempts, ctx.images);
   }
   if (!pool) return typeCover(reason, rejectedKey);
   pool.shown.set(me, at);
-  return pool.cover;
+  return withFallback(pool.cover, attempts, ctx.images);
+}
+
+/** The cover with its onError picture: the item's first ③ stock candidate in another file, if it has one. */
+function withFallback(cover: ImageCover, attempts: readonly { key: string; tier: 'image' | 'scene3d' }[], images: CoverContext['images']): ImageCover {
+  for (const { key, tier } of attempts) {
+    if (tier !== 'image' || key === cover.key) continue;
+    const image = lookup(images, key);
+    if (image && image.coverOk !== false && image.src !== cover.image.src && rightsBasisOf(image) === 'stock') return { ...cover, fallback: { src: image.src, ...(image.srcSet ? { srcSet: image.srcSet } : {}) } };
+  }
+  return cover;
 }
 
 /**

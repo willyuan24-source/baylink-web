@@ -44,14 +44,6 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 :is(html[data-simple],html[data-reading$=large]) .home-discovery .ui-feed-card__title { display:block; overflow:visible; }
 .home-picks .ui-feed-card__title { line-height:var(--lh-tight); }
 .home-pick__reason { display:none; margin-top:var(--sp-1); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
-/* A two-up date page drops its time line (line 1 under it prints the whole window), so the cover keeps its 3:2 box. */
-@container tc (max-width:240px) { .home-discovery .tc-cal__time { display:none; } }
-/* A 112 px row thumbnail (大 / 特大) keeps the key fact only: the title, time and place are beside it. */
-@container tc (max-width:140px) {
-  .home-discovery :is(.tc-eyebrow,.tc-hook,.tc-plate,.tc-ticket__stub) { display:none; }
-  .home-discovery .tc-ticket__value { font-size:var(--fs-body); }
-  .home-discovery .tc-cal__day { font-size:var(--fs-card); }
-}
 .home-picks__all { align-self:flex-start; }
 .home-trust a { color:var(--color-brand); white-space:nowrap; }
 /* Below 768 the picks H2 and the share card's heading and sentence are for screen readers only: the share card is one
@@ -60,7 +52,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
   .home-top>.home-share { padding:0; background:transparent; }
   :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
-  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover,.ui-type-cover) { border-radius:0; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover) { border-radius:0; }
 }
 
 /* The date guard (source-monitor.css) covers each of the picks' blocks, never the section: from 1024 the section is
@@ -79,7 +71,6 @@ html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:no
 
 /* ④ feed; the coded-cover note is printed once, in the credits line. */
 .home-feed__all { margin-top:var(--sp-4); }
-.home-discovery :is(.ui-feed,.home-offers)>.ui-cover-credit { display:none; }
 /* The 3D strip after the first four cards (H36): the postcard and two lines, one tap into the 3D world (a full page load). */
 /* The AI 3D postcards stay as they were before tokens v2 (captain decision 1): their own corners (--r-postcard*) and a
    600 provenance badge, here and on the ⑨ tile below. */
@@ -136,7 +127,6 @@ html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:no
 .home-credits ul { display:flex; flex-direction:column; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
 .home-credits li { display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-2); }
 .home-credits a { color:var(--color-brand); text-decoration:underline; }
-.home-credits .ui-cover-credit { flex-basis:100%; margin:0; }
 /* 简洁显示: the credit and licence links are 48px targets too (they sit in a list, not in a sentence). */
 html[data-simple] .home-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); }
 

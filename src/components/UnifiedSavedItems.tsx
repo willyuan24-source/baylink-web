@@ -8,27 +8,20 @@ import { translateText, useLocale } from '../i18n/locale';
 import { Button } from './ui/Button';
 import { ChipRow, FilterChip } from './ui/Chip';
 import { RowCard } from './ui/Card';
-import { Cover } from './ui/Cover';
+import { Cover } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
-import { EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from './ui/TypeCover';
 import { SaveHeart } from '../features/saves/SaveHeart';
 import { usePostAvailability } from '../features/saves/post-availability';
-import type { CoverTone } from '../lib/event-facts';
 
 const KIND_ORDER: SavedEntry['kind'][] = ['event', 'offer', 'opening', 'place', 'guide', 'post'];
-const KIND_TONES: Record<'place' | 'guide' | 'post', CoverTone> = { place: 'outdoors', guide: 'culture', post: 'family' };
 /** "a · b · c" with each piece kept as its own node (a member's words keep their translate="no" span). */
 const joinMeta = (pieces: ReactNode[]) => pieces.map((piece, index) => <Fragment key={index}>{index > 0 && ' · '}{piece}</Fragment>);
 
-/** The 88px thumbnail: the item's own photo when the honesty ladder allows one, else its TypeCover. */
-function Thumb({ view, cover, today, label, ended }: { view: SavedItemView; cover: ResolvedCover; today: string; label: string; ended?: boolean }) {
-  const fallback = view.event ? <EventTypeCover event={view.event} today={today} size="mini" ariaHidden />
-    : view.offer ? <OfferTypeCover offer={view.offer} today={today} size="mini" ariaHidden />
-      : view.opening ? <OpeningTypeCover opening={view.opening} today={today} size="mini" ariaHidden />
-        : <TypeCover tone={KIND_TONES[view.entry.kind as keyof typeof KIND_TONES] ?? 'family'} label={label} size="mini" ariaHidden />;
-  return <Cover cover={cover} fallback={fallback} sizes={COVER_SIZES.thumb} decorative ended={ended} />;
+/** The 88px thumbnail: the item's picture (saved-items.ts candidates, UI9-IMAGES DECISIONS 21/22). */
+function Thumb({ view, cover, ended }: { view: SavedItemView; cover: ResolvedCover; ended?: boolean }) {
+  return <Cover cover={cover} sizes={COVER_SIZES.thumb} decorative ended={ended} kind={view.entry.kind === 'post' ? undefined : view.entry.kind} />;
 }
 
 /**
@@ -86,7 +79,7 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
       const heart = <SaveHeart kind={view.entry.kind} id={view.entry.id} title={title} post={view.entry.post} />;
       return <li key={view.entry.key} data-kind={view.entry.kind} data-ended={ended ? '' : undefined}>
         {availability === 'gone' ? <div className="my-week__retired" data-testid="saved-post-gone"><p><strong translate={view.userText ? 'no' : undefined}>{title}</strong> · {t('这条信息目前不可访问，可以移除收藏。', 'This listing is no longer available. You can remove it.')}</p>{heart}</div>
-          : view.path ? <RowCard title={title} rawTitle={view.userText} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
+          : view.path ? <RowCard title={title} rawTitle={view.userText} to={view.path} thumb={<Thumb view={view} cover={cover} ended={ended} />} date={date} meta={meta} trailing={heart} />
           : <div className="my-week__retired"><p><strong>{kind}</strong> · {t('这条内容已下架或暂时找不到。', 'This item is no longer listed.')}</p>{heart}</div>}
       </li>;
     })}</ul>}

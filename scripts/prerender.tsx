@@ -114,17 +114,8 @@ const detailChunks = (path: string, locale: SiteLanguage): string[] => {
   const keys = [`src/data/generated/details/bucket-${bucket}.json`, ...(locale === 'en' ? [`src/data/generated/english-scopes/detail-${bucket}.json`] : [])];
   return keys.map(key => manifest[key]?.file).filter((file): file is string => !!file);
 };
-/** UI9-IMG-A0: the info-card families load after the page (src/components/ui/CoverImage.tsx deferredFamily). A page whose HTML draws
- * one preloads its chunk, so the app's first render has it and never shows the empty frame. */
-const FAMILY_MODULES: Readonly<Record<string, string>> = {
-  date: 'src/components/ui/cover-date-face.tsx', ticket: 'src/components/ui/cover-ticket.tsx', shop: 'src/components/ui/cover-shop.tsx',
-  headline: 'src/components/ui/cover-guide.tsx', number: 'src/components/ui/cover-guide.tsx',
-};
-const familyChunks = (body: string): string[] => [...new Set([...body.matchAll(/data-family="([a-z]+)"/g)].map(match => FAMILY_MODULES[match[1]]))]
-  // The family's chunk and the chunks it imports (cover-frame.tsx's TypeFrame among them), so the frame never waits on a second trip.
-  .flatMap(key => { const chunk: ManifestChunk | undefined = key ? manifest[key] : undefined; return chunk ? [chunk.file, ...(chunk.imports ?? []).map(dep => manifest[dep]?.file)] : []; })
-  .filter((file): file is string => !!file);
-const modulePreloads = (path: string, locale: SiteLanguage = 'zh-Hans', body = '') => [...new Set([...routeGraph(path).files, ...detailChunks(path, locale), ...familyChunks(body)])].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
+// UI9-IMG-A1b: every cover is a picture (UI9-IMAGES DECISIONS 21), so no page preloads an information-card family any more.
+const modulePreloads = (path: string, locale: SiteLanguage = 'zh-Hans') => [...new Set([...routeGraph(path).files, ...detailChunks(path, locale)])].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
 /** RC-6: CSS that Vite splits out of the global bundle arrives with the page chunk, after first paint. Link it in the
  * prerendered head after the global stylesheet: the same cascade order as when the chunk appends it in the app. */
 const withRouteStylesheets = (html: string, path: string) => {
@@ -155,7 +146,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}" data-built-for="${builtFor}"`).replace('<!--baylink-meta-end-->', () => (LCP_PRELOAD_PATHS.has(metadata.path) ? lcpImagePreload(body) : '') + modulePreloads(metadata.path, locale, body) + '\n<!--baylink-meta-end-->'), metadata.path);
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}" data-built-for="${builtFor}"`).replace('<!--baylink-meta-end-->', () => (LCP_PRELOAD_PATHS.has(metadata.path) ? lcpImagePreload(body) : '') + modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);
