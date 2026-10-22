@@ -1,9 +1,8 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin, X } from 'lucide-react';
 import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
 import { ModalShell, useClosing } from './ui/Modal';
-import { CloseButton } from './ui/CloseButton';
 import { useUiCopy } from './ui/ui-copy';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
@@ -27,15 +26,18 @@ export function GuideImageCaption({ image, poster = false, showKind = true }: { 
 }
 
 /**
- * The picture, enlarged (N10 / N13 / N24): a surface panel sized to the picture over the site's one scrim (no blur), with
- * its credit and F's close button; in over --dur-3 / --dur-4, out over --dur-3 (useClosing). Styles: guide-visuals.css.
+ * The picture, enlarged (N10 / N13 / N24): a surface panel sized to the picture over the site's one scrim (no blur), with its
+ * credit and F's close button (CloseButton's markup: the article does not load Button.tsx for it). The dialogs' motion: the
+ * scrim fades, the panel grows from 95% over --dur-2, and both leave the same way while useClosing keeps them mounted.
+ * Styles: guide-visuals.css.
  */
 export function GuideImageLightbox({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) {
   const [closing, close] = useClosing(onClose);
-  const { t } = useUiCopy();
-  return <ModalShell label={`图片放大：${image.alt}`} onClose={close} className={`guide-image-overlay${closing ? ' is-closing' : ''}`}>
-    <div className="guide-image-dialog" style={{ '--guide-image-ratio': image.width / image.height } as CSSProperties}>
-      <CloseButton className="guide-image-close" label={t('关闭放大图片', 'Close the picture')} onClick={close} />
+  const label = useUiCopy().t('关闭放大图片', 'Close the picture');
+  const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in' : 'animate-in fade-in ease-out';
+  return <ModalShell label={`图片放大：${image.alt}`} onClose={close} className={`guide-image-overlay duration-150 ${motion}`}>
+    <div className={`guide-image-dialog duration-150 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`} style={{ '--guide-image-ratio': image.width / image.height } as CSSProperties}>
+      <button type="button" className="ui-icon-button ui-close guide-image-close" aria-label={label} title={label} onClick={close}><X aria-hidden="true" strokeWidth={1.75} /></button>
       <figure>
         <img src={image.src} alt={image.alt} width={image.width} height={image.height} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} decoding="async" />
         <GuideImageCaption image={image} poster={poster} />

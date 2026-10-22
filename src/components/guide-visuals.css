@@ -30,22 +30,15 @@
 .guide-poster-disclosure summary::-webkit-details-marker { display:none; }
 .guide-poster-disclosure[open] summary { border-bottom:1px solid var(--color-line); }
 .guide-poster-disclosure[open] summary svg { transform:rotate(180deg); }
-/* The picture, enlarged (GuideImageLightbox; N10 / N13 / N24): a surface panel over the site's one scrim, no blur. The panel
-   is as wide as the picture at its largest height (--guide-image-ratio, width / height), so a tall photo is not matted in a
-   wide card; F's close button sits in the picture's corner. In: the scrim fades over --dur-3 and the panel grows from 96%
-   over --dur-4; out: both over --dur-3 while useClosing keeps it mounted. */
-.guide-image-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-5); background:var(--scrim); overflow:auto; animation:guide-image-fade var(--dur-3) var(--ease-out); }
-.guide-image-dialog { --guide-image-max:calc(100dvh - 12.5rem); position:relative; width:min(100%, max(20rem, min(67.5rem, calc(var(--guide-image-max) * var(--guide-image-ratio, 1.5) + 1.5rem)))); max-height:100%; padding:var(--sp-3); overflow:auto; border-radius:var(--r-xl); background:var(--color-surface); box-shadow:var(--e2); animation:guide-image-in var(--dur-4) var(--ease-out); }
+/* The picture, enlarged (GuideImageLightbox; N10 / N13 / N24): a surface panel over the site's one scrim, no blur, as wide as
+   the picture at its largest height (--guide-image-ratio, width / height), so a tall photo is not matted in a wide card;
+   F's close button in the picture's corner. Its motion is the dialogs' (GuideVisuals.tsx: animate-in / animate-out). */
+.guide-image-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-5); background:var(--scrim); overflow:auto; }
+.guide-image-dialog { --guide-image-max:calc(100dvh - 12.5rem); position:relative; width:min(100%, max(20rem, min(67.5rem, calc(var(--guide-image-max) * var(--guide-image-ratio, 1.5) + 1.5rem)))); max-height:100%; padding:var(--sp-3); overflow:auto; border-radius:var(--r-xl); background:var(--color-surface); box-shadow:var(--e2); }
 .guide-image-close { position:absolute; top:var(--sp-5); right:var(--sp-5); z-index:1; }
 .guide-image-dialog figure { margin:0; }
 .guide-image-dialog figure > img { display:block; width:auto; max-width:100%; height:auto; max-height:var(--guide-image-max); margin-inline:auto; border-radius:var(--r-lg); }
 .guide-image-dialog .guide-image-caption { padding:var(--sp-3) var(--sp-1) var(--sp-1); }
-.guide-image-overlay.is-closing { animation:guide-image-fade-out var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
-.guide-image-overlay.is-closing .guide-image-dialog { animation:guide-image-out var(--dur-3) var(--ease-in) forwards; }
-@keyframes guide-image-fade { from { opacity:0; } }
-@keyframes guide-image-fade-out { to { opacity:0; } }
-@keyframes guide-image-in { from { opacity:0; scale:.96; } }
-@keyframes guide-image-out { to { opacity:0; scale:.96; } }
 .guide-route { padding:24px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); overflow:hidden; }
 .guide-route-eyebrow { display:flex; align-items:center; gap:7px; margin-bottom:10px; color:var(--color-brand); font-size:var(--text-caption); font-weight:400; }
 .guide-route-heading h3 { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:var(--lh-snug); font-weight:600; letter-spacing:0; }

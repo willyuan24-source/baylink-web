@@ -61,7 +61,7 @@ test('useClosing waits EXIT_MS (≥120 ms) before onClose; at once under reduced
   }
 });
 
-test('the guide lightbox leaves over --dur-3 (is-closing) and closes with F\'s close button', async () => {
+test('the guide lightbox leaves (animate-out) and closes with F\'s close button look', async () => {
   let closed = 0;
   const view = render(<GuideImageLightbox image={photo} onClose={() => { closed += 1; }} />);
   const dialog = view.getByRole('dialog', { name: `图片放大：${photo.alt}` });
@@ -69,7 +69,7 @@ test('the guide lightbox leaves over --dur-3 (is-closing) and closes with F\'s c
   assert.ok(close.classList.contains('ui-icon-button') && close.classList.contains('ui-close'), 'N13: the one close button');
   assert.equal(close.textContent, '', 'no 关闭 pill text');
   fireEvent.click(close);
-  assert.ok(dialog.classList.contains('is-closing'), 'the exit plays');
+  assert.ok(dialog.classList.contains('animate-out'), 'the exit plays');
   assert.equal(closed, 0);
   await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
 });
@@ -115,7 +115,7 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
     assert.doesNotMatch(css, /color-scrim-rgb\) \/ \.9|rgb\(22 46 41|rgb\(13 32 27/, `${file}: no off-token scrim`);
     for (const [, value] of css.matchAll(/(?:transition|animation)\s*:\s*([^;}]+)/g)) assert.doesNotMatch(value.replace(/var\([^)]*\)/g, ''), /\d(?:ms|s)\b/, `${file}: ${value}`);
   }
-  for (const file of ['src/components/ui/confirm.tsx', 'src/components/OfficialVerificationModal.tsx', 'src/app/OverlayHost.tsx']) {
+  for (const file of ['src/components/ui/ConfirmDialog.tsx', 'src/components/OfficialVerificationModal.tsx', 'src/app/OverlayHost.tsx']) {
     const source = read(file);
     const layers = [...source.matchAll(/fixed inset-0[^"'`]*/g)].map(match => match[0]);
     assert.ok(layers.length, `${file}: has a full-screen layer`);
@@ -125,7 +125,9 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
     }
     assert.doesNotMatch(source, /rounded-\[(?:24|28)px\]/, `${file}: corners on --r-*`);
   }
-  for (const file of ['src/components/GuideVisuals.tsx', 'src/features/feedback/FeedbackSheet.tsx', 'src/components/EventScreenshotImport.tsx', 'src/components/OfficialVerificationModal.tsx']) {
+  for (const file of ['src/features/feedback/FeedbackSheet.tsx', 'src/components/EventScreenshotImport.tsx', 'src/components/OfficialVerificationModal.tsx']) {
     assert.match(read(file), /<CloseButton /, `${file}: F's close button`);
   }
+  // The toast (shell) and the guide lightbox (article) write CloseButton's markup out instead of loading Button.tsx.
+  for (const file of ['src/components/Toast.tsx', 'src/components/GuideVisuals.tsx']) assert.match(read(file), /className="ui-icon-button ui-close[ "]/, file);
 });

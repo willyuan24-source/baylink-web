@@ -1,8 +1,11 @@
 // 品牌化确认框，替代原生 confirm()/prompt()。
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
-import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { ModalShell, useClosing } from './Modal';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { lazyChunk } from '../../lib/chunk-recovery';
+import { ChunkBoundary } from '../ChunkBoundary';
+
+// The card loads with the first confirm (ConfirmDialog.tsx); the shell keeps only the queue.
+const ConfirmDialog = lazyChunk(() => import('./ConfirmDialog'), m => m.ConfirmDialog);
 
 export type ConfirmOptions = {
   title?: string;
@@ -40,69 +43,6 @@ export const promptDialog = (opts: ConfirmOptions): Promise<string | null> =>
     });
   });
 
-// N10 / N11 / N24: the site's one scrim (no blur), the --r-xl card (rounded-3xl), and an exit: the answer goes back at once,
-// the card fades and shrinks to 95% over --dur-3 before it unmounts (useClosing; at once under reduced motion and in 简洁显示).
-const ConfirmDialog = ({ opts, onResolve, onGone }: { opts: ConfirmOptions; onResolve: Resolver; onGone: () => void }) => {
-  const [inputValue, setInputValue] = useState(opts.input?.defaultValue || '');
-  const [closing, leave] = useClosing(onGone);
-  const hasInput = !!opts.input;
-  const answer = (value: boolean | string | null) => { if (closing) return; onResolve(value); leave(); };
-  const confirm = () => answer(hasInput ? inputValue : true);
-  const cancel = () => answer(hasInput ? null : false);
-  const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in pointer-events-none' : 'animate-in fade-in ease-out';
-  return (
-    <ModalShell
-      onClose={cancel}
-      label={opts.title || '确认操作'}
-      className={`fixed inset-0 z-[130] flex items-center justify-center bg-[color:var(--scrim)] p-6 duration-200 ${motion}`}
-    >
-      <div className={`w-full max-w-xs rounded-3xl border border-black/[0.04] bg-white p-5 shadow-elevated duration-200 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`}>
-        <div className="flex items-start gap-3">
-          {opts.danger && (
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-              <AlertTriangle size={18} />
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            {opts.title && <h3 className="text-base font-bold text-baylink-text">{opts.title}</h3>}
-            <p className={`whitespace-pre-line text-sm leading-relaxed text-baylink-text-secondary ${opts.title ? 'mt-1.5' : ''}`}>
-              {opts.message}
-            </p>
-          </div>
-        </div>
-        {hasInput && (
-          <input
-            autoFocus
-            className="mt-3 w-full rounded-xl border border-baylink-border/60 bg-white p-3 text-sm outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
-            placeholder={opts.input?.placeholder}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && confirm()}
-          />
-        )}
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={cancel}
-            className="flex-1 rounded-xl border border-baylink-border/60 bg-white py-2.5 text-sm font-semibold text-baylink-text-secondary transition hover:bg-baylink-section/50 active:scale-[0.98]"
-          >
-            {opts.cancelText || '取消'}
-          </button>
-          <button
-            type="button"
-            onClick={confirm}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-rest transition active:scale-[0.98] ${
-              opts.danger ? 'bg-red-500 hover:bg-red-600' : 'bg-baylink-green hover:bg-baylink-green-hover'
-            }`}
-          >
-            {opts.confirmText || '确认'}
-          </button>
-        </div>
-      </div>
-    </ModalShell>
-  );
-};
-
 export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const [queue, setQueue] = useState<PendingConfirm[]>([]);
   const firstKeyRef = useRef(true);
@@ -125,6 +65,12 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const current = queue[0];
   if (!current) return null;
 
+  const drop = () => setQueue((q) => q.filter((p) => p !== current));
   // The answer resolves at once; the dialog leaves the queue when its exit has played, and the next one opens after it.
-  return <ConfirmDialog key={current.id} opts={current.opts} onResolve={current.resolve} onGone={() => setQueue((q) => q.filter((p) => p !== current))} />;
+  // If the card cannot load (offline, a stale deploy), the browser's own confirm / prompt answers instead.
+  return <ChunkBoundary key={current.id} onFail={() => {
+    const { message, input } = current.opts;
+    current.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
+    drop();
+  }}><Suspense fallback={null}><ConfirmDialog opts={current.opts} onResolve={current.resolve} onGone={drop} /></Suspense></ChunkBoundary>;
 };

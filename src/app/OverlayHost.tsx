@@ -174,7 +174,7 @@ export function OverlayHost(props: OverlayHostProps) {
     />)}
 
     {post.id && post.loading && post.selected?.id !== post.id && (
-      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--scrim)] p-6"><div className="flex flex-col items-center gap-4 rounded-3xl bg-white px-8 py-6 shadow-lg"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></div></ModalShell>
+      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--scrim)] p-6"><div className="flex flex-col items-center gap-4 rounded-3xl bg-white p-6 shadow-lg"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></div></ModalShell>
     )}
     {post.id && post.missing && lazyDialog(postClose, <PostNotFoundView onBack={postClose} />)}
     {post.id && post.error && !post.loading && <ModalShell onClose={postClose} label={t('暂时无法加载信息', 'This could not load')} className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{post.error}</p><button type="button" className="btn-primary px-6 py-3" onClick={post.retry}>{t('重试加载', 'Try again')}</button><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></ModalShell>}
