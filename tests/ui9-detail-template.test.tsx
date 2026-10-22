@@ -216,7 +216,8 @@ test('#page-credits lists every photo on the page, last in the source section; a
     assert.equal(credits.querySelectorAll('li').length, photos, key);
     assert.equal(credits.parentElement!.lastElementChild, credits, `${key}: last in 来源与核对`);
     assert.ok(credits.closest('section.detail-source'), key);
-    assert.equal(credits.hasAttribute('data-credits-at-end'), false, 'NAV’s footer link still shows on a detail');
+    // UI9 live check 10-20: the footer adds no second 「↑ 本页图片来源」 on a detail; the list is in 来源与核对.
+    assert.equal(credits.hasAttribute('data-credits-at-end'), true, 'no footer link on a detail');
   }
 });
 

@@ -6,7 +6,7 @@ import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { eventOccursOn, addCalendarDays } from '../src/lib/event-calendar';
 import { HOME_GENERATED_AT, HOME_WEEKENDS } from '../src/lib/home-catalog';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
-import { getBuildWeekend } from '../src/lib/home-weekend-build';
+import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 
 type CardPick = { id: string; date: string; verifiedAt: string; editorial?: { rank: number; reason: { zh: string; en: string } } };
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[] }>;
@@ -21,7 +21,16 @@ const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_E
   // The share card matches the home page on its day. Snapshots end at the
   // edition's throughDate; after that there is nothing to compare against.
   if (region === 'all' && snapshots[card.day]) assert.deepEqual(picks.map(pick => pick.id), snapshots[card.day].ids, `${name}: same picks as the home page on ${card.day}`);
-  assert.ok(picks.every((pick, index) => !pick.editorial || picks.slice(0, index).every(before => before.editorial)), `${name}: editor picks come first`);
+  // Editor picks come first, except a lead from the ranking (UI9-IMAGES DECISIONS 26): when no editor pick has a ① or ②
+  // picture, the weekend's first that has one leads (home-weekend-build.ts), and then it must have one and they must not.
+  const ledByRanking = !!picks[0] && !picks[0].editorial && picks.some(pick => pick.editorial);
+  if (ledByRanking) {
+    const byId = new Map(catalog.map(event => [event.id, event]));
+    assert.ok(buildCanLead(byId.get(picks[0].id)!, card.day), `${name}: ${picks[0].id} leads with a ① or ② picture`);
+    assert.ok(picks.filter(pick => pick.editorial).every(pick => !buildCanLead(byId.get(pick.id)!, card.day)), `${name}: no editor pick could lead`);
+  }
+  const rest = ledByRanking ? picks.slice(1) : picks;
+  assert.ok(rest.every((pick, index) => !pick.editorial || rest.slice(0, index).every(before => before.editorial)), `${name}: editor picks come first`);
   for (const pick of picks) {
     if (pick.editorial) assert.ok(pick.editorial.reason.zh.trim() && pick.editorial.reason.en.trim(), `${name}: ${pick.id} has a reason`);
     // The card prints 核对 dates; content review marks an entry due after 7 days.

@@ -1,4 +1,71 @@
 {
-  "_format": "UI9-IMAGES DECISIONS 22 ②: venue photos approved once per venue, for every event, offer and new shop held there (filled by the B lanes after the owner approves in chat). One entry per venue: { \"id\": short kebab id, \"name\": the venue's name, \"match\": [case-insensitive substrings of an event's venue, an offer's brand / title or a new shop's name that mean this venue], \"records\": optional [\"event:<id>\" | \"offer:<id>\" | \"opening:<id>\"] the match misses, \"exclude\": optional records the match wrongly hits, \"imageKeys\": [GUIDE_IMAGES keys with subject 'venue'], \"approvedAt\": \"YYYY-MM-DD\", \"ownerQuote\": the owner's words }. src/lib/cover-candidates.ts reads it at build time; the 8-year rule still applies to each photo.",
-  "venues": []
+  "_format": "UI9-IMAGES DECISIONS 22 ②: venue photos approved once per venue, for every event, offer and new shop held there. One entry per venue: { \"id\": short kebab id, \"name\": the venue's name, \"match\": [case-insensitive substrings of an event's venue, an offer's brand / title or a new shop's name that mean this venue], \"records\": optional [\"event:<id>\" | \"offer:<id>\" | \"opening:<id>\"] the match misses, \"exclude\": optional records the match wrongly hits (or that stay as they are), \"imageKeys\": [GUIDE_IMAGES photo keys of this venue; guide-media.ts marks them subject 'venue'], \"approvedAt\": \"YYYY-MM-DD\", and the approval: \"ownerQuote\" (the owner's own words in chat) for a new approval, or \"approvalRecord\" (the repo file that records an earlier approval of the same photo as this venue's photo; UI9-IMG-A1a used only such photos, no new image). src/lib/cover-candidates.ts reads it at build time; the 8-year rule still applies to each photo (cover.ts).",
+  "venues": [
+    {
+      "id": "chase-center",
+      "name": "Chase Center / Thrive City (1 Warriors Way)",
+      "match": [
+        "Chase Center",
+        "1 Warriors Way"
+      ],
+      "exclude": [
+        "event:sf-thrive-thrill-o-ween-2026"
+      ],
+      "imageKeys": [
+        "roundup-chase-center"
+      ],
+      "approvedAt": "2026-10-02",
+      "approvalRecord": "src/data/event-image-usage.ts (roundup-chase-center, purpose venue); src/data/city-roundup-media.json (reviewed 2026-10-02)"
+    },
+    {
+      "id": "big-break",
+      "name": "Big Break Visitor Center at the Delta",
+      "match": [
+        "Big Break"
+      ],
+      "imageKeys": [
+        "octnov-big-break-context"
+      ],
+      "approvedAt": "2026-10-07",
+      "approvalRecord": "docs/octnov-2026-event-media-sources.md (octnov-big-break-context); src/data/octnov-2026-event-photo-aliases.ts (purpose venue)"
+    },
+    {
+      "id": "muir-woods",
+      "name": "Muir Woods National Monument",
+      "match": [
+        "Muir Woods"
+      ],
+      "imageKeys": [
+        "region-muir-boardwalk"
+      ],
+      "approvedAt": "2026-09-09",
+      "approvalRecord": "docs/attractions-regions-photo-sources-2026-09.md (region-muir-boardwalk)"
+    },
+    {
+      "id": "presidio-tunnel-tops",
+      "name": "Presidio Tunnel Tops and Visitor Center",
+      "match": [
+        "Tunnel Tops",
+        "Presidio Visitor Center",
+        "Presidio Field Station"
+      ],
+      "imageKeys": [
+        "octnov-presidio-context"
+      ],
+      "approvedAt": "2026-10-07",
+      "approvalRecord": "docs/octnov-2026-event-media-sources.md (octnov-presidio-context: the presidio photo); src/data/octnov-2026-event-photo-aliases.ts (purpose venue)"
+    },
+    {
+      "id": "computer-history-museum",
+      "name": "Computer History Museum, Mountain View",
+      "match": [
+        "Computer History Museum"
+      ],
+      "imageKeys": [
+        "expanded-south-bay-computer-history"
+      ],
+      "approvedAt": "2026-10-05",
+      "approvalRecord": "src/data/verified-place-media-updates.ts (offer chm-museums-on-us-oct3-4: expanded-south-bay-computer-history)"
+    }
+  ]
 }

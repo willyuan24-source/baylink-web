@@ -87,10 +87,15 @@ test('event photos must be dated within 8 years and not vetoed; offers and openi
   assert.equal(reason({ kind: 'offer', id: 'o1', imageKey: 'official' }), 'official');
   assert.equal(reason({ kind: 'opening', id: 's1', imageKey: 'recent' }), 'not-allowed-for-kind');
   assert.equal(reason({ kind: 'opening', id: 's1', imageKey: 'own' }), 'photo');
-  // THIRD_PARTY_PHOTOS: a subject-'venue' photo is 'dated' for every kind, offers and new shops included.
-  for (const kind of ['event', 'offer', 'opening', 'guide', 'bulletin'] as const) {
+  // THIRD_PARTY_PHOTOS: a subject-'venue' photo is 'dated' for every kind that refuses or dates third-party photos, offers
+  // and new shops included; a place or guide ('any') shows it as an ordinary photo, which does not age out (UI9-IMG-A1a).
+  for (const kind of ['event', 'offer', 'opening', 'bulletin'] as const) {
     assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubject' }), 'venue', kind);
     assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubjectOld' }), 'too-old', kind);
+  }
+  for (const kind of ['guide', 'place'] as const) {
+    assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubject' }), 'photo', kind);
+    assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubjectOld' }), 'photo', kind);
   }
 });
 
@@ -155,7 +160,8 @@ test('the live catalog: no AI or theme photo on any event, offer or opening; Fle
   assert.equal(cover.label.zh, '资料图 · 2024');
   for (const offer of currentFreebies) {
     const resolved = getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today });
-    if (resolved.tier !== 'type') assert.equal(resolved.tier, 'official', offer.id);
+    // The brand's own image, or its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a).
+    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue', `${offer.id}: ${resolved.tier}`);
   }
   for (const opening of currentOpenings) {
     const resolved = getCover({ kind: 'opening', id: opening.id, imageKey: opening.imageKey }, { images: GUIDE_IMAGES, today });

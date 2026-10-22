@@ -123,7 +123,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       setShowBlockedUsersModal(false);
       setSharingPost(null);
     },
-    onExpired: () => { setShowLogin(true); showToast('登录已过期，请重新登录。', 'error'); },
+    // On the home page an expired sign-in just signs out, quietly (UI9-LIVE-CHECK 10-20: the 登入已過期 toast and the sign-in
+    // sheet greeted readers who had not asked to sign in); elsewhere the reader is told and offered the sheet.
+    onExpired: () => { if (location.pathname !== '/') { setShowLogin(true); showToast('登录已过期，请重新登录。', 'error'); } },
     onBlocksLoaded: (ids) => feedRef.current?.hideBlockedAuthors(ids),
   });
   const { user, setUser, blockedUserIds, setBlockedUserIds, messagesBadgeCount } = session;

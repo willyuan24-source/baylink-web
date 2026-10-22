@@ -12,6 +12,8 @@ import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide
 import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
+import { listingImageKeys } from '../src/lib/cover-candidates';
+import { captionSignal } from './events-index-images';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
@@ -76,7 +78,9 @@ const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning])
   const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
   if ((weekday >= 4 || weekday === 0) && !WEEKEND_PICKS[saturday]?.length) console.warn(`Warning: no editor picks for the weekend of ${saturday} in src/data/weekend-picks.ts; /events and the home show the automatic ranking as 本周末先看.`);
 }
-const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation');
+// With their cover candidates (venue photos), so the rail's photo steps see what the page will show.
+const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation').map(offer => ({ ...offer, ...listingImageKeys('offer', offer) }));
+
 
 const weekendDays = new Set<string>();
 for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
@@ -89,6 +93,14 @@ for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   selectHomeOffers(liveOffers, day, 6, offerHasPhoto(GUIDE_IMAGES, day), offerLeadsRail(GUIDE_IMAGES, day)).forEach(offer => offerIds.add(offer.id));
 }
 
+// The pictures a card may show (its own, then its candidates: venue photos from UI9-IMG-A1a), each written and shipped only
+// when the cover ladder accepts it for that item: a key no card can show (an AI illustration, a theme photo, an old photo)
+// stays out of the catalog with its image.
+const cardImages = (kind: 'event' | 'offer', record: Parameters<typeof listingImageKeys>[1]) => {
+  const fields = listingImageKeys(kind, record, key => getCover({ kind, id: record.id, imageKey: key }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type');
+  for (const key of [fields.imageKey, ...fields.imageKeys ?? []]) if (key) imageKeys.add(key);
+  return fields;
+};
 const present = <T extends object>(source: T, keys: readonly string[]) => Object.fromEntries(keys.flatMap(key => {
   const value = (source as Record<string, unknown>)[key];
   return value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length) ? [] : [[key, value]];
@@ -109,20 +121,18 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   const schedule = facts?.schedule && weekendSchedule(facts.schedule);
   const plan = facts ? present({ admissionUsd: facts.admissionUsd, schedule }, ['admissionUsd', 'schedule']) : {};
   const sessions = event.sessions?.filter(session => weekendDays.has(session.date));
-  const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, imageKey, audience } = event;
-  if (getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(imageKey);
+  const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, audience } = event;
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
-    verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
+    verifiedAt, ...cardImages('event', event), audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
     // DECISIONS 17: a press-sourced card says 媒体报道 · M/D 核对 (the one prefix rule); only such an event carries the flag.
     ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(Object.keys(plan).length ? { planning: plan } : {}),
   };
 });
 const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).map(offer => {
-  if (getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(offer.imageKey);
   return {
-    id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
+    id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, ...cardImages('offer', offer),
     ...present(offer, ['region', 'startDate', 'endDate', 'verifiedAt', 'valueText', 'publicBenefit']),
     ...(isPressSource(offer.sourceLabel) ? { press: true } : {}),
   } as HomeOffer;
@@ -131,7 +141,10 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
 // photo would be an information card anyway), with the fields getCover, the badge and the credits read; the rights
 // prose becomes its basis, which is all the ladder and the badge use from it.
 const IMAGE_FIELDS = ['src', 'srcSet', 'width', 'height', 'alt', 'kind', 'fullFrame', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'lqip', 'shotAt', 'photoDate', 'ownShot', 'coverOk', 'focal', 'scene3d', 'subject', 'aiCoverApproved'];
-const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), rights: { basis: rightsBasisOf(image as CoverAsset) } });
+// The caption as its signal (the capture year, an edition, 资料, 产品图; scripts/events-index-images.ts captionSignal): no home
+// card or /plan pick prints a caption, the badge and the year read only that, and the sentence (with its English in the
+// home's dictionary scope) was most of an image's bytes (UI9-IMG-A1a: the venue photos it adds cost the home nothing).
+const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), caption: captionSignal(image.caption), rights: { basis: rightsBasisOf(image as CoverAsset) } });
 const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
   ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);
 const scene3d = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-golden-gate-fog']);

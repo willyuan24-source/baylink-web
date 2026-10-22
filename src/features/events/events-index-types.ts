@@ -42,7 +42,7 @@ export type IndexPlanning = Pick<PlanningFacts, 'setting' | 'admissionUsd' | 'mi
  * applied.
  */
 export type IndexEvent = Pick<MonthlyEvent, 'id' | 'title' | 'aliases' | 'kind' | 'startDate' | 'endDate' | 'occurrenceDates' | 'region' | 'city' | 'venue'
-  | 'category' | 'cost' | 'audience' | 'verifiedAt' | 'imageKey'> & Partial<Pick<MonthlyEvent, 'costLabel'>> & EditorialOverlay & {
+  | 'category' | 'cost' | 'audience' | 'verifiedAt'> & Partial<Pick<MonthlyEvent, 'costLabel' | 'imageKey'>> & EditorialOverlay & {
   planning?: IndexPlanning;
   location?: Pick<GeoPoint, 'lat' | 'lng' | 'precision' | 'sourceUrl'>;
   /** The calendar's schedule note for this event. */
@@ -52,12 +52,14 @@ export type IndexEvent = Pick<MonthlyEvent, 'id' | 'title' | 'aliases' | 'kind' 
    * the card says 「媒体报道 · M/D 核对」, never 官网核对 (UI-9 DECISIONS 17; UI9-EVENTS). Absent on official sources.
    */
   press?: true;
+  /** The cover candidates in the owner's order when they add to `imageKey` (cover-candidates.ts listingImageKeys). */
+  imageKeys?: readonly string[];
 };
 
 /** `status` comes from the editorial overlay and is only ever `sold_out` (已售罄, for the 免费与优惠 board's status chip;
  * UI9-PREP); an offer that is on sale has none. */
-export type IndexOffer = Pick<FreebieOffer, 'id' | 'brand' | 'title' | 'region' | 'startDate' | 'endDate' | 'weekdays' | 'availability' | 'kind' | 'imageKey' | 'sourceLabel' | 'verifiedAt'> & { status?: 'sold_out' };
-export type IndexOpening = Pick<SeptemberOpening, 'id' | 'name' | 'city' | 'region' | 'category' | 'status' | 'openingType' | 'openedOn' | 'imageKey' | 'sourceLabel' | 'verifiedAt'>;
+export type IndexOffer = Pick<FreebieOffer, 'id' | 'brand' | 'title' | 'region' | 'startDate' | 'endDate' | 'weekdays' | 'availability' | 'kind' | 'sourceLabel' | 'verifiedAt'> & Partial<Pick<FreebieOffer, 'imageKey'>> & { status?: 'sold_out'; imageKeys?: readonly string[] };
+export type IndexOpening = Pick<SeptemberOpening, 'id' | 'name' | 'city' | 'region' | 'category' | 'status' | 'openingType' | 'openedOn' | 'sourceLabel' | 'verifiedAt'> & Partial<Pick<SeptemberOpening, 'imageKey'>> & { imageKeys?: readonly string[] };
 export type IndexBulletin = Pick<RegionalBulletin, 'id' | 'region' | 'label' | 'title' | 'dateLabel' | 'sourceLabel' | 'sourceUrl' | 'verifiedAt' | 'expiresAt'>;
 export type IndexImage = GuideImage;
 

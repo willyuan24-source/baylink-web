@@ -11,13 +11,14 @@ export function HeroCaption({ cover }: { cover: ResolvedCover }) {
 }
 
 /**
- * 本页图片来源 (NAV's footer links here, #page-credits): one collapsed list of every photo on the page (the hero, the venue
- * photo and the rail covers), each with its label, credit and licence; `data-count` is how many. Nothing without a photo.
+ * 本页图片来源 (#page-credits): one collapsed list of every photo on the page (the hero, the venue photo and the rail covers),
+ * each with its label, credit and licence; `data-count` is how many. Nothing without a photo. It sits in 来源与核对, where a
+ * reader looks for sources, so the footer adds no second 「↑ 本页图片来源 (n)」 (data-credits-at-end; UI9 live check 10-20).
  */
 export function PageCredits({ photos }: { photos: { title: string; cover: ImageCover }[] }) {
   const { t, pick, locale } = useUiCopy();
   if (!photos.length) return null;
-  return <details id="page-credits" className="detail-page-credits" data-count={photos.length}>
+  return <details id="page-credits" className="detail-page-credits" data-count={photos.length} data-credits-at-end="">
     <summary>{t(`本页图片来源（${photos.length}）`, `Photo credits on this page (${photos.length})`)}</summary>
     <ul>{photos.map(({ title, cover }) => <li key={`${title}:${cover.image.src}`}>
       {title} · {pick(cover.label)}{cover.image.credit && <> · {webLink(cover.image.creditUrl) ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(cover.image.credit, locale)}</a> : translateText(cover.image.credit, locale)}</>}
