@@ -32,4 +32,6 @@
 .nf-feedback{display:flex}
 .nf-page :is(a,button):focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 @media(max-width:639px){.nf-links ul{grid-template-columns:1fr;gap:var(--sp-2)}.nf-links a{min-height:3.5rem}}
-@media(min-width:1024px){.nf-page{padding-top:var(--sp-6)}.nf-hero h1{font-size:var(--fs-title)}}
+/* Desktop: the four places are the page's main content, so their cards get room (88 tall, 2 x 2 in columns 1-8); that also
+   fills a 1440 x 900 window down to 64 above the footer instead of leaving the chrome's blank there (N15). */
+@media(min-width:1024px){.nf-page{padding-top:var(--sp-6)}.nf-hero h1{font-size:var(--fs-title)}.nf-links a{min-height:5.5rem}}
