@@ -27,6 +27,7 @@ const PRODUCT = new Set([
 // Not used, as the owner decided: a third-party brand's product photo (The Passdoor) and four rows whose HEAD failed.
 const REJECTED_OPENINGS = ['passdoor-santa-rosa-opening-2026', 'hey-yogurt-san-mateo', 'yutori-palo-alto-restaurant', 'oakland-55-coffee-pop-up-2026'];
 const imageManifest = JSON.parse(readFileSync(new URL('../src/data/generated/image-manifest.json', import.meta.url), 'utf8')) as { images: Record<string, { srcset: string[] }> };
+const boards = JSON.parse(readFileSync(new URL('../src/data/generated/events-boards.json', import.meta.url), 'utf8')) as { openings: { id: string; imageKey?: string }[]; images: Record<string, { src: string }> };
 const eventsIndex = JSON.parse(readFileSync(new URL('../src/data/generated/events-index.json', import.meta.url), 'utf8')) as {
   openings: { id: string; imageKey?: string }[]; images: Record<string, { src: string }>;
 };
@@ -100,9 +101,10 @@ test('each shop resolves to its own image on cards, the events index and the det
     assert.equal(cover.tier, 'official', record.key);
     assert.deepEqual(cover.tier !== 'type' && cover.label, { zh: '官方图', en: 'Official image' }, record.key);
     assert.equal(cover.tier !== 'type' && cover.fit, record.kind === 'poster' ? 'contain' : 'cover', record.key);
-    const indexed = eventsIndex.openings.find(item => item.id === record.openingId);
+    // UI9-IMG-A1b: the 新店 board's records and the pictures only it uses are in events-boards.json.
+    const indexed = boards.openings.find(item => item.id === record.openingId);
     assert.equal(indexed?.imageKey, record.key, `${record.openingId}: the openings list reads the same key`);
-    assert.equal(eventsIndex.images[record.key]?.src, record.src, `${record.key}: in the events index`);
+    assert.equal((eventsIndex.images[record.key] ?? boards.images[record.key])?.src, record.src, `${record.key}: in the events index or the boards file`);
   }
 });
 

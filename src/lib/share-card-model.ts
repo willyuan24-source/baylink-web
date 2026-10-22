@@ -52,7 +52,7 @@ export function cardPhoto(item: LocalDiscovery, image: GuideImage | undefined, t
   return getCover({ kind: 'event', id, imageKey }, { images: { [imageKey]: image }, today }).tier === 'official' ? image : undefined;
 }
 /** A card prints no author or licence, so a CC BY-SA photo never fronts one (UI9-IMAGES §4 分享图). */
-const shareAlike = (image: GuideImage) => /by-sa/i.test(image.licenseUrl ?? '') || /CC BY-SA/i.test(image.credit);
+const shareAlike = (image: GuideImage) => /by-sa/i.test(image.licenseUrl ?? '') || /cc by-sa/i.test(image.credit);
 /**
  * UI9-IMG-A1b (DECISIONS 21/22): every share card fronts a picture. The record's own image when the card may carry it
  * (`own`: cardPhoto / promoPhoto), else the first of its candidates in the owner's order (coverCandidates: its venue's

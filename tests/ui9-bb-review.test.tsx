@@ -25,6 +25,7 @@ const { BayBayAssistantPlanCard } = await import('../src/components/BayBayAssist
 const { stopCitations } = await import('../src/features/baybay/plan-citations');
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const { BayBayCardRailView } = await import('../src/features/baybay/BayBayCards');
+const { tierLabelOf } = await import('../src/lib/cover-labels');
 const { bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { cardCheck, pressSource } = await import('../src/features/baybay/card-check');
 const { bayBayPageKey } = await import('../src/features/baybay/site-path');
@@ -66,8 +67,12 @@ test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance 
     if (model.cover.tier === 'type') {
       assert.equal(credit, null, `${model.key}: a type cover has no photo to credit`);
       assert.ok(row.querySelector('.ui-row-card__thumb [data-size="mini"]'), `${model.key}: the mini family, never the full cover cropped`);
+    } else if (model.cover.tier === 'stock' || model.cover.tier === 'ai') {
+      // A ③ 示意图 / ④ AI 示意图 keeps its chip on the thumbnail in every mode (DECISIONS 23), never twice.
+      assert.equal(credit, null, `${model.key}: no credit line repeats the chip`);
+      assert.match(row.querySelector('.ui-row-card__thumb [data-provenance]')?.textContent ?? '', /示意图/, `${model.key}: the chip on the picture`);
     } else {
-      assert.equal(credit?.textContent, model.cover.label.zh, `${model.key}: the photo's provenance (官方图 …) as the row's credit`);
+      assert.equal(credit?.textContent, tierLabelOf(model.cover).zh, `${model.key}: the photo's provenance (官方图 …) as the row's credit`);
     }
     const check = row.querySelector('.ui-row-card__meta .bb-card__check');
     assert.match(check?.textContent || '', /^官网核对 \d{1,2}\/\d{1,2}$/, `${model.key}: the ✓ line stays (decisions 3, 17)`);
