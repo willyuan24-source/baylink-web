@@ -157,7 +157,9 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
      in columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the
      column edges, so the text and the cards inside it start on the grid. One column is too narrow for a row (beside its
      picture a title ran 12 lines and past the card at 1024 en), so each guide stands as a card there: the 3:2 picture on
-     top, the whole title under it (never clamped), as the topic grids below; the ③④ chip is the cards' one-line chip. */
+     top, the whole title under it (never clamped), as the topic grids below; the ③④ chip is the cards' one-line chip. The
+     pictures keep the thumbnail's `sizes` (Cover's short English label goes with it): its 480 w file covers the ≤ 262 px
+     picture at 1x and within 10 % at 2x. */
   html:not([data-reading=extra-large],[data-simple]) .gl-band { --gl-band-bleed:var(--sp-4); display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); margin-inline:calc(var(--gl-band-bleed) * -1); padding:var(--sp-5) var(--gl-band-bleed); }
   html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-section__head { grid-area:1 / 1 / 2 / 2; margin:0; }
   html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-band__rows { grid-area:1 / 2 / 3 / -1; }

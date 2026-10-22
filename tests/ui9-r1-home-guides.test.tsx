@@ -57,11 +57,11 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   assert.match(LIBRARY_CSS, /\.gl-band \{ --gl-band-bleed:var\(--sp-4\); display:grid; grid-template-columns:repeat\(4, minmax\(0, 1fr\)\);[^}]*margin-inline:calc\(var\(--gl-band-bleed\) \* -1\); padding:var\(--sp-5\) var\(--gl-band-bleed\); \}/);
   assert.match(LIBRARY_CSS, /\.gl-band>\.gl-band__rows \{ grid-area:1 \/ 2 \/ 3 \/ -1; \}/);
   // Review r1: in one column each band guide is a card (the 3:2 picture over the whole title), not a squeezed row, and its
-  // ③④ chip is one line; the band's picture sizes follow (a 286 px column from 1024 px).
+  // ③④ chip is one line. The pictures keep the thumbnail `sizes`, which carries the short English label ('Stock photo').
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{[^}]*white-space:nowrap; \}/);
-  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_PICTURE_SIZES = `\(min-width: 1024px\) 286px, \$\{COVER_SIZES\.thumb\}`;/);
+  assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{COVER_SIZES\.thumb\} \/>/);
   // /my-week starts on the site frame (x=112), as /me.
   assert.match(read('src/pages/MyWeekPage.tsx'), /<PageContainer size="wide" className="my-week">/);
 });
