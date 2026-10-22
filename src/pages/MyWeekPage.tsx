@@ -1,3 +1,4 @@
+import { coverCandidates } from '../lib/cover-candidates';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ChevronDown, Trash2, WifiOff } from 'lucide-react';
@@ -81,7 +82,7 @@ function PlanTimeline({ plans, english, busy, onDelete }: { plans: SavedPlan[]; 
 function WeekEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
-  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', event)), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
+  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', { ...event, imageKeys: coverCandidates('event', event) })), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
   return <ul className="my-week__list">{events.map(({ event, date }, index) => {
     const title = translateText(event.title, locale);
     return <li key={event.id} className="my-week__event">
