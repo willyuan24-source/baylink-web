@@ -11,6 +11,8 @@ import { currentOpenings } from '../src/data/local-discoveries';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 import { SCENE3D_POSTCARDS } from '../src/data/scene3d-postcards';
+import { COVER_TABLES, coverCandidates, type CandidateRecord } from '../src/lib/cover-candidates';
+import type { CoverKind } from '../src/lib/cover';
 import legacyMediaKeys from './data/media-rights-baseline.json';
 
 type CoverageRow = { id: string; image?: GuideImage; textOnly?: boolean };
@@ -31,13 +33,37 @@ export function publishedMediaCatalogs(): Record<string, CoverageRow[]> {
 }
 
 /**
- * Sources a page can show today: catalog covers, guide inline images and the slim home catalog
- * (src/data/generated/home-catalog.json), which adds its own context images. The image ladder makes 800/1200 rungs for
- * these; a registered image no page shows keeps the plain srcset until a page starts using it.
+ * Every picture a listing card may show (UI9-IMAGES DECISIONS 22): the record's candidates ① own → ② venue → ③ its
+ * category's stock pictures → ④ approved AI, as the route catalogs ship them (src/lib/cover-candidates.ts), plus every
+ * pool picture of the photo categories, which planner places, saved posts and the route caps deal out by position.
+ * UI9-IMG-A1b follow-up 5: the home catalog alone left 15 pool pictures that only routes show without 800/1200 rungs.
+ */
+function listingCandidateKeys(): Set<string> {
+  const keys = new Set<string>();
+  const add = (kind: CoverKind, record: CandidateRecord) => coverCandidates(kind, record).forEach(key => keys.add(key));
+  for (const event of MONTHLY_EVENTS) add('event', event);
+  for (const offer of currentFreebies) add('offer', offer);
+  for (const shop of currentOpenings) add('opening', shop);
+  for (const bulletin of currentRegionalBulletins) add('bulletin', bulletin);
+  for (const guide of guides) add('guide', { ...guide, id: guide.slug });
+  for (const pool of Object.values(COVER_TABLES.categories)) pool?.forEach(key => keys.add(key));
+  return keys;
+}
+
+/**
+ * Sources a page can show today: catalog covers, every listing's cover candidates (route catalogs ship them as
+ * `imageKeys`), guide inline images and the slim home catalog (src/data/generated/home-catalog.json), which adds its own
+ * context images. The image ladder makes 800/1200 rungs for these; a registered image no page shows keeps the plain srcset
+ * until a page starts using it.
  */
 export function publishedImageSources(): Set<string> {
   const sources = new Set<string>();
   for (const rows of Object.values(publishedMediaCatalogs())) for (const row of rows) if (row.image) sources.add(row.image.src);
+  for (const key of listingCandidateKeys()) {
+    const image = GUIDE_IMAGES[key];
+    // An AI illustration the owner has not approved is never a cover, and a tile photo never a card's (coverOk false).
+    if (image && image.coverOk !== false && (image.kind !== 'illustration' || COVER_TABLES.ai.some(approval => approval.key === key))) sources.add(image.src);
+  }
   for (const guide of guides) for (const inline of getGuideMedia(guide).inline) if (inline.image) sources.add(inline.image.src);
   const homeCatalog = fileURLToPath(new URL('../src/data/generated/home-catalog.json', import.meta.url));
   if (existsSync(homeCatalog)) {
