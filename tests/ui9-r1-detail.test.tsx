@@ -23,7 +23,7 @@ const { StaticRouter } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
-const { NOTE_CLAMP_UNITS, PAIR_UNITS, PAIR_FOR_UNITS, PAIR_NOTE_UNITS } = await import('../src/features/detail/FactsGrid');
+const { NOTE_CLAMP_UNITS } = await import('../src/features/detail/FactsGrid');
 const { displayUnits } = await import('../src/lib/event-facts');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -62,7 +62,6 @@ const decls = (file: string, selector: string, media?: string) => {
 test('J1 P14: one fact per row, the offer\'s two short values side by side, 适合 at 400 across the card', () => {
   assert.equal(decls(FACTS_CSS, '.local-discovery-detail .detail-facts')['grid-template-columns'], 'minmax(0,1fr)');
   assert.equal(decls(FACTS_CSS, '.local-discovery-detail[data-kind=offer] .detail-facts')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
-  assert.equal(decls(FACTS_CSS, '.local-discovery-detail .detail-fact[data-fact=for] .detail-fact__key')['font-weight'], '400');
   // The elder modes keep one column on a phone, an offer included.
   assert.equal(decls(FACTS_CSS, 'html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts', '(max-width:767px)')['grid-template-columns'], 'minmax(0,1fr)');
   // The event card the cold review read (B Street, en): 何时 · 在哪 · 多少钱 · 适合, the note under 免费 whole (no 展开).
@@ -77,29 +76,27 @@ test('J1 P14: one fact per row, the offer\'s two short values side by side, 适�
   assert.ok(NOTE_CLAMP_UNITS >= 44 && NOTE_CLAMP_UNITS <= 48, 'two lines of the full-width note');
 });
 
-test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) only when the price fits one line of a half card and 适合 two', () => {
-  assert.equal(decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts[data-pair]', '(max-width:767px)')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
-  assert.ok(PAIR_UNITS <= 8 && PAIR_FOR_UNITS <= 16 && PAIR_NOTE_UNITS <= 22, 'a half card is about 139 px at 360');
-  let paired = 0, single = 0;
+test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) when 适合 fits two lines of half the card', () => {
+  assert.equal(decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts:has(>[data-fact=for])', '(max-width:767px)')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
+  assert.equal(decls(FACTS_CSS, '.local-discovery-detail .detail-fact[data-fact^=for] .detail-fact__key')['font-weight'], '400', 'both 适合 cells at 400');
+  let paired = 0, wide = 0;
   for (const item of localDiscoveries.filter(row => row.kind === 'event').slice(0, 60)) {
-    const doc = page(`event:${discoveryShare(item).id}`);
-    const facts = doc.querySelector('.detail-facts')!;
-    const forValue = facts.querySelector('[data-fact="for"] .detail-fact__key')?.textContent ?? '';
-    const cost = facts.querySelector('[data-fact="cost"]');
-    const costKey = cost?.querySelector('.detail-fact__key')?.textContent ?? '';
-    const note = cost?.querySelector('dd>small')?.textContent ?? '';
     const id = discoveryShare(item).id;
-    if (facts.hasAttribute('data-pair')) {
+    const facts = page(`event:${id}`).querySelector('.detail-facts')!;
+    const short = facts.querySelector('[data-fact="for"]'), long = facts.querySelector('[data-fact="for-wide"]');
+    const cost = facts.querySelector('[data-fact="cost"]');
+    const note = cost?.querySelector('dd>small')?.textContent ?? '';
+    assert.ok(!(short && long), id);
+    if (short) {
       paired++;
-      assert.ok(forValue && displayUnits(forValue) <= PAIR_FOR_UNITS && displayUnits(costKey) <= PAIR_UNITS, `${id}: ${costKey} | ${forValue}`);
-      assert.equal(cost?.hasAttribute('data-clamp'), displayUnits(note) > PAIR_NOTE_UNITS, `${id}: the half card clamps from two of its lines`);
+      assert.ok(displayUnits(short.querySelector('.detail-fact__key')!.textContent ?? '') <= 16, `${id}: a short list pairs`);
+      assert.equal(!!cost?.hasAttribute('data-clamp'), displayUnits(note) > 22, `${id}: the half card clamps from two of its lines`);
     } else {
-      single++;
-      assert.ok(!forValue || displayUnits(forValue) > PAIR_FOR_UNITS || displayUnits(costKey) > PAIR_UNITS, id);
+      if (long) { wide++; assert.ok(displayUnits(long.querySelector('.detail-fact__key')!.textContent ?? '') > 16, `${id}: a long list takes its row`); }
       assert.equal(!!cost?.hasAttribute('data-clamp'), displayUnits(note) > NOTE_CLAMP_UNITS, `${id}: the full row clamps from two of its lines`);
     }
   }
-  assert.ok(paired > 0 && single > 0, `both kinds sampled (${paired} paired, ${single} one per row)`);
+  assert.ok(paired > 0 && wide > 0, `both kinds sampled (${paired} paired, ${wide} wide)`);
 });
 
 test('J1 P14: a clamped note fades out at the end of its second line and 展开 has a line of its own, never over the text', () => {
