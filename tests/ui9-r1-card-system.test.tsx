@@ -84,6 +84,8 @@ test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumb
   assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'thumb');
   assert.equal(decls(CARDS, '.ui-row-card__save .ui-save').width, '2.25rem');
   assert.equal(decls('src/features/saves/saves.css', '.saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');
+  // the action bar's 收藏 cell is compact too, but it is not on a picture: no lift there
+  assert.equal(decls('src/features/saves/saves.css', '.detail-actions__cell .saves-control .saves-toggle[data-compact]')['box-shadow'], 'none');
   const card = read('src/components/PlannerCatalogCard.tsx');
   assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is on the thumbnail');
   assert.match(card, /trailing=\{<Button className="planner-add" aria-label=\{addLabel\}/, 'D7: 加入计划 is the row\'s compact trailing button');

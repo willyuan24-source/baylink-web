@@ -24,8 +24,10 @@
 :is(.ui-feed-card__save,.ui-hero-card__save) .saves-control { margin:0; }
 :is(.ui-feed-card__save,.ui-hero-card__save) .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
 /* N13: every compact ♡ (a card's cover, an /events row's or a board's thumbnail) is the one ♡ on a picture — the white circle
-   with e1 of ui.css .ui-save — whatever size its slot gives it. */
+   with e1 of ui.css .ui-save — whatever size its slot gives it. The 收藏 cell of a detail or guide action bar is compact
+   too but sits on the bar, not on a picture: it keeps the bar's quiet look (no lift). */
 .saves-control .saves-toggle[data-compact] { box-shadow:var(--e1); }
+.detail-actions__cell .saves-control .saves-toggle[data-compact] { box-shadow:none; }
 .saves-control__link { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .saves-control__note,.saves-control__error,.saves-day__error { flex-basis:100%; margin:0; font-size:var(--text-fact); line-height:1.571; }
 .saves-control__note { color:var(--color-ink-2); }
