@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Globe2, LoaderCircle, MapPin, CalendarDays, Ticket, LockKeyhole, ArrowUpRight } from 'lucide-react';
 import { api } from '../lib/api';
+import { Button } from './ui/Button';
 import { recordProductEvent } from '../lib/product-events';
 import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, plannerWebMapSearchUrl, plannerWebCheckedDate, type PlannerWebCandidate, type PlannerWebResult, type SavedWebCandidate, webCandidateLibraryApi } from '../lib/planner-web-search';
 
@@ -66,7 +67,7 @@ function PlannerWebWorkspace(props: PlannerWebSearchProps) {
   }
   const key = JSON.stringify([props.query, props.date, props.region, props.city || '', props.locale]);
   return <><PlannerWebSearchRequest key={key} {...props} saved={saved} onSave={save} saveDisabled={!ready || busy} />
-    {saveError && <div className="planner-web-error" role="alert"><p>{saveError}</p>{props.ownerId && <button type="button" disabled={busy} onClick={() => setReload(value => value + 1)}>{text('重新读取候选', 'Reload candidates', '重新讀取候選')}</button>}</div>}
+    {saveError && <div className="planner-web-error" role="alert"><p>{saveError}</p>{props.ownerId && <Button disabled={busy} onClick={() => setReload(value => value + 1)}>{text('重新读取候选', 'Reload candidates', '重新讀取候選')}</Button>}</div>}
     {props.ownerId && !ready && !saveError && <p role="status">{text('正在读取你的私人候选…', 'Loading your private candidates…', '正在讀取你的私人候選…')}</p>}
     {notice && <p className="planner-web-save-notice" role="status">{notice}</p>}
     {saved.length > 0 && <section className="planner-web-saved" translate="no" lang={props.locale} aria-label={text('我的站外候选', 'My web candidates', '我的站外候選')}>
@@ -74,7 +75,7 @@ function PlannerWebWorkspace(props: PlannerWebSearchProps) {
       <p>{props.ownerId ? text('保存在你的账号，仅自己可见。保留来源和待确认事项，随时继续比较。', 'Saved to your account, visible only to you. Keep sources and open questions together.', '保存在你的帳號，僅自己可見。保留來源和待確認事項，隨時繼續比較。') : text('仅保存在这个浏览器，登录后不会自动导入账号。', 'Saved only in this browser; not automatically imported when you sign in.', '僅儲存在這個瀏覽器，登入後不會自動匯入帳號。')}</p>
       <div className="planner-web-candidates">{saved.map(candidate => <WebCandidateCard key={candidate.id} candidate={candidate} locale={props.locale}>
         <p className="planner-web-checked">{text('搜索日期：', 'Searched for: ', '搜尋日期：')}{candidate.requestedDate || text('未指定', 'Not specified', '未指定')} · {text('资料查询：', 'Retrieved: ', '資料查詢：')}{plannerWebCheckedDate(candidate.checkedAt) || text('未知', 'Unknown', '未知')}{candidate.checkedAt && candidate.checkedAt.length !== 10 ? text('（湾区时间）', ' (Bay Area time)', '（灣區時間）') : ''}</p>
-        <button type="button" disabled={!ready || busy} onClick={() => void update(saved.filter(item => item.id !== candidate.id))}>{text('移除候选', 'Remove candidate', '移除候選')}</button>
+        <Button disabled={!ready || busy} onClick={() => void update(saved.filter(item => item.id !== candidate.id))}>{text('移除候选', 'Remove candidate', '移除候選')}</Button>
       </WebCandidateCard>)}</div>
     </section>}</>;
 }
@@ -165,11 +166,11 @@ function PlannerWebSearchRequest({ query, date, region, city, locale, ownerId, o
 
   return <section className="planner-web-search" aria-labelledby={headingId} translate="no" lang={locale}>
     <h3 id={headingId}><Globe2 size={16} aria-hidden="true" />{text('再找找站外资料', 'Search beyond BAYLINK', '再找找站外資料')}</h3>
-    <p className="planner-web-intro">{loginRequired ? text('访客可继续浏览站内资料。注册并登录后，可查询最新站外资料；登录不会自动搜索或改变当前计划。', 'Guests can keep browsing site information. Register and sign in to look up current web sources; signing in does not start a search or change your plan.', '訪客可繼續瀏覽站內資料。註冊並登入後，可查詢最新站外資料；登入不會自動搜尋或改變目前計畫。') : text('点击后搜索当前关键词、日期与地区。网页资料供你进一步核对，不会自动加入计划。', 'Search the web using these keywords, date and area when you click. Results are references to check and are not added to your plan.', '點擊後搜尋目前關鍵詞、日期與地區。網頁資料供你進一步核對，不會自動加入計畫。')}</p>
+    <p className="planner-web-intro">{loginRequired ? text('注册并登录后，可查询最新站外资料；登录不会自动搜索或改变当前计划。', 'Register and sign in to look up current web sources; signing in does not start a search or change your plan.', '註冊並登入後，可查詢最新站外資料；登入不會自動搜尋或改變目前計畫。') : text('点击后搜索当前关键词、日期与地区。网页资料供你进一步核对，不会自动加入计划。', 'Search the web using these keywords, date and area when you click. Results are references to check and are not added to your plan.', '點擊後搜尋目前關鍵詞、日期與地區。網頁資料供你進一步核對，不會自動加入計畫。')}</p>
     {!loginRequired && !validQuery && <p className="planner-web-hint">{text('请先输入 2–500 个字符的搜索内容。', 'Enter a search of 2–500 characters first.', '請先輸入 2–500 個字元的搜尋內容。')}</p>}
-    <div className="planner-web-actions"><button type="button" className="planner-web-button" disabled={loading || (loginRequired ? !onLogin : !validQuery)} onClick={() => { void search(); }}>
-      {loading && <LoaderCircle size={15} aria-hidden="true" />}{loginRequired ? text('登录 / 注册后搜索', 'Sign in / register to search', '登入 / 註冊後搜尋') : loading ? text('正在搜索…', 'Searching…', '正在搜尋…') : text('搜索站外资料', 'Search the web', '搜尋站外資料')}
-    </button>{loading && <button type="button" className="planner-web-cancel" onClick={cancel}>{text('取消', 'Cancel', '取消')}</button>}</div>
+    <div className="planner-web-actions"><Button disabled={loading || (loginRequired ? !onLogin : !validQuery)} icon={loading ? <LoaderCircle size={15} aria-hidden="true" /> : undefined} onClick={() => { void search(); }}>
+      {loginRequired ? text('登录 / 注册后搜索', 'Sign in / register to search', '登入 / 註冊後搜尋') : loading ? text('正在搜索…', 'Searching…', '正在搜尋…') : text('搜索站外资料', 'Search the web', '搜尋站外資料')}
+    </Button>{loading && <Button variant="quiet" onClick={cancel}>{text('取消', 'Cancel', '取消')}</Button>}</div>
     {loading && <p className="planner-web-status" role="status">{text('正在查找网页与来源，可能需要一点时间。', 'Looking up web pages and sources. This may take a moment.', '正在查找網頁與來源，可能需要一點時間。')}</p>}
     {error && <p className="planner-web-error" role="alert">{error}</p>}
     {result && <div className="planner-web-results">
@@ -180,7 +181,7 @@ function PlannerWebSearchRequest({ query, date, region, city, locale, ownerId, o
       {result.candidates.length > 0 && <div className="planner-web-candidates">{result.candidates.map(candidate => {
         const previous = saved.find(item => item.id === candidate.id);
         const unchanged = previous && JSON.stringify(previous) === JSON.stringify({ ...candidate, checkedAt: result.checkedAt, requestedDate: date || null });
-        return <WebCandidateCard key={candidate.id} candidate={candidate} locale={locale}><button type="button" disabled={!!unchanged || saveDisabled} onClick={() => onSave(candidate, result.checkedAt)}>{unchanged ? text('已保留候选', 'Candidate kept', '已保留候選') : previous ? text('更新已保留候选', 'Update kept candidate', '更新已保留候選') : text('保留候选', 'Keep candidate', '保留候選')}</button></WebCandidateCard>;
+        return <WebCandidateCard key={candidate.id} candidate={candidate} locale={locale}><Button disabled={!!unchanged || saveDisabled} onClick={() => onSave(candidate, result.checkedAt)}>{unchanged ? text('已保留候选', 'Candidate kept', '已保留候選') : previous ? text('更新已保留候选', 'Update kept candidate', '更新已保留候選') : text('保留候选', 'Keep candidate', '保留候選')}</Button></WebCandidateCard>;
       })}</div>}
       <div className="planner-web-answer" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{plannerWebAnswerParts(result).map((part, index) => part.source
         ? <a key={index} className="planner-web-citation" href={part.source.url} target="_blank" rel="noopener noreferrer" aria-label={`${part.text} ${part.source.title}`}>{part.text}</a>

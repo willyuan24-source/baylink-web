@@ -5,6 +5,7 @@ import { buildOutingOptions, buildPlaceOutingOptions, getPlaceOutingUnavailableR
 import { buildItinerary, clockLabel, planBudget } from '../lib/planner-itinerary';
 import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
+import { Button } from './ui/Button';
 
 export function PlannerOutingOptions({ suggestion, filters, message, onChoose }: { suggestion: Suggestion; filters: PlanFilters; message?: string; onChoose: (outing: CompleteOuting) => void }) {
   const options = useMemo(() => buildOutingOptions({ suggestion, filters, message }), [suggestion, filters, message]);
@@ -41,6 +42,6 @@ function OutingOptions({ options, onChoose }: { options: CompleteOuting[]; onCho
     {option.budgetStatus === 'unknown' && <p className="planner-unverified-price">{text('预算待确认：可以先采用草稿，再核对未知费用；尚不能确认符合预算。', 'Budget unconfirmed: keep this draft and check missing costs before relying on the budget.')}</p>}
     <p className="planner-small-note">{text('餐饮、交通另行预留；站间时间为可修改的安排，未查询实际路线。', 'Allow separately for meals and transport. Travel buffers are editable estimates, not checked routes.')}</p>
     {option.notices.length > 0 && <details className="planner-outing-notices"><summary>{text('方案依据与待确认事项', 'Sources and things to confirm')} ({option.notices.length})</summary><ul>{option.notices.map((notice, index) => <li key={index}>{plannerNoticeText(notice, locale === 'en')}</li>)}</ul></details>}
-    <button type="button" className="planner-primary" onClick={() => onChoose(option)}>{text('采用这个完整方案', 'Use this complete outing')}</button>
+    <Button block onClick={() => onChoose(option)}>{text('采用这个完整方案', 'Use this complete outing')}</Button>
   </section>;
 }

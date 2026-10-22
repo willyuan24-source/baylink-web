@@ -5,6 +5,7 @@ import { proposePlanEdit } from '../lib/planner-edit';
 import { buildItinerary, clockLabel, planBudget, stopKey } from '../lib/planner-itinerary';
 import { stopTitle, type PlanDetails, type Stop } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
+import { Button } from './ui/Button';
 
 type EditablePlan = { title: string; date: string; stops: Stop[]; details: PlanDetails };
 
@@ -36,7 +37,7 @@ export function PlannerPlanEdit({ current, onApply }: { current: EditablePlan; o
     </details>
     <form onSubmit={event => { event.preventDefault(); setPreview({ basis, result: proposePlanEdit({ current, message, lockedStops }) }); }}>
       <label>{text('想怎样修改？', 'What would you like to change?')}<textarea value={message} maxLength={300} onChange={event => setMessage(event.target.value)} placeholder={text('例如：把第二站换成餐厅', 'For example: replace stop 2 with a restaurant')} /></label>
-      <button type="submit" className="planner-edit-preview-button" disabled={!message.trim()}>{text('预览修改', 'Preview changes')}</button>
+      <Button type="submit" block disabled={!message.trim()}>{text('预览修改', 'Preview changes')}</Button>
     </form>
     {result?.status === 'unsupported' && <p className="planner-note" role="status">{result.reason}</p>}
     {proposed && timeline && budget && <div className="planner-edit-proposal" role="region" aria-label={text('修改预览', 'Change preview')}>
@@ -47,7 +48,7 @@ export function PlannerPlanEdit({ current, onApply }: { current: EditablePlan; o
       <p>{text('可计入的小计', 'Partial subtotal')} ${budget.subtotal.toFixed(2)}{budget.unknown.length > 0 ? text(` · ${budget.unknown.length} 站费用待确认`, ` · ${budget.unknown.length} unpriced stops`) : ''}</p>
       {proposed.issues.length > 0 && <ul className="planner-conflicts" role="alert">{proposed.issues.map((issue, index) => <li key={index}>{plannerNoticeText(issue, locale === 'en')}</li>)}</ul>}
       {proposed.warnings.length > 0 && <details><summary>{text('需要确认的事项', 'Things to confirm')} ({proposed.warnings.length})</summary><ul>{proposed.warnings.map((warning, index) => <li key={index}>{plannerNoticeText(warning, locale === 'en')}</li>)}</ul></details>}
-      <div className="planner-edit-actions"><button type="button" className="planner-primary" disabled={!proposed.canApply} onClick={() => { onApply(proposed.nextPlan); setPreview(undefined); setMessage(''); }}>{text('采用修改', 'Apply changes')}</button><button type="button" onClick={() => setPreview(undefined)}>{text('取消', 'Cancel')}</button></div>
+      <div className="planner-edit-actions"><Button disabled={!proposed.canApply} onClick={() => { onApply(proposed.nextPlan); setPreview(undefined); setMessage(''); }}>{text('采用修改', 'Apply changes')}</Button><Button variant="quiet" onClick={() => setPreview(undefined)}>{text('取消', 'Cancel')}</Button></div>
     </div>}
   </section>;
 }
