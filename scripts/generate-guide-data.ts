@@ -2,9 +2,9 @@ import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { guides, type Guide } from '../src/data/guides';
 import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
-import { coverInCurrentLanguage, guideRecordOf, guideStockCover, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
+import { coverInCurrentLanguage, guideRecordOf, guideStockPool, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
 import { getBayAreaToday } from '../src/lib/monthly';
-import type { GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
+import type { GuideCard, GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
 import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
 import { answeredHookFields } from '../src/lib/guide-hook-highlight';
@@ -23,14 +23,16 @@ export async function buildGuideData(): Promise<GuideData> {
   const previous = getLocale();
   const perLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
   const stockPerLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
+  const poolPerLanguage = new Map<string, Partial<Record<Locale, GuideImage[]>>>(guides.map(guide => [guide.slug, {}]));
   const today = getBayAreaToday();
   try {
     for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
       await setLocale(locale, false);
       for (const guide of guides) {
         perLanguage.get(guide.slug)![locale] = coverInCurrentLanguage(guide);
-        const stock = guideStockCover(guide, today);
-        if (stock) stockPerLanguage.get(guide.slug)![locale] = stock;
+        const pool = guideStockPool(guide, today);
+        poolPerLanguage.get(guide.slug)![locale] = pool;
+        if (pool[0]) stockPerLanguage.get(guide.slug)![locale] = pool[0];
       }
     }
   } finally {
@@ -50,7 +52,28 @@ export async function buildGuideData(): Promise<GuideData> {
   // without loading answers.ts.
   const withHook = <T extends { slug: string }>(card: T): T => ({ ...card, ...answeredHookFields(card.slug, GUIDE_COVER_ANSWERS) });
   const index = guidesIndexOf(coversOf);
-  return { index: { ...index, guides: index.guides.map(withHook) }, records: guides.map(guide => guideRecordOf(guide, coversOf)).map(record => ({ ...record, related: record.related.map(withHook) })) };
+  // UI9-IMG-A1b: a guide page shows its hero and its 接下来 cards together (ADJACENT_CARDS): a card that would repeat a stock
+  // picture already on the page, or whose ①② cover the page already shows, takes the next picture of its category's pool.
+  const isStock = (image: GuideImage) => typeof image.rights === 'object' && image.rights?.basis === 'stock';
+  const distinctRelated = (record: GuideRecord): GuideRecord => {
+    // The page's own pictures come first: the hero and the article's inline pictures.
+    const claimed = new Set([record.covers['zh-Hans'].src, ...record.inline.map(({ image }) => image.src)]);
+    const repeats: GuideCard[] = [];
+    const distinct = record.related.flatMap(card => {
+      const own = card.covers['zh-Hans'];
+      if (!isStock(own) && !claimed.has(own.src)) { claimed.add(own.src); return [card]; }
+      const pool = poolPerLanguage.get(card.slug)!;
+      const at = (pool['zh-Hans'] ?? []).findIndex(image => !claimed.has(image.src));
+      // Its category has no picture left that the page does not show: the card moves behind the others ("Read next" shows
+      // the first four that are still current, relatedForToday).
+      if (at < 0) { repeats.push(card); return []; }
+      claimed.add(pool['zh-Hans']![at].src);
+      const pick = mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]);
+      return [isStock(own) ? { ...card, covers: pick } : { ...card, covers: { ...card.covers, stock: pick } }];
+    });
+    return { ...record, related: [...distinct, ...repeats] };
+  };
+  return { index: { ...index, guides: index.guides.map(withHook) }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
 }
 
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]*$/u;

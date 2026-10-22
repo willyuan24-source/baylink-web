@@ -288,18 +288,33 @@ test('no article shows the same picture twice: a related guide, an inline figure
   assert.deepEqual(repeats, []);
 });
 
-// UI9-IMG-B1b2: a guide card has one candidate (its own cover), so when two "read next" guides share an approved AI cover
-// (the 'everyday' illustration) cover.ts shows it on both, side by side (it never falls back to an information card).
-// UI9-IMG-A1b gives guide cards their ③ category photos (DECISIONS 22: ③ before ④), which ends these repeats: A1b sets
-// KNOWN_POOL_REPEATS to []. Until then the list is pinned, so any other ③④ repeat (a hero shown again in its "read next",
-// another shared picture side by side) fails here.
+// UI9-IMG-A1b: guide cards now show their ③ category photos (DECISIONS 22: ③ before ④; the four 'everyday' AI repeats are
+// gone), and the build gives each 接下来 card a pool picture the page does not show yet (generate-guide-data.ts
+// distinctRelated). These pages still repeat one, because their category's pool is smaller than the page's same-category
+// cards (guide-school 3, guide-housing 3, shopping 7 with the deals board's offers): B2 adds pictures (owner approval), then
+// this list shrinks to []. Pinned, so any other ③④ repeat fails here.
 const KNOWN_POOL_REPEATS = [
-  'bay-area-household-bills-annual-review-2026: /guides/editorial/everyday-illustration.webp',
-  'san-jose-digital-help-sj-access-update-2026: /guides/editorial/everyday-illustration.webp',
-  'bay-area-bulky-items-ewaste-hhw-guide: /guides/editorial/everyday-illustration.webp',
-  'bay-area-311-211-local-help-guide: /guides/editorial/everyday-illustration.webp',
+  'bay-area-city-utilities-internet-phone-directory: /guides/category-stock/stock-guide-housing-4.webp',
+  'bay-area-first-7-30-days-action-plan-october-2026: /guides/category-stock/stock-guide-housing-4.webp',
+  'bay-area-first-rental-process: /guides/category-stock/stock-guide-housing-2.webp',
+  'bay-area-freebies-deals-2026-10: /guides/category-stock/stock-shopping-2.webp',
+  'bay-area-freebies-deals-2026-11: /guides/category-stock/stock-shopping-2.webp',
+  'bay-area-rental-scam-guide: /guides/category-stock/stock-guide-housing-1.webp',
+  'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'east-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'local-service-safety-guide: /guides/category-stock/stock-guide-housing-4.webp',
+  'move-in-move-out-checklist: /guides/category-stock/stock-guide-housing-4.webp',
+  'north-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'north-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
+  'peninsula-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'peninsula-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
+  'rental-lease-checklist-before-signing: /guides/category-stock/stock-guide-housing-2.webp',
+  'sf-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'sf-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-1.webp',
+  'south-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-2.webp',
+  'south-bay-school-district-enrollment-guide: /guides/category-stock/stock-guide-school-3.webp',
 ];
-test('no article repeats a ③④ pool picture either, beyond the four known "read next" repeats A1b removes', () => {
+test('no article repeats a ③④ pool picture either, beyond the known repeats of categories with too few pictures', () => {
   const repeats: string[] = [];
   for (const guide of guides) {
     const seen = new Set<string>();

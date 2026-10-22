@@ -79,16 +79,18 @@ export function guideListingCover(guide: Guide, today: string, offTopic: Readonl
   return guideStockCover(guide, today) ?? own;
 }
 
-/** A guide's first ③ stock picture (its photo category's pool, rotated by slug), in the current language. */
-export function guideStockCover(guide: Guide, today: string): GuideImage | undefined {
+/** A guide's ③ stock pictures (its photo category's pool, rotated by slug), in the current language. */
+export function guideStockPool(guide: Guide, today: string): GuideImage[] {
   const own = getGuideMedia(guide).cover;
-  const stock = coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category })
-    .map(key => GUIDE_IMAGES[key]).find((image): image is GuideImage => !!image && image.src !== own.src
-      && getCover({ kind: 'guide', id: guide.slug, imageKey: image.src }, { images: () => image, today }).tier === 'stock');
-  if (!stock) return undefined;
   const locale = getLocale();
-  return locale === 'zh-Hans' ? stock : { ...stock, alt: translateText(stock.alt, locale), caption: translateText(stock.caption, locale), credit: translateText(stock.credit, locale) };
+  return coverCandidates('guide', { id: guide.slug, title: guide.title, category: guide.category })
+    .map(key => GUIDE_IMAGES[key]).filter((image): image is GuideImage => !!image && image.src !== own.src
+      && getCover({ kind: 'guide', id: guide.slug, imageKey: image.src }, { images: () => image, today }).tier === 'stock')
+    .map(stock => locale === 'zh-Hans' ? stock : { ...stock, alt: translateText(stock.alt, locale), caption: translateText(stock.caption, locale), credit: translateText(stock.credit, locale) });
 }
+
+/** A guide's first ③ stock picture, in the current language. */
+export const guideStockCover = (guide: Guide, today: string): GuideImage | undefined => guideStockPool(guide, today)[0];
 
 export const coverInCurrentLanguage = (guide: Guide): GuideImage => guideListingCover(guide, getBayAreaToday());
 
