@@ -81,9 +81,20 @@ test('the lint reads the pairs a reader sees', () => {
   assert.deepEqual(tightIn('可带自备 T恤参加'), []);
 });
 
-test('card date labels use M/D, never "M 月 D 日"', () => {
-  const labels = [...MONTHLY_EVENTS, ...currentFreebies, ...currentOpenings]
-    .filter(record => !PINNED.has(record.dateLabel) && /\d+\s*月\s*\d+\s*日/.test(record.dateLabel))
+/** "11 月 5 日", and the ranges and lists "11 月 14–15 日", "11 月 1、8、14、15 日", "11 月 8／22 日", "11 月 20–22、27–29 日". */
+const MONTH_DAY = /\d+\s*月\s*\d+(?:\s*[–\-、／/,，和]\s*\d+)*\s*日/;
+/** Today in the Bay Area; records that ended before it no longer reach a card, so their old labels may stay. */
+const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+
+test('card date labels use M/D, never "M 月 D 日" (single dates, ranges or lists)', () => {
+  const labels = ([...MONTHLY_EVENTS, ...currentFreebies, ...currentOpenings] as { id: string; dateLabel: string; startDate?: string; endDate?: string }[])
+    .filter(record => !PINNED.has(record.dateLabel) && MONTH_DAY.test(record.dateLabel))
+    .filter(record => (record.endDate ?? record.startDate ?? TODAY) >= TODAY)
     .map(record => `${record.id}: ${record.dateLabel}`);
   assert.deepEqual(labels, []);
+});
+
+test('the date-label check reads ranges and lists', () => {
+  for (const label of ['11 月 5 日 19:00', '11 月 14–15 日 11:00–17:00', '11 月 1、8、14、15 日 14:00–15:00', '11 月 8／22 日 11:00–12:00', '11 月 20–22、27–29 日；11:30']) assert.ok(MONTH_DAY.test(label), label);
+  for (const label of ['11/14–11/15 11:00–17:00', '11/1、11/8、11/14、11/15 14:00–15:00', '11/16–11/30 每日 15:00–15:30', '10/2 · 13:00–17:00']) assert.ok(!MONTH_DAY.test(label), label);
 });

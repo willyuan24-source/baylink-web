@@ -17,7 +17,8 @@ const manifest = JSON.parse(readFileSync(new URL(`../${MANIFEST_PATH}`, import.m
 
 test('every picture a page can show is marked published in the image manifest (run npm run images:variants)', () => {
   const published = publishedImageSources();
-  const missing = [...published].filter(src => manifest.images[src]?.scope === 'registry' && !manifest.images[src].published);
+  // A published source with no manifest entry at all is missing too (npm run images:variants has never seen it).
+  const missing = [...published].filter(src => !manifest.images[src] || (manifest.images[src].scope === 'registry' && !manifest.images[src].published));
   assert.deepEqual(missing, [], `${missing.length} published pictures lack their 800/1200 rungs`);
 });
 
@@ -25,5 +26,9 @@ test('every ③ pool picture counts as published', () => {
   const published = publishedImageSources();
   const pool = Object.values(COVER_TABLES.categories).flatMap(keys => keys ?? []);
   assert.ok(pool.length > 100);
-  for (const key of pool) assert.ok(published.has(GUIDE_IMAGES[key].src), `${key} is a card picture`);
+  for (const key of pool) {
+    const src = GUIDE_IMAGES[key]?.src;
+    assert.ok(src, `${key} is a registered picture`);
+    assert.ok(published.has(src), `${key} is a card picture`);
+  }
 });

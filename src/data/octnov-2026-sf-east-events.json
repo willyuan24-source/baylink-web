@@ -11,7 +11,7 @@
       "2026-11-22",
       "2026-11-29"
     ],
-    "dateLabel": "11 月 1／8／15／22／29 日 9:30–13:30",
+    "dateLabel": "11/1、11/8、11/15、11/22、11/29 9:30–13:30",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Fort Mason Center parking lot, 2 Marina Boulevard",
@@ -45,7 +45,7 @@
       "2026-11-15",
       "2026-11-22"
     ],
-    "dateLabel": "11 月 1／8／15／22 日 10:00–11:00",
+    "dateLabel": "11/1、11/8、11/15、11/22 10:00–11:00",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Outpost Meadow, 609 Mason Street, Presidio",
@@ -77,7 +77,7 @@
       "2026-11-08",
       "2026-11-22"
     ],
-    "dateLabel": "11 月 8／22 日 11:00–12:00",
+    "dateLabel": "11/8、11/22 11:00–12:00",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Presidio Visitor Center, 210 Lincoln Boulevard",
@@ -141,7 +141,7 @@
       "2026-11-14",
       "2026-11-15"
     ],
-    "dateLabel": "11 月 14–15 日 11:00–17:00",
+    "dateLabel": "11/14–11/15 11:00–17:00",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Fort Mason Center Festival Pavilion, 2 Marina Boulevard",
@@ -186,7 +186,7 @@
       "2026-11-29",
       "2026-11-30"
     ],
-    "dateLabel": "11 月 16–30 日，每日 15:00–15:30",
+    "dateLabel": "11/16–11/30 每日 15:00–15:30",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Campfire Circle, Presidio Tunnel Tops",
@@ -254,7 +254,7 @@
       "2026-11-28",
       "2026-11-29"
     ],
-    "dateLabel": "11 月 20–22、27–29 日；11:30／13:30／14:30",
+    "dateLabel": "11/20–11/22、11/27–11/29；11:30／13:30／14:30",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Fort Point National Historic Site, 201 Marine Drive",
@@ -286,7 +286,7 @@
       "2026-11-20",
       "2026-11-27"
     ],
-    "dateLabel": "11 月 20／27 日 15:30–16:00",
+    "dateLabel": "11/20、11/27 15:30–16:00",
     "region": "east-bay",
     "city": "Berkeley",
     "venue": "Tilden Little Farm, pig pen, Tilden Nature Area",
@@ -382,7 +382,7 @@
       "2026-11-22",
       "2026-11-27"
     ],
-    "dateLabel": "11 月 22／27 日 11:30–12:30",
+    "dateLabel": "11/22、11/27 11:30–12:30",
     "region": "east-bay",
     "city": "Fremont",
     "venue": "Ardenwood Historic Farm country kitchen, 34600 Ardenwood Boulevard",
