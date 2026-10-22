@@ -166,10 +166,10 @@ test('an unknown weekend with no picks: a text panel holds the lead\'s place (no
   assert.equal(doc.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
 });
 
-test('phone: the lead asks for the 800w rung (the site\'s 266px phone cap), the share card is one row of its buttons', () => {
+test('phone: the lead asks for its real width (100vw less the gutters, UI9-IMG-A1b), the share card is one row of its buttons', () => {
   const doc = home();
   const lead = doc.querySelector('.home-picks__list>li:first-child img');
-  if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) 266px, /);
+  if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) calc\(100vw - 32px\), /);
   assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
 });
 
