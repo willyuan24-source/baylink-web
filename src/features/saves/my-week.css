@@ -34,6 +34,13 @@
 .my-week__count { margin-left:4px; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; font-variant-numeric:tabular-nums; }
 .my-week__note,.my-week__empty-line { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .my-week__empty-line { padding:16px; border-radius:var(--r-md); background:var(--color-surface-2); font-size:var(--text-body); line-height:1.625; }
+/* 行程 while the planner library loads (UI9-R1 polish: a desktop cold load measured CLS 0.0413 in 2 of 7 runs): the
+   empty line's box (one line of text on a desktop, two on a phone) instead of two 88px skeleton rows, so 收藏 below does
+   not jump 168px up when the library answers with no plans, a first visit's state. A timeline grows from it as it grew
+   from the rows. The rows and their hidden 正在加载 status stay in the DOM. */
+.my-week__head+[aria-busy=true] { box-sizing:content-box; min-height:calc(1.625 * var(--text-body)); margin:0 0 12px; padding:16px; border-radius:var(--r-md); background:var(--color-surface-2); }
+.my-week__head+[aria-busy=true]>.ui-row-card { display:none; }
+@media (max-width:767px) { .my-week__head+[aria-busy=true] { min-height:calc(2 * 1.625 * var(--text-body)); } }
 .my-week__filters { margin-bottom:8px; }
 
 /* Saved items and this week's events: RowCards; two columns on wide screens. */

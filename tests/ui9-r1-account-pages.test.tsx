@@ -73,7 +73,7 @@ test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the c
   assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-7)');
   assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-6)');
   assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-6)');
-  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-6)');
+  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) calc(var(--sp-6) + var(--sp-2))');
   const page = one('src/components/not-found.css', '.nf-page');
   assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-6)');
   // 反馈与报错 stays 8px under the actions (no fill that would strand it above the footer on a tall window), and the
@@ -155,4 +155,20 @@ test('UI9-R1 polish: one chevron hint on the four /me tiles, 小队与预约 sid
   const entry = readFileSync('src/features/feedback/feedback-entry.css', 'utf8');
   assert.match(entry, /\.feedback-footer-link\{display:inline-flex;align-items:center;gap:\.5rem;min-height:var\(--control-height\);[^}]*font-size:var\(--text-fact\)/);
   assert.deepEqual([feedback.display, feedback['align-items'], feedback.gap, feedback['min-height'], feedback['font-size']], ['inline-flex', 'center', 'var(--sp-2)', 'var(--control-height)', 'var(--text-fact)']);
+});
+
+test('UI9-R1 polish: my-week\'s 行程 loads in the empty line\'s box, so 收藏 below does not jump when there are no plans', () => {
+  const sheet = 'src/features/saves/my-week.css';
+  const line = one(sheet, '.my-week__empty-line');
+  assert.equal(line['line-height'], '1.625');
+  assert.equal(line.padding, '16px');
+  const busy = one(sheet, '.my-week__head+[aria-busy=true]');
+  assert.equal(busy['min-height'], 'calc(1.625 * var(--text-body))', 'one line of the empty line on a desktop');
+  assert.equal(busy.padding, '16px');
+  assert.equal(busy['box-sizing'], 'content-box');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]', '(max-width:767px)')['min-height'], 'calc(2 * 1.625 * var(--text-body))', 'two on a phone');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]>.ui-row-card').display, 'none');
+  // The 行程 section is the one whose loading block follows its head directly (收藏's follows its note).
+  const page = readFileSync('src/pages/MyWeekPage.tsx', 'utf8');
+  assert.match(page, /<\/Button><\/div>\s*\{library\.loading \? <SkeletonFeed rows count=\{2\} \/>/);
 });
