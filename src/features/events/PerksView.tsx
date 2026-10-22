@@ -43,8 +43,9 @@ export default function PerksView({ today, region }: { today: string; region: Mo
     // eslint-disable-next-line react-hooks/exhaustive-deps -- usable reads mode.simple
     [today, kind, region, mode.simple]);
   const sections = useMemo(() => offerSections(listed, today), [listed, today]);
-  // Phone 4 / 4 / 4, desktop 8 / 4 / 4, 简洁 3 / 3 / 3, 家人版 2 / 2 / 2 (one row of four on desktop, two 2-up rows on a phone).
-  const firstSize = (id: OfferSectionId) => mode.simple ? mode.simpleSize : !mode.phone && id === 'week' ? 8 : 4;
+  // Phone 6 / 4 / 4, desktop 8 / 4 / 4, 简洁 3 / 3 / 3, 家人版 2 / 2 / 2 (two rows of four on desktop; on a phone three 2-up
+  // rows for 这 7 天, as 新店's 已开业, so a switch from 本周末 no longer shortens the page by a fifth: N24, UI9-R1).
+  const firstSize = (id: OfferSectionId) => mode.simple ? mode.simpleSize : id === 'week' ? mode.phone ? 6 : 8 : 4;
   const shown = sections.map(section => section.offers.slice(0, firstSize(section.id) + extra[section.id]));
   const shownKey = shown.map(list => list.map(offer => offer.id).join()).join('|');
   // One cover page for the whole board, so a picture is never shown twice across the sections.
