@@ -100,3 +100,23 @@ test('every share card and weekly tile fronts a picture promotion allows: never 
   used.add(first.src);
   assert.notEqual(sharePicture('event', (event as { event: { id: string; imageKey: string } }).event, undefined, GUIDE_IMAGES, used)?.src, first.src, 'a weekly card shows each file once');
 });
+
+test('item 9 checks: a heavy stock picture comes last; city-sights only on city guides; Fruitvale (11/01) shows ③, the 11/01 lead is ①②', async () => {
+  const { coverCandidates, COVER_TABLES, HEAVY_STOCK } = await import('../src/lib/cover-candidates');
+  const pool = COVER_TABLES.categories.halloween ?? [];
+  for (const id of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']) {
+    const keys = coverCandidates('event', { id, title: '万圣节南瓜灯 Halloween', venue: 'Park' }).filter(key => pool.includes(key));
+    if (keys.length) assert.ok([...HEAVY_STOCK].every(key => !keys.includes(key) || keys.at(-1) === key), `${id}: ${keys.join(', ')}`);
+  }
+  const { readFileSync } = await import('node:fs');
+  const { photoCategoryOf } = await import('../src/lib/photo-category');
+  const index = JSON.parse(readFileSync('src/data/generated/events-index.json', 'utf8'));
+  const later = JSON.parse(readFileSync('src/data/generated/events-later.json', 'utf8'));
+  const boards = JSON.parse(readFileSync('src/data/generated/events-boards.json', 'utf8'));
+  const records = [...index.events.map((e: object) => ['event', e]), ...later.events.map((e: object) => ['event', e]), ...boards.offers.map((o: object) => ['offer', o]), ...boards.openings.map((o: object) => ['opening', o])] as [string, Record<string, unknown>][];
+  assert.deepEqual(records.filter(([kind, record]) => photoCategoryOf(kind, record) === 'city-sights').map(([, record]) => record.id), [], 'city-sights (real landmarks) never on an event, offer or new shop');
+  const fruitvale = [...index.events, ...later.events].find((event: { id: string }) => event.id === 'nov2026-fruitvale-dia-muertos');
+  if (fruitvale) assert.ok(fruitvale.imageKeys?.length && fruitvale.imageKeys.every((key: string) => key.startsWith('stock-')), 'Fruitvale shows a ③ picture, not its AI art');
+  const home = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8'));
+  if (home.weekends['2026-11-01']) assert.notEqual(home.weekends['2026-11-01'].ids[0], 'nov2026-fruitvale-dia-muertos', 'the 11/01 lead has a ① or ② picture');
+});

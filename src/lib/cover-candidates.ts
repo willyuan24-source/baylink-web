@@ -53,6 +53,9 @@ export function venuesFor(kind: CoverKind, record: CandidateRecord, venues: Cove
     && (venue.records?.includes(ref) || (!!text && venue.match.some(word => word && text.includes(word.toLowerCase())))));
 }
 
+/** Stock pictures over the image budgets' rungs (verify:images: 800 w ≤ 90 KB, 1200 w ≤ 150 KB): every other picture first. */
+export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
+
 /** A stable small number from the record id, so a record always starts its category's pictures at the same spot. */
 export function idSpot(id: string, size: number): number {
   let hash = 0;
@@ -74,8 +77,11 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const category = photoCategoryOf(kind, record);
   const pool = category ? tables.categories[category] ?? [] : [];
   const start = idSpot(record.id, pool.length);
+  // A pool picture whose files miss the 800 w / 1200 w size targets goes after the others (B1b review: stock-halloween-5).
+  const rotated = pool.map((_, i) => pool[(start + i) % pool.length]);
+  const ordered = [...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))];
   const shown = Math.min(pool.length, stock);
-  for (let i = 0; i < shown; i++) add(pool[(start + i) % pool.length]);
+  for (let i = 0; i < shown; i++) add(ordered[i]);
   // A capped list (what a route ships) carries ④ only for a record whose category has no ③ picture.
   if (shown && stock !== Infinity) return keys;
   if (ownIsAi) add(record.imageKey);
