@@ -194,7 +194,8 @@
   .together-page .outing-toolbar { align-items:flex-start; }
   .together-page .outing-draft-preview { padding:var(--sp-3); }
   .together-page .outing-draft-preview>div { grid-template-columns:minmax(0,1fr); gap:var(--sp-1); }
-  .together-page .outing-form-footer { position:sticky; bottom:var(--sp-3); z-index:2; flex-wrap:wrap; padding:var(--sp-3); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); }
+  /* Sticky above the phone tab bar (site-chrome.css --site-mobile-nav-height), not behind it. */
+  .together-page .outing-form-footer { position:sticky; bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); z-index:2; flex-wrap:wrap; padding:var(--sp-3); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); }
   /* The note above, the form's one primary full width under it. */
   .together-page .outing-form-footer>.outing-primary { flex:1 1 100%; }
 }
