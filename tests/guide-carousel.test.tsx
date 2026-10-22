@@ -88,12 +88,17 @@ test('guides without pilot data keep a photo cover or no picture, never a carous
   assert.ok(cover, 'the airport guide has a photo cover');
   assert.ok(cover.querySelector('[data-provenance]')?.textContent);
   assert.equal(cover.querySelector('img')?.getAttribute('loading'), 'eager');
-  // A paperwork guide whose own cover is an AI illustration lists with its topic's ③ 示意图 (UI9-IMAGES DECISIONS 21); this
-  // one is a pilot guide, so its page opens on its slides, not on a picture or the AI art.
+  // A paperwork guide whose own cover is an AI illustration lists with its topic's ③ 示意图 (UI9-IMAGES DECISIONS 21). A pilot
+  // guide opens on that title picture too, its slides under it (captain 10-22 02:50: the slides are not the page's picture).
   const slug = 'bay-area-rental-scam-guide';
-  assert.equal(guideCover({ slug, covers: peekGuide(slug)!.covers }, '2026-10-10').tier, 'stock');
+  const listed = guideCover({ slug, covers: peekGuide(slug)!.covers }, '2026-10-10');
+  assert.equal(listed.tier, 'stock');
   const scam = article(slug);
-  assert.equal(scam.container.querySelector('.gd-lead img') === null, true, 'no picture above the slides');
+  const lead = scam.container.querySelector('.gd-lead__visual')!;
+  assert.equal(lead.firstElementChild?.className, 'gd-cover-figure', 'the title picture comes first');
+  assert.equal(lead.querySelector('.gd-cover img')?.getAttribute('src'), listed.tier !== 'type' ? listed.image.src : '', 'the ③ picture, never the AI art');
+  assert.equal(lead.querySelector('.gd-cover')?.getAttribute('data-tier'), 'stock');
+  assert.ok(lead.querySelector('.gd-cover-figure + .gd-carousel'), 'the slides follow under it');
 });
 
 test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显示 and in English it grows instead of clipping', async () => {

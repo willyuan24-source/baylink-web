@@ -244,9 +244,11 @@ const GuideDetailSession = ({
       </li>
     </ol>
   );
-  const visual = editorial ? <GuideCarousel guide={guide} editorial={editorial} />
-    : cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover)} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
+  // Every guide opens on its title picture (① / ② / ③, else its category's ③: DECISIONS 21, captain 10-22 02:50); an editorial
+  // guide's coded slides follow under it (simple mode hides the slides, whose facts are in 30 秒看懂).
+  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover)} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
       {!cover.image.scene3d && <GuideCoverCredit image={cover.image} />}</figure> : null;
+  const visual = editorial ? <>{figure}<GuideCarousel guide={guide} editorial={editorial} /></> : figure;
   // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
   const call = guideCallOf(editorial);
   const official = guide.sources[0];
@@ -282,7 +284,7 @@ const GuideDetailSession = ({
         {board && <div className="gd-boards">
           {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map((block, index) => renderBlock(block, index))}</div>}
           {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
-          {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={!editorial && cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
+          {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
         </div>}
         <nav className="bl-guide-toc gd-toc" aria-label={t('文章目录', 'Contents')}>
           <Disclosure className="gd-toc__phone" summary={<>{t('目录', 'Contents')}<span className="gd-toc__count">{t(`${headings.length} 个章节`, `${headings.length} section${headings.length === 1 ? '' : 's'}`)}</span></>}>{contents}</Disclosure>
