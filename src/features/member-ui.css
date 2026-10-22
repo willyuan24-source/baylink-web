@@ -83,8 +83,10 @@
 .member-compose-input::placeholder { color: var(--color-ink-3); }
 .member-compose-input:focus { border-color: var(--color-line-control); box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / .06); }
 /* ModalShell portals the dialog to <body>, outside .site-app, so the FOUNDATION ring does not reach it: the dialog carries
-   the same ring itself (it also beats .member-compose-input's outline:none). */
+   the same ring itself (it also beats .member-compose-input's outline:none); on the brand-deep header it turns lime, as
+   FOUNDATION's deep-surface rule does inside .site-app. */
 .member-compose-overlay :is(button, a, input, select, textarea, summary):focus-visible { outline: var(--focus-ring-width) solid var(--color-brand); outline-offset: var(--focus-ring-offset); }
+.member-compose-header :is(button, a, input, select, textarea, summary):focus-visible { outline-color: var(--color-highlight); }
 .member-compose-description { min-height: 165px; resize: vertical; }
 .member-compose-field > label { display: block; margin-bottom: var(--sp-2); font-weight: 400; color: var(--color-ink-2); }
 .member-compose-image { width: 96px; height: 96px; border-radius: var(--r-lg); border: 1px solid var(--color-line); object-fit: cover; }
@@ -92,7 +94,7 @@
 .member-compose-ai > div { border-color: var(--color-line-strong); border-radius: var(--r-lg); background: var(--color-brand-tint); padding: var(--sp-4); }
 .member-compose-contact > div { border-color: var(--color-line); border-radius: var(--r-lg); padding: var(--sp-4); }
 .member-compose-contact label:has(input[type="radio"]:checked) { background: var(--color-brand-tint); }
-.member-compose-actions { position: sticky; z-index: 1; bottom: 0; display: flex; gap: var(--sp-3); margin-right: -32px; margin-left: -32px; padding: var(--sp-4) var(--sp-6) var(--sp-5); border-top: 1px solid var(--color-line); background: rgb(var(--color-surface-2-rgb) / .96); backdrop-filter: blur(10px); }
+.member-compose-actions { position: sticky; z-index: 1; bottom: 0; display: flex; gap: var(--sp-3); margin-right: calc(-1 * var(--sp-6)); margin-left: calc(-1 * var(--sp-6)); padding: var(--sp-4) var(--sp-6) var(--sp-5); border-top: 1px solid var(--color-line); background: rgb(var(--color-surface-2-rgb) / .96); backdrop-filter: blur(10px); }
 .member-compose-success { width: 100%; max-width: 415px; padding: var(--sp-6); border: 1px solid var(--color-line); border-radius: var(--r-xl); background: var(--color-surface-2); text-align: center; box-shadow: var(--e2); }
 
 @media (max-width: 639px) {
@@ -107,7 +109,7 @@
   .member-compose-type { padding: var(--sp-4); }
   .member-compose-selected { top: 16px; right: 11px; }
   .member-compose-description { min-height: 160px; }
-  .member-compose-actions { margin-right: -24px; margin-left: -24px; padding: var(--sp-4) var(--sp-5) calc(env(safe-area-inset-bottom, 0px) + var(--sp-4)); }
+  .member-compose-actions { margin-right: calc(-1 * var(--sp-5)); margin-left: calc(-1 * var(--sp-5)); padding: var(--sp-4) var(--sp-5) calc(env(safe-area-inset-bottom, 0px) + var(--sp-4)); }
   .member-compose-success { align-self: center; margin: var(--sp-4); padding: var(--sp-6); }
 }
 /* N23: hover looks only where a pointer can hover. */

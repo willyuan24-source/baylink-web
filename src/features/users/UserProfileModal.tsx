@@ -178,7 +178,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               type="button"
                 onClick={handleChat}
                 disabled={openingChat || !onChat || !!isBlocked || !!profile.viewerIsBlockedByUser}
-                className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)] disabled:border-transparent"
+                className="w-full rounded-xl bg-baylink-green py-3 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:bg-[var(--color-line)] disabled:text-[var(--color-ink-3)]"
             >
                 {openingChat ? '正在打开聊天…' : isBlocked || profile.viewerIsBlockedByUser ? '当前无法私信' : currentUser ? '发私信' : '登录后发私信'}
             </button>

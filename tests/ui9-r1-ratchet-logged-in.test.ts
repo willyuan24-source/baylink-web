@@ -109,15 +109,59 @@ test('the compose dialog (portalled outside .site-app) carries the FOUNDATION fo
   assert.ok(ring, 'a .member-compose-overlay :focus-visible rule exists');
   assert.equal(ring.decls.outline, 'var(--focus-ring-width) solid var(--color-brand)');
   assert.equal(ring.decls['outline-offset'], 'var(--focus-ring-offset)');
+  // On the brand-deep header (the CloseButton) a brand ring would be ~1.9:1; it turns lime like FOUNDATION's deep surfaces,
+  // with a selector at least as specific as the overlay ring's so it wins.
+  const deep = rules.find(rule => rule.selector.startsWith('.member-compose-header') && rule.selector.includes(':focus-visible'));
+  assert.ok(deep, 'a .member-compose-header :focus-visible rule exists');
+  assert.equal(deep.decls['outline-color'], 'var(--color-highlight)');
+  assert.ok(rules.indexOf(deep) > rules.indexOf(ring), 'the header ring comes after the overlay ring');
+  assert.match(deep.selector, /:is\(button/);
 });
 
-test('ghost icon buttons fade their glyph when disabled instead of gaining a fill', () => {
-  for (const selector of ['.modern-chat-icon:disabled', '.modern-chat-message-actions button:disabled', '.modern-chat-compose-meta button:disabled']) {
-    const rule = rules.find(candidate => candidate.selector === selector);
-    assert.ok(rule, selector);
-    assert.equal(rule.decls.background, 'transparent', selector);
-    assert.match(rule.decls.color ?? '', /^rgb\(var\(--color-ink-3-rgb\) \/ \.\d+\)$/, selector);
+test('ghost icon buttons fade their glyph when disabled instead of gaining a fill (one rule, so the fade cannot drift)', () => {
+  const selectors = ['.modern-chat-icon:disabled', '.modern-chat-message-actions button:disabled', '.modern-chat-compose-meta button:disabled', '.modern-chat-pending button:disabled'];
+  const fades = rules.filter(rule => rule.file === 'src/styles/modern-messaging.css' && /:disabled/.test(rule.selector) && /--color-ink-3-rgb/.test(rule.decls.color ?? ''));
+  assert.equal(fades.length, 1, fades.map(where).join(' | '));
+  const [rule] = fades;
+  assert.deepEqual(rule.selector.split(',').map(part => part.trim()), selectors);
+  assert.equal(rule.decls.background, 'transparent');
+  assert.match(rule.decls.color, /^rgb\(var\(--color-ink-3-rgb\) \/ \.\d+\)$/);
+  // Last in the file, so it also beats the earlier (hover) and [aria-expanded] rules of the same specificity.
+  assert.equal(rules.filter(candidate => candidate.file === rule.file).at(-1), rule);
+});
+
+test('a pressed preference chip keeps its selected fill while the fieldset is disabled (saving)', () => {
+  // ProfilePersonalSpace disables both chip fieldsets on every save; a disabled rule that repaints every button would
+  // flash the chosen regions and interests back to cream until the API answers.
+  const sheet = rules.filter(rule => rule.file === 'src/features/profile/profile-personal-space.css');
+  const pressed = sheet.find(rule => rule.selector === '.profile-preference-chips button[aria-pressed=true]');
+  assert.ok(pressed, 'the pressed chip rule exists');
+  assert.equal(pressed.decls.background, 'var(--color-brand-tint)');
+  const repaint = sheet.filter(rule => /:disabled/.test(rule.selector) && ('background' in rule.decls || 'border-color' in rule.decls));
+  assert.ok(repaint.length > 0);
+  for (const rule of repaint) {
+    for (const part of rule.selector.split(',')) assert.match(part, /:not\(\[aria-pressed=true\]\)/, where(rule));
   }
+});
+
+test('the user card disabled message button and the phone-verification card stay readable and reachable', () => {
+  // The card panel is surface-2, so a surface-2 disabled fill would vanish into it: the line tone, as the chat assistant.
+  const card = readFileSync('src/features/users/UserProfileModal.tsx', 'utf8');
+  assert.match(card, /disabled:bg-\[var\(--color-line\)\] disabled:text-\[var\(--color-ink-3\)\]/);
+  assert.doesNotMatch(card, /disabled:bg-\[var\(--color-surface-2\)\]/);
+  // The verification card never closes on the backdrop, so on a short phone in 特大 it must scroll inside the viewport.
+  const editor = readFileSync('src/features/profile/EditProfileModal.tsx', 'utf8');
+  assert.match(editor, /max-w-xs max-h-\[calc\(100dvh-3rem\)\] overflow-y-auto/);
+});
+
+test('the profile editor jump bar is a 2 × 2 grid on a phone in 特大 and its targets clear the taller bar', () => {
+  const phone = rules.filter(rule => rule.file === 'src/features/profile/profile-personality.css' && rule.media.includes('(max-width:760px)'));
+  const grid = phone.find(rule => rule.selector === 'html[data-reading=extra-large] .profile-editor-jumps');
+  assert.ok(grid);
+  assert.equal(grid.decls.display, 'grid');
+  assert.equal(grid.decls['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
+  const margin = phone.find(rule => rule.selector.startsWith('html[data-reading=extra-large]') && 'scroll-margin-top' in rule.decls);
+  assert.ok(margin && parseInt(margin.decls['scroll-margin-top'], 10) >= 112, 'two 44px rows + padding + a gap');
 });
 
 test('env() fallbacks inside calc() are lengths (a unitless 0 makes the whole declaration invalid)', () => {

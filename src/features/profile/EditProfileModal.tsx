@@ -161,7 +161,7 @@ const PhoneVerificationSession = ({ user, onClose, onVerified, showToast }: Phon
     return (
         // 两步短信验证流程，误触遮罩不关闭（关闭会丢失已发送的验证码步骤）
         <ModalShell onClose={onClose} closeOnBackdrop={false} label="手机号验证" className="fixed inset-0 z-[100] bg-[var(--scrim)] flex items-center justify-center p-6 animate-in fade-in">
-            <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
+            <div className="bg-white w-full max-w-xs max-h-[calc(100dvh-3rem)] overflow-y-auto overscroll-contain rounded-3xl p-6 shadow-2xl relative">
                 <div className="absolute top-4 right-4"><CloseButton label="关闭手机号验证" onClick={onClose} /></div>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
                 <h3 className="text-xl font-bold text-center mb-1">手机号验证</h3>
