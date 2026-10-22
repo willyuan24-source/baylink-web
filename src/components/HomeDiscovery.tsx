@@ -106,6 +106,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       feed,
       offers: offerCovers,
       guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey, imageKeys: guide.imageKeys }), context)),
+      // 长辈常用电话 rows show their guide's picture (UI9-IMG-A1b): the same item as its rail card, so the same picture.
+      calls: ELDER_CALLS.map(call => getGuideBySlug(call.slug)).map((guide, index) => getCover(coverItemFor('guide', { id: ELDER_CALLS[index].slug, imageKey: guide?.imageKey, imageKeys: guide?.imageKeys }), context)),
     };
   }, [weekend, guides, offers, today]);
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is
@@ -127,10 +129,10 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
     <Suspense fallback={<SectionHold selector="section.home-guides" />}><GuideRail intents={HOME_INTENTS} topicLabels={TOPIC_LABELS} intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} /></Suspense>
     <div className="home-end">
-      <ElderCalls calls={ELDER_CALLS} />
+      <ElderCalls calls={ELDER_CALLS} covers={covers.calls} />
       <Home3DTile />
     </div>
-    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers.slice(0, offerCount)]}>
+    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.calls, ...covers.offers.slice(0, offerCount)]}>
       {COMMUNITY_VISIBLE && <button type="button" className="home-section-head__more home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
     </HomeImageCredits>
   </section>;

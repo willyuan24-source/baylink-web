@@ -117,8 +117,7 @@ html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:no
 
 /* ⑧ 长辈常用电话 beside the ⑨ 3D tile (desktop: columns 1–6 and 7–12). */
 .home-end { display:flex; flex-direction:column; gap:var(--section-gap); }
-.home-elder .ui-row-card { grid-template:"body trailing" / minmax(0, 1fr) auto; min-height:0; }
-.home-elder .ui-row-card__thumb { display:none; }
+.home-elder .ui-row-card { min-height:0; }
 .home-elder .ui-button { min-height:3rem; }
 .home-3d { display:flex; flex-direction:column; gap:10px; color:var(--color-ink); }
 .home-3d .ui-cover { border-radius:var(--r-postcard); }
@@ -155,7 +154,7 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   html[data-reading$=large] .home-picks__list>li:first-child { --ui-feed-ratio:3 / 2; }
   html[data-reading$=large] :is(.home-picks__list,.home-offers__rail,.home-guides__rail) { grid-template-columns:minmax(0, 1fr); }
   html[data-reading$=large] :is(.home-offers__rail,.home-guides__rail)>li:nth-child(n+4),html[data-reading$=large] .home-feed .ui-feed-grid>li:nth-child(n+8):not(.ui-feed-grid__wide) { display:none; }
-  html[data-reading$=large] .home-elder .ui-row-card { grid-template:"body" "trailing" / minmax(0, 1fr); }
+  html[data-reading$=large] .home-elder .ui-row-card { grid-template:"thumb body" "trailing trailing" / 5.5rem minmax(0, 1fr); }
   /* No share card: the picks' own 看本周末全部 sits above this row, so below 1024 it keeps 订阅日历 only (two classes:
      cards.css's .ui-button display comes later in the page). */
   .home-share div>.home-share__all { display:none; }

@@ -71,6 +71,8 @@ test('长辈常用电话: each row links its guide and dials the number the guid
   rows.forEach((row, index) => {
     const call = ELDER_CALLS[index];
     assert.equal(row.querySelector('a[href^="/guides/"]')!.getAttribute('href'), `/guides/${call.slug}`);
+    // UI9-IMG-A1b (DECISIONS 21): every row shows its guide's picture (its own, else its ③ stock picture), never no thumbnail.
+    assert.ok(row.querySelector('.ui-row-card__thumb .ui-cover img'), `${call.slug}: the row has a picture`);
     const dial = row.querySelector('a[href^="tel:"]')!;
     assert.equal(dial.getAttribute('href'), `tel:${call.tel}`);
     assert.equal(dial.textContent, `拨打 ${call.number}`);
