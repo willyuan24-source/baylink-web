@@ -6,6 +6,7 @@ import { buildItinerary, clockLabel, planBudget } from '../lib/planner-itinerary
 import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
 import { Button } from './ui/Button';
+import { FilterChip } from './ui/Chip';
 
 export function PlannerOutingOptions({ suggestion, filters, message, onChoose }: { suggestion: Suggestion; filters: PlanFilters; message?: string; onChoose: (outing: CompleteOuting) => void }) {
   const options = useMemo(() => buildOutingOptions({ suggestion, filters, message }), [suggestion, filters, message]);
@@ -32,7 +33,7 @@ function OutingOptions({ options, onChoose }: { options: CompleteOuting[]; onCho
   const budget = planBudget(option.stops, option.details);
   return <section className="planner-outing-preview" aria-label={text('搭配完整出行', 'Build a complete outing')}>
     <h4><WandSparkles size={15} />{text('连同下一站，一起安排', 'Make an outing of it')}</h4>
-    {options.length > 1 && <div className="planner-outing-tabs" role="group" aria-label={text('方案时长', 'Outing length')}>{options.map(item => <button key={item.id} type="button" aria-pressed={item.id === option.id} onClick={() => setStyle(item.style)}>{item.style === 'half-day' ? text('轻松半日', 'Half day') : text('充实一天', 'Full day')}</button>)}</div>}
+    {options.length > 1 && <div className="planner-outing-tabs" role="group" aria-label={text('方案时长', 'Outing length')}>{options.map(item => <FilterChip key={item.id} selected={item.id === option.id} onClick={() => setStyle(item.style)}>{item.style === 'half-day' ? text('轻松半日', 'Half day') : text('充实一天', 'Full day')}</FilterChip>)}</div>}
     <p className="planner-outing-summary"><Clock3 size={13} />{option.details.startTime}–{clockLabel(timeline.end)} · {option.stops.length} {text('站', 'stops')}</p>
     <ol className="planner-outing-route">{timeline.rows.map((row, index) => <li key={`${row.stop.kind}:${row.stop.id}`}>
       {!!row.settings.breakBeforeMinutes && <p className="planner-outing-break"><Coffee size={12} />{text('用餐 / 休息预留', 'Meal / rest buffer')} {row.settings.breakBeforeMinutes} {text('分钟 · 地点待选', 'min · choose a place')}</p>}

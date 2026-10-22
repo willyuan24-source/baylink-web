@@ -6,6 +6,7 @@ import { buildItinerary, clockLabel, planBudget, stopKey } from '../lib/planner-
 import { stopTitle, type PlanDetails, type Stop } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
 import { Button } from './ui/Button';
+import { FilterChip } from './ui/Chip';
 
 type EditablePlan = { title: string; date: string; stops: Stop[]; details: PlanDetails };
 
@@ -30,7 +31,7 @@ export function PlannerPlanEdit({ current, onApply }: { current: EditablePlan; o
       text('晚一小时出发', 'Start one hour later'),
       text('把第二站换成餐厅', 'Replace stop 2 with a restaurant'),
       text('移除博物馆', 'Remove museums'),
-    ].map(example => <button type="button" key={example} onClick={() => { setMessage(example); setPreview(undefined); }}>{example}</button>)}</div>
+    ].map(example => <FilterChip selected={false} key={example} onClick={() => { setMessage(example); setPreview(undefined); }}>{example}</FilterChip>)}</div>
     <details className="planner-edit-locks"><summary>{text('修改时保留地点与时间', 'Keep stops and their times')} ({lockedStops.length})</summary>
       {current.stops.map(stop => <label key={stopKey(stop)}><input type="checkbox" checked={locked.includes(stopKey(stop))} onChange={event => { setLocked(keys => event.target.checked ? [...keys, stopKey(stop)] : keys.filter(key => key !== stopKey(stop))); setPreview(undefined); }} />{stopTitle(stop)}</label>)}
       <p>{text('只用于这次智能修改；手动编辑仍由你决定。', 'Applies to these suggested edits; you can still change the plan manually.')}</p>
