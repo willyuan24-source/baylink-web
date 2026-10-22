@@ -20,9 +20,9 @@
 .gl-search__clear>svg { width:1.25rem; height:1.25rem; }
 .gl-search__clear:active { background:var(--color-surface-2); }
 
-/* One chip row: 全部, the seven topics, then 地区 ▾ (a sheet). It wraps at 大 / 特大 / 简洁. */
+/* One chip row: 全部, the seven topics, then 地区 with the shared chevron (a sheet). It wraps at 大 / 特大 / 简洁. */
 .gl-filters { margin:var(--sp-3) 0 0; }
-.gl-region-chip__caret { margin-inline-start:var(--sp-1); color:var(--color-ink-2); }
+.gl-region-chip:not([aria-pressed=true]) .gl-region-chip__caret { color:var(--color-ink-2); }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-filters .ui-chip-row { flex-wrap:wrap; overflow:visible; }
 .gl-regions__list { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
 .gl-regions__option { display:flex; align-items:center; width:100%; min-height:3rem; padding:0 var(--sp-4); border:0; border-bottom:1px solid var(--color-line); background:transparent; color:var(--color-ink); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); text-align:start; cursor:pointer; }
@@ -50,6 +50,9 @@
 .gl-page .ui-row-card__thumb { width:7rem; height:7rem; }
 .gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); }
 .gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
+/* Follow-up 7 (DECISIONS 23): a row thumbnail's ③④ label is the shared chip ON the picture, bottom-left, as on the cards —
+   not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. */
+.gl-page .ui-row-card__thumb .ui-provenance[data-chip] { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:2px var(--sp-1); border-radius:var(--r-sm); text-align:start; }
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
 /* A short topic row ends on its 看全部 cell over the rest of the row from 1024 px (captain 10-21 18:30: no empty cells). */
@@ -96,8 +99,8 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
 /* The complete directory (F2's Disclosure) and the how-we-check line. */
 .gl-directory { margin-top:var(--section-gap); border-top:1px solid var(--color-line); }
 .gl-directory__toggle { margin-inline-start:calc(var(--sp-2) * -1); }
-.gl-directory__toggle::after { content:"▾"; margin-inline-start:var(--sp-1); }
-.gl-directory__toggle[aria-expanded=true]::after { content:"▴"; }
+.gl-directory__chevron { flex:none; width:1rem; height:1rem; transition:transform var(--dur-2) var(--ease-std); }
+.gl-directory__toggle[aria-expanded=true] .gl-directory__chevron { transform:rotate(180deg); }
 .gl-directory ul { columns:2 18rem; column-gap:var(--grid-gutter); margin:0; padding:0 0 var(--sp-3); list-style:none; }
 .gl-directory li { break-inside:avoid; }
 .gl-directory a { display:flex; align-items:center; min-height:2.75rem; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:none; }
@@ -143,8 +146,17 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   .gl-page .gl-band .ui-row-card { height:100%; box-sizing:border-box; }
 }
 @media (min-width:1024px) {
-  html:not([data-reading$=large]) .gl-all-cell { display:flex; grid-column:span var(--gl-rest, 1); }
-  /* As tall as the cards' 3:2 pictures beside it (the cell spans --gl-rest columns). */
-  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:var(--gl-ratio, 1.5); border-radius:var(--r-lg); }
+  /* Follow-up 10: one column, as tall as the 3:2 pictures beside it, on the band's sunken tint — a link tile, not an empty frame. */
+  html:not([data-reading$=large]) .gl-all-cell { display:flex; }
+  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border:0; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
+  /* N16 (UI9-R1): the 长辈与家属先看 band on the feeds' four columns — its heading, line and 看全部 in column 1, the three rows in
+     columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the
+     column edges, so the text and the cards inside it start on the grid; the rows' pictures go to 88 px in the narrower column. */
+  html:not([data-reading=extra-large],[data-simple]) .gl-band { --gl-band-bleed:var(--sp-4); display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); margin-inline:calc(var(--gl-band-bleed) * -1); padding:var(--sp-5) var(--gl-band-bleed); }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-section__head { grid-area:1 / 1 / 2 / 2; margin:0; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-band__rows { grid-area:1 / 2 / 3 / -1; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-band__all { grid-area:2 / 1 / 3 / 2; align-self:end; justify-self:start; margin:var(--sp-3) 0 0; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card { grid-template-columns:5.5rem minmax(0, 1fr) auto; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb { width:5.5rem; height:5.5rem; }
 }

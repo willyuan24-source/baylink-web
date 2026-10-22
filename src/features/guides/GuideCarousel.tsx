@@ -64,7 +64,8 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
       </article>
       {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="slide">
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
-        <h3 className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></h3>
+        {/* N02: a styled line like the cover's, not an H3: a 24 px slide title outranked the article's 20 px step H2s. */}
+        <p className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></p>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}
         {slide.phones && <div className="gd-slide__phones" data-count={slide.phones.length > 2 ? 'many' : undefined}>{slide.phones.map(entry => <div key={entry.tel}>{phone(entry, slide.phones!.length <= 2)}</div>)}</div>}
         {slide.items && <ul className="gd-slide__items">{slide.items.map(item => <li key={item.zh}>{slide.kind === 'checklist' && <Check aria-hidden="true" strokeWidth={2} />}<span>{pick(item)}</span></li>)}</ul>}

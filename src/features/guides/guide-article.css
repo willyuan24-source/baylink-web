@@ -99,6 +99,13 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) { padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { min-width:48px; padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
+  /* Follow-up 1 (UI9-R1): one cell height and one icon line at 大 / 特大 / 简洁 / 家人版. The cells stretch to the bar (whose
+     height the ask cell's two lines set) and stack icon and label from the top, so ♡, the send glyph and the otter share one
+     line and 收藏 / 发家人 / 问 BayBay start on one line under them (the ask cell's second line runs below). */
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar { align-items:stretch; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; align-items:stretch; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar :is(.detail-actions__cell:is(button,a),.detail-actions__cell .saves-toggle) { justify-content:flex-start; }
 }
 /* 大 / 特大 / 简洁 at 390–1023 px: a row has no room for the glyph beside the number, so the primary holds its phone glyph above
    the number, as each cell holds its icon above its label, at the cells' height. */
@@ -247,7 +254,7 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-toc .gd-toc__list a { display:flex; align-items:baseline; gap:var(--sp-3); min-height:2.75rem; padding:var(--sp-2) var(--sp-1); border-radius:var(--r-sm); color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:none; }
 .gd-toc .gd-toc__list a>span { flex:0 0 1.5rem; color:var(--color-ink-2); font-size:var(--fs-meta); font-variant-numeric:tabular-nums; }
 .gd-toc .gd-toc__list a>span>svg { width:1rem; height:1rem; vertical-align:-.15em; }
-.gd-toc__desk h2 { margin:0 0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:600; }
+.gd-toc__desk .gd-toc__label { margin:0 0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:600; }
 /* A class-less block link: the tint is the hover cue, not an underline under the number and the heading (UI9-F2). */
 @media (hover:hover) and (pointer:fine) { .bl-guide-toc a:hover { color:var(--color-ink); background:var(--color-surface-2); text-decoration-line:none; } }
 .gd-toc .gd-toc__list a:active { background:var(--color-surface-2); }
@@ -592,6 +599,10 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] :is(.gd-lead__visual,.gd-lead__visual>.gd-carousel,.gd-carousel>.ui-carousel) { display:flex; flex:1 1 auto; flex-direction:column; }
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__track { flex:1 1 auto; }
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead__side>.gd-keyfacts { margin-bottom:calc(3rem + var(--sp-2)); }
+  /* Follow-up 4 (UI9-R1): stretched to a long 30 秒看懂 (en at 1024: ~750 px), the cover's auto margins left ~200 px empty above
+     its question and title. On the desktop the cover reads top-down — question and title a fixed step under the kicker — and
+     the spare height sits above the source line at the foot, by the corner mark. The phone's 3:4 poster keeps its layout. */
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-slide--cover .gd-slide__question { margin-top:var(--sp-6); }
 }
 /* J3 P16: a tablet reads a pilot's lead in two columns (slide | 30 秒看懂) instead of one 700 × 930 slide that was a third empty;
    the slide keeps the phone's cap (3:4 up to 22.5rem tall, gd-slide). 特大 keeps one column: it lists the cover alone (no 3:4
