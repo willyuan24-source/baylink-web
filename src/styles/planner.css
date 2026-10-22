@@ -25,8 +25,13 @@
    visible gap is the same); 行程 keeps no bottom padding of its own (pre-footer = the footer's margin). */
 .planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(.planner-error,.planner-offline))) { margin-block:var(--section-gap) 0; }
 .planner-page .plan-days { margin-top:calc(var(--section-gap) - 8px); }
-/* The head's link may not make its row taller than the h2, so the h2 starts the section whether the head wraps or not. */
+/* The head's link may not make its row taller than the h2 (a row on desktop in every mode, on phones in the standard one),
+ * so the h2 starts the section whether the head wraps or not. */
 html:not([data-reading$=large],[data-simple]) .planner-page :is(.home-section-head__more,.plan-section-head>.ui-button) { margin-block:-8px; }
+@media (min-width:1024px) {
+  .planner-page :is(.home-section-head__more,.plan-section-head>.ui-button) { margin-block:-8px; }
+  .planner-page .plan-weekend { margin-top:calc(var(--section-gap) - 6px); }
+}
 main .planner-page.ui-container { padding-bottom:0; }
 /* N05: copy that wraps holds ≤ 40 characters a line in Chinese (digits and Latin count one each; schedule lines are
    mostly digits, so they wrap at 25em) and ≤ 75 in English. */
