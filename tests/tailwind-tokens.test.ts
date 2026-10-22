@@ -55,8 +55,10 @@ test('every *-baylink-* class written in src compiles to a rule (none silently d
   const used = new Set<string>();
   const pattern = /(?<![\w-])(?:text|bg|border(?:-[trblxy])?|ring(?:-offset)?|accent|from|via|to|fill|stroke|outline|divide|placeholder|decoration|caret)-baylink-[a-z-]+(?:\/\d+)?(?![\w-])/g;
   for (const file of sources) for (const match of readFileSync(file, 'utf8').matchAll(pattern)) used.add(match[0]);
-  // A floor that proves the scan reads the sources; it falls as templates move off Tailwind colours (UI9-BB left exactly 40).
-  assert.ok(used.size >= 40, `found ${used.size} distinct classes`);
+  // A floor that proves the scan reads the sources; it falls as templates move off Tailwind colours (UI9-BB left exactly 40;
+  // UI9-R1-CATEGORY moved OfficialAds onto community.css, 38). Kept under the count so parallel lanes that drop more
+  // Tailwind colours (UI9-R1-RATCHET-LOGGED-IN) do not trip it; it only has to prove the scan found the sources.
+  assert.ok(used.size >= 30, `found ${used.size} distinct classes`);
   const css = await compile([...used].join(' '));
   const emitted = new Set<string>();
   postcss.parse(css).walkRules(rule => {
