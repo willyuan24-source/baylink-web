@@ -10,7 +10,7 @@
 .source-monitor-actions{flex-wrap:wrap}
 .source-monitor button,.source-monitor-button,.media-rights-form select,.media-rights-form input[type=url],.media-rights-form input[type=text],.media-rights-form input[type=date]{display:inline-flex;align-items:center;gap:.5rem;min-height:var(--control-height);padding:0 1rem;border:.0625rem solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact);font-weight:600;text-decoration:none;white-space:nowrap}
 .media-rights-form select,.media-rights-form input[type=url],.media-rights-form input[type=text],.media-rights-form input[type=date]{width:100%;font-weight:400;white-space:normal}
-.source-monitor button:disabled{background:var(--color-surface-2);border-color:transparent;color:var(--color-ink-3);cursor:not-allowed}
+.source-monitor button:disabled{background:var(--color-surface-2);border-color:var(--color-line);color:var(--color-ink-3);cursor:not-allowed}
 .source-monitor .source-monitor-primary{border-color:var(--color-brand);background:var(--color-brand);color:var(--color-surface)}
 .source-monitor button[aria-pressed=true]{border-color:var(--color-brand);background:var(--color-brand-tint);color:var(--color-brand-deep)}
 .source-monitor button:focus-visible,.source-monitor a:focus-visible,.source-monitor textarea:focus-visible,.source-monitor select:focus-visible,.source-monitor input:focus-visible,.source-monitor summary:focus-visible{outline:.1875rem solid var(--color-brand);outline-offset:.125rem}
