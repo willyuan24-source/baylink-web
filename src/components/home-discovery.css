@@ -60,9 +60,19 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:none; }
 
 /* ③ 按需要找: F's chip, wrapped, no counts; the brand icon from 768. */
-.home-moods ul { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
-.home-mood>svg { display:none; color:var(--color-brand); }
+/* ③ 按需要找: eight photo tiles (UI9-IMAGES DECISIONS 27), 2 × 4 on a phone. The words sit on a warm scrim that is at least .6
+   from 38% of the tile down (white on it ≥ 4.6:1 over any photo; the text stays in the bottom 62%), the photo is the 480 w
+   file in a fixed frame (CLS 0), and the tile is one link with its name and one line (no counts, no badge). */
+.home-moods ul { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.home-mood { position:relative; isolation:isolate; display:flex; align-items:flex-end; overflow:hidden; aspect-ratio:16 / 9; min-height:var(--control-height); border-radius:var(--r-lg); background:var(--ui-lqip, var(--color-surface-2)); color:var(--color-surface); text-decoration:none; }
+.home-mood__img { position:absolute; inset:0; z-index:-2; width:100%; height:100%; object-fit:cover; }
+.home-mood::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / .3) 0%, rgb(var(--color-scrim-rgb) / .62) 38%, rgb(var(--color-scrim-rgb) / .8) 100%); }
+.home-mood__text { display:flex; flex-direction:column; min-width:0; padding:var(--sp-2) var(--sp-3); }
+.home-mood__label { font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; overflow-wrap:anywhere; }
+.home-mood__blurb { font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; }
 .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
+/* 大 / 特大: the same grid, a taller tile so the bigger words stay on the scrim's dark part. */
+html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 
 /* The family-chat card: text and two buttons. */
 .home-share,.home-empty { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
@@ -153,7 +163,6 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
 @media (min-width:768px) {
   .bay-home.bay-home-editorial { padding:24px 24px 48px; }
   .home-head .home-ask-baybay { display:inline-flex; }
-  .home-mood>svg { display:block; }
   .home-baybay ul { grid-template-columns:repeat(3, minmax(0, 1fr)); }
   .home-end { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:start; gap:24px; }
   .home-end>:last-child { grid-column:2; }
@@ -167,8 +176,6 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-head { gap:var(--sp-4); }
   :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
   .home-ask { margin-top:var(--sp-3); }
-  .home-moods ul { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); }
-  .home-moods .home-mood { flex-direction:column; justify-content:center; gap:var(--sp-1); width:100%; min-height:5.5rem; border-radius:var(--r-lg); }
   /* The masthead in columns 1–5 beside the lead (6–12); picks 2–3 in 1–6 and the share card in 7–12 below, all on one
      12-column grid: the picks section and its list are display:contents here, so their children are the grid's items. */
   .home-top { display:grid; grid-template:repeat(3, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }
@@ -184,3 +191,5 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-picks__list>li+li,.home-top>.home-share { grid-area:5 / span 3; margin-top:var(--sp-2); }
   .home-top>.home-share { grid-column:7 / -1; justify-content:center; }
 }
+/* 4 × 2 in the masthead column from 1280 px (a 4:3 tile); 2 × 4 below it, where a quarter of the column is too narrow for a name. */
+@media (min-width:1280px) { .home-moods ul { grid-template-columns:repeat(4, minmax(0, 1fr)); } .home-mood { aspect-ratio:4 / 3; } }

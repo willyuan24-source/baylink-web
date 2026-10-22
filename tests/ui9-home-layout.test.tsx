@@ -100,8 +100,10 @@ test('the credits line is #page-credits with its photo count, last in the home',
   const items = credits.querySelectorAll('details li').length;
   assert.equal(Number(credits.getAttribute('data-count')), items);
   assert.match(credits.querySelector('summary')?.textContent ?? '', new RegExp(`本页图片来源（${items}）`));
-  // Every credited image is shown on the page.
-  const shown = new Set([...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')));
+  // Every credited image is shown on the page: the cards' pictures and the eight entry tiles' photos (DECISIONS 27).
+  const shown = new Set([...doc.querySelectorAll('.home-discovery :is(img.ui-cover__img, img.home-mood__img)')].map(img => img.getAttribute('src')));
+  assert.equal(doc.querySelectorAll('.home-moods img.home-mood__img[loading="lazy"]').length, 8, 'eight lazy tile photos');
+  assert.match(credits.textContent ?? '', /入口配图/);
   assert.ok(items <= shown.size);
 });
 

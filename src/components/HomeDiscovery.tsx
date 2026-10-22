@@ -6,7 +6,7 @@ import { coverItemFor, createCoverPage, getCover, type CoverContext } from '../l
 import { leadImageKey } from '../lib/close-up-faces';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
-import { ELDER_CALLS, getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
+import { ELDER_CALLS, getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, HOME_TILES, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
 import { homeOfferCount, offerHasPhoto, offerLeadsRail, selectHomeOffers } from '../lib/home-offers';
 import { HomeHead } from '../features/home/HomeHead';
 import { HeroPicks } from '../features/home/HeroPicks';
@@ -132,7 +132,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       <ElderCalls calls={ELDER_CALLS} covers={covers.calls} />
       <Home3DTile />
     </div>
-    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.calls, ...covers.offers.slice(0, offerCount)]}>
+    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.calls, ...covers.offers.slice(0, offerCount)]} tiles={Object.values(HOME_TILES)}>
       {COMMUNITY_VISIBLE && <button type="button" className="home-section-head__more home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
     </HomeImageCredits>
   </section>;

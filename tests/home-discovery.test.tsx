@@ -325,7 +325,8 @@ test('the first cover is fetched first; English has the question H1 and English 
 
 test('home sends the weekend to /events and keeps an eager, client-side 按日历看 link (WEB-ROUTES, OPUS contract)', () => {
   const doc = serverHome();
-  const moods = [...doc.querySelectorAll('.home-moods a')].map(link => [link.textContent, link.getAttribute('href')]);
+  // UI9-IMG-A1b (DECISIONS 27): each entry is a photo tile, its name (.home-mood__label) and one line under it.
+  const moods = [...doc.querySelectorAll('.home-moods a')].map(link => [link.querySelector('.home-mood__label')?.textContent, link.getAttribute('href')]);
   assert.deepEqual(moods.find(([label]) => label === '今天去哪'), ['今天去哪', '/events?when=today']);
   assert.deepEqual(moods.find(([label]) => label === '免费'), ['免费', '/events?cost=free']);
   assert.deepEqual(moods.find(([label]) => label === '按日历看'), ['按日历看', '/calendar']);

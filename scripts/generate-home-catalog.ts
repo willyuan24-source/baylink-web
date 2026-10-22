@@ -15,6 +15,7 @@ import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { listingImageKeys } from '../src/lib/cover-candidates';
 import { captionSignal } from './events-index-images';
+import homeTilePhotos from '../src/data/home-tile-photos.json';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
@@ -159,13 +160,23 @@ const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), cap
 const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
   ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);
 const scene3d = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-golden-gate-fog']);
+// UI9-IMG-A1b (DECISIONS 27): the eight entry tiles' photos (src/data/home-tile-photos.json, owner-approved B1b2): navigation
+// images, never card covers. Each tile ships its 480 w file only (≤ 15 KB, verify:images) with what the tile and the credits
+// line read; no badge (DECISIONS 27), credited in 本页图片来源.
+const tiles = Object.fromEntries(Object.entries(homeTilePhotos as Record<string, { key: string }>).map(([id, { key }]) => {
+  const image = GUIDE_IMAGES[key];
+  if (!image) throw new Error(`home tile ${id}: ${key} is not registered`);
+  // The 480 w file the ladder lists, else the one images:variants writes next to the original (verify:images checks it).
+  const small = /(\S+) 480w/.exec(image.srcSet ?? '')?.[1] ?? image.src.replace(/\.webp$/, '-small.webp');
+  return [id, { src: small, width: 480, height: Math.round(480 * image.height / image.width), alt: image.alt, ...present(image, ['credit', 'creditUrl', 'licenseUrl', 'lqip', 'focal']) }];
+}));
 // H36: the weekend feed's 3D strip, a different postcard from the tile's.
 const scene3dStrip = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-chinatown-lanterns']);
 
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
   guides: homeGuides, guideCount: guides.length, elderCalls, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
-  edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d, scene3dStrip,
+  edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d, scene3dStrip, tiles,
 }));
 console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length} event facts, ${offers.length} offers; no article bodies.`);
 // The cover resolver's venue/theme approvals (src/lib/cover.ts) as plain data, without the media registry they are built from.

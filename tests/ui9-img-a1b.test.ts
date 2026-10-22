@@ -41,3 +41,23 @@ test('every live /plan event stop is a picture (plan extras coverKeys)', async (
   const places = catalog.places.filter(place => getCover(stopCoverItem({ kind: 'place', id: place.id }), { images: key => catalog.images[key], today }).tier === 'type').map(place => place.id);
   assert.deepEqual(places, [], 'every planner place shows a picture');
 });
+
+test('the eight home entry tiles: a lazy 480 w photo each, its name and one line on a scrim white text reads at ≥ 4.5:1 (DECISIONS 27)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { HOME_TILES } = await import('../src/lib/home-catalog');
+  const tiles = JSON.parse(readFileSync('src/data/home-tile-photos.json', 'utf8')) as Record<string, { key: string }>;
+  assert.deepEqual(Object.keys(HOME_TILES).sort(), Object.keys(tiles).sort());
+  for (const [id, photo] of Object.entries(HOME_TILES)) {
+    assert.match(photo.src, /-small\.webp$/, `${id}: the 480 w file`);
+    assert.equal(photo.width, 480);
+    assert.match(photo.credit, /^入口配图/, `${id}: credited as an entry photo, never 示意图`);
+  }
+  // The warm scrim (tokens.css --color-scrim-rgb 30 24 16) at .62 from 38% of the tile down, over a white pixel: white text ≥ 4.5:1.
+  const css = readFileSync('src/components/home-discovery.css', 'utf8');
+  assert.match(css, /\.home-mood::before \{[^}]*rgb\(var\(--color-scrim-rgb\) \/ \.62\) 38%, rgb\(var\(--color-scrim-rgb\) \/ \.8\) 100%\)/);
+  const lin = (v: number) => (v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+  const over = (alpha: number) => [30, 24, 16].map(channel => (alpha * channel + (1 - alpha) * 255) / 255);
+  const luminance = (rgb: number[]) => rgb.map(lin).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+  assert.ok(1.05 / (luminance(over(.62)) + .05) >= 4.5, `${(1.05 / (luminance(over(.62)) + .05)).toFixed(2)}:1`);
+  assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /ui-chip/, 'the tiles are .home-mood, not the shared chip');
+});
