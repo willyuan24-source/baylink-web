@@ -37,4 +37,9 @@ test('§7: 0 information cards on every page and on the whole shelf (report:cove
   assert.equal(summary.infoCardsOnPages, 0);
   assert.deepEqual(slots.filter((slot: { tier: string }) => slot.tier === 'type'), []);
   assert.deepEqual(inventory.filter((slot: { tier: string }) => slot.tier === 'type').map((slot: { section: string; id: string }) => `${slot.section}:${slot.id}`), []);
+  // DECISIONS 22 同页去重 (captain 10-22 02:50): the home pages and /guides show no ③④ picture twice within ADJACENT_CARDS
+  // cards. The listing pages report theirs (a crowded category on one day can outnumber its pictures; PR.md lists them).
+  const pages = summary.pages as Record<string, { poolRepeats: string[] }>;
+  for (const page of ['/guides', ...Object.keys(pages).filter(page => page.startsWith('home:'))]) assert.deepEqual(pages[page].poolRepeats, [], page);
+  for (const page of ['/events', '/calendar', '/perks', '/openings']) assert.ok(Array.isArray(pages[page]?.poolRepeats), `${page} is measured`);
 });

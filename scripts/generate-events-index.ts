@@ -14,7 +14,7 @@ import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
 import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
 import { isPressSource } from '../src/features/events/source-kind';
 import { isApprovedAiCover, type CoverAsset } from '../src/lib/cover';
-import { COVER_TABLES, ROUTE_STOCK, listingImageKeys } from '../src/lib/cover-candidates';
+import { COVER_TABLES, categorySpots, denseCategories, listingImageKeys, routeStock } from '../src/lib/cover-candidates';
 import type { EventsBoards, EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
@@ -62,7 +62,18 @@ function listSchedule(schedule: PlanningSchedule, overlaySessions: IndexEvent['s
 // key that points at one (UI9-IMG-A1a: 273 dead keys, about 0.7 KiB gzip of the route).
 const shippable = (key: string) => Object.hasOwn(GUIDE_IMAGES, key) && (GUIDE_IMAGES[key].kind !== 'illustration' || isApprovedAiCover(GUIDE_IMAGES[key] as CoverAsset));
 
-const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cutoff).map(event => {
+// Captain 10-22 02:50: crowded photo categories ship a third ③ candidate (DENSE_STOCK) so fewer cards repeat a picture a few
+// cards away (DECISIONS 22). The boards (events-boards.json, outside the route) give it to every category with more records
+// than pictures and deal each record its start in list order (categorySpots), so neighbours lead with different pictures.
+// The route's events give it only to categories with more than three records per picture (halloween), with starts fixed by
+// the id: a dealt start or a wider rule spreads them over more files, and the route's pictures then push the near window
+// below 21 days under NEAR_CAP (measured 10-22: 18–20 days, with /events repeating as often or more).
+const liveEvents = PLANNER_EVENTS.filter(event => event.endDate >= cutoff);
+const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!offer.endDate || offer.endDate >= cutoff));
+const dense = { event: denseCategories('event', liveEvents, COVER_TABLES, 3), offer: denseCategories('offer', liveOffers), opening: denseCategories('opening', currentOpenings) };
+const spots = { offer: categorySpots('offer', liveOffers), opening: categorySpots('opening', currentOpenings) };
+
+const events: IndexEvent[] = liveEvents.map(event => {
   const dates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
   const overlay = event as typeof event & Pick<IndexEvent, 'sessions'>;
   const schedule = event.planning?.schedule && listSchedule(event.planning.schedule, overlay.sessions);
@@ -78,7 +89,7 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
     startDate: event.startDate, endDate: event.endDate, ...(dates !== undefined ? { occurrenceDates: dates } : {}),
     region: event.region, city: event.city, venue: event.venue, category: event.category,
     cost: event.cost, ...(event.cost === 'mixed' ? { costLabel: event.costLabel } : {}),
-    audience: event.audience, verifiedAt: event.verifiedAt, ...listingImageKeys('event', event, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
+    audience: event.audience, verifiedAt: event.verifiedAt, ...listingImageKeys('event', event, shippable, COVER_TABLES, routeStock('event', event, dense.event)),
     ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(planning && Object.keys(planning).length ? { planning } : {}),
     ...(event.location ? { location: { lat: event.location.lat, lng: event.location.lng, precision: event.location.precision, sourceUrl: event.location.sourceUrl } } : {}),
@@ -87,18 +98,17 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
   } as IndexEvent;
 });
 
-const offers: IndexOffer[] = currentFreebies
-  .filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!offer.endDate || offer.endDate >= cutoff))
+const offers: IndexOffer[] = liveOffers
   .map(offer => ({
     id: offer.id, brand: offer.brand, title: offer.title, ...pick(offer, ['region', 'startDate', 'endDate', 'weekdays'] as const),
-    availability: offer.availability, kind: offer.kind, ...listingImageKeys('offer', offer, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
+    availability: offer.availability, kind: offer.kind, ...listingImageKeys('offer', offer, shippable, COVER_TABLES, routeStock('offer', offer, dense.offer, spots.offer)),
     sourceLabel: offer.sourceLabel, ...(offer.verifiedAt ? { verifiedAt: offer.verifiedAt } : {}),
     ...(offer.status === 'sold_out' ? { status: 'sold_out' as const } : {}),
   }));
 
 const openings: IndexOpening[] = currentOpenings.map(shop => ({
   id: shop.id, name: shop.name, city: shop.city, region: shop.region, category: shop.category, status: shop.status,
-  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), ...listingImageKeys('opening', shop, shippable, COVER_TABLES, { stock: ROUTE_STOCK }),
+  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), ...listingImageKeys('opening', shop, shippable, COVER_TABLES, routeStock('opening', shop, dense.opening, spots.opening)),
   sourceLabel: shop.sourceLabel, verifiedAt: shop.verifiedAt,
 }));
 

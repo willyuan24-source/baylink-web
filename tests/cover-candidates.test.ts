@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COVER_TABLES, coverCandidates, idSpot, venuesFor, type CoverTables } from '../src/lib/cover-candidates';
+import { COVER_TABLES, DENSE_STOCK, ROUTE_STOCK, categorySpots, coverCandidates, denseCategories, idSpot, postStockKeys, routeStock, venuesFor, type CoverTables } from '../src/lib/cover-candidates';
 import { AI_COVER_APPROVALS, GUIDE_IMAGES } from '../src/data/guide-media';
 import { coverItemFor } from '../src/lib/cover';
 import { isPhotoCategoryId } from '../src/lib/photo-category';
@@ -79,4 +79,25 @@ test('UI9-IMG-A1b: a record whose own image is an approved AI cover ranks it ④
   assert.deepEqual(item.imageKeys, keys);
   assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: undefined }).imageKeys, keys.filter(key => key !== 'ai-2'));
   assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: 'x' }).imageKeys, ['x', ...keys.filter(key => key !== 'ai-2')]);
+});
+
+test('captain 10-22 02:50: a crowded category ships a third ③, and a list deals its records different first pictures', () => {
+  const kids = ['a', 'b', 'c', 'd'].map(id => ({ id, title: `${id} 图书馆亲子故事时间 storytime`, venue: 'Library', category: 'family' }));
+  assert.deepEqual([...denseCategories('event', kids.slice(0, 3), tables)], [], 'three records, three pictures: not crowded');
+  const dense = denseCategories('event', kids, tables);
+  assert.deepEqual([...dense], ['storytime']);
+  assert.deepEqual(denseCategories('event', kids, tables, 2).size, 0, 'the factor is records per picture');
+  const spots = categorySpots('event', kids);
+  assert.deepEqual(kids.map(kid => spots.get(kid.id)), [0, 1, 2, 3]);
+  const firsts = kids.map(kid => coverCandidates('event', kid, tables, routeStock('event', kid, dense, spots)));
+  assert.deepEqual(firsts.map(keys => keys.length), [DENSE_STOCK, DENSE_STOCK, DENSE_STOCK, DENSE_STOCK]);
+  assert.deepEqual(firsts.map(keys => keys[0]), ['s1', 's2', 's3', 's1'], 'neighbours lead with different pictures, wrapping round the pool');
+  assert.equal(coverCandidates('event', kids[0], tables, routeStock('event', kids[0], new Set())).length, ROUTE_STOCK);
+});
+
+test('a saved neighbourhood post takes its board category\'s ③ pictures (captain 10-22 02:50: never an empty frame)', () => {
+  const housing = postStockKeys({ id: 'p1', category: '租屋' });
+  assert.ok(housing.length >= 3 && housing.every(key => key.startsWith('stock-guide-housing-') && Object.hasOwn(GUIDE_IMAGES, key)));
+  assert.ok(postStockKeys({ id: 'p2', category: '接送' }).every(key => key.startsWith('stock-transit-')));
+  assert.ok(postStockKeys({ id: 'p3' }).every(key => key.startsWith('stock-guide-newcomer-')), 'any other category: newcomer basics');
 });

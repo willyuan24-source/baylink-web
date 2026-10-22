@@ -14,11 +14,11 @@
 // the A1b merge gate and the UI9-IMAGES §7 CI check).
 // Settings: standard reading size, all regions, no filters (as the pages open).
 import { readFileSync, writeFileSync } from 'node:fs';
-import { createCoverPage, coverItemFor, getCover, resolveCovers, type CoverContext, type CoverItem, type CoverKind, type ResolvedCover } from '../src/lib/cover';
+import { ADJACENT_CARDS, createCoverPage, coverItemFor, getCover, resolveCovers, type CoverContext, type CoverItem, type CoverKind, type ResolvedCover } from '../src/lib/cover';
 import { coverCandidates, type CandidateRecord } from '../src/lib/cover-candidates';
 import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, hasRealCover, liveOffers, filterOpenings, weekendPicks, weekendRanked } from '../src/features/events/events-model';
-import { homeLeadFor, arrangePicks, leadImageKey } from '../src/features/events/weekend-lead';
-import { featurePhotos, getBayAreaToday, getMonthlyDateRange, nextOccurrence } from '../src/lib/monthly';
+import { homeLeadFor, arrangePicks, canLead, leadImageKey } from '../src/features/events/weekend-lead';
+import { featurePhotos, getBayAreaToday, getMonthlyDateRange, nextOccurrence, orderByNextDay } from '../src/lib/monthly';
 import { getHomeWeekend } from '../src/lib/home-weekend';
 import { GUIDE_IMAGES as HOME_IMAGES, HOME_OFFERS, getGuideBySlug, type HomeEvent } from '../src/lib/home-catalog';
 import { selectHomeOffers, offerHasPhoto, offerLeadsRail, homeOfferCount } from '../src/lib/home-offers';
@@ -57,16 +57,19 @@ const guideItem = (card: GuideIndexCard, today: string, page: CoverContext['page
   return getCover(coverItemFor('guide', { id: card.slug, imageKeys: coverCandidates('guide', { id: card.slug, title: card.title, category: card.category }) }), { images: GUIDE_IMAGES, today, page });
 };
 
-type Slot = { day: string; page: string; section: string; kind: CoverKind; id: string; tier: ResolvedCover['tier']; reason?: string; phone: boolean; desktop: boolean };
+type Slot = { day: string; page: string; section: string; kind: CoverKind; id: string; tier: ResolvedCover['tier']; reason?: string; phone: boolean; desktop: boolean;
+  /** The ③④ picture's file and the slot's place in display order: a pool picture shown again within ADJACENT_CARDS is a repeat. */
+  pool?: string; at?: number };
 const slots: Slot[] = [];
 // A first screen holds the page's first 4 cards on a phone and 8 on a desktop (390 / 1440 px, standard size: the 10-20
 // probe and CATEGORIES.json's screens), counted in display order; /perks and /openings pass their sections' own counts.
-const PHONE_SCREEN = 4, DESKTOP_SCREEN = 8;
+const PHONE_SCREEN = 4, DESKTOP_SCREEN = 8, CALENDAR_PAGE = 12;
 const shownSoFar = new Map<string, number>();
 const push = (day: string, page: string, section: string, kind: CoverKind, id: string, cover: ResolvedCover, screen?: { phone: boolean; desktop: boolean }) => {
   const at = shownSoFar.get(`${day} ${page}`) ?? 0;
   shownSoFar.set(`${day} ${page}`, at + 1);
   slots.push({ day, page, section, kind, id, tier: cover.tier, ...(cover.tier === 'type' ? { reason: cover.reason } : {}),
+    ...(cover.tier === 'stock' || cover.tier === 'ai' ? { pool: cover.image.src, at } : {}),
     ...(screen ?? { phone: at < PHONE_SCREEN, desktop: at < DESKTOP_SCREEN }) });
 };
 
@@ -116,6 +119,14 @@ for (let n = 0; n < DAYS; n++) {
   resolveCovers(listed.map(event => item('event', event)), events)
     .forEach((cover, i) => push(day, '/events', i < 12 ? 'feed' : 'feed-more', 'event', listed[i].id, cover));
 
+  // /calendar?date=<day> (CalendarView.tsx), all regions, its first page: one-offs first, a real photo first within them, the
+  // first event that may lead on top (DECISIONS 15/26).
+  const dayEvents = orderByNextDay(EVENTS.filter(event => nextOccurrence(event, day) === day), day, event => hasRealCover('event', event, day));
+  const leadAt = Math.max(0, dayEvents.findIndex(event => canLead(event, day)));
+  const dayRows = (dayEvents.length ? [dayEvents[leadAt], ...dayEvents.filter((_, i) => i !== leadAt)] : []).slice(0, CALENDAR_PAGE + 1);
+  resolveCovers(dayRows.map((event, i) => item('event', event, i ? undefined : { imageKey: leadImageKey(event.imageKey), lead: true })), pageContext(day, EVENTS_INDEX.images))
+    .forEach((cover, i) => push(day, '/calendar', i ? 'rows' : 'lead', 'event', dayRows[i].id, cover));
+
   // /perks (PerksView.tsx): first screen phone 4 / 4 / 4, desktop 8 / 4 / 4; then the rest.
   const perks = pageContext(day, EVENTS_INDEX.images);
   const perkRows = offerSections(liveOffers(INDEX_OFFERS, day, 'all', 'all'), day)
@@ -164,6 +175,19 @@ const share = (list: readonly Slot[]) => {
   const pct = (n: number) => list.length ? Math.round(1000 * n / list.length) / 10 : 0;
   return { slots: list.length, withImage: list.length - count.type, infoCards: count.type, imagePct: pct(list.length - count.type), tiers: count };
 };
+/** ③④ pictures shown again within ADJACENT_CARDS cards of themselves on one page and day (DECISIONS 22 同页去重). */
+const poolRepeats = (list: readonly Slot[]) => {
+  const seen = new Map<string, Slot>();
+  const repeats: string[] = [];
+  for (const slot of list) {
+    if (!slot.pool) continue;
+    const key = `${slot.day} ${slot.page} ${slot.pool}`;
+    const before = seen.get(key);
+    if (before && slot.at! - before.at! < ADJACENT_CARDS) repeats.push(`${slot.day} ${slot.page} ${slot.pool.split('/').pop()} (${before.id} → ${slot.id})`);
+    seen.set(key, slot);
+  }
+  return repeats;
+};
 const pages = [...new Set(slots.map(slot => slot.page))];
 const summary = {
   from: FROM, days: DAYS, mode: MODE,
@@ -171,6 +195,7 @@ const summary = {
     const mine = slots.filter(slot => slot.page === page);
     const sections = [...new Set(mine.map(slot => slot.section))];
     return [page, {
+      poolRepeats: poolRepeats(mine),
       all: share(mine), phoneFirstScreen: share(mine.filter(slot => slot.phone)), desktopFirstScreen: share(mine.filter(slot => slot.desktop)),
       sections: Object.fromEntries(sections.map(section => [section, share(mine.filter(slot => slot.section === section))])),
     }];
@@ -183,7 +208,7 @@ if (OUT) writeFileSync(OUT, JSON.stringify({ summary, slots, inventory }, null, 
 console.log(`Cover coverage (${MODE}) ${FROM} + ${DAYS} days`);
 for (const [page, data] of Object.entries(summary.pages)) {
   const { all, phoneFirstScreen: phone, desktopFirstScreen: desktop } = data;
-  console.log(`${page.padEnd(18)} ${String(all.imagePct).padStart(5)}% with a picture (${all.infoCards} info cards of ${all.slots}); first screen phone ${phone.imagePct}% · desktop ${desktop.imagePct}%; tiers ${TIERS.map(tier => `${tier} ${all.tiers[tier]}`).join(' · ')}`);
+  console.log(`${page.padEnd(18)} ${String(all.imagePct).padStart(5)}% with a picture (${all.infoCards} info cards of ${all.slots}); first screen phone ${phone.imagePct}% · desktop ${desktop.imagePct}%; tiers ${TIERS.map(tier => `${tier} ${all.tiers[tier]}`).join(' · ')}; ③④ repeats within ${ADJACENT_CARDS} cards: ${data.poolRepeats.length}`);
 }
 for (const [section, data] of Object.entries(summary.inventory)) console.log(`inventory ${section.padEnd(9)} ${data.imagePct}% of ${data.slots} (${data.infoCards} info cards)`);
 if (FAIL_ON_INFO && summary.infoCardsOnPages > 0) {

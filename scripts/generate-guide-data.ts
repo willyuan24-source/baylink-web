@@ -37,16 +37,14 @@ export async function buildGuideData(): Promise<GuideData> {
   } finally {
     await setLocale(previous, false);
   }
-  // UI9-IMG-A1b: a guide whose cover file another guide also uses carries a second picture, its next ③ stock picture (the
-  // first of its category's pool its cover is not), so a page that shows both (①② once per page) gives the second that
-  // picture instead of an empty frame. (Every guide carrying one cost /guides 5.5 KiB gzip: over DECISIONS 28; a guide
-  // page's 接下来 cards get theirs from distinctRelated below.)
-  const uses = new Map<string, number>();
-  for (const images of perLanguage.values()) uses.set(images['zh-Hans']!.src, (uses.get(images['zh-Hans']!.src) ?? 0) + 1);
+  // UI9-IMG-A1b: every guide carries a second picture, its next ③ stock picture (the first of its category's pool its cover
+  // is not), so a page that already shows its cover (①② once per page) or shows the same ③ picture within ADJACENT_CARDS
+  // cards gives the card that picture instead of repeating one (captain 10-22 02:50: worth the /guides +5.5 KiB gzip, within
+  // its ceiling; a guide page's 接下来 cards get theirs from distinctRelated below).
   const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => {
     const own = mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!);
     const pool = poolPerLanguage.get(slug)!;
-    const at = (uses.get(images['zh-Hans']!.src) ?? 0) > 1 ? (pool['zh-Hans'] ?? []).findIndex(image => image.src !== images['zh-Hans']!.src) : -1;
+    const at = (pool['zh-Hans'] ?? []).findIndex(image => image.src !== images['zh-Hans']!.src);
     return [slug, at < 0 ? own : { ...own, stock: mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]) }];
   }));
   const coversOf = (guide: Guide) => covers.get(guide.slug)!;

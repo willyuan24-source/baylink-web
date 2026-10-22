@@ -68,7 +68,8 @@ export function idSpot(id: string, size: number): number {
  * (a key in ai-cover-approvals.json) is ④, not ①: it goes after the category's stock pictures (UI9-IMG-A1b; the B1b
  * review found the 204 stock pictures unused and AI covers on unrelated records while it led).
  */
-export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables: CoverTables = COVER_TABLES, { stock = Infinity }: CandidateLimits = {}): string[] {
+export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables: CoverTables = COVER_TABLES, limits: CandidateLimits = {}): string[] {
+  const { stock = Infinity } = limits;
   const keys: string[] = [];
   const add = (key?: string) => { if (key && !keys.includes(key)) keys.push(key); };
   const ownIsAi = !!record.imageKey && tables.ai.some(approval => approval.key === record.imageKey);
@@ -76,7 +77,7 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   for (const venue of venuesFor(kind, record, tables.venues)) venue.imageKeys.forEach(add);
   const category = photoCategoryOf(kind, record);
   const pool = category ? tables.categories[category] ?? [] : [];
-  const start = idSpot(record.id, pool.length);
+  const start = (limits.start ?? idSpot(record.id, pool.length)) % (pool.length || 1);
   // A pool picture whose files miss the 800 w / 1200 w size targets goes after the others (B1b review: stock-halloween-5).
   const rotated = pool.map((_, i) => pool[(start + i) % pool.length]);
   const ordered = [...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))];
@@ -95,8 +96,56 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
  * venue's ②, ROUTE_STOCK ③ pictures (rotated by id) and ④ only when its category has no ③. The home catalog keeps the
  * whole pool (owner, DECISIONS 29: the look before bytes on the home), and so does report:covers' projection.
  */
-export type CandidateLimits = { stock?: number };
+export type CandidateLimits = {
+  stock?: number;
+  /** Where the record starts its category's pool (default: a spot fixed by its id); categorySpots deals the spots out. */
+  start?: number;
+};
 export const ROUTE_STOCK = 2;
+/**
+ * A dense category's records carry one more ③ picture (captain 10-22 02:50): halloween fills whole days on /events and
+ * /calendar, and birthday perks and library cards fill the 免费与优惠 board; with two candidates each a card often had
+ * nothing left but a picture shown a few cards earlier (DECISIONS 22 同页去重).
+ */
+export const DENSE_STOCK = 3;
+
+/**
+ * The photo categories with more than `factor` records per ③ picture in a list (UI9-IMG-A1b): their records ship
+ * DENSE_STOCK candidates instead of ROUTE_STOCK.
+ */
+export function denseCategories(kind: CoverKind, records: readonly CandidateRecord[], tables: CoverTables = COVER_TABLES, factor = 1): Set<PhotoCategoryId> {
+  const counts = new Map<PhotoCategoryId, number>();
+  for (const record of records) {
+    const category = photoCategoryOf(kind, record as Record<string, unknown>);
+    if (category) counts.set(category, (counts.get(category) ?? 0) + 1);
+  }
+  return new Set([...counts].filter(([category, count]) => count > factor * (tables.categories[category]?.length ?? Infinity)).map(([category]) => category));
+}
+
+/**
+ * Each record's start in its category's pool, dealt out in list order (UI9-IMG-A1b): the n-th storytime of a list starts at
+ * picture n, so records of one category that a page shows side by side lead with different pictures. (A start fixed by the
+ * id alone gave two neighbours the same pictures: the 同页去重 repeats report:covers counts.)
+ */
+export function categorySpots(kind: CoverKind, records: readonly CandidateRecord[]): Map<string, number> {
+  const dealt = new Map<PhotoCategoryId, number>();
+  const spots = new Map<string, number>();
+  for (const record of records) {
+    const category = photoCategoryOf(kind, record as Record<string, unknown>);
+    if (!category) continue;
+    const n = dealt.get(category) ?? 0;
+    dealt.set(category, n + 1);
+    spots.set(record.id, n);
+  }
+  return spots;
+}
+
+/** The route cap for one record: DENSE_STOCK in a dense category, else ROUTE_STOCK; its start from categorySpots. */
+export const routeStock = (kind: CoverKind, record: CandidateRecord, dense: ReadonlySet<PhotoCategoryId>, spots?: ReadonlyMap<string, number>): CandidateLimits => {
+  const category = photoCategoryOf(kind, record as Record<string, unknown>);
+  const start = spots?.get(record.id);
+  return { stock: category && dense.has(category) ? DENSE_STOCK : ROUTE_STOCK, ...(start !== undefined ? { start } : {}) };
+};
 
 /**
  * What a catalog generator writes for a record's pictures (UI9-IMG-A1a): `imageKey` when its own image is one the catalog
