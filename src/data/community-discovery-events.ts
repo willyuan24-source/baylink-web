@@ -9,7 +9,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     "title": "San José 儿童博物馆中秋节：舞狮与灯笼",
     "startDate": "2026-09-26",
     "endDate": "2026-09-26",
-    "dateLabel": "9 月 26 日 · 特别节目 10:00–14:00",
+    "dateLabel": "9/26 · 特别节目 10:00–14:00",
     "region": "south-bay",
     "city": "San Jose",
     "venue": "Children’s Discovery Museum · 180 Woz Way",

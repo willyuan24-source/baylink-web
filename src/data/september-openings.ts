@@ -37,7 +37,7 @@ export const septemberOpenings: SeptemberOpening[] = [
   {
     id: 'boulangerie-eria-celebration', name: 'La Boulangerie at ERIA Marina', city: 'San Francisco', region: 'sf',
     category: '咖啡烘焙', status: 'open', openingType: 'opening-celebration',
-    dateLabel: '已营业 · 9 月 12 日庆典已结束',
+    dateLabel: '已营业 · 9/12 庆典已结束',
     summary: '商家官网确认 ERIA Marina 门店已营业，目前列出每日 7:00–14:30，周末供应 brunch。9 月 12 日开业庆典已结束，首日营业日期未核实。',
     editorTip: '适合 Marina 街区散步时顺路喝咖啡；出发前看商家营业页面，历史庆典不代表仍有开业优惠。',
     address: '2300 Chestnut Street, San Francisco, CA 94123',
