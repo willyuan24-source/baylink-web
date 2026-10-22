@@ -58,11 +58,11 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 /* The bar's call: [📞 拨打 number]. The number never breaks, shortens or clips. Where the primary is narrow the verb goes first
    and the 20 px phone glyph stays (DETAIL's 9.5em step would hide it, so the guide's call keeps it); the glyph goes only where
    glyph + number do not fit. Steps in em of the button's own size (content box): a 12-character number needs 10.9em with the
-   verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads BayBay beside the otter on
-   a phone and in the desktop rail (critic, DETAIL's short label), and the send cell reads 发家人 / Family in the rail too (DETAIL's
-   desktop 发给家人 / "Send to family" breaks out of the rail's 72–85 px cell at 特大 and in English), so every cell keeps its
-   icon and label inside. On a phone from 360 px the guide's cells and the bar keep 4 / 8 px side paddings (DETAIL: 8 / 8–12 px),
-   which gives the call the ~10 px that [📞 拨打 800-510-2020] needs at 390 px; a 1-800 number keeps [📞 number] there. */
+   verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads 问 BayBay (below), and the
+   send cell reads 发家人 / Family in the rail too (DETAIL's desktop 发给家人 / "Send to family" breaks out of the rail's 72–85 px
+   cell at 特大 and in English), so every cell keeps its icon and label inside. On a phone from 360 px the guide's cells and the
+   bar keep 4 / 8 px side paddings (DETAIL: 8 / 8–12 px), which gives the call the ~10 px that [📞 拨打 800-510-2020] needs at
+   390 px; a 1-800 number keeps [📞 number] there. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-bar.site-detail-actions.detail-actions .gd-bar__call.detail-actions__primary { gap:var(--sp-1); padding-inline:var(--sp-2); }
 .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:inline-block; flex:none; width:1.25rem; height:1.25rem; }
@@ -92,9 +92,11 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 @media (min-width:390px) and (max-width:1023px) {
   html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
   html:lang(en):not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; line-height:1; }
-  /* 家人版 (特大 + 简洁): the bar drops its side padding, the cells theirs (48 px wide at least) and the primary keeps 4 px, so a
-     1-800 number keeps one line at 23 px. */
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:0; }
+  /* 家人版 (特大 + 简洁): the cells drop their side padding (48 px wide at least) and the primary keeps 4 px; the bar keeps 4 px
+     sides, so the call's tile stays off the screen's edge. A 1-800 number (data-long, 192 px at 22.5 px) needs those 8 px to
+     keep one line beside three labelled cells, so that bar alone runs to the edges. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) { padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { min-width:48px; padding-inline:0; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { padding-inline:var(--sp-1); }
 }
@@ -116,9 +118,15 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
   .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
   .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
 }
-/* The rail card (desktop): the three cells keep 4 px side paddings, so 问 BayBay keeps one line at 标准 / 简洁. */
+/* The rail card (desktop): three bordered cells with 4 px paddings and one height. 问 BayBay keeps one line at 标准 in Chinese;
+   in English (Ask / BayBay in the 79 px cell at 1440) and at 大 / 特大 / 简洁 (above) it takes two lines. The cells grow to hold
+   the otter and both lines inside their borders (no fixed 56 px), and the row stretches 收藏 (its cell and save control are
+   grids, so the ♡ button fills them) and 发家人 to the same box, so the three borders line up. */
 @media (min-width:1024px) {
-  .gd-rail .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar { align-items:stretch; }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],.gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding:var(--sp-1); line-height:var(--lh-tight); }
+  .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { white-space:normal; text-align:center; }
 }
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-actions__status:empty { display:none; }
@@ -133,19 +141,20 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
    brand-deep (the cover). */
 .gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }
 .gd-slide--cover { border-color:transparent; background:var(--color-brand-deep); color:var(--color-surface); }
-/* J3 P20: the topic mark is a corner decoration in a safe zone — the card's bottom-right corner, cropped by it — and the lines
-   at the bottom of the cover (the answer when it is last, the line and the source) keep out of that zone, so it never sits
-   under text, in any mode or language. One icon stroke (N13): 1.75 like every site icon (the component passes 1.25); quieter
-   at 特大, where the text is larger. */
+/* J3 P20: the topic mark is a corner decoration in a safe zone — the card's bottom-right corner, cropped by it — and the text
+   that can reach that zone keeps out of it: the source line at the bottom and an answer right above it (no summary line). The
+   summary line sits above the source, clear of the zone, and keeps the slide's full width (a 24cqw inset there left 医保 on a
+   line of its own and started an English line with "·"). The lane probe counts 0 text boxes under the mark in every mode and
+   language. One icon stroke (N13): 1.75 like every site icon (the component passes 1.25); quieter at 特大, where the text is
+   larger. */
 .gd-slide__mark { position:absolute; right:-6cqw; bottom:-6cqw; width:30cqw; height:30cqw; color:var(--color-surface); opacity:.12; stroke-width:1.75; pointer-events:none; clip-path:inset(0 6cqw 6cqw 0 round 0 0 var(--r-lg) 0); }
 /* 特大: a smaller corner zone (14cqw visible, beside the one-line source), so the larger lines above keep their width. */
 html[data-reading=extra-large] .gd-slide__mark { right:-4cqw; bottom:-4cqw; width:18cqw; height:18cqw; opacity:.07; clip-path:inset(0 4cqw 4cqw 0 round 0 0 var(--r-lg) 0); }
 .gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
-.gd-slide--cover :is(.gd-slide__line,.gd-slide__source) { padding-right:24cqw; }
-.gd-slide--cover .gd-answer:nth-last-child(2) { max-width:calc(100% - 24cqw); }
-html[data-reading=extra-large] .gd-slide--cover .gd-slide__line { padding-right:0; }
+.gd-slide--cover .gd-slide__source { padding-right:24cqw; }
+.gd-slide--cover .gd-answer:has(+.gd-slide__source) { max-width:calc(100% - 24cqw); }
 html[data-reading=extra-large] .gd-slide--cover .gd-slide__source { padding-right:16cqw; }
-html[data-reading=extra-large] .gd-slide--cover .gd-answer:nth-last-child(2) { max-width:calc(100% - 16cqw); }
+html[data-reading=extra-large] .gd-slide--cover .gd-answer:has(+.gd-slide__source) { max-width:calc(100% - 16cqw); }
 .gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2); }
 .gd-slide__kicker { color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
@@ -506,12 +515,14 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-to-top[hidden] { display:none; }
 .gd-to-top>svg { width:1.5rem; height:1.5rem; }
 .gd-to-top:active { scale:.94; }
-/* N18: at 特大 and in 简洁显示 a phone or tablet pins only the head and the bar (≤ 20% of the screen), so 回到顶部 is not a third
-   pinned layer there: it is a labelled button at the end of the page (its name, shown), always present. */
+/* N18: at 大 / 特大 and in 简洁显示 a phone or tablet pins only the head and the bar (≤ 20% of the screen), so 回到顶部 is not a
+   third pinned layer there: it is a labelled button at the end of the page (its name, shown), always present. Its display
+   outranks the button's hidden attribute on purpose: GuideToTop still sets hidden until the reader is two screens down, which
+   only the floating button (标准, desktop) follows. */
 @media (max-width:1023px) {
-  :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top { position:static; display:flex; align-items:center; justify-content:center; gap:var(--sp-2); width:auto; height:auto; min-height:3rem; margin:0 var(--page-gutter) var(--sp-6); padding:0 var(--sp-4); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); }
-  :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after { content:attr(aria-label); }
-  :is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top>svg { width:1.25rem; height:1.25rem; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top { position:static; display:flex; align-items:center; justify-content:center; gap:var(--sp-2); width:auto; height:auto; min-height:3rem; margin:0 var(--page-gutter) var(--sp-6); padding:0 var(--sp-4); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after { content:attr(aria-label); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top>svg { width:1.25rem; height:1.25rem; }
 }
 
 :is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-related__head a,.gd-related__topic a,.gd-credits a,.gd-about a,.gd-toc__list a,.gd-rail__sources,.gd-to-top,.gd-carousel__all,.gd-credit a,.gd-diagram__tel,.gd-keyfacts__sources):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
@@ -583,9 +594,10 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead__side>.gd-keyfacts { margin-bottom:calc(3rem + var(--sp-2)); }
 }
 /* J3 P16: a tablet reads a pilot's lead in two columns (slide | 30 秒看懂) instead of one 700 × 930 slide that was a third empty;
-   the slide keeps the phone's cap (3:4 up to 22.5rem tall, gd-slide). */
+   the slide keeps the phone's cap (3:4 up to 22.5rem tall, gd-slide). 特大 keeps one column: it lists the cover alone (no 3:4
+   slide) above 看全部, which beside a long 30 秒看懂 left most of the left column empty, as on a desktop (J1 P23). */
 @media (min-width:768px) and (max-width:1023px) {
-  html:not([data-simple]) .gd-page[data-pilot] .gd-lead[data-visual] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--sp-5); align-items:start; }
+  html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead[data-visual] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--sp-5); align-items:start; }
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
   html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-carousel .ui-carousel__slide { flex-basis:100%; }
 }

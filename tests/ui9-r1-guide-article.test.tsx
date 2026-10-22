@@ -115,9 +115,30 @@ test('N18 / N25 / J2 P14: one-row bar from 390 px in every mode, primary last, �
   const twoLines = 'html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long]';
   assert.equal(value(twoLines, 'white-space', '(min-width:390px)'), 'normal', '大 / 特大 / 简洁: 问 / BayBay on two lines');
   assert.match(value('html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar)', '--site-mobile-nav-height', '(min-width:390px) and (max-width:1023px)') ?? '', /var\(--fs-meta\) \* 2\.6/);
-  // 回到顶部 is not a third pinned layer at 特大 / 简洁 below a desktop.
-  assert.equal(value(':is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top', 'position', '(max-width:1023px)'), 'static');
-  assert.equal(value(':is(html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top::after', 'content', '(max-width:1023px)'), 'attr(aria-label)');
+  // 回到顶部 is not a third pinned layer at 大 / 特大 / 简洁 below a desktop.
+  const toTop = ':is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-page .gd-to-top';
+  assert.equal(value(toTop, 'position', '(max-width:1023px)'), 'static');
+  assert.equal(value(`${toTop}::after`, 'content', '(max-width:1023px)'), 'attr(aria-label)');
+  // 家人版 keeps 4 px bar sides; only a 1-800 call (data-long) takes them for its number.
+  const family = 'html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar';
+  assert.equal(value(family, 'padding-inline', '(min-width:390px) and (max-width:1023px)'), 'var(--sp-1)');
+  assert.equal(value(`${family}:has(.gd-bar__call[data-long])`, 'padding-inline', '(min-width:390px) and (max-width:1023px)'), '0');
+});
+
+test('Desktop rail: the three cells share one height and hold Ask / BayBay (English) or 问 / BayBay (elder modes) inside', () => {
+  const rail = '.gd-rail .site-detail-actions.detail-actions.gd-bar';
+  const desk = '(min-width:1024px)';
+  assert.equal(value(rail, 'align-items', desk), 'stretch', 'the cell row stretches every cell to the tallest');
+  const cells = `${rail} :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)`;
+  assert.equal(value(cells, 'height', desk), 'auto', 'no fixed 56 px box in the rail');
+  assert.equal(value(cells, 'min-height', desk), '56px');
+  assert.equal(value(cells, 'line-height', desk), 'var(--lh-tight)');
+  assert.equal(value(`${rail}>.detail-actions__cell[data-cell=save]>.saves-control`, 'display', desk), 'grid', 'the ♡ button fills its stretched cell');
+  assert.equal(value(`${rail} .detail-actions__cell[data-cell=ask] [data-label=long]`, 'white-space', desk), 'normal', 'Ask BayBay may wrap inside the cell');
+  // The rail is the only place outside the elder modes and English phones where the cells give up DETAIL's fixed height.
+  const heightAuto: string[] = [];
+  article.walkDecls('height', d => { if (d.value === 'auto' && /detail-actions__cell/.test((d.parent as Rule).selector)) heightAuto.push(`${(d.parent!.parent as AtRule).params}`); });
+  assert.deepEqual(heightAuto.sort(), ['(min-width:1024px)', '(min-width:390px)']);
 });
 
 test('J2 P19 / J3 P20 / J2 P15: controls under the slide, the motif in its corner zone, larger source marks', () => {
@@ -125,7 +146,11 @@ test('J2 P19 / J3 P20 / J2 P15: controls under the slide, the motif in its corne
   assert.doesNotMatch(articleCss, /6\.75rem/, 'no slide padding reserved for controls');
   assert.equal(value('.gd-slide__mark', 'stroke-width'), '1.75');
   assert.equal(value('.gd-slide__mark', 'bottom'), '-6cqw');
-  assert.equal(value('.gd-slide--cover :is(.gd-slide__line,.gd-slide__source)', 'padding-right'), '24cqw');
+  // The safe zone is kept by the source and an answer right above it; the summary line keeps its width (no orphan 医保).
+  assert.equal(value('.gd-slide--cover .gd-slide__source', 'padding-right'), '24cqw');
+  assert.equal(value('.gd-slide--cover .gd-answer:has(+.gd-slide__source)', 'max-width'), 'calc(100% - 24cqw)');
+  article.walkRules(rule => { if (/gd-slide__line/.test(rule.selector)) rule.walkDecls(/^padding/, d => assert.fail(`summary line inset: ${rule.selector} ${d.prop}:${d.value}`)); });
+  assert.doesNotMatch(articleCss, /nth-last-child\(2\)/, 'no rule assumes the source is the last child');
   assert.equal(value('html[data-reading=extra-large] .gd-slide__mark', 'opacity'), '.07');
   assert.equal(value('.gd-source-mark', 'font-size'), 'var(--fs-card)');
   assert.equal(value('.gd-source-mark', 'vertical-align'), 'baseline');
@@ -151,7 +176,9 @@ test('N23: the slide numbers and the article links change on hover (pointer devi
 
 test('J1 P23 / J3 P16 / J1 P26: lead heights on a desktop, two columns on a tablet, one county list under 400 px', () => {
   assert.equal(value('html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead__side>.gd-keyfacts', 'margin-bottom', '(min-width:1024px)'), 'calc(3rem + var(--sp-2))');
-  assert.equal(value('html:not([data-simple]) .gd-page[data-pilot] .gd-lead[data-visual]', 'grid-template-columns', '(min-width:768px) and (max-width:1023px)'), 'repeat(2, minmax(0, 1fr))');
+  // 特大 keeps one column on a tablet (it lists the cover alone).
+  assert.equal(value('html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead[data-visual]', 'grid-template-columns', '(min-width:768px) and (max-width:1023px)'), 'repeat(2, minmax(0, 1fr))');
+  assert.equal(value('html:not([data-simple]) .gd-page[data-pilot] .gd-lead[data-visual]', 'grid-template-columns', '(min-width:768px) and (max-width:1023px)'), undefined);
   assert.equal(value('.gd-diagram__map', 'grid-template-columns', '(max-width:399px)'), 'minmax(0, 1fr)');
   assert.equal(value('html:not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number', 'font-size'), 'var(--fs-body)');
 });
