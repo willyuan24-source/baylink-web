@@ -287,7 +287,7 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon]:active { scale:.94; }
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon][data-done] { background:var(--selected-bg); color:var(--selected-fg); }
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon][data-done]>svg { color:currentColor; }
-@media (hover:hover) and (pointer:fine) { .ev-calendar .ev-add-day .saves-add-day[data-variant=icon]:not(:disabled,[data-done]):hover { background:var(--color-surface); box-shadow:inset 0 0 0 1px var(--color-line-control); } }
+@media (hover:hover) and (pointer:fine) { .ev-calendar .ev-add-day .saves-add-day[data-variant=icon]:not(:disabled,[data-done]):hover { background:var(--color-surface); border-color:var(--color-line-control); } }
 @media (max-width:767px) {
   .ev-calendar .ev-add-day .saves-add-day[data-variant=icon] { width:var(--control-height); height:var(--control-height); padding:0; border-radius:var(--r-circle); background:var(--color-surface); }
   .ev-calendar .ev-add-day .saves-add-day__word { display:none; }
