@@ -1,0 +1,16 @@
+/* UI9-R1-OVERLAYS: the picture, enlarged (GuideImageLightbox; N10 / N13 / N24). A surface panel over the site's one scrim,
+   no blur, as wide as the picture at its largest height (--guide-image-ratio, width / height), so a tall photo is not
+   matted in a wide card; F's close button in the picture's corner. Its motion is the dialogs' (GuideVisuals.tsx:
+   animate-in / animate-out). Loaded with GuideVisuals.tsx, not with the global sheet every page waits for. */
+.guide-image-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-5); background:var(--scrim); overflow:auto; }
+.guide-image-dialog { --guide-image-max:calc(100dvh - 12.5rem); position:relative; width:min(100%, max(20rem, min(67.5rem, calc(var(--guide-image-max) * var(--guide-image-ratio, 1.5) + 1.5rem)))); max-height:100%; padding:var(--sp-3); overflow:auto; border-radius:var(--r-xl); background:var(--color-surface); box-shadow:var(--e2); }
+.guide-image-close { position:absolute; top:var(--sp-5); right:var(--sp-5); z-index:1; }
+.guide-image-dialog figure { margin:0; }
+.guide-image-dialog figure > img { display:block; width:auto; max-width:100%; height:auto; max-height:var(--guide-image-max); margin-inline:auto; border-radius:var(--r-lg); }
+.guide-image-dialog .guide-image-caption { padding:var(--sp-3) var(--sp-1) var(--sp-1); }
+.guide-image-dialog a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
+@media(max-width:639px) {
+  .guide-image-overlay { padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 14px); }
+  .guide-image-dialog { --guide-image-max:calc(100dvh - 15rem); padding:var(--sp-2); }
+  .guide-image-close { top:var(--sp-4); right:var(--sp-4); }
+}

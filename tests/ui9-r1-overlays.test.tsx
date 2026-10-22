@@ -109,7 +109,7 @@ test('SaveToast is the one Toast: its look, its close button, its exit; the anno
 });
 
 test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corners and --dur-* motion', () => {
-  for (const file of ['src/components/guide-visuals.css', 'src/components/site-dialogs.css', 'src/features/feedback/feedback.css', 'src/styles/event-import.css']) {
+  for (const file of ['src/components/guide-visuals.css', 'src/components/guide-lightbox.css', 'src/components/site-dialogs.css', 'src/features/feedback/feedback.css', 'src/styles/event-import.css']) {
     const css = read(file);
     assert.doesNotMatch(css, /backdrop-filter/, `${file}: no blur behind an overlay`);
     assert.doesNotMatch(css, /color-scrim-rgb\) \/ \.9|rgb\(22 46 41|rgb\(13 32 27/, `${file}: no off-token scrim`);

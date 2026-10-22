@@ -6,6 +6,7 @@ import { ModalShell, useClosing } from './ui/Modal';
 import { useUiCopy } from './ui/ui-copy';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
+import './guide-lightbox.css';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
