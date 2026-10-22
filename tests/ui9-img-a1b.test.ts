@@ -91,8 +91,8 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a ro
   assert.match(library, /\.gl-all-cell \{ display:none; \}/);
   // UI9-R1 follow-up 10: the cell is one column wide (a link tile as tall as the 3:2 pictures), not a white box over the rest of the row.
   assert.match(library, /html:not\(\[data-reading\$=large\]\) \.gl-all-cell \{ display:flex; \}/);
-  assert.match(library, /\.gl-all-cell>\.ui-button\[data-variant\] \{[^}]*aspect-ratio:3 \/ 2;[^}]*background:var\(--color-surface-2\);/);
-  assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /<li className="gl-all-cell"><Button variant="quiet" block/);
+  assert.match(library, /\.gl-all-cell>\.ui-button \{[^}]*aspect-ratio:3 \/ 2;[^}]*border-radius:var\(--r-lg\); \}/);
+  assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /<li className="gl-all-cell"><Button variant="secondary" block/);
   const home = readFileSync('src/components/home-discovery.css', 'utf8');
   assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 2 \/ 2; top:var\(--sp-1\); right:var\(--sp-1\); \}/, 'home 大 / 特大 rows: ♡ on the thumbnail');
   assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');

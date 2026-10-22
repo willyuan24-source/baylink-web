@@ -53,7 +53,7 @@
 /* Follow-up 7 (DECISIONS 23): a row thumbnail's ③④ label is the shared chip ON the picture, bottom-left, as on the cards —
    not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. The 3D postcards'
    badge is left as it is (DECISIONS 1). */
-.gl-page .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:2px var(--sp-1); border-radius:var(--r-sm); text-align:start; }
+.gl-page .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); border-radius:var(--r-sm); text-align:start; }
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
 /* A short topic row ends on its 看全部 cell over the rest of the row from 1024 px (captain 10-21 18:30: no empty cells). */
@@ -147,9 +147,10 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   .gl-page .gl-band .ui-row-card { height:100%; box-sizing:border-box; }
 }
 @media (min-width:1024px) {
-  /* Follow-up 10: one column, as tall as the 3:2 pictures beside it, on the band's sunken tint — a link tile, not an empty frame. */
+  /* Follow-up 10: one column (not the rest of the row), as tall as the 3:2 pictures beside it — a link tile the size of a
+     picture in the secondary button look, not a two-column white frame. */
   html:not([data-reading$=large]) .gl-all-cell { display:flex; }
-  .gl-page .gl-all-cell>.ui-button[data-variant] { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border:0; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand); }
+  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border-radius:var(--r-lg); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
   /* N16 (UI9-R1): the 长辈与家属先看 band on the feeds' four columns — its heading, line and 看全部 in column 1, the three rows in
      columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the

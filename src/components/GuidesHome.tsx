@@ -196,7 +196,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   // draws it from 1024 px only, one column wide and as tall as the pictures beside it (follow-up 10: a two-column white box
   // read as an empty frame).
   const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
-    ? <li className="gl-all-cell"><Button variant="quiet" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
+    ? <li className="gl-all-cell"><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
   const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
     ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
     : <>
