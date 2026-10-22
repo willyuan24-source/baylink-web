@@ -83,7 +83,7 @@
 /* ♡ on a row (RowCard `save`): the cards' circle on the thumbnail's top-right corner (UI9-IMAGES: ♡ top-right of the
    picture), 36px so it leaves most of an 88px picture in view (the captain's /events row size), its hit area still 44px. */
 .ui-row-card__save { grid-area:thumb; align-self:start; justify-self:end; position:relative; z-index:3; margin:var(--sp-1); line-height:0; }
-.ui-row-card__save .ui-save { width:2.25rem; height:2.25rem; }
+.ui-row-card__save .ui-save { width:2.25rem; height:2.25rem; min-height:0; }
 .ui-row-card__save .ui-save::before { inset:-4px; }
 .ui-row-card__save .ui-save>svg { width:1.125rem; height:1.125rem; }
 /* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved). */
