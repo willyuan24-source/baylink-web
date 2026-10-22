@@ -127,7 +127,7 @@ test('H06: an empty 长辈友好 list offers the 长辈与家属 guides and BayB
   assert.ok(empty.getByRole('button', { name: '清除筛选' }));
 });
 
-test('H02: list headers state when their items were checked — most of them, and the latest — never the edition date', () => {
+test('H02: the check summary reads most and latest dates, never the edition date; the events head states no check date (AFTER-A1)', () => {
   assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28', all: false });
   assert.equal(checkSummary([], '2026-10-13'), null);
   const zh = (text: string) => text;

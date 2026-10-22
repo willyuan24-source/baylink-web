@@ -72,6 +72,10 @@ test('加入这天计划 on every listed event of an upcoming day saves into tha
   assert.deepEqual(plan.stops, [{ kind: 'event', id: listed[0] }]);
   assert.match(view.getByTestId('save-toast').textContent!, /已加入 10\/17 计划/);
   assert.equal(within(view.getByTestId('save-toast')).getByRole('link', { name: '查看' }).getAttribute('href'), '/my-week#plan-2026-10-17');
+  // The icon variant once added: the check on the selected fill (data-done), the word 已加入, a name that says the day.
+  assert.equal(adds[0].getAttribute('data-done'), '');
+  assert.equal(adds[0].querySelector('.saves-add-day__word')!.textContent, '已加入');
+  assert.match(adds[0].getAttribute('aria-label')!, /^已加入 10\/17 计划：/);
   cleanup();
   const past = await open('?date=2026-10-08');
   assert.ok(rowIds(past).length > 0, 'the past day lists events');

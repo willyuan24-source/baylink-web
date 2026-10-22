@@ -84,7 +84,7 @@ test('a press-sourced item says so on its own card, never in the head (DECISIONS
   }
 });
 
-test('zh-Hant and English: one short line with the same shape; English keeps a capital and its dates whole behind the link', async () => {
+test('zh-Hant and English: one short line with the same shape; English keeps its capital and nothing sits behind the link', async () => {
   try {
     await act(async () => { await setLocale('zh-Hant', false); });
     for (const location of views) {

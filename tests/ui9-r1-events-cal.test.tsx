@@ -68,6 +68,17 @@ test('the calendar\'s 加入这天计划 is the compact icon on every listed eve
   assert.doesNotMatch(css, /\.ev-calendar \.ev-add-day \.saves-add-day \{/, 'the old outline-pill override is gone');
 });
 
+test('the icon variant in English: the word Add starts its name "Add to this day’s plan: …"', async () => {
+  try {
+    await act(async () => { await setLocale('en', false); });
+    const view = render(<MemoryRouter><AddToDayPlan stop={{ kind: 'event', id: 'x' }} date={today} title="Test" variant="icon" /></MemoryRouter>);
+    await waitFor(() => assert.ok(!view.getByRole('button', { name: 'Add to this day’s plan: Test' }).hasAttribute('disabled')));
+    const button = view.getByRole('button', { name: 'Add to this day’s plan: Test' });
+    assert.equal(button.getAttribute('data-variant'), 'icon');
+    assert.equal(button.querySelector('.saves-add-day__word')!.textContent, 'Add');
+  } finally { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); }
+});
+
 test('the default 加入这天计划 (detail bar, My Week) is unchanged: full words, no variant', () => {
   const view = render(<MemoryRouter><AddToDayPlan stop={{ kind: 'event', id: 'x' }} date={today} title="Test" compact /></MemoryRouter>);
   const button = view.getByRole('button', { name: /^加入这天计划：Test$/ });
@@ -102,10 +113,15 @@ test('first screen (N18): a standard phone pairs the lead with the next event; �
   assert.equal(cards.length, 2);
   const pairRow = view.container.querySelector('.ev-calendar__pair-row a.ui-card-link')!.getAttribute('href')!.split('?')[0];
   assert.equal(pairRow, cards[1], 'the second card repeats the next event, whose row follows (CSS shows one of the two)');
+  // CalendarView marks the pair, so a browser without :has() still shows each event once (review round 2).
+  assert.ok(lead.classList.contains('ev-calendar__lead--pair'));
   // events.css: the 2-up row on phones (4:3, as the /events picks), the pair's row hidden there; the second card hidden from 768.
-  assert.match(css, /\.ev-calendar__lead \.ui-feed-grid:has\(>li\+li\) \{ --ui-feed-cols:2; --ui-feed-ratio:4 \/ 3;/);
-  assert.match(css, /\.ev-calendar__lead:has\(\.ui-feed-grid>li\+li\)~\.ev-calendar__pair-row \{ display:none; \}/);
+  assert.match(css, /\.ev-calendar__lead--pair \.ui-feed-grid\[data-single\] \{ --ui-feed-cols:2; --ui-feed-ratio:4 \/ 3;/);
+  assert.match(css, /@media \(max-width:767px\) \{[^@]*\n {2}\.ev-calendar__pair-row \{ display:none; \}/);
   assert.match(css, /\.ev-calendar__lead \.ui-feed-grid>li\+li \{ display:none; \}/);
+  assert.doesNotMatch(css, /ev-calendar__lead[^{]*:has\(/, 'no pair rule depends on :has()');
+  // The 2-up title sets its size only: whether it wraps or clamps is cards.css's (D1).
+  assert.doesNotMatch(rule('.ev-calendar__lead--pair .ui-feed-grid[data-single] .ui-feed-card__title'), /display|overflow/);
   cleanup();
   for (const [key, value, attr] of [[READING_SIZE_KEY, 'extra-large', 'data-reading'], [SIMPLE_DISPLAY_KEY, '1', 'data-simple']] as const) {
     localStorage.setItem(key, value);
@@ -120,6 +136,35 @@ test('first screen (N18): a standard phone pairs the lead with the next event; �
   }
   // At 大 / 特大 on a phone the city rail (全部 · 更多城市 there) shows only while a city is chosen.
   assert.match(css, /html:is\(\[data-reading=large\],\[data-reading=extra-large\]\) \.ev-cities:not\(:has\(\.ev-cities__top\[aria-pressed=true\]\)\) \{ display:none; \}/);
+});
+
+test('the week range names the cities it holds; its second line says so at 大 / 特大 on a phone, where the rail steps aside', () => {
+  const view = calendar();
+  const range = view.container.querySelector('.ev-week__range')!;
+  assert.match(range.getAttribute('aria-label')!, /，选日期、地区和城市：整个湾区$/);
+  // The visible hint is the sheet's title, inside the name (WCAG 2.5.3); events.css shows it only at 大 / 特大 on a phone.
+  assert.equal(range.querySelector('.ev-week__hint')!.textContent, '选日期、地区和城市');
+  assert.match(css, /\.ev-week__hint \{ display:none; \}/);
+  assert.match(css, /html:is\(\[data-reading=large\],\[data-reading=extra-large\]\) \.ev-week__hint \{ display:block;/);
+});
+
+test('the day head on narrow phones: the count takes its own line below 390 px (English) and 360 px, never under the toggle', () => {
+  assert.match(css, /@media \(max-width:389px\) \{\n {2}\.ev-calendar__count:lang\(en\) \{ display:block; \}\n {2}\.ev-calendar__sep:lang\(en\) \{ display:none; \}/);
+  assert.match(css, /@media \(max-width:359px\) \{\n {2}\.ev-calendar__count \{ display:block; \}\n {2}\.ev-calendar__sep \{ display:none; \}/);
+});
+
+test('English at 大 / 特大 / 简洁: the date scopes read Weekend · Next 7 · All, so they keep one row (N18)', async () => {
+  try {
+    await act(async () => { await setLocale('en', false); });
+    const standard = render(<MemoryRouter initialEntries={['/en/events?when=next7']}><EventsView today={today} /></MemoryRouter>);
+    assert.deepEqual([...standard.container.querySelectorAll('.ev-rail__dates [role=radio]')].map(item => item.textContent), ['This weekend', 'Next 7 days', 'All dates']);
+    cleanup();
+    localStorage.setItem(READING_SIZE_KEY, 'extra-large');
+    document.documentElement.setAttribute('data-reading', 'extra-large');
+    const xl = render(<MemoryRouter initialEntries={['/en/events?when=next7']}><EventsView today={today} /></MemoryRouter>);
+    assert.deepEqual([...xl.container.querySelectorAll('.ev-rail__dates [role=radio]')].map(item => item.textContent), ['Weekend', 'Next 7', 'All']);
+    assert.equal(xl.getByRole('radio', { name: 'Next 7' }).getAttribute('aria-checked'), 'true');
+  } finally { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); }
 });
 
 test('rhythm (N15): the week strip ends a section gap above the day head; no two-line facts reserve; end links 44 px wide (N25)', () => {
@@ -141,6 +186,9 @@ test('an empty result is not followed by 出行提醒 (J3 P27); 简洁显示 lea
   const empty = render(<MemoryRouter initialEntries={['/events?when=all&q=zqxjvw']}><EventsView today={today} /></MemoryRouter>);
   assert.ok(empty.getByRole('heading', { name: /没有找到「zqxjvw」/ }));
   assert.equal(empty.container.querySelector('.ev-alerts'), null);
+  // From 768 px the empty list keeps 60vh, so the footer stays below the fold as the result arrives (desktop CLS 0.2 → 0).
+  assert.equal(empty.container.querySelector('.ev-list')!.getAttribute('data-empty'), '');
+  assert.match(css, /@media \(min-width:768px\) \{ \.ev-list\[data-empty\] \{ min-height:60vh; \} \}/);
   cleanup();
   const full = render(<MemoryRouter initialEntries={['/events']}><EventsView today={today} /></MemoryRouter>);
   const alerts = full.container.querySelector('.ev-alerts');
