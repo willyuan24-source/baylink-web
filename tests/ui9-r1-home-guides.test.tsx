@@ -79,7 +79,7 @@ test('follow-ups 1, 4, 7, 10: guide bar cells, the desktop cover, row labels on 
   // 4: the stretched desktop cover reads top-down; the spare height goes above the source line.
   assert.match(ARTICLE_CSS, /\.gd-page\[data-pilot\] \.gd-slide--cover \.gd-slide__question \{ margin-top:var\(--sp-6\); \}/);
   // 7: a row thumbnail's label is the chip on the picture (bottom-left), not a full-width strip.
-  assert.match(LIBRARY_CSS, /\.gl-page \.ui-row-card__thumb \.ui-provenance\[data-chip\] \{ right:auto; bottom:var\(--sp-1\); left:var\(--sp-1\);[^}]*border-radius:var\(--r-sm\);/);
+  assert.match(LIBRARY_CSS, /\.gl-page \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{ right:auto; bottom:var\(--sp-1\); left:var\(--sp-1\);[^}]*border-radius:var\(--r-sm\);/);
   // 10: no --gl-rest span: the cell is one column.
   assert.doesNotMatch(read('src/components/GuidesHome.tsx'), /--gl-rest|--gl-ratio/);
   assert.doesNotMatch(LIBRARY_CSS, /--gl-rest|--gl-ratio/);

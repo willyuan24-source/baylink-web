@@ -51,8 +51,9 @@
 .gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); }
 .gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
 /* Follow-up 7 (DECISIONS 23): a row thumbnail's ③④ label is the shared chip ON the picture, bottom-left, as on the cards —
-   not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. */
-.gl-page .ui-row-card__thumb .ui-provenance[data-chip] { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:2px var(--sp-1); border-radius:var(--r-sm); text-align:start; }
+   not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. The 3D postcards'
+   badge is left as it is (DECISIONS 1). */
+.gl-page .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:2px var(--sp-1); border-radius:var(--r-sm); text-align:start; }
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
 /* A short topic row ends on its 看全部 cell over the rest of the row from 1024 px (captain 10-21 18:30: no empty cells). */
