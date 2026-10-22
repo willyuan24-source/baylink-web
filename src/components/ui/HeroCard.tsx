@@ -6,6 +6,7 @@ import './covers.css';
 import './cards.css';
 import { cx } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
+import './card-press';
 
 export type HeroCardProps = {
   title: string;

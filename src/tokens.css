@@ -84,9 +84,9 @@
      below) it is the size the rule had before tokens v2, so no elder text is smaller than it was. */
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
-  /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, card titles (feed, lead, pick, row), the primary button and
-     the one key value of a fact block. */
-  --fw-regular:400; --fw-strong:600;
+  /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, the lead / pick card titles, the primary button and the one
+     key value of a fact block; 500 (medium) for feed and row card titles (D3: a feed is not half bold). */
+  --fw-regular:400; --fw-medium:500; --fw-strong:600;
   /* Line height and measure per script (N05): one ladder. CJK here, Latin under :lang(en) below. Paragraphs, list items and
      any copy that may wrap read --lh-read (1.75 / Latin 1.55); one-line UI text (labels, meta, controls) --lh-ui (1.6 /
      1.45); headings --lh-tight; --lh-snug (1.4) is for card titles only, never for multi-line body copy. */

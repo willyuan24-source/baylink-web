@@ -10,6 +10,12 @@
 /* The chip (N22): bottom-left, 13 px, wraps, never cut; with the card's ♡ the only overlay. */
 .ui-provenance[data-chip] { top:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:normal; text-overflow:clip; }
 .ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
+/* A cover ≤ 120px: a dated ①② chip shows its edition only (「2025 往届」, Badges.tsx). */
+.ui-cover { container-name:ui-cover; container-type:inline-size; }
+@container ui-cover (max-width:120px) {
+  .ui-provenance[data-chip] .ui-provenance__lead { display:none; }
+  .ui-provenance[data-chip]:has(.ui-provenance__lead) { white-space:nowrap; }
+}
 
 /* Stickers: facts printed on a member's photo (community posts only; listing covers carry none). */
 .ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
@@ -22,7 +28,8 @@
 .ui-status[data-tone=partial] { border-color:var(--color-brand); background:var(--color-surface); color:var(--color-brand-deep); }
 .ui-status[data-tone=soon] { border-color:var(--color-danger); background:var(--color-surface); color:var(--color-danger); }
 .ui-status[data-tone=urgent] { background:var(--color-danger); color:var(--color-surface); }
-.ui-status[data-tone=open] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
+/* 已开业: ✓ and deep-green words, no fill (N08: not the 长辈 tint nor a selected fill). */
+.ui-status[data-tone=open] { padding-inline-start:0; background:transparent; color:var(--color-brand-deep); }
 .ui-status[data-tone=open]::before { content:"✓"; color:var(--color-brand); }
 .ui-status[data-tone=ended] { color:var(--color-ink-3); }
 

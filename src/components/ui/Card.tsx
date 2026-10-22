@@ -6,6 +6,7 @@ import './covers.css';
 import './cards.css';
 import { cx } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
+import './card-press';
 
 type Heading = 'h2' | 'h3' | 'h4';
 type CardLink = {
@@ -80,13 +81,15 @@ export type RowCardProps = CardLink & {
   credit?: ReactNode;
   /** "官网核对 10/7" under line 2, as on FeedCard (the check mark is added here; UI9-EVENTS: the calendar rows). Optional. */
   trust?: ReactNode;
-  /** One trailing action only (♡). Everything else belongs on the detail page or in a "⋯" sheet. */
+  /** One trailing action only. Everything else belongs on the detail page or in a "⋯" sheet. */
   trailing?: ReactNode;
+  /** The ♡ (`<SaveButton>`): on the thumbnail's top-right corner, as on every card (36px circle, 44px hit area). */
+  save?: ReactNode;
   className?: string;
 };
 
 /** List row for calendars, search results and saved items: thumbnail, date, 2-line title, meta, one action. */
-export function RowCard({ thumb, when, date, meta, credit, trust, trailing, className, heading = 'h3', ...link }: RowCardProps) {
+export function RowCard({ thumb, when, date, meta, credit, trust, trailing, save, className, heading = 'h3', ...link }: RowCardProps) {
   const line1 = when ?? date;
   const Title = heading;
   return <article className={cx('ui-row-card', className)}>
@@ -98,6 +101,7 @@ export function RowCard({ thumb, when, date, meta, credit, trust, trailing, clas
       {credit && <p className="ui-row-card__credit">{credit}</p>}
     </div>
     <div className="ui-row-card__thumb">{thumb}</div>
+    {save && <div className="ui-row-card__save">{save}</div>}
     {trailing && <div className="ui-row-card__trailing">{trailing}</div>}
   </article>;
 }

@@ -401,8 +401,8 @@ test('events.css and cards.css: hover gated, no font-size literals, spacing on t
     if (file.endsWith('events.css')) assert.deepEqual(css.match(/font-size:\s*[\d.]+(rem|px|em)/g) ?? [], [], `${file}: font-size literals`);
   }
   const cards = readFileSync('src/components/ui/cards.css', 'utf8');
-  // DECISIONS 20 (captain 10-20, UI9-INT): a card title takes at most 2 lines; a row's title is never cut.
-  assert.match(cards.match(/\.ui-feed-card__title \{[^}]*\}/)![0], /-webkit-line-clamp:2/);
+  // D1 (owner queue #17, UI9-R1-AFTER-A1-CARD-SYSTEM; was DECISIONS 20's 2-line clamp): no card title is cut with "…".
+  assert.doesNotMatch(cards.match(/\.ui-feed-card__title \{[^}]*\}/)![0], /line-clamp/);
   assert.doesNotMatch(cards.match(/\.ui-row-card__title \{[^}]*\}/)![0], /line-clamp/);
   // 列表 | 地图: each item as wide as its label, so the English "Map" is never cut to "M…" beside "List".
   assert.match(readFileSync('src/features/events/events.css', 'utf8'), /\.ev-calendar__mode \.ui-segmented__item \{ flex:1 0 auto;/);
