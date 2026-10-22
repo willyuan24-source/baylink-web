@@ -172,10 +172,13 @@ test('H45 (owner rule 10-08): an event’s own card carries the organiser’s im
   assert.equal(OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, true);
   const today = '2026-10-12';
   const events = localDiscoveries.filter(item => item.kind === 'event');
-  const official = events.filter(item => {
+  // An image marked coverOk: false (a small line drawing, UI9-R1 follow-up 12) is not the page's cover, so the card skips it too.
+  const promo = events.filter(item => {
     const rights = GUIDE_IMAGES[item.event.imageKey]?.rights;
     return typeof rights === 'object' && rights?.basis === 'promo-editorial';
   });
+  const official = promo.filter(item => GUIDE_IMAGES[item.event.imageKey]?.coverOk !== false);
+  for (const item of promo.filter(item => GUIDE_IMAGES[item.event.imageKey]?.coverOk === false)) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), undefined, `${item.event.id}: not the page's cover`);
   assert.ok(official.length >= 10, `${official.length} events with the organiser’s own image`);
   for (const item of official) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), GUIDE_IMAGES[item.event.imageKey], item.event.id);
   const photo: GuideImage = { src: '/x.webp', alt: '', caption: '2025', credit: 'Organiser', kind: 'photo', width: 1200, height: 800 };
