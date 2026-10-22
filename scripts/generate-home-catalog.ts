@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { guides } from '../src/data/guides';
-import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
+import { GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import { currentFreebies } from '../src/data/october-offers';
@@ -9,6 +9,7 @@ import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
+import { guideListingCover, guideStockCover } from '../src/features/guides/guide-data';
 import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
@@ -45,9 +46,9 @@ const imageKeys = new Set<string>();
 const guideImages: Record<string, GuideImage> = {};
 const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide => {
   const topic = guideTopicOf(guide);
-  const cover = getGuideMedia(guide).cover;
   // Guides have no image key: the cover is stored under its own path. A cover the ladder refuses (an AI illustration,
-  // the off-topic photo) is not shipped at all; the card is the topic's information card.
+  // the off-topic photo) gives way to the guide's ③ stock picture (UI9-IMG-A1b, DECISIONS 21/22: never an information card).
+  const cover = guideListingCover(guide, today, OFF_TOPIC_COVERS);
   const usable = !OFF_TOPIC_COVERS.has(cover.src) && getCover({ kind: 'guide', id: guide.slug, imageKey: cover.src }, { images: () => cover, today }).tier !== 'type';
   if (usable) guideImages[cover.src] = cover;
   return {
@@ -137,6 +138,16 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
     ...(isPressSource(offer.sourceLabel) ? { press: true } : {}),
   } as HomeOffer;
 });
+// UI9-IMG-A1b: a cover file shown once per page (①②) that another home guide or a home card also uses: that guide also
+// carries its ③ stock picture as a second candidate (never an information card).
+const cardSrcs = new Set([...imageKeys].map(key => GUIDE_IMAGES[key]?.src));
+for (const card of homeGuides) {
+  if (!card.imageKey || (!cardSrcs.has(card.imageKey) && homeGuides.filter(other => other.imageKey === card.imageKey).length < 2)) continue;
+  const stock = guideStockCover(guides.find(guide => guide.slug === card.slug)!, today);
+  if (!stock || stock.src === card.imageKey) continue;
+  guideImages[stock.src] = stock;
+  Object.assign(card, { imageKeys: [card.imageKey, stock.src] });
+}
 // Only images the cover ladder accepts for their item are shipped (an AI illustration, a theme photo, an undated or old
 // photo would be an information card anyway), with the fields getCover, the badge and the credits read; the rights
 // prose becomes its basis, which is all the ladder and the badge use from it.

@@ -67,7 +67,7 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
   }
 });
 
-test('covers are honest: photos carry their provenance badge, other guides get a coded cover, never an unapproved AI illustration', () => {
+test('covers are honest: every guide card shows a picture with its badge (DECISIONS 21: no coded cover), never an unapproved AI illustration', () => {
   const view = open('/guides');
   // Posters sit whole on a board (UI9-C: one <img>, no blurred copy).
   const images = [...view.container.querySelectorAll('img:not(.ui-cover__backdrop)')];
@@ -75,24 +75,21 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   for (const image of images) assert.ok(!aiSources.has(image.getAttribute('src')!), `${image.getAttribute('src')} is an AI illustration`);
   // A phone shows the rows, a desktop the covers (CSS shows one of the two): neither shows a picture twice.
   for (const hidden of ['desk', 'phone']) {
-    const sources = images.filter(image => !image.closest(`[data-view=${hidden}]`)).map(image => image.getAttribute('src'));
-    assert.equal(new Set(sources).size, sources.length, `no picture appears twice on the page (without the ${hidden} view)`);
+    // ①② once per page; a ③ stock picture (a category's pool) may come back, as on every listing (cover.ts ADJACENT_CARDS).
+    const sources = images.filter(image => !image.closest(`[data-view=${hidden}]`)).map(image => image.getAttribute('src')).filter(src => !src?.startsWith('/guides/category-stock/'));
+    assert.equal(new Set(sources).size, sources.length, `no ① or ② picture appears twice on the page (without the ${hidden} view)`);
   }
   for (const card of view.container.querySelectorAll('.ui-feed-card')) {
     const cover = card.querySelector('.ui-cover, [data-cover="type"]');
     assert.ok(cover, 'every card has a cover');
     assert.ok(cover.querySelector('[data-provenance]'), 'every cover is labelled');
   }
-  const typed = view.container.querySelectorAll('[data-cover="type"][data-kind="guide"]');
-  assert.ok(typed.length > 0);
-  // A row's mini cover (≤ 140 px) shows its topic mark only (UI9-C); every full-size coded cover names itself.
-  for (const cover of typed) if (!cover.closest('.ui-row-card__thumb')) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one
-  // line): on the 长辈与家属 list's desktop covers (a row's mini cover shows the topic mark only).
+  // UI9-IMG-A1b (DECISIONS 21/22): a guide without a picture of its own shows its category's ③ stock picture, never a coded cover.
+  assert.equal(view.container.querySelectorAll('[data-cover="type"]').length, 0);
   cleanup();
   const hub = open('/guides?topic=elders');
-  const desk = [...hub.container.querySelectorAll('[data-view=desk] [data-cover="type"][data-kind="guide"]')];
-  assert.ok(desk.some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
+  assert.equal(hub.container.querySelectorAll('[data-cover="type"]').length, 0);
+  assert.ok(hub.container.querySelectorAll('.ui-cover img').length > 0);
 });
 
 test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', async () => {

@@ -13,7 +13,14 @@ import type { GuideRegionId } from './guide-facts';
  */
 
 /** The covers a guide card shows: 简体's, and the 繁體 / English variants of a localized service picture when they differ. */
-export type GuideCovers = { 'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage };
+export type GuideCovers = {
+  'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage;
+  /**
+   * UI9-IMG-A1b (DECISIONS 21/22): the guide's ③ stock picture, carried only when its own cover is a file another guide also
+   * uses, so a page that shows both (①② once per page) gives the second this picture instead of an information card.
+   */
+  stock?: Omit<GuideCovers, 'stock'>;
+};
 
 /** What a guide card renders (index feed, rails, "Read next"): no article body. */
 export type GuideCard = {

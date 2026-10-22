@@ -25,3 +25,16 @@ test('report:covers measures every page, both first screens and the whole shelf'
   assert.ok(inventory.length > 500, 'every live record');
   assert.equal(run('--mode', 'projected').summary.mode, 'projected');
 });
+
+// UI9-IMAGES §7 (UI9-IMG-A1b): the logic layer of "every card has a picture" (DECISIONS 21). Every live record (events and
+// events-later, all offers, openings, guides) and every page slot of the next 21 days, picked by the pages' own selection
+// and page de-duplication, is a picture: 0 information cards. A new record with no picture of any tier turns this red.
+test('§7: 0 information cards on every page and on the whole shelf (report:covers --mode current --fail-on-info)', () => {
+  const out = join(mkdtempSync(join(tmpdir(), 'covers-')), 'report.json');
+  execFileSync(process.execPath, ['node_modules/tsx/dist/cli.mjs', '--tsconfig', 'tsconfig.app.json', '--import', './tests/support/css-stub.mjs',
+    'scripts/report-cover-coverage.ts', '--days', '21', '--mode', 'current', '--fail-on-info', '--out', out], { stdio: 'pipe' });
+  const { summary, slots, inventory } = JSON.parse(readFileSync(out, 'utf8'));
+  assert.equal(summary.infoCardsOnPages, 0);
+  assert.deepEqual(slots.filter((slot: { tier: string }) => slot.tier === 'type'), []);
+  assert.deepEqual(inventory.filter((slot: { tier: string }) => slot.tier === 'type').map((slot: { section: string; id: string }) => `${slot.section}:${slot.id}`), []);
+});

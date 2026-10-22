@@ -86,7 +86,7 @@ for (let n = 0; n < DAYS; n++) {
     offers.slice(0, shown).forEach((offer, i) => push(day, page, 'offers', 'offer', offer.id, offerCovers[i]));
     for (const slug of intent.slugs) {
       const guide = getGuideBySlug(slug);
-      if (guide) push(day, page, 'guides', 'guide', guide.slug, getCover(item('guide', { id: guide.slug, imageKey: guide.imageKey, title: guide.title }), context));
+      if (guide) push(day, page, 'guides', 'guide', guide.slug, getCover(projected ? item('guide', { id: guide.slug, imageKey: guide.imageKey, title: guide.title }) : coverItemFor('guide', guide.imageKeys ? { id: guide.slug, imageKey: guide.imageKey, imageKeys: guide.imageKeys } : { id: guide.slug, imageKey: guide.imageKey }), context));
     }
   }
 

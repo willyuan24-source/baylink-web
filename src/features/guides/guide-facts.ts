@@ -152,8 +152,11 @@ export const guideEnglishDate = (iso: string): string => {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day, 12)));
 };
 
-/** One cover per guide through the honesty ladder: a photo or official image, never an AI illustration (→ TypeCover). */
+/** One cover per guide through the honesty ladder (DECISIONS 22): its own photo or official image, else its ③ stock picture. */
 export function guideCover(card: Pick<GuideCard, 'slug' | 'covers'>, today: string, page?: CoverPage): ResolvedCover {
   const image = coverFor(card.covers, getLocale());
-  return getCover({ kind: 'guide', id: card.slug, imageKey: image.src }, { images: () => image, today, page });
+  // A cover another guide on the page already shows gives way to the guide's ③ stock picture (UI9-IMG-A1b): never a card.
+  const stock = card.covers.stock && coverFor(card.covers.stock, getLocale());
+  const keys = stock && stock.src !== image.src ? { imageKeys: [image.src, stock.src] } : {};
+  return getCover({ kind: 'guide', id: card.slug, imageKey: image.src, ...keys }, { images: key => key === stock?.src ? stock : image, today, page });
 }

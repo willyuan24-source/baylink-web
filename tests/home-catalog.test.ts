@@ -43,7 +43,7 @@ test('shipped images are covers the ladder accepts for some item; the 3D postcar
   };
   for (const event of MONTHLY_EVENTS) accept('event', event);
   for (const offer of HOME_OFFERS) accept('offer', offer);
-  for (const guide of guides) if (guide.imageKey) used.add(guide.imageKey);
+  for (const guide of guides) for (const key of [guide.imageKey, ...(guide.imageKeys ?? [])]) if (key) used.add(key);
   assert.deepEqual(Object.keys(GUIDE_IMAGES).filter(key => !used.has(key)), [], 'no image the page cannot show');
   assert.equal(getImageProvenance(HOME_SCENE3D, false), '3D 场景插图');
   assert.equal(getImageProvenance(HOME_SCENE3D, true), '3D scene illustration');

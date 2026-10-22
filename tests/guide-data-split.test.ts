@@ -7,7 +7,7 @@ import { getGuideMedia } from '../src/data/guide-media';
 import { getGuideEditorial } from '../src/data/guide-editorial';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { discoverRelatedGuides } from '../src/lib/guide-discovery';
-import { guideRegionsOf, keepInlineImage } from '../src/features/guides/guide-data';
+import { coverInCurrentLanguage, guideRegionsOf, keepInlineImage } from '../src/features/guides/guide-data';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
 import { coverFor, relatedForToday, type GuidesIndex } from '../src/features/guides/guide-records';
 import { isGuideSlug, loadGuide, peekGuide, readGuide } from '../src/features/guides/guide-store';
@@ -30,7 +30,8 @@ test('the index lists every published guide in corpus order with the card facts 
     assert.equal(card.sourceCount, guideSourceCount(guide), guide.slug);
     assert.equal(card.readMinutes, guideReadMinutes(guide), guide.slug);
     assert.deepEqual(card.regions ?? [], guideRegionsOf(guide), guide.slug);
-    assert.deepEqual(coverFor(card.covers, 'zh-Hans'), plain(getGuideMedia(guide).cover), guide.slug);
+    // UI9-IMG-A1b: the listing cover (its own ①/photo, else its ③ stock picture: guide-data.ts guideListingCover).
+    assert.deepEqual(coverFor(card.covers, 'zh-Hans'), plain(coverInCurrentLanguage(guide)), guide.slug);
   }
 });
 

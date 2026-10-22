@@ -23,6 +23,8 @@ export type HomeGuide = {
   readMinutes: number;
   /** The guide's cover image key in `images` (absent: the information card). */
   imageKey?: string;
+  /** UI9-IMG-A1b: [own cover, ③ stock picture] when another home guide shares the cover file (①② once per page). */
+  imageKeys?: readonly string[];
 };
 /** A weekend event with the facts a home card prints (editorial overlay fields and planning facts when present). */
 export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'>; press?: true; imageKeys?: readonly string[] };

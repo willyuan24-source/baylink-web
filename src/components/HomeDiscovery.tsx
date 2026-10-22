@@ -105,7 +105,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       picks,
       feed,
       offers: offerCovers,
-      guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey }), context)),
+      guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey, imageKeys: guide.imageKeys }), context)),
     };
   }, [weekend, guides, offers, today]);
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is

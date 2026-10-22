@@ -2,7 +2,8 @@ import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { guides, type Guide } from '../src/data/guides';
 import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
-import { coverInCurrentLanguage, guideRecordOf, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
+import { coverInCurrentLanguage, guideRecordOf, guideStockCover, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
+import { getBayAreaToday } from '../src/lib/monthly';
 import type { GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
 import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
@@ -21,15 +22,29 @@ export type GuideData = { index: GuidesIndex; records: GuideRecord[] };
 export async function buildGuideData(): Promise<GuideData> {
   const previous = getLocale();
   const perLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
+  const stockPerLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
+  const today = getBayAreaToday();
   try {
     for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
       await setLocale(locale, false);
-      for (const guide of guides) perLanguage.get(guide.slug)![locale] = coverInCurrentLanguage(guide);
+      for (const guide of guides) {
+        perLanguage.get(guide.slug)![locale] = coverInCurrentLanguage(guide);
+        const stock = guideStockCover(guide, today);
+        if (stock) stockPerLanguage.get(guide.slug)![locale] = stock;
+      }
     }
   } finally {
     await setLocale(previous, false);
   }
-  const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => [slug, mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!)]));
+  // UI9-IMG-A1b: a cover file two guides share is shown once per page (①②), so those guides also carry their ③ stock picture.
+  const uses = new Map<string, number>();
+  for (const images of perLanguage.values()) uses.set(images['zh-Hans']!.src, (uses.get(images['zh-Hans']!.src) ?? 0) + 1);
+  const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => {
+    const own = mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!);
+    const stock = stockPerLanguage.get(slug)!;
+    const shared = (uses.get(images['zh-Hans']!.src) ?? 0) > 1 && stock['zh-Hans'] && stock['zh-Hans'].src !== images['zh-Hans']!.src;
+    return [slug, shared ? { ...own, stock: mergeCovers(stock['zh-Hans']!, stock['zh-Hant']!, stock.en!) } : own];
+  }));
   const coversOf = (guide: Guide) => covers.get(guide.slug)!;
   // UI9-C (G19): an answered guide's card carries its cover hook and lime phrase, so /guides and "Read next" print them
   // without loading answers.ts.
