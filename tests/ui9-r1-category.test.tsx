@@ -114,6 +114,13 @@ test('J1: the breadcrumb says 邻里信息 and the H1 carries the one quiet (neu
   assert.equal(header.textContent!.match(/测试中/g)!.length, 1);
   assert.equal(header.querySelector('.ui-status')!.getAttribute('data-tone'), 'neutral');
   await waitFor(() => assert.ok(view.container.querySelector('.cm-ad')));
+  cleanup();
+  // English says beta, as the home and About links do ("Neighborhood board (beta)").
+  await setLocale('en', false);
+  const en = board([post('b')]);
+  assert.equal(en.container.querySelector('.cm-board__header .ui-page-header__crumbs')!.textContent, 'Home › Neighborhood board');
+  assert.equal(en.container.querySelector('.cm-board__header .ui-status')!.textContent, 'Beta');
+  await waitFor(() => assert.ok(en.container.querySelector('.cm-ad')));
 });
 
 test('N02 / N10 / N11: the promotions are a section with an h2 like the notes, tiles without decoration or Tailwind depth', async () => {

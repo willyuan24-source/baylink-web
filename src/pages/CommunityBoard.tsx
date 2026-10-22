@@ -175,7 +175,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
       {categorySlug && <nav className="ui-page-header__crumbs" aria-label={t('当前位置', 'Breadcrumb')}><Link to="/">{t('首页', 'Home')}</Link> › {t('邻里信息', 'Neighborhood board')}</nav>}
       <div className="cm-board__title-row">
         <Heading id="cm-board-title" className="ui-page-header__title">{isSearch ? t('搜索邻里信息', 'Search the neighborhood board') : name}</Heading>
-        <StatusChip tone="info">{t('测试中', 'Testing')}</StatusChip>
+        <StatusChip tone="neutral">{t('测试中', 'Beta')}</StatusChip>
       </div>
       <p className="ui-page-header__lede">{t('邻居发布，平台不逐条核实；联系和付款前请先确认。', 'Posted by neighbors and not verified by BAYLINK. Check before you contact or pay.')}</p>
       <div className="ui-page-header__actions"><Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button></div>
