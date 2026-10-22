@@ -6,8 +6,8 @@
     "fontSizePx": 0,
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 19,
-    "radiusKinds": 31,
-    "shadowKinds": 23,
+    "radiusKinds": 30,
+    "shadowKinds": 22,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 45,
     "baylinkClasses": 330,
@@ -17,7 +17,7 @@
     "fontSizeLiteral": 376,
     "fontWeightBold": 2,
     "durationOffScale": 0,
-    "durationLiteral": 36,
+    "durationLiteral": 30,
     "spacingOffScale": 1487,
     "englishUiUntranslated": 104,
     "lazyCssDuplicateSelectors": 0
@@ -166,7 +166,6 @@
     "radius": [
       "0",
       "0 0 var(--r-xl) var(--r-xl)",
-      "12px",
       "tw:rounded-2xl",
       "tw:rounded-3xl",
       "tw:rounded-[24px]",
@@ -211,7 +210,6 @@
       "inset 4px 0 0 var(--color-warning,var(--color-line-strong))",
       "none",
       "tw:shadow-2xl",
-      "tw:shadow-[0_4px_20px_rgba(23,32,42,0.08)]",
       "tw:shadow-card",
       "tw:shadow-elevated",
       "tw:shadow-lg",
@@ -458,7 +456,6 @@
       "hexOccurrences": 2
     },
     "src/design.css": {
-      "durationLiteral": 2,
       "fontSizeLiteral": 4,
       "spacingOffScale": 13
     },
@@ -670,7 +667,6 @@
       "spacingOffScale": 72
     },
     "src/tokens.css": {
-      "durationLiteral": 4,
       "fontWeightBold": 1,
       "spacingOffScale": 5
     }
