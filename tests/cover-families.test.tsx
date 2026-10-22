@@ -117,7 +117,9 @@ test('DetailHero: always a picture in the 16:9 frame with its badge and credit l
   assert.equal(img.getAttribute('loading'), 'eager', 'the LCP image');
   assert.equal(img.getAttribute('fetchpriority'), 'high');
   assert.equal(root.querySelector('[data-provenance]')?.textContent, '示意图');
-  assert.match(figure.querySelector('figcaption')?.textContent ?? '', /^示意图/);
+  // G13 (captain 10-22 02:50): the badge says 示意图 once; the credit line under it starts with the credit itself.
+  assert.match(figure.querySelector('figcaption')?.textContent ?? '', /^摄影 /);
+  assert.doesNotMatch(figure.querySelector('figcaption')?.textContent ?? '', /示意图/);
   assert.equal(view.container.querySelector('[data-cover="type"],.tc-cal,.tc-ticket,.tc-sign'), null);
 });
 

@@ -33,8 +33,9 @@ export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
 }
 
 /**
- * The credit line under a photo (G13): its provenance label first (ink-2), then the linked credit, then 图片授权; 13 px, ink-3,
- * at most two lines on a phone. The long caption stays in the source section (HeroCaption).
+ * The credit line under a photo (G13): the linked credit, then 图片授权; 13 px, ink-3, at most two lines on a phone. The
+ * provenance words are the picture's own badge (DECISIONS 23: one label per picture; captain 10-22 02:50), so the line
+ * neither repeats them nor a credit that starts with them. The long caption stays in the source section (HeroCaption).
  */
 export function HeroCredit({ cover, archive }: { cover: ResolvedCover; archive?: boolean }) {
   const { t, locale, pick } = useUiCopy();
@@ -42,10 +43,9 @@ export function HeroCredit({ cover, archive }: { cover: ResolvedCover; archive?:
   const label = (shown: ImageCover) => archive ? pick(shown.label) : tierLabel(shown);
   if (cover.tier === 'type') return null;
   const { image } = cover;
-  const words = label(cover);
-  const credit = creditAfterLabel(words, translateText(image.credit, locale));
+  const credit = creditAfterLabel(label(cover), translateText(image.credit, locale));
+  if (!credit && !webLink(image.licenseUrl)) return null;
   return <span className="detail-credit">
-    <span className="detail-credit__label">{words}</span>
     {credit && (webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>)}
     {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer" data-simple="hide">{t('图片授权', 'License')}</a>}
   </span>;

@@ -246,8 +246,9 @@ const GuideDetailSession = ({
   );
   // Every guide opens on its title picture (① / ② / ③, else its category's ③: DECISIONS 21, captain 10-22 02:50); an editorial
   // guide's coded slides follow under it (simple mode hides the slides, whose facts are in 30 秒看懂).
-  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover)} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
-      {!cover.image.scene3d && <GuideCoverCredit image={cover.image} />}</figure> : null;
+  const badge = cover.tier === 'type' ? '' : cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover);
+  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={badge} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
+      {!cover.image.scene3d && <GuideCoverCredit image={cover.image} label={badge} />}</figure> : null;
   const visual = editorial ? <>{figure}<GuideCarousel guide={guide} editorial={editorial} /></> : figure;
   // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
   const call = guideCallOf(editorial);
