@@ -5,6 +5,11 @@ import type { AppContextValue } from '../../app/context';
 import { MONTHLY_EVENTS } from '../../data/monthly-edition';
 import { outings, type Outing, type OutingFilters } from '../../lib/outings';
 import { getBayAreaToday, getMonthlyDateRange } from '../../lib/monthly';
+import { DateChips, type DateChoice } from '../../components/ui/DateChips';
+import { dateWords } from '../../components/ui/date-words';
+import { Select } from '../../components/ui/Select';
+import { EmptyState, ErrorState } from '../../components/ui/States';
+import { Button } from '../../components/ui/Button';
 import { OutingDetail, memberLabel, outingEligible, outingLabel } from './OutingDetail';
 import { emptyOutingDraft, OutingForm } from './OutingForm';
 import { useOutingCopy, useOutingNow } from './outing-copy';
@@ -26,27 +31,38 @@ function discoveryFilters(params: URLSearchParams): OutingFilters {
     ...(language === 'zh' || language === 'en' ? { language } : {}), ...(params.get('seats') === 'open' ? { seats:'open' as const } : {}), sort:'soonest' };
 }
 
+/** The date filter as a DateChips choice: today, the weekend, the next 7 days or one day; null for no date or another range. */
+function dateChoiceOf(filters: OutingFilters, today: string, weekend: { start: string; end: string }, next7: { start: string; end: string }): DateChoice | null {
+  if (filters.date) return filters.date === today ? { kind:'today' } : { kind:'date', date:filters.date };
+  if (filters.dateFrom === weekend.start && filters.dateTo === weekend.end) return { kind:'weekend' };
+  if (filters.dateFrom === next7.start && filters.dateTo === next7.end) return { kind:'next7' };
+  return null;
+}
+
 function DiscoveryFilters({ filters, apply, clear }: { filters: OutingFilters; apply: (value: OutingFilters) => void; clear: () => void }) {
-  const { t } = useOutingCopy(), now = useOutingNow();
+  const { t, locale } = useOutingCopy(), now = useOutingNow();
   const form = useRef<HTMLFormElement>(null);
-  const [exactDate,setExactDate] = useState(filters.date || '');
-  const [range,setRange] = useState({ from:filters.dateFrom || '',to:filters.dateTo || '' });
-  const today = getBayAreaToday(new Date(now)), weekend = getMonthlyDateRange('weekend',today)!, next7 = getMonthlyDateRange('next7',today)!;
-  const weekendStart = weekend.start < today ? today : weekend.start;
+  const today = getBayAreaToday(new Date(now)), weekendRange = getMonthlyDateRange('weekend',today)!, next7 = getMonthlyDateRange('next7',today)!;
+  const weekend = { start:weekendRange.start < today ? today : weekendRange.start, end:weekendRange.end };
+  const words = dateWords(locale);
   const fields = (): OutingFilters => {
     const values = form.current ? new FormData(form.current) : new FormData();
     const q = String(values.get('q') || '').trim(), city = String(values.get('city') || '').trim(), language = values.get('language');
     return { ...(q ? { q } : {}), ...(city ? { city } : {}), ...(language === 'zh' || language === 'en' ? { language } : {}), ...(values.get('seats') === 'open' ? { seats:'open' as const } : {}), sort:'soonest' };
   };
-  const dates = (): OutingFilters => exactDate ? { date:exactDate } : { ...(range.from ? { dateFrom:range.from } : {}), ...(range.to ? { dateTo:range.to } : {}) };
-  const choose = (choice: 'today' | 'weekend' | 'next7') => apply({ ...fields(), ...(choice === 'today' ? { date:today } : choice === 'weekend' ? { dateFrom:weekendStart,dateTo:weekend.end } : { dateFrom:next7.start,dateTo:next7.end }) });
-  const hasFilters = !!(filters.eventId || filters.q || filters.city || filters.date || filters.dateFrom || filters.dateTo || filters.language || filters.seats);
-  return <form ref={form} className="outing-filter outing-discovery-filter" onSubmit={event => { event.preventDefault(); apply({ ...fields(),...dates() }); }}>
-    <div className="outing-filter-main"><label className="outing-search-field">{t('搜索小队','Search outings')}<span className="outing-search-input"><Search size={17} aria-hidden="true"/><input name="q" maxLength={120} defaultValue={filters.q || ''} placeholder={t('散步、看展、咖啡，或集合地点','Walk, museum, coffee or a meeting place')}/></span></label><label>{t('城市（可选）','City (optional)')}<input name="city" maxLength={80} defaultValue={filters.city || ''} placeholder={t('旧金山 / SF / San Francisco','San Francisco / SF / 旧金山')}/></label><label>{t('参加日期','Outing date')}<input name="date" type="date" value={exactDate} onChange={event => { setExactDate(event.target.value); setRange({ from:'',to:'' }); }}/></label><button className="outing-primary" type="submit">{t('筛选小队','Filter outings')}</button></div>
-    <div className="outing-date-shortcuts" aria-label={t('日期快捷选择','Date shortcuts')}><button type="button" aria-pressed={filters.date === today} onClick={() => choose('today')}>{t('今天','Today')}</button><button type="button" aria-pressed={!filters.date && filters.dateFrom === weekendStart && filters.dateTo === weekend.end} onClick={() => choose('weekend')}>{t('本周末','This weekend')}</button><button type="button" aria-pressed={!filters.date && filters.dateFrom === next7.start && filters.dateTo === next7.end} onClick={() => choose('next7')}>{t('未来7天','Next 7 days')}</button><span className="outing-footnote">{t('按湾区当地日期，7天包含今天','Bay Area dates; 7 days includes today')}</span></div>
-    {(range.from || range.to) && !exactDate && <div className="outing-date-range"><CalendarDays size={15}/><span>{range.from || t('不限开始日期','Any start date')} — {range.to || t('不限结束日期','Any end date')}</span><button className="outing-link-button" type="button" onClick={() => apply(fields())}>{t('清除日期','Clear dates')}</button></div>}
-    <details className="outing-advanced-filter" open={filters.language || filters.seats ? true : undefined}><summary><SlidersHorizontal size={15}/>{t('更多筛选','More filters')}{(filters.language || filters.seats) && <span className="outing-footnote">{t('已启用','Active')}</span>}</summary><div className="outing-advanced-fields"><label>{t('沟通语言','Language')}<select name="language" defaultValue={filters.language || ''}><option value="">{t('不限','Any')}</option><option value="zh">{t('可用中文（含语言不限）','Chinese welcome (includes any language)')}</option><option value="en">{t('可用英文（含语言不限）','English welcome (includes any language)')}</option></select></label><label className="outing-check"><input type="checkbox" name="seats" value="open" defaultChecked={filters.seats === 'open'}/>{t('只看有空位','Only outings with open places')}</label></div></details>
-    <div className="outing-filter-footer"><span className="outing-footnote">{t('支持城市中文、英文和常用简称；按即将开始排序','Chinese, English and common city names supported; soonest first')}</span>{hasFilters && <button className="outing-link-button" type="button" onClick={clear}>{t('清除筛选','Clear filters')}</button>}</div>
+  const dates: OutingFilters = filters.date ? { date:filters.date } : { ...(filters.dateFrom ? { dateFrom:filters.dateFrom } : {}), ...(filters.dateTo ? { dateTo:filters.dateTo } : {}) };
+  const chosen = dateChoiceOf(filters, today, weekend, next7);
+  // A date choice applies at once, as the old quick buttons did; choosing the selected quick range again clears it.
+  const choose = (choice: DateChoice) => apply({ ...fields(), ...(choice.kind !== 'date' && chosen?.kind === choice.kind ? {} : choice.kind === 'today' ? { date:today } : choice.kind === 'date' ? { date:choice.date } : choice.kind === 'weekend' ? { dateFrom:weekend.start,dateTo:weekend.end } : { dateFrom:next7.start,dateTo:next7.end }) });
+  const hasDates = !!(filters.date || filters.dateFrom || filters.dateTo);
+  const dateLine = filters.date ? words.day(filters.date) : `${filters.dateFrom ? words.day(filters.dateFrom) : t('不限开始日期','Any start date')} — ${filters.dateTo ? words.day(filters.dateTo) : t('不限结束日期','Any end date')}`;
+  const hasFilters = !!(filters.eventId || filters.q || filters.city || hasDates || filters.language || filters.seats);
+  return <form ref={form} className="outing-discovery-filter" onSubmit={event => { event.preventDefault(); apply({ ...fields(),...dates }); }}>
+    <div className="outing-filter-main"><label className="outing-search-field">{t('搜索小队','Search outings')}<span className="outing-search-input"><Search size={16} aria-hidden="true"/><input name="q" maxLength={120} defaultValue={filters.q || ''} placeholder={t('散步、看展、咖啡，或集合地点','Walk, museum, coffee or a meeting place')}/></span></label><label className="outing-city-field">{t('城市（可选）','City (optional)')}<input name="city" maxLength={80} defaultValue={filters.city || ''} placeholder={t('旧金山 / SF','San Francisco / SF')}/></label><button className="outing-secondary" type="submit">{t('筛选小队','Filter outings')}</button></div>
+    <div className="outing-date-field"><span className="outing-field-label" aria-hidden="true">{t('参加日期','Outing date')}</span><DateChips value={chosen} onChange={choose} today={today} label={t('参加日期','Outing date')} /><p className="outing-footnote">{t('按湾区当地日期；未来 7 天包含今天','Bay Area dates; the next 7 days include today')}</p>
+      {hasDates && <p className="outing-date-range"><CalendarDays size={16} aria-hidden="true"/><span>{dateLine}</span><button className="outing-link-button" type="button" onClick={() => apply(fields())}>{t('清除日期','Clear dates')}</button></p>}</div>
+    <details className="outing-advanced-filter" open={filters.language || filters.seats ? true : undefined}><summary><SlidersHorizontal size={16} aria-hidden="true"/>{t('更多筛选','More filters')}{(filters.language || filters.seats) && <span className="outing-footnote">{t('已启用','Active')}</span>}</summary><div className="outing-advanced-fields"><label>{t('沟通语言','Language')}<Select name="language" defaultValue={filters.language || ''}><option value="">{t('不限','Any')}</option><option value="zh">{t('可用中文（含语言不限）','Chinese welcome (includes any language)')}</option><option value="en">{t('可用英文（含语言不限）','English welcome (includes any language)')}</option></Select></label><label className="outing-check"><input type="checkbox" name="seats" value="open" defaultChecked={filters.seats === 'open'}/>{t('只看有空位','Only outings with open places')}</label></div></details>
+    <div className="outing-filter-footer"><p className="outing-footnote">{t('支持城市中文、英文和常用简称；按即将开始排序','Chinese, English and common city names supported; soonest first')}</p>{hasFilters && <button className="outing-link-button" type="button" onClick={clear}>{t('清除筛选','Clear filters')}</button>}</div>
   </form>;
 }
 
@@ -109,14 +125,15 @@ function OutingList({ app, mine, filters, create }: { app: AppContextValue; mine
     finally { session.release(controller); if (session.current() && version === serial.current) { lock.current = false; setLoading(false); } }
   }, [app.user, mine, eventId, date, city, q, dateFrom, dateTo, language, seats, sort, session, t]);
   useEffect(() => { void load(); return () => { ++serial.current; lock.current = false; }; }, [load]);
-  if (mine && !app.user) return <section className="outing-empty"><Users size={28}/><h2>{t('登录查看你的申请和小队', 'Sign in to see your outings')}</h2><p>{t('这里汇总你发起、申请和加入的小队。收藏活动不会自动创建小队或公开你的资料。', 'See outings you host, requested or joined. Saving an event does not create an outing or publish your profile.')}</p><button className="outing-primary" onClick={() => app.setShowLogin(true)}>{t('登录后继续', 'Sign in to continue')}</button></section>;
+  if (mine && !app.user) return <EmptyState icon={Users} title={t('登录查看你的申请和小队', 'Sign in to see your outings')} body={t('这里汇总你发起、申请和加入的小队。收藏活动不会自动创建小队或公开你的资料。', 'See outings you host, requested or joined. Saving an event does not create an outing or publish your profile.')} actions={<Button variant="primary" onClick={() => app.setShowLogin(true)}>{t('登录后继续', 'Sign in to continue')}</Button>} />;
   // Keep a user's own records reachable after blocking a host so they can withdraw.
   const visible = rows.filter(row => mine || !app.blockedUserIds.includes(row.host.id));
   const link = (row: Outing) => { const next = new URLSearchParams(params); next.set('outing',row.id); return `/together?${next}`; };
-  return <section aria-label={mine ? t('我的小队结果', 'My outing results') : t('小队搜索结果', 'Outing results')}><div className="outing-toolbar"><span className="outing-footnote">{mine ? t('查看申请状态、确认变更与成员讨论', 'Check requests, changes and team discussions') : t('按具体日期和公共集合地点选择', 'Choose by date and public meeting place')}</span><button className="outing-link-button" disabled={loading} onClick={() => void load()}><RefreshCw size={14}/>{t('刷新列表', 'Refresh list')}</button></div>
-    {error && <div className="outing-error" role="alert"><p>{error}</p>{rows.length > 0 && <p>{t('下方为上次读取的结果，可能已有变化。', 'Results below are from the previous load and may have changed.')}</p>}<button className="outing-secondary" disabled={loading} onClick={() => void load()}>{t('重新读取', 'Try again')}</button></div>}
+  return <section aria-label={mine ? t('我的小队结果', 'My outing results') : t('小队搜索结果', 'Outing results')}><div className="outing-toolbar"><span className="outing-footnote">{mine ? t('查看申请状态、确认变更与成员讨论', 'Check requests, changes and team discussions') : t('按具体日期和公共集合地点选择', 'Choose by date and public meeting place')}</span><button className="outing-link-button" disabled={loading} onClick={() => void load()}><RefreshCw size={16} aria-hidden="true"/>{t('刷新列表', 'Refresh list')}</button></div>
+    <div className="outing-results" aria-busy={loading}>
+    {error && <ErrorState title={t('小队列表暂时没能读取', 'The outing list didn’t load')} body={rows.length > 0 ? `${error} ${t('下方为上次读取的结果，可能已有变化。', 'Results below are from the previous load and may have changed.')}` : error} onRetry={() => void load()} homeTo={null} />}
     {loading && <p className="outing-read-status" role="status">{t('正在读取小队…', 'Loading outings…')}</p>}
-    {!loading && !error && !visible.length && <div className="outing-empty"><Users size={30}/><h2>{mine ? t('你的同行从这里开始', 'Your outings start here') : cursor ? t('还有小队待查看','More outings to check') : rows.length ? t('暂无可显示的小队', 'No outings to show') : t('还没有符合条件的小队', 'No outings match yet')}</h2><p>{mine ? t('还没有小队记录。先浏览一个具体日期，或发起你已经核对好安排的小队。', 'You have no outing records yet. Browse a date or create a team once you have checked the plan.') : cursor ? t('这一页暂无符合条件或可显示的小队。点“查看更多小队”继续读取后续结果。','This page has no matching or visible outings. Select “Load more outings” to check the remaining results.') : t('可以换一个日期或城市，也可以发起 2–8 人的小队。活动收藏仍是你的私人记录，不会自动公开招募。', 'Try another date or city, or create a team of 2–8. Saved events remain private and do not automatically recruit companions.')}</p>{!cursor && <div className="outing-inline-actions"><button className="outing-primary" onClick={create}>{t('发起小队', 'Create an outing')}</button><Link className="outing-secondary" to="/events?when=all">{t('先看看活动', 'Explore events')}</Link></div>}</div>}
+    {!loading && !error && !visible.length && <EmptyState icon={Users} title={mine ? t('你的同行从这里开始', 'Your outings start here') : cursor ? t('还有小队待查看','More outings to check') : rows.length ? t('暂无可显示的小队', 'No outings to show') : t('还没有符合条件的小队', 'No outings match yet')} body={mine ? t('还没有小队记录。先浏览一个具体日期，或发起你已经核对好安排的小队。', 'You have no outing records yet. Browse a date or create a team once you have checked the plan.') : cursor ? t('这一页暂无符合条件或可显示的小队。点“查看更多小队”继续读取后续结果。','This page has no matching or visible outings. Select “Load more outings” to check the remaining results.') : t('可以换一个日期或城市，也可以发起 2–8 人的小队。活动收藏仍是你的私人记录，不会自动公开招募。', 'Try another date or city, or create a team of 2–8. Saved events remain private and do not automatically recruit companions.')} actions={!cursor && <><Button variant="primary" onClick={create}>{t('发起小队', 'Create an outing')}</Button><Button variant="quiet" to="/events?when=all">{t('先看看活动', 'Explore events')}</Button></>} />}
     <div className="outing-grid">{visible.map(row => <article className="outing-card" key={row.id}>
       <OutingCover outing={row} variant="card" to={link(row)} />
       <div className="outing-card-body">
@@ -131,5 +148,6 @@ function OutingList({ app, mine, filters, create }: { app: AppContextValue; mine
       </div>
     </article>)}</div>
     {cursor && <div className="outing-load-more"><button className="outing-secondary" disabled={loading} onClick={() => void load(cursor)}>{loading ? t('正在读取…', 'Loading…') : t('查看更多小队', 'Load more outings')}</button></div>}
+    </div>
   </section>;
 }

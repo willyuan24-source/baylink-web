@@ -223,15 +223,10 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
   ['src/features/outings/outing-cover.css', [
     ['', '.outing-inspiration-context h2', 22, 20],
   ]],
-  ['src/features/outings/outing-time-poll.css', [
-    ['', '.outing-poll-heading h2', 20.8, 20],
-  ]],
   ['src/features/outings/outings.css', [
-    ['', '.outing-card h2', 22, 20],
-    ['@media (max-width:720px)', '.outing-hero h1', 30, 28],
     ['', '.together-page .outing-card h2', 22, 20],
     ['', '.together-page .outing-detail-head h1', 34, 32],
-    ['@media (max-width:720px)', '.together-page .outing-hero h1', 30, 28],
+    ['@media (max-width:720px)', '.together-page .outing-detail-head h1', 28, 28],
   ]],
   ['src/features/posts/community.css', [
     ['', '.cm-card .ui-sticker[data-tone=price]', 15, 14],
@@ -288,7 +283,11 @@ function fontSizes(file: string) {
 test('elder modes: no component size the ladder codemod lowered is smaller than before tokens v2 (大 / 特大 / 简洁, phone to desktop)', () => {
   // 69 since UI9-INT dropped the .discovery-modal h2 pin with its dead rule (no markup since the sheets moved to F's Sheet);
   // 68 since UI9-R1-PLAN dropped the planner's own desktop button sizes (行程's buttons are the UI Button: 16px, not 15).
-  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 68);
+  // 65 since UI9-R1-TOGETHER folded outings.css into one layer: the unscoped .outing-card h2 and the two phone hero H1 rules
+  // were overridden (the hero H1 reads --text-h1, together-page.css then outings.css) and are gone; the poll H2 reads
+  // --text-section like the outing page's other H2s (never below its old 20.8px in an elder mode); the phone outing H1
+  // (28px literal) reads --fs-keep-28 and is pinned.
+  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 65);
   const cases: Case[] = [];
   for (const width of [390, 768, 1023, 1024, 1440]) for (const reading of [undefined, 'large', 'extra-large'] as const) for (const simple of [false, true]) cases.push({ width, reading, simple });
   const resolvers = cases.map(c => ({ c, px: fsPx(c) }));
