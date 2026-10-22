@@ -93,22 +93,30 @@ test('the results area reserves the empty state height while loading, except on 
   } finally { footer.remove(); }
 });
 
-test('one filled primary in the head section: 筛选小队 is secondary; the empty and error states are the ui states', async t => {
+test('one filled primary per view: 筛选小队 is secondary; the empty and error states are the ui states', async t => {
   let fail = true;
   t.mock.method(api, 'request', async () => { if (fail) throw { status: 503 }; return { outings: [], nextCursor: null }; });
   const view = render(hub());
   const alert = await view.findByRole('alert');
   assert.ok(alert.matches('.ui-state[data-kind=error]'), 'the list error is the ui ErrorState');
   assert.equal(view.container.querySelector('.outing-error'), null);
-  const results = view.container.querySelector('.outing-results')!;
-  const head = [...view.container.querySelectorAll('.outing-primary')].filter(button => !results.contains(button));
-  assert.deepEqual(head.map(button => button.textContent), ['发起小队']);
+  // Every solid button on the page: .outing-primary (the page's own) and the ui Button's primary.
+  const primaries = () => [...view.container.querySelectorAll('.outing-primary, .ui-button[data-variant=primary]')].map(button => button.textContent);
+  // A failed load: 重试 is the one solid button; the head's 发起小队 steps down to secondary (UI9-R1 polish).
+  assert.deepEqual(primaries(), ['重试']);
+  assert.ok(view.getByRole('button', { name: '发起小队' }).classList.contains('outing-secondary'));
   assert.ok(view.getByRole('button', { name: '筛选小队' }).classList.contains('outing-secondary'));
   fail = false;
   await act(async () => { view.getByRole('button', { name: '重试' }).click(); });
   const empty = (await view.findByText('还没有符合条件的小队')).closest('.ui-state');
   assert.equal(empty?.getAttribute('data-kind'), 'empty', 'the empty list is the ui EmptyState (no dashed box)');
   assert.equal(view.container.querySelector('.outing-empty'), null);
+  // The empty list: the head's 发起小队 is the one solid button again; the empty state offers it as a secondary.
+  assert.deepEqual(primaries(), ['发起小队']);
+  const creates = view.getAllByRole('button', { name: '发起小队' });
+  assert.equal(creates.length, 2);
+  assert.ok(creates[0].classList.contains('outing-primary'));
+  assert.equal(creates[1].getAttribute('data-variant'), 'secondary');
 });
 
 test('the host form picks days in words and quarter hours from the ui Select, keeping a drafted off-step time', () => {
@@ -187,4 +195,31 @@ test('the host form loads through the shell chunk guard; a lost chunk keeps /tog
     await view.findByText('host form', undefined, { timeout: 1000 });
     assert.equal(loads, 3, '重试 loads the chunk again (a fresh boundary and lazy)');
   } finally { forgetLostChunks(); }
+});
+
+test('UI9-R1 polish: 我的小队 for a guest leads with 登录后继续; the language filter is the chip Select; text links and the search icon', async t => {
+  t.mock.method(api, 'request', async () => ({ outings: [], nextCursor: null }));
+  const mine = render(hub('/together?view=mine'));
+  await mine.findByText('登录查看你的申请和小队');
+  const solid = [...mine.container.querySelectorAll('.outing-primary, .ui-button[data-variant=primary]')].map(button => button.textContent);
+  assert.deepEqual(solid, ['登录后继续'], 'the guest view has one solid button');
+  assert.ok(mine.getByRole('button', { name: '发起小队' }).classList.contains('outing-secondary'));
+  cleanup();
+  const browse = render(hub()); await browse.findByText('还没有符合条件的小队');
+  assert.ok(browse.getAllByRole('button', { name: '发起小队' })[0].classList.contains('outing-primary'), 'the browse view: the head leads again');
+  // The filter Select keeps the pill (select.css --chip); every form Select takes the field corner.
+  assert.ok(browse.container.querySelector('select[name=language]')!.classList.contains('ui-select__field--chip'));
+  const field = browse.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement;
+  assert.equal(field.placeholder, '散步、看展、咖啡或集合地点');
+  assert.notEqual(field.parentElement!.querySelector('svg')!.getAttribute('width'), '16', 'the magnifier is sized by CSS (1em), not a fixed 16px');
+  const css = postcss.parse(readFileSync('src/features/outings/outings.css', 'utf8'));
+  const decl = (selector: string, prop: string) => { let value: string | undefined; css.walkRules(rule => { if (rule.selector === selector && !(rule.parent?.type === 'atrule')) rule.walkDecls(prop, d => { value = d.value; }); }); return value; };
+  assert.equal(decl('.together-page .outing-link-button', 'margin-inline'), 'calc(-1 * var(--sp-2))', 'a text link gives its 8px padding back');
+  assert.equal(decl('.together-page .outing-link-button', 'padding'), '0 var(--sp-2)');
+  assert.equal(decl('.together-page .outing-search-input svg', 'width'), '1em');
+  assert.equal(decl('.together-page .outing-search-input input', 'padding-left'), 'calc(var(--sp-3) * 2 + 1em)');
+  const select = postcss.parse(readFileSync('src/components/ui/select.css', 'utf8'));
+  let formCorner: string | undefined;
+  select.walkRules(rule => { if (rule.selector === '.ui-select>.ui-select__field:not(.ui-select__field--chip)') rule.walkDecls('border-radius', d => { formCorner = d.value; }); });
+  assert.equal(formCorner, 'var(--r-md)', 'a form Select has the text field corner');
 });

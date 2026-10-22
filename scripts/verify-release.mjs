@@ -198,6 +198,17 @@ for(const locale of ['', 'en/', 'zh-Hant/']) {
   const html=await readFile(`dist/${locale}index.html`,'utf8');
   if(!/<main\b[^>]*><div class="bay-home bay-home-editorial"><section class="home-discovery"/.test(html)) throw new Error(`The prerendered home is not wrapped as HomePage renders it: dist/${locale}index.html`);
 }
+// UI9-R1 (account pages, J1 P21 / J3 P23): the account shell's first paint (and boot fallback, app/boot-main.ts) is a full
+// screen tall, so the footer is below the fold until the account page arrives. The rule lives in me-hub.css and reaches
+// account-shell.html only through the /me prerender's route stylesheets; npm test runs before the build, so the built
+// document is pinned here.
+for(const locale of ['', 'en/', 'zh-Hant/']) {
+  const path=`dist/${locale}account-shell.html`; const html=await readFile(path,'utf8');
+  const sheets=[...html.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*\bhref="\/([^"]+\.css)"[^>]*>/g)].map(match=>match[1]);
+  const css=(await Promise.all(sheets.map(file=>readFile(`dist/${file}`,'utf8')))).join('\n');
+  if(!html.includes('class="ui-container account-shell"')) throw new Error(`The account shell is not prerendered: ${path}`);
+  if(!css.includes('.account-shell{min-height:100svh')) throw new Error(`The account shell's full-screen height (.account-shell{min-height:100svh) is not in the stylesheets ${path} links: ${sheets.join(', ') || 'none'}`);
+}
 // H60 (WEB-PERF-2): /events names its LCP cover (the page's one fetchpriority="high" image) in the head (scripts/prerender.tsx).
 // A page that shows photo covers with none of them high priority is a regression of the lead card, not a pass.
 for(const locale of ['', 'en/', 'zh-Hant/']) {
