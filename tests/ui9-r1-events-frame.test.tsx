@@ -110,10 +110,12 @@ test('简洁显示 hides the facts line through the events column\'s own [data-s
     cleanup();
   }
   assert.equal(facts(calendar().container).line.getAttribute('data-simple'), 'hide');
-  // The rule lives in events.css (UI9-IMG-A1 owns that file); this lane relies on it, so it is pinned here.
+  // The rule lives in events.css (UI9-IMG-A1b / AFTER-A1 own that file); this lane relies on it, so it is pinned here on
+  // purpose: an edit there that drops or renames it must move 简洁's hide with it (noted in this lane's PR.md).
   assert.match(readFileSync('src/features/events/events.css', 'utf8'), /html\[data-simple\] \.ev-page \[data-simple=hide\][^{]*\{ *display: *none/);
-  // sr-only is Tailwind's (already in the entry CSS through the home head), so the line adds no stylesheet.
-  assert.match(readFileSync('src/features/home/HomeHead.tsx', 'utf8'), /className="sr-only"/);
+  // sr-only is a Tailwind utility: Tailwind emits it because its content globs scan this file, so the line adds no stylesheet.
+  const tailwind = readFileSync('tailwind.config.js', 'utf8');
+  assert.ok(tailwind.includes('"./src/**/*.{js,ts,jsx,tsx}"'), 'Tailwind scans src/features/events/EventsFrame.tsx');
 });
 
 test('the per-card ✓ line stays on every listed card while the head drops its dates (DECISIONS 3 / 17)', () => {
