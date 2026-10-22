@@ -167,7 +167,10 @@ test('the chrome CSS: no blur, no ad-hoc shadows, no transition: all, every :hov
   const chrome = readFileSync('src/components/site-chrome.css', 'utf8');
   assert.match(chrome, /html:root \{ --site-mobile-nav-height:calc\(64px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
   assert.match(chrome, /html:root\[data-simple\] \{ --site-mobile-nav-height:calc\(76px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
-  assert.match(chrome, /\.site-app \.site-mobile-nav \.site-mobile-item>span \{ font-size:var\(--fs-meta\)!important; \}/);
+  // 14px tab labels: the item's size, which its labels inherit (tokens.css's 13px !important label rule is gone, so the
+  // chrome needs no !important of its own).
+  assert.match(chrome, /\.site-app \.site-mobile-nav \.site-mobile-item \{[^}]*font-size:var\(--fs-meta\);/);
+  assert.doesNotMatch(chrome, /!important/);
 });
 
 test('/about#about-method-title: 我们怎么核对 follows the H1 block, is the only anchor, and the layout’s scroll lands it', async () => {
@@ -229,4 +232,47 @@ test('the search sheet (content arrangement §6): empty, typed (groups in order)
   assert.deepEqual(within(sheet).getAllByRole('option').map(option => option.querySelector('.quick-result-title')!.textContent), ['问 BayBay（AI 助手）', '长辈与家属']);
   simple.unmount();
   act(() => setSimpleDisplay(false));
+});
+
+test('UI9-R1 chrome: footer targets, 简洁 footer, pre-footer step, inside rings, selected looks, AI tag, route bar, Aa samples', () => {
+  const source = readFileSync('src/components/site-chrome.css', 'utf8');
+  const css = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
+  // N25: every footer link and button is a 44px target (48 in 简洁显示), 12px each side; the row reaches 12px past its column.
+  assert.match(css, /\.site-app \.site-footer-row \{ display:flex; flex-wrap:wrap; margin:0 calc\(-1 \* var\(--sp-3\)\); \}/);
+  assert.match(css, /\.site-app \.site-footer-row>:is\(a,button\) \{ display:inline-flex; align-items:center; min-height:var\(--tool-size\); padding:0 var\(--sp-3\);/);
+  // D6: 简洁显示 keeps the two link lines only (the brand column and 内容目录 hide).
+  assert.match(css, /html\[data-simple\] \.site-app \.site-footer-about \{ display:none; \}/);
+  assert.match(css, /html\[data-simple\] \.site-app \.site-footer-archive \{ display:none; \}/);
+  // N15: the footer's own step above it is 12px; a page's 48px end padding lands at ≤64.
+  assert.match(css, /\.site-app \.site-footer \{ margin-top:var\(--sp-3\);/);
+  // N09: rings that touch the window edge (desktop logo / tabs / 更多, the phone tab bar, footer links) are drawn inside …
+  assert.match(css, /\.site-app :is\(\.site-footer-row>:is\(a,button\),\.site-header-brand,\.site-nav-link,\.site-navigation-more>summary,\.site-mobile-item\):focus-visible \{ outline-offset:calc\(-2 \* var\(--focus-ring-width\)\); border-radius:var\(--r-sm\); \}/);
+  // … but the phone/tablet 更多 tool keeps the outside ring: inside, a brand ring on its ink selected fill is 2.27:1.
+  let phoneMore = false;
+  postcss.parse(source).walkRules(rule => {
+    if (rule.selector !== '.site-app .site-navigation-more>summary:focus-visible') return;
+    const media = rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '';
+    assert.match(media, /max-width:\s*1023px/, 'the outside 更多 ring is phone/tablet only');
+    rule.walkDecls('outline-offset', decl => { phoneMore = decl.value === 'var(--focus-ring-offset)'; });
+  });
+  assert.ok(phoneMore, 'the phone 更多 tool keeps the outside ring');
+  // N08: the chrome's selected looks are FOUNDATION's two (ink line, ink fill); brand-tint is not one of them.
+  assert.match(css, /background:var\(--selected-line\)/);
+  assert.match(css, /\.site-app :is\(\.site-secondary-nav a\[aria-current=page\],\.site-language-menu>button\[aria-pressed=true\]\) \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  assert.match(css, /\.site-mobile-item:is\(\.is-active,\[data-pending\]\) \.site-mobile-icon \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  assert.match(css, /\.site-navigation-more>summary\.is-active \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  // D2: lime means 免费 only; the AI tag is outlined brand on white.
+  const aiTag = css.match(/\.site-ai-tag \{[^}]*\}/)?.[0] ?? '';
+  assert.match(aiTag, /border:1px solid;/);
+  assert.match(aiTag, /background:var\(--color-surface\); color:var\(--color-brand\);/);
+  assert.doesNotMatch(aiTag, /highlight|lime/);
+  // N24 + 简洁显示: the route bar's loop reads the motion scale and, with durations 0, stands full width (no 40% box).
+  assert.match(css, /\.site-route-progress::before \{[^}]*inset:0;[^}]*animation:site-route-run calc\(6 \* var\(--dur-3\)\)/);
+  assert.doesNotMatch(css, /\.site-route-progress::before \{[^}]*width:40%/);
+  assert.match(css, /@keyframes site-route-run \{ from \{ translate:-40%; scale:\.4 1; \} to \{ translate:100%; scale:\.4 1; \} \}/);
+  // Aa sheet: the 字 samples read the whole-pixel kept steps only (no fractional calc()).
+  const sizes: string[] = [];
+  postcss.parse(readFileSync('src/components/site-dialogs.css', 'utf8')).walkRules(/reading-sample/, rule => rule.walkDecls('font-size', decl => { sizes.push(decl.value); }));
+  assert.ok(sizes.length >= 4);
+  for (const size of sizes) assert.match(size, /^var\(--fs-keep-(20|24|28|32)\)$/);
 });

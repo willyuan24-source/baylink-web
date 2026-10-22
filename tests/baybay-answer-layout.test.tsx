@@ -209,11 +209,13 @@ test('on an event page the capsule names the page, page chips ask about it, and 
   assert.deepEqual(bayBayPageRef('/en/events/san-francisco-fleet-week-2026?date=2026-10-11'), { kind: 'event', id: 'san-francisco-fleet-week-2026' });
   const view = render(<BayBayAssistantEntry {...props} currentPath="/events/san-francisco-fleet-week-2026" />);
   assert.match(view.baseElement.querySelector('.bb-capsule')?.textContent || '', /正在看：.*Fleet Week/);
+  assert.equal(view.queryByText('直接打字，或点一个问题。'), null, 'the capsule and page chips invite the question; the welcome line steps aside');
   const chips = view.getByRole('list', { name: '围绕这一页提问' });
   assert.equal(within(chips).getAllByRole('button').length, 3);
   fireEvent.click(within(chips).getByRole('button', { name: /适合带长辈和孩子/ }));
   await view.findByText('适合，但人多，建议早到。');
   assert.deepEqual(bodies[0].context, { currentPath: '/events/san-francisco-fleet-week-2026' });
+  assert.ok(view.getByRole('button', { name: '不再参考这一页' }).classList.contains('ui-close'), 'the capsule ✕ is the shared close (N12)');
   fireEvent.click(view.getByRole('button', { name: '不再参考这一页' }));
   assert.equal(view.baseElement.querySelector('.bb-capsule'), null);
   // A 接着聊 chip under the answer asked on this page no longer carries the page either.
@@ -233,7 +235,8 @@ test('starter chips ask, prefill or open the right tool, in each language', asyn
     await setLocale(locale, false);
     const paths: string[] = [];
     const view = render(<BayBayAssistantEntry {...props} onNavigate={path => paths.push(path)} />);
-    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'Popular questions' : '常用问题' })).getAllByRole('button').length, 6);
+    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'Popular questions' : '常用问题' })).getAllByRole('button').length, 2, 'two cards; the other starters are chips under 也可以');
+    assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'You can also' : '也可以' })).getAllByRole('button').length, 8);
     fireEvent.click(view.getByRole('button', { name: new RegExp(`^${letter}`) }));
     assert.equal((view.getByRole('textbox') as HTMLInputElement).value, draft, 'a draft starter waits for the reader');
     fireEvent.click(view.getByRole('button', { name: new RegExp(`^${screenshot}`) }));

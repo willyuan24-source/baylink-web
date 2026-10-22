@@ -79,15 +79,17 @@ test('问一下 is F\'s primary and never disabled; 停止 takes its place as th
   await view.findByText('好的。');
 });
 
-test('the welcome: one line, six prompt cards with a hint (four in 简洁显示), 也可以 chips, details below the cards, the guest line', async t => {
+test('the welcome: one line, two prompt cards with a hint, the other starters then 也可以\'s own chips (two starter chips only in 简洁显示), details, the guest line', async t => {
   mockBayBayFetch(t, async () => Response.json({ ok: true, answer: 'OK' }));
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} onLoginNeeded={noop} />);
   assert.ok(view.getByText('直接打字，或点一个问题。'));
   assert.equal(document.querySelector('.baybay-context-line'), null, 'the tagline is gone');
   assert.equal(document.querySelector('.bb-welcome h3'), null, 'the welcome h3 is gone');
   const cards = [...document.querySelectorAll('.bb-prompts .bb-prompt')];
-  assert.deepEqual(cards.map(card => card.querySelector('.bb-prompt__title')?.textContent), ['本周末去哪', '长辈福利与医保', '帮我看懂英文信', '办事怎么准备', '安排一天', '读活动截图']);
+  assert.deepEqual(cards.map(card => card.querySelector('.bb-prompt__title')?.textContent), ['本周末去哪', '长辈福利与医保'], 'two cards, not a wall of six (J3 P15)');
   assert.ok(cards.every(card => card.querySelector('.bb-prompt__hint')?.textContent), 'each card has its hint line');
+  const chips = [...document.querySelectorAll('.bb-also .ui-chip')].map(chip => chip.textContent);
+  assert.deepEqual(chips, ['帮我看懂英文信', '办事怎么准备', '安排一天', '读活动截图', '找搭子一起去', '找本地服务', '沟通帮手', '学校与入学'], 'the other starters lead 也可以 as chips');
   const welcome = document.querySelector('.bb-welcome')!;
   const order = [...welcome.children].map(child => child.className.split(' ')[0]);
   assert.deepEqual(order, ['bb-prompts', 'bb-also', 'ui-disclosure', 'bb-guest-line']);
@@ -97,8 +99,24 @@ test('the welcome: one line, six prompt cards with a hint (four in 简洁显示)
   cleanup();
   await act(async () => { setSimpleDisplay(true); });
   render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
-  assert.equal(document.querySelectorAll('.bb-prompts .bb-prompt').length, 4, '简洁显示: four cards');
-  assert.equal(document.querySelector('.bb-also'), null, '简洁显示: no 也可以 group');
+  assert.equal(document.querySelectorAll('.bb-prompts .bb-prompt').length, 2, '简洁显示: the two cards');
+  assert.deepEqual([...document.querySelectorAll('.bb-also .ui-chip')].map(chip => chip.textContent), ['帮我看懂英文信', '办事怎么准备'], '简洁显示: the two draft starters, none of 也可以\'s own four');
+});
+
+// UI9-R1 (J3 P15, N11, N12): the two welcome cards take the panel's one card look (the plan, outing and post cards), and
+// every corner in the panel's sheet is one radius token (no compound radius of its own; the footer has no fill or corners).
+test('the welcome cards take the panel card look; every corner is one radius token', () => {
+  const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
+  // Each rule's declarations as a map, so a reorder or reformat of a rule does not break the comparison.
+  const declarations = (selector: RegExp) => new Map((selector.exec(css)?.[1] || '').split(';').map(part => part.split(/:(.*)/s).map(bit => bit.trim())).filter(([prop]) => prop).map(([prop, value]): [string, string] => [prop, value]));
+  const prompt = declarations(/\.baybay-conversation \.bb-prompt \{([^}]*)\}/);
+  const card = declarations(/\.baybay-conversation :is\(\.baybay-outing-card,\.bb-post\) \{([^}]*)\}/);
+  assert.equal(prompt.get('border'), '1px solid var(--color-line)', 'the 1px decorative line, not a control edge');
+  assert.equal(prompt.get('background'), 'var(--color-surface)', 'white, not the paper fill');
+  assert.equal(prompt.get('border-radius'), 'var(--r-lg)');
+  for (const prop of ['padding', 'border', 'border-radius', 'background']) assert.equal(prompt.get(prop), card.get(prop), `${prop}: the same look as the outing and post cards`);
+  for (const [, value] of css.matchAll(/border(?:-[a-z]+)*-radius:([^;}]+)/g)) assert.match(value.trim(), /^var\(--r-(?:sm|md|lg|xl|pill|circle)\)$/, `radius ${value} is one token`);
+  assert.doesNotMatch(/\.baybay-sheet \.ui-sheet__footer \{[^}]*\}/.exec(css)?.[0] || '', /background|radius/, 'the footer shows the sheet\'s own white and corners');
 });
 
 const BB_FILES = [

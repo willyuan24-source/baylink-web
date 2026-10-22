@@ -1,9 +1,9 @@
 /* The site chrome (WEB-SHELL2, design.md §4.13; UI9-NAV: D2 温暖社区感): header, 更多 / language / account menus, global
    footer, phone tab bar, toast and the chunk-loading sheet. SiteChrome.tsx renders this markup in the app and in the
-   prerendered pages. Selectors start at .site-app so they outrank the legacy rules still in tokens.css (F's frozen file;
-   PR.md lists its dead chrome rules for UI9-INT) without !important, except one tab label rule tokens.css marks !important.
-   Tokens only (sizes, space, radius, shadow, motion); 400 everywhere; 44px targets (48 in 简洁显示); 14px is the smallest
-   chrome text except the AI tag. Hover only where a pointer hovers; every control answers a press at once. */
+   prerendered pages. Selectors start at .site-app (tokens.css no longer styles the chrome; UI9-R1-CHROME dropped the
+   overrides that beat its old rules). Tokens only (sizes, space, radius, shadow, motion); 400 everywhere; 44px targets (48
+   in 简洁显示); 14px is the smallest chrome text on a desktop (13 for the phone AI tag and badges). Hover only where a
+   pointer hovers; every control answers a press at once. */
 
 /* Heights: header 64 desktop, 56 phone (64 at 特大 and in 简洁显示); tab bar 64 + safe area (76 in 简洁显示). px, so Aa does
    not push the frame: 120px of chrome at 390x844 standard, about 17% at 特大 and 简洁显示. */
@@ -11,10 +11,10 @@ html:root { --site-mobile-nav-height:calc(64px + env(safe-area-inset-bottom,0px)
 html:root[data-simple] { --site-mobile-nav-height:calc(76px + env(safe-area-inset-bottom,0px)); }
 .site-app {
   --chrome-header-height:64px; --tool-size:44px;
-  display:block; max-width:none; min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
+  min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
 }
 html[data-simple] .site-app { --tool-size:48px; }
-.site-app .site-workspace { width:100%; min-height:100dvh; display:flex; flex-direction:column; }
+.site-app .site-workspace { min-height:100dvh; display:flex; flex-direction:column; }
 .site-app .site-main { flex:1 0 auto; width:100%; min-width:0; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); margin-inline:auto; outline:none; }
 .site-app .site-skip-link { position:fixed; top:-5rem; left:var(--sp-4); z-index:150; padding:var(--sp-3) var(--sp-5); border:2px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--fs-meta); }
 .site-app .site-skip-link:focus { top:var(--sp-3); }
@@ -22,38 +22,46 @@ html[data-simple] .site-app { --tool-size:48px; }
 /* Header (G1, G21): solid paper and a 1px line; e1 once the page scrolls, where the browser has scroll-driven animations
    (forwards only, from 4px: at the top the header has no shadow at all). No blur. The logo, the nav and the first content
    edge sit at x = 112 in a 1440 window (the 1216 frame plus the gutter). */
-.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:var(--color-bg); }
+.site-app .site-topbar { position:sticky; top:0; z-index:45; border-bottom:1px solid var(--color-line); background:var(--color-bg); }
 @supports (animation-timeline:scroll()) { .site-app .site-topbar { animation:site-topbar-lift linear forwards; animation-timeline:scroll(root); animation-range:4px 36px; } }
 @keyframes site-topbar-lift { to { box-shadow:var(--e1); } }
 /* The 1px line is part of the header's height (56 / 64 in all). */
 .site-app .site-topbar-inner { display:flex; align-items:center; gap:var(--sp-5); width:100%; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); height:calc(var(--chrome-header-height) - 1px); margin-inline:auto; padding:0 var(--page-gutter); }
-.site-app .site-header-navigation { display:flex; flex:1; align-items:stretch; gap:var(--sp-6); min-width:0; height:100%; }
+.site-app .site-header-navigation { display:flex; flex:1; gap:var(--sp-6); min-width:0; height:100%; }
 .site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:var(--tool-size); }
 /* The BAYLINK lockup (G1) is a fixed size: it never grows with Aa. */
 .site-app .site-header-brand img { display:block; width:140px; height:auto; }
 .site-app .site-otter { display:block; flex:none; }
 
-/* Desktop links: ink-2, the current one ink with a brand underline grown from the centre (no 600); a tapped one takes the
-   same look at once (data-pending) until the route changes. */
-.site-app .site-header-primary.site-nav { display:flex; flex-direction:row; align-items:stretch; gap:var(--sp-1); height:100%; margin:0; }
-.site-app .site-header-primary .site-nav-link,.site-app .site-navigation-more>summary { position:relative; display:flex; align-items:center; gap:6px; min-width:44px; min-height:44px; padding:0 var(--sp-3); border:0; border-radius:0; background:transparent; color:var(--color-ink-2); font-size:var(--fs-body); font-weight:var(--fw-regular); white-space:nowrap; transition:color var(--dur-2) var(--ease-std); }
-.site-app .site-header-primary .site-nav-link::after,.site-app .site-navigation-more>summary::after { content:''; position:absolute; left:var(--sp-3); right:var(--sp-3); bottom:-1px; height:3px; border-radius:var(--r-pill); background:var(--color-brand); transform:scaleX(0); transition:transform var(--dur-2) var(--ease-out); }
+/* Desktop links: ink-2, the current one ink with the selected line (N08: ink, one of the two selected looks) grown from the
+   centre (no 600); a tapped one takes the same look at once (data-pending) until the route changes. */
+.site-app .site-header-primary.site-nav { display:flex; gap:var(--sp-1); height:100%; }
+.site-app .site-header-primary .site-nav-link,.site-app .site-navigation-more>summary { position:relative; display:flex; align-items:center; gap:6px; min-width:44px; min-height:44px; padding:0 var(--sp-3); border-radius:0; color:var(--color-ink-2); font-size:var(--fs-body); font-weight:var(--fw-regular); white-space:nowrap; transition:color var(--dur-2) var(--ease-std); }
+.site-app .site-header-primary .site-nav-link::after,.site-app .site-navigation-more>summary::after,.site-app .site-topbar-account::after { content:''; position:absolute; left:var(--sp-3); right:var(--sp-3); bottom:-1px; height:3px; border-radius:var(--r-pill); background:var(--selected-line); transform:scaleX(0); transition:transform var(--dur-2) var(--ease-out); }
 .site-app .site-header-primary .site-nav-link:is(.is-active,[data-pending]),.site-app .site-navigation-more>summary.is-active { color:var(--color-ink); }
-.site-app .site-header-primary .site-nav-link:is(.is-active,[data-pending])::after,.site-app .site-navigation-more>summary.is-active::after { transform:scaleX(1); }
+.site-app .site-header-primary .site-nav-link:is(.is-active,[data-pending])::after,.site-app .site-navigation-more>summary.is-active::after,.site-app .site-topbar-account:is([aria-current],.is-current)::after { transform:scaleX(1); }
 .site-app .site-header-primary .site-nav-link:active,.site-app .site-navigation-more>summary:active { color:var(--color-brand-hover); }
 .site-app .site-navigation-more>summary { height:100%; }
+/* N08: on /me and its pages the account tool shows the same selected line at the header's edge (the tool is centred). */
+.site-app .site-topbar-account::after { bottom:calc((var(--tool-size) - var(--chrome-header-height) - 1px) / 2); }
 .site-app .site-header-primary .site-nav-ask { color:var(--color-brand); }
 .site-app .site-nav-ask .site-otter { width:22px; height:22px; }
+/* Focus (N09, captain 10-21): on a desktop the logo, the tabs and 更多 run from the window's top edge to the header line,
+   the phone tab bar ends at its bottom edge and a footer row's first link starts 4px from the phone's left edge, so a
+   ring 3px outside them lost an edge; theirs is drawn inside (offset −2 × width) with --r-sm corners. (0,3,1): above the
+   (0,3,0) radii in this file and tokens.css's (0,2,0) ring. Below 1024px 更多 keeps the outside ring (phone block). */
+.site-app :is(.site-footer-row>:is(a,button),.site-header-brand,.site-nav-link,.site-navigation-more>summary,.site-mobile-item):focus-visible { outline-offset:calc(-2 * var(--focus-ring-width)); border-radius:var(--r-sm); }
 @media (hover:hover) and (pointer:fine) {
   .site-app .site-header-primary .site-nav-link:hover,.site-app .site-navigation-more>summary:hover { color:var(--color-ink); }
   .site-app .site-header-primary .site-nav-link:not(.is-active):hover::after,.site-app .site-navigation-more>summary:not(.is-active):hover::after { transform:scaleX(.6); }
 }
-/* The AI tag on every 问 BayBay entry (A6): lime with deep text, the same look as HOME's AI 助手 tag. */
-.site-ai-tag { display:inline-block; flex:none; padding:0 var(--sp-1); border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:var(--lh-snug); letter-spacing:0; }
+/* The AI tag on every 问 BayBay entry (A6): outlined in brand on white (lime means 免费 only, owner decision D2); 13px on a
+   phone, 14px on a desktop (--text-caption, J1 P18). */
+.site-ai-tag { display:inline-block; flex:none; padding:0 var(--sp-1); border:1px solid; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand); font-size:var(--text-caption); font-weight:var(--fw-strong); line-height:var(--lh-snug); letter-spacing:0; }
 
 /* One tool look (search, Aa 字号, language, account, •••): 44px (48 in 简洁显示), r-md, sunken on press and hover. */
-.site-app .site-tool { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-1); flex:none; min-width:var(--tool-size); height:var(--tool-size); min-height:0; margin:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:transparent; color:var(--color-ink); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; white-space:nowrap; list-style:none; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.site-app .site-tool:active,.site-app [open]>.site-tool,.site-app .site-topbar-account:is([aria-current],.is-current) { background:var(--color-surface-2); }
+.site-app .site-tool { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-1); flex:none; min-width:var(--tool-size); height:var(--tool-size); padding:0 var(--sp-2); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.site-app .site-tool:active,.site-app [open]>.site-tool { background:var(--color-surface-2); }
 .site-app .site-tool:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .site-app .site-tool:hover { background:var(--color-surface-2); } }
 .site-app :is(.site-navigation-more,.site-language)>summary::-webkit-details-marker { display:none; }
@@ -63,16 +71,16 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app .site-language { position:relative; flex:none; }
 .site-app .site-language-short,.site-app .site-language-pair { display:none; }
 .site-app .site-topbar-actions { display:flex; flex:none; align-items:center; }
-.site-app .site-header-notification { position:absolute; top:2px; right:0; min-width:1.125rem; padding:0 4px; }
-/* The search field (≥1280): a pill with a line-control edge (≥3:1), ink-3 placeholder at 400 and the ⌘K hint. */
-.site-app .site-topbar .site-command-trigger { width:var(--tool-size); padding:0; color:var(--color-ink-2); }
+/* The search field (N12): below 1280 a tool like the others (ink icon); from 1280 the secondary Button look — white, a
+   line-control edge (≥3:1), ink icon, surface-2 on hover — with the ink-3 placeholder at 400 and the ⌘K hint. */
+.site-app .site-topbar .site-command-trigger { width:var(--tool-size); padding:0; }
 .site-app .site-command-placeholder,.site-app .site-command-kbd { display:none; }
 @media (min-width:1280px) {
-  .site-app .site-topbar .site-command-trigger { justify-content:flex-start; gap:var(--sp-2); width:280px; margin-right:var(--sp-2); padding:0 var(--sp-2) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-3); transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+  .site-app .site-topbar .site-command-trigger { justify-content:flex-start; gap:var(--sp-2); width:280px; margin-right:var(--sp-2); padding:0 var(--sp-2) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
   .site-app .site-command-placeholder { display:block; flex:1; min-width:0; overflow:hidden; color:var(--color-ink-3); text-align:left; text-overflow:ellipsis; }
   .site-app .site-command-kbd { display:inline-block; flex:none; padding:0 var(--sp-2); border:1px solid var(--color-line-strong); border-radius:var(--r-sm); color:var(--color-ink-3); font-family:inherit; font-size:var(--fs-meta); line-height:var(--lh-ui); }
 }
-@media (min-width:1280px) and (hover:hover) and (pointer:fine) { .site-app .site-topbar .site-command-trigger:hover { border-color:var(--color-ink-3); background:var(--color-surface); } }
+@media (min-width:1280px) and (hover:hover) and (pointer:fine) { .site-app .site-topbar .site-command-trigger:hover { border-color:var(--color-ink-3); } }
 
 /* Menus: 更多, the account menu and the language choices. Each enters (fade + 4px) and leaves over --dur-2 where the
    browser animates <details> content (::details-content + allow-discrete); elsewhere they open and close at once. */
@@ -88,16 +96,15 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app [open]>:is(.site-navigation-panel,.site-language-menu) { transition-duration:var(--dur-3); transition-timing-function:var(--ease-out); }
 @starting-style { .site-app [open]>:is(.site-navigation-panel,.site-language-menu) { opacity:0; translate:0 -4px; } }
 .site-app .site-navigation-more>.site-navigation-panel { top:calc(100% + 1px); width:22rem; max-width:calc(100vw - 2 * var(--page-gutter)); max-height:calc(100dvh - 6rem); }
-.site-app .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; margin:0; padding:0; border:0; }
+.site-app .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; }
 .site-app .site-navigation-panel .site-secondary-nav--about,.site-app .site-navigation-account { margin-top:var(--sp-2); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
 .site-app .site-secondary-nav>:is(a,button),.site-app .site-navigation-account button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
-.site-app .site-secondary-nav>:is(a,button)>svg,.site-app .site-navigation-account button>svg { flex:none; color:var(--color-ink-2); }
+.site-app .site-secondary-nav>:is(a,button)>svg,.site-app .site-navigation-account button>svg { flex:none; }
 .site-app .site-secondary-nav>:is(a,button):active,.site-app .site-navigation-account button:active { background:var(--color-surface-2); }
-.site-app .site-secondary-nav a[aria-current=page] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
 @media (hover:hover) and (pointer:fine) { .site-app .site-secondary-nav>:is(a,button):hover,.site-app .site-navigation-account button:hover { background:var(--color-surface-2); } }
 .site-app .site-more-chip { margin-left:auto; padding:0 var(--sp-2); border-radius:var(--r-pill); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 html[data-simple] .site-app .site-more-community { display:none; }
-.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:1.5; text-align:center; }
+.site-app .site-unread,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:1.5; text-align:center; }
 .site-app .site-secondary-nav .site-unread { margin-left:auto; }
 .site-app .site-navigation-account p { padding:var(--sp-1) var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .site-app .site-language-menu { width:14rem; }
@@ -105,13 +112,16 @@ html[data-simple] .site-app .site-more-community { display:none; }
 .site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
 .site-app .site-language-menu>button:active { background:var(--color-surface-2); }
 @media (hover:hover) and (pointer:fine) { .site-app .site-language-menu>button:hover { background:var(--color-surface-2); } }
-.site-app .site-language-menu>button[aria-pressed=true] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
+/* N08: the current 更多 row and the chosen language take the selected pair (icons follow the text). */
+.site-app :is(.site-secondary-nav a[aria-current=page],.site-language-menu>button[aria-pressed=true]) { background:var(--selected-bg); color:var(--selected-fg); }
 .site-app .site-language-error { padding:var(--sp-2) var(--sp-3); color:var(--color-danger); font-size:var(--fs-meta); }
 
-/* Global footer (content arrangement §5; G10, G12): a light warm surface, so the BAYLINK wordmark stays deep green; one
-   32px step above it; the otter, the wordmark and the tagline, the one line on what the site is, then the links: 16px,
-   14px, and the page's image credits last. Desktop: the brand and the line in columns 1-6, the links in 7-12. */
-.site-app .site-footer { margin-top:var(--sp-6); border-top:1px solid var(--color-line); background:var(--color-surface-2); }
+/* Global footer (content arrangement §5; G10, G12): a light warm surface, so the BAYLINK wordmark stays deep green; 12px
+   above it (N15: with a page's own 48px end that is the 64px pre-footer at most; a page with no end padding of its own
+   keeps the 12px plus its last line's leading); the otter, the wordmark and the tagline, the one line on what the site
+   is, then the links: 16px, 14px, and the page's image credits last. Desktop: the brand and the line in columns 1-6, the
+   links in 7-12. 简洁显示 (D6): the two link lines only. */
+.site-app .site-footer { margin-top:var(--sp-3); border-top:1px solid var(--color-line); background:var(--color-surface-2); }
 .site-app .site-footer-inner { display:grid; gap:var(--sp-4); max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); margin-inline:auto; padding:var(--sp-6) var(--page-gutter); }
 .site-app .site-footer-brand { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .site-app .site-footer-brand img { flex:none; width:32px; height:32px; }
@@ -119,17 +129,20 @@ html[data-simple] .site-app .site-more-community { display:none; }
 .site-app .site-footer-line { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
 .site-app .site-footer-claim { white-space:nowrap; }
 .site-app .site-footer-links { display:grid; align-content:start; }
-.site-app .site-footer-row { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); margin:0; }
-.site-app .site-footer-row>:is(a,button) { display:inline-flex; align-items:center; min-height:44px; color:var(--color-ink-2); font-size:var(--fs-meta); text-decoration:none; transition:color var(--dur-2) var(--ease-std); }
+/* N25: every link is a full target, 44px tall (48 in 简洁显示) and its word plus 12px each side wide (≥52px: no label is
+   under two characters), so the words stay 24px apart and on the column's edge (the row reaches 12px past it). */
+.site-app .site-footer-row { display:flex; flex-wrap:wrap; margin:0 calc(-1 * var(--sp-3)); }
+.site-app .site-footer-row>:is(a,button) { display:inline-flex; align-items:center; min-height:var(--tool-size); padding:0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); text-decoration:none; transition:color var(--dur-2) var(--ease-std); }
 .site-app .site-footer-row--main>:is(a,button) { color:var(--color-ink); font-size:var(--fs-body); }
 .site-app .site-footer-row>:is(a,button):active { color:var(--color-brand-hover); }
 .site-app .site-footer-row>.site-footer-credits { color:var(--color-brand); }
-@media (hover:hover) and (pointer:fine) { .site-app .site-footer-row>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; } }
+@media (hover:hover) and (pointer:fine) { .site-app .site-footer-row>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); } }
 html[data-simple] .site-app .site-footer-archive { display:none; }
+html[data-simple] .site-app .site-footer-about { display:none; }
 @media (min-width:1024px) {
   .site-app .site-footer-inner { grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--grid-gutter); padding-block:var(--sp-7); }
   .site-app .site-footer-about { grid-column:1 / span 6; }
-  .site-app .site-footer-links { grid-column:7 / span 6; }
+  .site-app .site-footer-links { grid-column:span 6; }
 }
 
 /* Toast (design.md §4.5): bottom, above the tab bar, so it never covers the header's ••• or search. In over --dur-3, out
@@ -162,7 +175,7 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
    panel; on a desktop the search drawer and BayBay's 440px drawer with the page still in view, no scrim (captain decision
    7; two classes outrank ui.css's .ui-sheet-backdrop, which loads after this file). */
 .site-chunk-sheet__body { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); }
-.site-chunk-spinner { width:32px; height:32px; color:var(--color-brand); animation:site-chunk-spin 1s linear infinite; }
+.site-chunk-spinner { width:32px; height:32px; color:var(--color-brand); animation:site-chunk-spin calc(5 * var(--dur-3)) linear infinite; }
 @keyframes site-chunk-spin { to { rotate:360deg; } }
 @media (max-width:1023px) {
   .site-chunk-sheet--search .ui-sheet { height:min(42rem,85dvh); }
@@ -185,7 +198,10 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
   .site-app .site-navigation-more { order:3; align-items:center; margin-left:0; }
   .site-app .site-navigation-more>summary { width:var(--tool-size); height:var(--tool-size); min-height:0; padding:0; border-radius:var(--r-md); color:var(--color-ink); }
   .site-app .site-navigation-more>summary::after,.site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
-  .site-app .site-navigation-more>summary.is-active { background:var(--color-brand-tint); }
+  .site-app .site-navigation-more>summary.is-active { background:var(--selected-bg); color:var(--selected-fg); }
+  /* The phone/tablet 更多 tool sits 16px from the edge like Aa and 我的: its ring stays outside with the fill's corners (an
+     inside brand ring on the ink selected fill was 2.27:1). Same (0,3,1) as the focus-inside rule, later. */
+  .site-app .site-navigation-more>summary:focus-visible { outline-offset:var(--focus-ring-offset); border-radius:var(--r-md); }
   .site-app .site-more-icon { display:block; }
   .site-app .site-navigation-more>.site-navigation-panel { position:fixed; top:calc(var(--chrome-header-height) + var(--sp-2)); left:var(--page-gutter); right:var(--page-gutter); width:auto; max-width:none; max-height:calc(100dvh - var(--site-mobile-nav-height) - var(--chrome-header-height) - var(--sp-5)); }
   .site-app .site-language-name { display:none; }
@@ -195,19 +211,18 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
   .site-app .site-footer-inner { padding-bottom:calc(var(--site-mobile-nav-height) + var(--sp-4)); }
 
   /* Tab bar (G21): the card surface and a 1px line, no blur, no shadow; five cells, 24px icons, the otter at 32px with its
-     AI tag, 14px labels (16 in 简洁显示); the current tab in brand with a 56 x 30 brand-tint pill. */
-  .site-app .site-mobile-nav { position:fixed; z-index:50; left:0; right:0; bottom:0; display:block; height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); backdrop-filter:none; box-shadow:none; }
+     AI tag, 14px labels (16 in 简洁显示); the current tab in ink with its icon white on a 56 x 30 pill in the selected pair
+     (N08). */
+  .site-app .site-mobile-nav { position:fixed; z-index:50; left:0; right:0; bottom:0; display:block; height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); border-top:1px solid var(--color-line); background:var(--color-surface); }
   .site-app .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:stretch; gap:2px; max-width:600px; height:100%; min-height:0; margin:auto; padding:0 var(--sp-1); font-size:var(--fs-meta); }
-  .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-1); min-width:0; min-height:0; padding:0; border-radius:var(--r-md); background:transparent; color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; text-align:center; transition:color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-  /* tokens.css sets these labels to 13px with !important (listed for UI9-INT). */
-  .site-app .site-mobile-nav .site-mobile-item>span { font-size:var(--fs-meta)!important; }
+  .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-1); min-width:0; border-radius:var(--r-md); color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; text-align:center; transition:color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
   .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:56px; height:30px; border-radius:var(--r-pill); transition:background-color var(--dur-2) var(--ease-std); }
   /* Labels never break inside a word: one line, centred on the tab. */
-  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.2em; white-space:nowrap; }
-  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) { background:transparent; color:var(--color-brand); font-weight:var(--fw-regular); }
-  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) .site-mobile-icon { background:var(--color-brand-tint); }
+  .site-app .site-mobile-nav .site-mobile-item>span:last-child { min-height:1.2em; white-space:nowrap; }
+  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) { color:var(--color-ink); font-weight:var(--fw-regular); }
+  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) .site-mobile-icon { background:var(--selected-bg); color:var(--selected-fg); }
   .site-app .site-mobile-nav .site-mobile-item:active { scale:.94; }
-  .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand); }
+  .site-app .site-mobile-nav .site-mobile-ask { color:var(--color-brand); }
   .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:32px; height:32px; }
   .site-app .site-mobile-nav .site-mobile-ask .site-ai-tag { position:absolute; top:-6px; left:calc(50% + 10px); }
   .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.2em; overflow-wrap:normal; white-space:nowrap; }
@@ -300,11 +315,13 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
    the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). */
 .site-route-wait { flex:1 1 auto; min-height:60vh; }
 .site-route-progress { position:fixed; inset:0 0 auto; z-index:90; height:3px; overflow:hidden; opacity:0; pointer-events:none; animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards; }
-.site-route-progress::before { content:""; position:absolute; inset:0 auto 0 0; width:40%; background:var(--color-brand); animation:site-route-run 1.2s var(--ease-std) infinite; }
+.site-route-progress::before { content:""; position:absolute; inset:0; background:var(--color-brand); transform-origin:0; animation:site-route-run calc(6 * var(--dur-3)) var(--ease-std) infinite; }
 @keyframes site-route-show { to { opacity:1; } }
 /* A navigation that never commits stops drawing the bar after 15s. */
 @keyframes site-route-stale { to { visibility:hidden; } }
-@keyframes site-route-run { from { translate:-100% 0; } to { translate:250% 0; } }
-@media (prefers-reduced-motion:reduce) { .site-route-progress::before { width:100%; animation:none; } }
+@keyframes site-route-run { from { translate:-40%; scale:.4 1; } to { translate:100%; scale:.4 1; } }
+/* The loop is 6 x --dur-3 (1.2s): a 40% segment (the full bar scaled to .4 only inside the keyframes) runs across. In
+   简洁显示 and with reduced motion the durations are 0 (tokens.css; the global reduced-motion rule ends any loop after
+   one .01ms run), the keyframes never apply and the bar stands full width and still: "loading", not "40% done". */
 /* The layout's bar shows only while a navigation waits (lib/route-activity.ts sets html[data-route-wait]). */
 html:not([data-route-wait]) .site-route-bar { display:none; }
