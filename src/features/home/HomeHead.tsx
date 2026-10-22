@@ -22,7 +22,7 @@ export type HomeHeadProps = {
  * ① The masthead (UI9-HOME, G11): the dateline "湾区本周末 · 10/24–25" (today's date when the weekend is unknown), the
  * question H1, one identity line and the ask box (keywords search, full questions go to BayBay; its button is the page's
  * solid one). The box is the hero's one BayBay entry (J3 P12, UI9-R1): its otter opens BayBay with what is typed, so no
- * second 问 BayBay pill sits beside it. On a desktop the masthead fills columns 1–6 beside the picks.
+ * second 问 BayBay pill sits beside it (简洁 shows no otter: D6). On a desktop the masthead fills columns 1–6 beside the picks.
  */
 export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: HomeHeadProps) {
   const { t, english, pick } = useUiCopy();
@@ -51,7 +51,8 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
     <p className="home-head__identity">{pick(SITE_IDENTITY)} · {pick(FREE_NO_SIGN_IN)}</p>
     <form className="home-ask" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
-      <button type="button" className="home-ask__otter" aria-label={t('问 BayBay（AI 助手）', 'Ask BayBay (AI assistant)')} title={t('问 BayBay', 'Ask BayBay')}
+      {/* The hero's one BayBay entry (J3 P12); 简洁 keeps none here, as before: its submit button turns into 问 BayBay. */}
+      <button type="button" className="home-ask__otter" data-simple="hide" aria-label={t('问 BayBay（AI 助手）', 'Ask BayBay (AI assistant)')} title={t('问 BayBay', 'Ask BayBay')}
         onClick={() => onAskBayBay(query.trim() || undefined)}><img src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" /></button>
       <input ref={inputRef} id={`${id}-ask`} value={query} maxLength={500} enterKeyHint={asking ? 'send' : 'search'}
         placeholder={roomy ? example : t('比如：这周末带爸妈去哪？', 'e.g. Free fun with kids?')}

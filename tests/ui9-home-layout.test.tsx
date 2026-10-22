@@ -50,8 +50,10 @@ test('简洁 is CSS only: the browse sections are tagged hide, the 3D strip and 
   for (const postcard of doc.querySelectorAll('.home-3d, .home-3d-strip')) {
     for (let node: Element | null = postcard; node; node = node.parentElement) assert.notEqual(node.getAttribute('data-simple'), 'hide', `${postcard.className} sits in a hidden block`);
   }
-  // The grandparent path keeps "免费": the identity line shows in 简洁 too.
+  // The grandparent path keeps "免费": the identity line shows in 简洁 too; the hero's BayBay control (the ask box's otter,
+  // UI9-R1 J3 P12) does not — 简洁 reaches BayBay through the submit button's 问 BayBay switch.
   assert.equal(doc.querySelector('.home-head__identity')!.hasAttribute('data-simple'), false);
+  assert.equal(doc.querySelector('.home-ask__otter')!.getAttribute('data-simple'), 'hide');
   // The feed's cards, heading and button are hidden by a home rule that skips the strip's wide item.
   const rule = CSS.split('\n').find(line => line.includes('html[data-simple] .home-feed'))!;
   assert.match(rule, /\.ui-feed-grid>li:not\(\.ui-feed-grid__wide\)/);

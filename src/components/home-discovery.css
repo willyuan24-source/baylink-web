@@ -14,15 +14,19 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-head { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .home-head__dateline,.home-head__identity,.home-trust,.home-share p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
 .home-head__title { font-size:var(--text-display); line-height:var(--lh-display); font-weight:600; text-wrap:balance; }
-.home-ask { display:flex; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2); padding:1px 1px 1px var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); }
+.home-ask { display:flex; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2); padding:1px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); }
 .home-ask:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); }
 .home-ask input { flex:1; min-width:0; min-height:var(--control-height); border:0; padding:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); outline:none; }
 .home-ask input::placeholder { color:var(--color-ink-3); }
 .home-discovery :is(.home-ask,.home-section-head__more,.home-credits summary,.home-baybay) svg { width:1rem; height:1rem; }
-/* J3 P12: the box is the hero's one BayBay entry — its otter is a 44 px button that opens BayBay with what is typed. */
-.home-ask__otter { display:inline-grid; place-items:center; flex:none; width:2.75rem; height:2.75rem; padding:0; border:0; border-radius:var(--r-pill); background:transparent; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
-.home-ask__otter>img { width:1.75rem; height:1.75rem; }
+/* J3 P12: the box is the hero's one BayBay entry — its otter is a 44 px button that opens BayBay with what is typed. Sized in
+   px, so at 大 / 特大 it does not take the example question's room; its own 8 px around the 28 px otter is the space before
+   the text (the gap after it is cancelled). 简洁 has no otter (data-simple=hide, D6): the submit button's 问 BayBay switch is
+   the way to BayBay there, as before, and the whole example fits the box at 家人版. */
+.home-ask__otter { display:inline-grid; place-items:center; flex:none; width:44px; height:44px; margin-inline-end:calc(var(--sp-1) * -1); padding:0; border:0; border-radius:var(--r-pill); background:transparent; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
+.home-ask__otter>img { width:28px; height:28px; }
 .home-ask__otter:active { scale:.94; background:var(--color-surface-2); }
+html[data-simple] .home-ask { padding-inline-start:var(--sp-3); }
 
 /* Section heads: one H2, the date as a kicker, one "all" link (the /plan picks reuse these three). */
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin-bottom:var(--stack-head); }
