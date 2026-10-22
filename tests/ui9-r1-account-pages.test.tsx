@@ -131,3 +131,28 @@ test('/about: the 还有 row has no " · " separators, so no line of it can star
   assert.equal(row['flex-wrap'], 'wrap');
   assert.equal(row['column-gap'], 'var(--sp-4)');
 });
+
+test('UI9-R1 polish: one chevron hint on the four /me tiles, 小队与预约 side by side on a desktop; my-week\'s empty import is the ui empty state; /about\'s feedback button has its box from the first paint', () => {
+  const hub = 'src/features/profile/me-hub.css';
+  // The three tiles that open a page or a sheet end their title with the chevron 小队与预约's links carry.
+  const chevron = one(hub, ':is(a,button).me-tile .me-tile__title::after');
+  assert.equal(chevron.width, '1rem');
+  assert.equal(chevron.background, 'var(--color-brand)');
+  assert.match(chevron.mask, /m9 18 6-6-6-6/, 'lucide chevron-right, as the links draw it');
+  assert.equal(one(hub, '.me-tile__links a').gap, 'var(--sp-1)', 'the chevron follows its label (no space-between)');
+  assert.equal(one(hub, '.me-tile__links a')['justify-content'], undefined);
+  assert.equal(one(hub, '.me-tile__links', '(min-width:1024px)')['flex-direction'], 'row', 'two links side by side: no ~85px blank under the other tiles');
+  // 我导入的活动 with nothing upcoming: no dashed frame, the icon in the brand-tint circle.
+  const empty = one('src/features/saves/my-week.css', '.my-week__legacy .imported-event-empty');
+  assert.equal(empty.border, '0');
+  assert.equal(empty['flex-direction'], 'column');
+  assert.equal(empty['text-align'], 'center');
+  const icon = one('src/features/saves/my-week.css', '.my-week__legacy .imported-event-empty>svg');
+  assert.equal(icon.background, 'var(--color-brand-tint)');
+  assert.equal(icon['border-radius'], 'var(--r-circle)');
+  // 反馈与报错 on /about: the metrics of feedback-entry.css, which only arrives after the app's first render.
+  const feedback = one('src/components/about-baylink.css', '.about-contact>.feedback-footer-link');
+  const entry = readFileSync('src/features/feedback/feedback-entry.css', 'utf8');
+  assert.match(entry, /\.feedback-footer-link\{display:inline-flex;align-items:center;gap:\.5rem;min-height:var\(--control-height\);[^}]*font-size:var\(--text-fact\)/);
+  assert.deepEqual([feedback.display, feedback['align-items'], feedback.gap, feedback['min-height'], feedback['font-size']], ['inline-flex', 'center', 'var(--sp-2)', 'var(--control-height)', 'var(--text-fact)']);
+});
