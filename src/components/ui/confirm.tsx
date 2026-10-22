@@ -1,6 +1,7 @@
 // 品牌化确认框，替代原生 confirm()/prompt()。
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { lazyChunk } from '../../lib/chunk-recovery';
 import { ChunkBoundary } from '../ChunkBoundary';
 
@@ -72,5 +73,5 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
     const { message, input } = current.opts;
     current.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
     drop();
-  }}><Suspense fallback={null}><ConfirmDialog opts={current.opts} onResolve={current.resolve} onGone={drop} /></Suspense></ChunkBoundary>;
+  }}><Suspense fallback={null}><ConfirmDialog opts={current.opts} warning={<AlertTriangle size={18} />} onResolve={current.resolve} onGone={drop} /></Suspense></ChunkBoundary>;
 };

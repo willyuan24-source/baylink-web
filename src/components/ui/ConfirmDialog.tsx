@@ -1,7 +1,6 @@
 // The confirm card (confirm.tsx keeps the queue and renders this). A chunk of its own, loaded with the first confirm, so the
 // shell every page downloads does not carry the card, its icon and its classes.
-import { useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import { ModalShell, useClosing } from './Modal';
 import type { ConfirmOptions } from './confirm';
 
@@ -9,7 +8,8 @@ type Resolver = (value: boolean | string | null) => void;
 
 // N10 / N11 / N24: the site's one scrim (no blur), the --r-xl card (rounded-3xl), and an exit: the answer goes back at once,
 // the card fades and shrinks to 95% over --dur-2 before it unmounts (useClosing; at once under reduced motion and in 简洁显示).
-export const ConfirmDialog = ({ opts, onResolve, onGone }: { opts: ConfirmOptions; onResolve: Resolver; onGone: () => void }) => {
+/** `warning` is the danger mark (confirm.tsx passes the shell's AlertTriangle, so pages that draw it get no chunk for it). */
+export const ConfirmDialog = ({ opts, warning, onResolve, onGone }: { opts: ConfirmOptions; warning: ReactNode; onResolve: Resolver; onGone: () => void }) => {
   const [inputValue, setInputValue] = useState(opts.input?.defaultValue || '');
   const [closing, leave] = useClosing(onGone);
   const hasInput = !!opts.input;
@@ -27,7 +27,7 @@ export const ConfirmDialog = ({ opts, onResolve, onGone }: { opts: ConfirmOption
         <div className="flex items-start gap-3">
           {opts.danger && (
             <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-              <AlertTriangle size={18} />
+              {warning}
             </span>
           )}
           <div className="min-w-0 flex-1">
