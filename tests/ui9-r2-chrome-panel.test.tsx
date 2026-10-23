@@ -47,6 +47,7 @@ test('N10 / N11: the search pill rings with the focus tokens, BayBay\'s composer
   const line = decls(panel, '.baybay-conversation .bb-pause-line');
   assert.equal(line.color, 'var(--color-ink-2)');
   assert.equal(line['font-size'], 'var(--fs-meta)');
+  assert.equal(line['word-break'], 'keep-all', 'it wraps at its spaces only: 起暂停 and the date and time stay whole');
   const call = decls(panel, '.baybay-conversation .bb-pause-line a');
   assert.equal(decls(panel, '.baybay-conversation .bb-pause-line>span')['white-space'], 'nowrap', '特大 wraps before 急事拨打 911, never inside it');
   // The 911 target is a field tall: the inline's glyph box (≥1em) plus half the field height less half an em, above and

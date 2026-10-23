@@ -204,7 +204,7 @@ test('the AI cutoff is announced calmly in its last 7 days, in three languages, 
   const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(new Date(soon));
   const md = part({ month: 'numeric', day: 'numeric' }), hm = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   // The · is tied to the line before it by a no-break space: a wrap (特大) opens line 2 on 急事拨打 911, never on the dot (N06).
-  const line = { 'zh-Hans': `AI 助手预计 ${md} ${hm} 起暂停\u00a0· 急事拨打 911`, 'zh-Hant': `AI 助手預計 ${md} ${hm} 起暫停\u00a0· 急事撥打 911`, en: `AI pauses ${part({ month: 'short', day: 'numeric' })}, ${part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '')} PT\u00a0· Emergencies: 911` };
+  const line = { 'zh-Hans': `AI 助手 ${md} ${hm} 起暂停\u00a0· 急事拨打 911`, 'zh-Hant': `AI 助手 ${md} ${hm} 起暫停\u00a0· 急事撥打 911`, en: `AI pauses ${part({ month: 'short', day: 'numeric' })}, ${part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '')} PT\u00a0· Emergencies: 911` };
   const live = { kind: 'ai_pause_scheduled', at: soon, banner: { 'zh-Hans': `AI 助手预计 ${soon} 起暂停；紧急情况请直接拨打 911。`, 'zh-Hant': `AI 助手預計 ${soon} 起暫停；緊急情況請直接撥打 911。`, en: `The AI assistant is scheduled to pause from ${soon}. In an emergency, call 911.` } };
   mockWithCapabilities(t, { engine: 'v2', pause: null, reduced: null, aiUntil: soon, pauseScheduled: live });
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {

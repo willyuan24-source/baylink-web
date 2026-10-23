@@ -66,8 +66,9 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 /* The AI cutoff notice (R2-16): one muted line on the sunken fill, 911 a brand link in the line, so the starter cards lead
    the first screen. The link's target is a field tall (--control-height, 44px; 48 in 简洁显示): its glyph box (≥1em)
    plus padding of half that height less half an em; an inline's block padding never moves the line, and the inline
-   margins give back the side padding. */
-.baybay-conversation .bb-pause-line { margin:0; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+   margins give back the side padding. It wraps only at its spaces (keep-all: 10/29 17:00 and 起暂停 stay whole; it split
+   起暂 / 停 at 390px 特大 before). */
+.baybay-conversation .bb-pause-line { margin:0; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); word-break:keep-all; }
 .baybay-conversation .bb-pause-line>span { white-space:nowrap; }
 .baybay-conversation .bb-pause-line a { padding:calc(var(--control-height) / 2 - .5em) var(--sp-2); margin:0 calc(-1 * var(--sp-2)); color:var(--color-brand); font-weight:600; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .baybay-conversation .bb-pause-line a:active { color:var(--color-brand-hover); }
