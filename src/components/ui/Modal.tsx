@@ -1,6 +1,6 @@
 // 弹层原语：portal + 焦点陷阱 + Esc 关闭 + 背景滚动锁 + aria-modal
 // ModalShell 不带任何视觉样式（className 由调用方给），保证既有弹层迁移时逐像素不变。
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 const FOCUSABLE_SELECTOR =
@@ -60,6 +60,12 @@ const restoreFocus = (element: HTMLElement | null) => {
   return document.activeElement === element;
 };
 
+// The scroll lock, inert background and initial focus must land in the same commit
+// that shows the dialog. A passive effect can run a frame later when the dialog
+// mounts through a non-sync update (e.g. a lazy dialog resolving its Suspense
+// boundary), leaving a visible dialog over a scrollable, focusable page.
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
 const getFocusable = (container: HTMLElement): HTMLElement[] =>
   Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
     .filter((el) => el.getClientRects().length > 0);
@@ -76,7 +82,7 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; });
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const stackId = Symbol('modal');

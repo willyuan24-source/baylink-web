@@ -46,6 +46,28 @@ test('modal traps Tab, ignores IME Escape, and restores opener focus on close', 
   assert.ok(document.activeElement === opener, "focus remains on the expected control");
 });
 
+test('the page is locked and focus is inside the dialog in the same commit that shows it', () => {
+  // A lazy dialog mounts through a Suspense retry, whose passive effects can run a frame
+  // after the dialog is visible. A sibling's layout effect runs after ModalShell's layout
+  // effects but before any passive effect, so it sees what the first painted frame shows.
+  const opener = document.getElementById('opener')!;
+  opener.focus();
+  const seen: { overflow?: string; inert?: boolean; focusInDialog?: boolean } = {};
+  function AfterCommitProbe() {
+    React.useLayoutEffect(() => {
+      seen.overflow = document.body.style.overflow;
+      seen.inert = document.getElementById('root')!.inert;
+      seen.focusInDialog = !!document.activeElement?.closest('[role="dialog"]');
+    }, []);
+    return null;
+  }
+  const view = render(<><ModalShell label="Lazy dialog"><button>Close</button></ModalShell><AfterCommitProbe /></>);
+  assert.deepEqual(seen, { overflow: 'hidden', inert: true, focusInDialog: true });
+  view.unmount();
+  assert.equal(document.body.style.overflow, '');
+  assert.ok(document.activeElement === opener);
+});
+
 test('descendant autoFocus cannot replace the saved page opener', () => {
   const opener = document.getElementById('opener')!;
   opener.focus();
