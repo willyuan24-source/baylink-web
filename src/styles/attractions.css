@@ -8,12 +8,12 @@
 /* The field's box is the input itself (the label only positions the icon), so the label is not a second control style. */
 .xp-search{position:relative;display:block;min-width:0;color:var(--color-ink-3)}
 .xp-search>svg{position:absolute;top:50%;left:12px;transform:translateY(-50%);pointer-events:none}
-.xp-search input,.xp-select select{width:100%;min-height:var(--control-height);border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body)}
-.xp-search input{padding:0 12px 0 40px;outline:none}
+.xp-search input{width:100%;min-height:var(--control-height);padding:0 12px 0 40px;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);outline:none}
 .xp-search input::placeholder{color:var(--color-ink-3)}
 .xp-search input:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+/* D5 (DECISIONS 31): the two filters are the site's styled select (ui/Select.tsx, select.css), as wide as their column. */
 .xp-select{display:block;min-width:0}
-.xp-select select{width:100%;padding:0 32px 0 12px}
+.xp-select>.ui-select{display:flex;width:100%}
 .xp-note>summary,.xp-plan>summary{display:list-item;min-height:var(--control-height);padding-block:10px;cursor:pointer;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5;overflow-wrap:anywhere}
 .xp-note>p{margin:0 0 4px;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.6}
 .xp-plan{margin-top:16px;border-bottom:1px solid var(--color-line)}
@@ -26,7 +26,8 @@
 .xp-results-heading h2{margin:0;color:var(--color-ink);font-size:var(--text-card);line-height:1.5;font-weight:600}
 .xp-results-heading>span,.xp-cap-note{color:var(--color-ink-2);font-size:var(--text-fact)}
 .xp-cap-note{margin:-8px 0 16px}
-.xp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 16px}
+/* D5: one 24px gutter between the cards, across and down. */
+.xp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-5)}
 /* Family D place card: one cover, the name on its scrim, facts and actions below. */
 .attraction-card{display:flex;flex-direction:column;min-width:0}
 /* The cover and the caption share one grid cell; the cover sits at z -1 inside the isolated media box, so the static caption
@@ -35,11 +36,12 @@
 .xp-card__media>*{grid-area:1/1}
 .xp-card__media>.ui-cover{z-index:-1;border-radius:0}
 .xp-card__caption{align-self:end;padding:40px 16px 12px;background-image:var(--scrim-photo);color:var(--color-surface)}
-.xp-card__caption h3{margin:0;font-size:1.25rem;line-height:1.4;font-weight:600;text-wrap:balance}
+.xp-card__caption h3{margin:0;font-size:var(--fs-keep-20);line-height:1.4;font-weight:600;text-wrap:balance}
 .xp-card__caption h3 a{color:inherit;text-decoration:none}
 .xp-card__caption h3 a::after{content:"";position:absolute;inset:0;z-index:1}
 .xp-card__caption h3 a:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px;border-radius:var(--r-sm);box-shadow:0 0 0 4px var(--color-surface)}
-.xp-card__caption p{display:flex;align-items:center;gap:4px;margin:2px 0 0;color:var(--color-surface);font-size:var(--text-caption);line-height:1.385}
+/* D5: the place line under the name is 14px (it was the 13px caption step on phones). */
+.xp-card__caption p{display:flex;align-items:center;gap:4px;margin:2px 0 0;color:var(--color-surface);font-size:var(--fs-meta);line-height:1.429}
 .xp-card__caption svg{flex:none;width:1rem;height:1rem}
 .xp-card__body{display:flex;flex:1;flex-direction:column;padding-top:12px}
 .xp-card__facts{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
@@ -105,7 +107,7 @@
   .xp-page{padding-top:16px}
   .xp-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}
   .xp-search{grid-column:1/-1}
-  .xp-grid{grid-template-columns:minmax(0,1fr);gap:28px}
+  .xp-grid{grid-template-columns:minmax(0,1fr)}
   .xp-3d{margin-inline:-16px;padding:20px 16px;border-radius:0}
   .xp-3d__rail{grid-template-columns:repeat(5,70%);margin-inline:-16px;padding-inline:16px;scroll-padding-inline:16px}
   .xp-outing-stops>li{align-items:flex-start;gap:8px;padding:12px 8px}

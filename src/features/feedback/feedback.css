@@ -5,14 +5,19 @@
 .feedback-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:var(--scrim);animation:feedback-fade var(--dur-3) var(--ease-out)}
 .feedback-overlay.is-closing{animation:feedback-fade-out var(--dur-2) var(--ease-in) forwards;pointer-events:none}
 .feedback-overlay.is-closing .feedback-sheet{animation:feedback-sink var(--dur-2) var(--ease-in) forwards}
-.feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6;animation:feedback-rise var(--dur-5) var(--ease-out)}
+.feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6;box-shadow:var(--e2);animation:feedback-rise var(--dur-5) var(--ease-out)}
+/* UI9-R1-POLISH-2: from 768px the site's one dialog look, as the promotions dialog and the guide picture: --r-xl corners, e2,
+   and the ✕ 16px in from the top and right corner (it sat 24 / 28px in, on a 16px-cornered panel without a shadow). */
 @media(min-width:768px){
   .feedback-overlay{align-items:center;padding:1.5rem}
-  .feedback-sheet{max-width:35rem;max-height:calc(100dvh - 3rem);padding:1.5rem 1.75rem;border-radius:var(--r-lg);animation:feedback-grow var(--dur-4) var(--ease-out)}
+  .feedback-sheet{position:relative;max-width:35rem;max-height:calc(100dvh - 3rem);padding:1.5rem 1.75rem;border-radius:var(--r-xl);animation:feedback-grow var(--dur-4) var(--ease-out)}
   .feedback-overlay.is-closing .feedback-sheet{animation-name:feedback-shrink}
+  .feedback-sheet-header{padding-right:calc(var(--control-height) - var(--sp-2))}
+  .feedback-sheet-header>.ui-close{position:absolute;top:var(--sp-4);right:var(--sp-4)}
+  .feedback-sheet .feedback-sheet-header h2{margin-top:0}
 }
 .feedback-sheet-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
-.feedback-sheet-header h2{margin:.375rem 0 0;font-size:1.25rem;line-height:1.4;font-weight:600;color:var(--color-ink)}
+.feedback-sheet-header h2{margin:.375rem 0 0;font-size:var(--fs-keep-20);line-height:1.4;font-weight:600;color:var(--color-ink)}
 .feedback-sheet-lede{margin:.5rem 0 1rem;font-size:var(--text-body);color:var(--color-ink-2)}
 .feedback-sheet-subject{margin:-.5rem 0 1rem;font-size:var(--text-fact);color:var(--color-ink-2);overflow-wrap:anywhere}
 .feedback-sheet-subject span{font-weight:600;color:var(--color-ink)}

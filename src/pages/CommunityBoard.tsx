@@ -4,19 +4,18 @@
 // every post by default (FC3-04: the older ones say so, a quiet board says 近 30 天 0 条新信息 instead of "empty", and an
 // empty 出租 list says so and offers 求租 instead of calling the whole board empty; a keyword miss offers 清除筛选),
 // one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
-import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Link, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
 import '../components/ui/ui.css';
 import '../components/ui/covers.css';
 import '../components/ui/cards.css';
 import '../features/posts/community.css';
-import { useApp } from '../app/context';
+import { useApp, type AppContextValue } from '../app/context';
 import { Button } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { FeedGrid, FeedItem, FeedLayoutToggle } from '../components/ui/FeedGrid';
 import { useFeedLayout } from '../components/ui/feed-layout';
-import { SkeletonCard } from '../components/ui/SkeletonCard';
 import { EmptyState, ErrorState } from '../components/ui/States';
 import { StatusChip } from '../components/ui/Badges';
 import { useUiCopy } from '../components/ui/ui-copy';
@@ -30,6 +29,7 @@ import { OfficialAds } from '../features/ads/OfficialAds';
 import { useOtherTypeHasPosts } from '../features/posts/useOtherTypeHasPosts';
 import { CommunityPaused } from '../features/posts/CommunityPaused';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
+import { SLUG_TO_CATEGORY } from '../routing';
 const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
 
 export interface CommunityBoardProps {
@@ -39,6 +39,37 @@ export interface CommunityBoardProps {
   scrollRequest: number;
 }
 
+
+/**
+ * The search field's example (UI9-R1-POLISH-2): each board names a word its own readers search for, and the whole line stays
+ * short enough to show in full on a 390px phone at 特大 (it was cut mid-character: 「搜标题或地点，如「搬」).
+ */
+const SEARCH_EXAMPLES: Record<string, { zh: string; en: string }> = {
+  全部: { zh: '搬家', en: 'moving' }, 租屋: { zh: '单间', en: 'room' }, 闲置: { zh: '沙发', en: 'sofa' }, 本地服务: { zh: '水管', en: 'plumber' },
+  搬家: { zh: '搬家', en: 'moving' }, 清洁: { zh: '保洁', en: 'cleaning' }, 接送: { zh: '机场', en: 'airport' }, 维修: { zh: '水管', en: 'plumbing' },
+  翻译: { zh: '驾照', en: 'license' }, 兼职: { zh: '餐馆', en: 'restaurant' }, 其他: { zh: '家教', en: 'tutor' },
+};
+const searchExample = (board: string) => {
+  const example = SEARCH_EXAMPLES[board] || SEARCH_EXAMPLES.全部;
+  return { zh: `如「${example.zh}」或城市名`, en: `Try “${example.en}” or a city` };
+};
+
+/**
+ * The board's loading card (UI9-R1-POLISH-2, /category CLS): a post card's own boxes — the cover at the feed's ratio, two title
+ * lines, the price, the meta line, on /en the original-text line, and the status chip — in the card's own classes, so a row
+ * of them is as tall as a row of posts and nothing under the feed moves when the posts arrive (the generic SkeletonCard was
+ * 72px shorter on a 1440 desktop and brought the notes into view).
+ */
+function PostCardSkeleton({ english }: { english: boolean }) {
+  return <div className="ui-feed-card cm-card cm-card--skeleton" aria-hidden="true">
+    <p className="ui-feed-card__title cm-card__title"><span className="ui-skeleton" data-bar="long" /> <span className="ui-skeleton" data-bar="short" /></p>
+    <div className="ui-feed-card__media"><span className="ui-skeleton" data-shape="cover" /></div>
+    <p className="cm-card__price"><span className="ui-skeleton" data-bar="price" /></p>
+    <p className="ui-feed-card__meta cm-card__meta"><span className="ui-skeleton" data-bar="meta" /></p>
+    {english && <div className="cm-card__translation"><p className="post-translation"><span>{'\u00a0'}<span className="ui-skeleton" data-bar="note" /></span></p></div>}
+    <p className="cm-status"><span className="ui-status">{'\u00a0'}</span></p>
+  </div>;
+}
 
 /**
  * 出租 / 求租 (提供 / 需要): a radio group of WEB-UI chips — the same two chip styles as the area chips beside it, so the
@@ -68,8 +99,8 @@ export default function CommunityBoard(props: CommunityBoardProps) {
   return categorySlug || keyword ? <CommunityPaused /> : null;
 }
 
-function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
-  const { t, pick } = useUiCopy();
+function CommunityBoardView({ scrollRequest, guideStrip }: CommunityBoardProps & { guideStrip?: ReactNode }) {
+  const { t, pick, english } = useUiCopy();
   const navigate = useNavigate();
   const location = useLocation();
   const { categorySlug } = useParams();
@@ -183,7 +214,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
 
     <form className="cm-search" role="search" onSubmit={(event) => { event.preventDefault(); searchPostsNow(); }}>
       <Search aria-hidden="true" strokeWidth={1.75} />
-      <input aria-label={t('搜索邻里信息', 'Search the neighborhood board')} type="search" maxLength={80} placeholder={t('搜标题或地点，如「搬家」', 'Search, e.g. “moving”')} value={keyword}
+      <input aria-label={t('搜索邻里信息', 'Search the neighborhood board')} type="search" maxLength={80} placeholder={pick(searchExample(board))} value={keyword}
         onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
       <Button type="submit" variant="text" className="cm-search__submit">{t('搜索', 'Search')}</Button>
     </form>
@@ -212,7 +243,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
 
     {feedError && posts.length > 0 && <div role="status" className="cm-board__stale"><p>{t('更新失败，下面是已加载的信息。', 'Could not refresh; showing what was already loaded.')}</p><Button variant="text" icon={<RotateCw aria-hidden="true" strokeWidth={1.75} />} onClick={retryFeed}>{t('重试', 'Try again')}</Button></div>}
     {unavailable ? <ErrorState headingLevel="h3" title={t('邻里信息暂时没能加载', 'The board didn’t load')} body={t('可能是网络不稳或服务暂时繁忙。稍后再试一次。', 'The connection or our service may be busy. Please try again in a moment.')} onRetry={retryFeed} homeTo={null} />
-      : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><SkeletonCard /></FeedItem>)}</FeedGrid></div>
+      : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><PostCardSkeleton english={english} /></FeedItem>)}</FeedGrid></div>
         : posts.length === 0 ? <div className="cm-board__empty">{emptyState}</div>
           : <>
             <FeedGrid label={feedLabel} ratio="1:1" layout={feedLayout.layout}>
@@ -224,7 +255,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
               : <p className="cm-board__end">{t('已经是全部信息', 'That’s everything for now')}</p>}
           </>}
 
-    {categorySlug && !keyword && <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>}
+    {categorySlug && !keyword && (guideStrip ?? <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>)}
 
     <div className="cm-board__notes">
       <section className="cm-board__safety" aria-label={t('交易安全', 'Trading safety')}>
@@ -241,4 +272,25 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
       <div className="cm-board__ads"><OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} /></div>
     </div>
   </section>;
+}
+
+const noop = () => {};
+/**
+ * The prerendered first paint of /category/:slug (scripts/prerender.tsx; UI9-R1-POLISH-2): the board itself in its loading
+ * state — the header, search, filters, results line and loading cards the app renders before the posts arrive, inside
+ * HomePage's wrapper — so the app's first render replaces it box for box. The old text stand-in (its footer at y = 715 on a
+ * 1440 × 900 desktop) was swapped about 0.7 s later for this board: desktop CLS 0.109 (rent) and 0.089 (used), and a
+ * different page on screen meanwhile. `guideStrip` puts the board's guides in their place for readers and crawlers.
+ */
+export function CategoryBoardPrerender({ slug, guideStrip }: { slug: string; guideStrip?: ReactNode }) {
+  const context = {
+    user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: SLUG_TO_CATEGORY[slug] || '全部',
+    feedError: false, isInitialLoading: true, isLoadingMore: false, hasMore: false, blockedUserIds: [], adsRefreshKey: 0,
+    showToast: noop, setFeedType: noop, setKeyword: noop, searchPostsNow: noop, setRegionFilter: noop, handleLoadMore: noop, retryFeed: noop,
+    navigateToPost: noop, openCreate: noop, openEditPost: noop, handleDeletePost: noop, handleToggleFeature: noop, handleToggleBlockUser: noop,
+    openReportTarget: noop, openAdDetail: noop,
+  } as unknown as AppContextValue;
+  return <Routes><Route element={<Outlet context={context} />}>
+    <Route path="/category/:categorySlug" element={<div className="bay-home"><CommunityBoardView onScrollToFeed={noop} scrollRequest={0} guideStrip={guideStrip} /></div>} />
+  </Route></Routes>;
 }

@@ -20,7 +20,8 @@ import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { TOOLS_METADATA } from '../src/data/tool-catalog';
 import { categoryHubMetadata, PRIVACY_METADATA, SMS_METADATA, TERMS_METADATA } from '../src/lib/hub-metadata';
-import { CategoryHubPrerender, ToolsHubPrerender } from '../src/components/HubPrerender';
+import { CategoryGuidesPrerender, CategoryHubPrerender, ToolsHubPrerender } from '../src/components/HubPrerender';
+import { COMMUNITY_VISIBLE } from '../src/data/site-flags';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
@@ -95,13 +96,17 @@ const guideModules = (path: string) => {
   return [`src/data/generated/guides/${guide.slug}.json`, ...(uses('freebies') ? ['src/components/FreebieBoard.tsx'] : []), ...(uses('city-exploration') ? ['src/components/CityExplorationDirectory.tsx'] : []),
     ...(record.opus ? ['src/features/guides/GuideOpusEntry.tsx'] : []), ...(quickFactsEligible(guide, !!record.editorial) ? ['src/features/guides/GuideQuickFacts.tsx'] : [])];
 };
+/** UI9-R1-POLISH-2: a category page's first paint is the board (CommunityBoard.tsx), a chunk HomePage loads before its first
+ * render there: its stylesheets are linked and the chunk preloaded, so the prerendered board is styled and the app's
+ * replaces it at once. */
+const boardModules = (path: string) => COMMUNITY_VISIBLE && path.startsWith('/category/') ? ['src/pages/CommunityBoard.tsx'] : [];
 /** The page's static module graph: its JS files and every stylesheet the graph imports. */
 const routeGraph = (path: string) => {
   const files = new Set<string>(); const styles = new Set<string>();
   const visit = (item: ManifestChunk) => { if (files.has(item.file)) return; files.add(item.file); for (const css of item.css || []) styles.add(css); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
   const entry = manifestEntry(routeModule(path));
   if (entry) visit(entry);
-  for (const key of guideModules(path)) if (manifest[key]) visit(manifest[key]);
+  for (const key of [...guideModules(path), ...boardModules(path)]) if (manifest[key]) visit(manifest[key]);
   return { files: [...files], styles: [...styles] };
 };
 /** An event, offer or opening detail also preloads its generated record bucket (and, in English, its dictionary pack):
@@ -204,7 +209,12 @@ for (const record of new Set(allDetailRecords().values())) {
   const metadata = item.kind === 'event' ? record.metadata : getDiscoveryMetadata(item, LISTINGS_PUBLISHED[`${item.kind}:${discoveryShare(item).id}`]);
   await renderPage(metadata, <LocalDiscoveryDetail record={record} />);
 }
-for (const slug of Object.keys(SLUG_TO_CATEGORY)) await renderPage(categoryHubMetadata(slug), <CategoryHubPrerender slug={slug} />);
+// UI9-R1-POLISH-2: a category page's first paint is the board itself in its loading state, its guides in their place (the
+// app replaces it box for box: desktop CLS 0.109 → 0); the board imports its CSS, so it loads here, after the hook. Paused
+// (COMMUNITY_VISIBLE = false): the paused notice.
+const { CategoryBoardPrerender } = await import('../src/pages/CommunityBoard');
+for (const slug of Object.keys(SLUG_TO_CATEGORY)) await renderPage(categoryHubMetadata(slug), COMMUNITY_VISIBLE
+  ? <CategoryBoardPrerender slug={slug} guideStrip={<CategoryGuidesPrerender slug={slug} />} /> : <CategoryHubPrerender slug={slug} />);
 await renderPage(TERMS_METADATA, <TermsView />);
 await renderPage(PRIVACY_METADATA, <PrivacyPolicyView />);
 await renderPage(SMS_METADATA, <SmsConsentView />);

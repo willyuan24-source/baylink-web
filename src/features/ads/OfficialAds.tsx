@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { X, Megaphone, Plus, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
+import { useClosing } from '../../components/ui/closing';
 import { confirmDialog } from '../../components/ui/confirm';
 import { api } from '../../lib/api';
 import {
@@ -80,6 +81,9 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
   const copy = useAdCopy();
   const language = adLanguage(copy, getAdTitle(ad), content);
   const [copyMessage, setCopyMessage] = useState('');
+  // N24 (UI9-R1-POLISH-2): ✕, Esc and the scrim play the dialog's exit (community.css .cm-ad-dialog.is-closing) before it goes.
+  const [closing, leave] = useClosing(onClose);
+  const canDelete = !!(isAdmin && !ad.isDemo && onDelete);
   const copyInfo = async () => {
     try {
       await navigator.clipboard.writeText(`${getAdTitle(ad)}\n\n${content}`);
@@ -89,11 +93,11 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
     }
   };
   return (
-    <ModalShell onClose={onClose} label={copy.t('推广详情', 'Promotion details')} className="cm-ad-dialog">
+    <ModalShell onClose={leave} label={copy.t('推广详情', 'Promotion details')} className={`cm-ad-dialog${closing ? ' is-closing' : ''}`}>
       <div className="cm-ad-dialog__panel" onClick={(e) => e.stopPropagation()}>
         <div className="cm-ad-dialog__head">
           <h3>{copy.t('推广详情', 'Promotion details')}</h3>
-          <button type="button" onClick={onClose} className="ui-icon-button ui-close" aria-label={copy.t('关闭', 'Close')} title={copy.t('关闭', 'Close')}><X aria-hidden="true" strokeWidth={1.75} /></button>
+          <button type="button" onClick={leave} className="ui-icon-button ui-close" aria-label={copy.t('关闭', 'Close')} title={copy.t('关闭', 'Close')}><X aria-hidden="true" strokeWidth={1.75} /></button>
         </div>
         <div className="cm-ad-dialog__body">
           {imageUrl ? <AdDetailImage src={imageUrl} /> : null}
@@ -118,10 +122,10 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
           <button type="button" onClick={copyInfo} className="ui-button cm-ad-dialog__copy" data-variant="secondary"><Copy aria-hidden="true" strokeWidth={1.75} />{copy.t('复制推广信息', 'Copy the promotion')}</button>
           {copyMessage && <p role="status" className="cm-ad-note">{copyMessage}</p>}
         </div>
-        <div className="cm-ad-dialog__foot">
-          {isAdmin && !ad.isDemo && onDelete ? <button type="button" onClick={() => onDelete(ad.id)} className="ui-button cm-ad-dialog__delete" data-variant="secondary">{copy.t('删除', 'Delete')}</button> : null}
-          <button type="button" onClick={onClose} className="ui-button" data-variant="secondary" data-block="">{copy.t('关闭', 'Close')}</button>
-        </div>
+        {/* One way out: the ✕ (the full-width 关闭 under it is gone); the foot stays for the admin's 删除 only. */}
+        {canDelete && <div className="cm-ad-dialog__foot">
+          <button type="button" onClick={() => onDelete!(ad.id)} className="ui-button cm-ad-dialog__delete" data-variant="secondary">{copy.t('删除', 'Delete')}</button>
+        </div>}
       </div>
     </ModalShell>
   );
@@ -135,6 +139,7 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
 }) => {
   // The admin's form: its labels go through the reader's language like the rest of the promotions.
   const { t } = useAdCopy();
+  const [closing, leave] = useClosing(onClose);
   const fields = {
     title: t('标题', 'Title'),
     content: t('内容描述；可附相关帖子或商家提供的完整 https:// 链接', 'Description; you may add the full https:// link of a related post or the business'),
@@ -142,7 +147,7 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   };
   return (
     // 表单弹层，误触遮罩不关闭（关闭会丢弃草稿）
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={t('管理推广信息', 'Manage promotions')} className="cm-ad-dialog">
+    <ModalShell onClose={leave} closeOnBackdrop={false} label={t('管理推广信息', 'Manage promotions')} className={`cm-ad-dialog${closing ? ' is-closing' : ''}`}>
       <div className="cm-ad-dialog__panel cm-ad-dialog__panel--form" onClick={(e) => e.stopPropagation()}>
         <div className="cm-ad-dialog__head"><h3>{t('管理推广信息', 'Manage promotions')}</h3></div>
         <div className="cm-ad-dialog__body cm-ad-form">
@@ -151,7 +156,7 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
           <input className="cm-ad-field" aria-label={fields.imageUrl} placeholder={fields.imageUrl} value={editingAd.imageUrl || ''} onChange={(e) => onChange({ imageUrl: e.target.value })} />
         </div>
         <div className="cm-ad-dialog__foot">
-          <button type="button" onClick={onClose} className="ui-button" data-variant="secondary">{t('取消', 'Cancel')}</button>
+          <button type="button" onClick={leave} className="ui-button" data-variant="secondary">{t('取消', 'Cancel')}</button>
           <button type="button" onClick={onSave} className="ui-button" data-variant="primary">{t('保存发布', 'Save and publish')}</button>
         </div>
       </div>
@@ -199,6 +204,26 @@ const AdTile = ({ ad, copy, isAdmin, onOpenDetail, onDelete }: {
     </div>
   );
 };
+
+/**
+ * The loading tile (UI9-R1-POLISH-2): a promotion tile's own boxes — the thumbnail, the 推广 label, the title, two lines of
+ * text, on /en the shown-in-Chinese note, and the disclosure — each line a shimmer bar inside a line of the tile's own type,
+ * so it is as tall as the tile in every reading mode (it was a fixed 176 / 132px block: 214 / 173 / 197 for the tile on
+ * /en, at 特大 and in 简洁显示). Lines marked data-line wrap only where the tile's text wraps (community.css).
+ */
+const skeletonLine = (bar: string, line?: string) => <span className="cm-ad-skeleton__line" data-line={line}>{'\u00a0'}<span className="ui-skeleton" data-bar={bar} /></span>;
+const AdTileSkeleton = ({ english }: { english: boolean }) => (
+  <div className="cm-ad cm-ad--skeleton">
+    <span className="ui-skeleton cm-ad__thumb" />
+    <div className="cm-ad__body">
+      <div className="cm-ad__labels"><span className="cm-ad-label">{'\u00a0'.repeat(4)}</span></div>
+      <div className="cm-ad__title">{skeletonLine('title')}</div>
+      <div className="cm-ad__text">{skeletonLine('long')}{skeletonLine('short', 'wrap')}</div>
+      {english && <span className="block cm-ad-note">{skeletonLine('long')}{skeletonLine('short', 'wrap')}</span>}
+      <p className="cm-ad__disclosure">{skeletonLine('long')}{skeletonLine('short', english ? undefined : 'wrap')}{english && skeletonLine('short', 'wrap-en')}</p>
+    </div>
+  </div>
+);
 
 const ADS_CACHE_TTL = 60_000;
 let adsCache: { data: AdData[]; ts: number } | null = null;
@@ -259,7 +284,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
       <p className={NOTE_TEXT}>平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
   );
-  const loadingState = <div className="cm-ads__track" aria-hidden="true"><span className="ui-skeleton cm-ad-skeleton" /></div>;
+  const loadingState = <div className="cm-ads__track" aria-hidden="true"><AdTileSkeleton english={copy.english} /></div>;
 
   // WEB-COMMUNITY (D20): a reader is not shown an empty promotions box; the admin still sees it and its 添加 button.
   if (!isAdmin && !adsLoading && visibleAds.length === 0) return null;
