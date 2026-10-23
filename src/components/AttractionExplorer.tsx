@@ -17,6 +17,7 @@ import { Button } from './ui/Button';
 import { ChipRow, FilterChip } from './ui/Chip';
 import { Cover } from './ui/Cover';
 import { EmptyState } from './ui/States';
+import { Select } from './ui/Select';
 import { PageContainer, PageHeader } from './ui/HeroCard';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
@@ -186,8 +187,9 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       <ChipRow label="选择地区">{ATTRACTION_REGIONS.map(item => <FilterChip key={item.id} selected={region === item.id} onClick={() => updateFilter('region', item.id)}>{item.label}</FilterChip>)}</ChipRow>
       <div className="xp-filter-row">
         <label className="xp-search"><Search size={18} aria-hidden="true" /><span className="sr-only">搜索景点</span><input type="search" value={query} maxLength={150} placeholder="搜索景点、城市或兴趣" onChange={event => updateFilter('q', event.target.value)} /></label>
-        <label className="xp-select"><span className="sr-only">选择兴趣</span><select value={theme} onChange={event => updateFilter('theme', event.target.value)}>{ATTRACTION_THEMES.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
-        <label className="xp-select"><span className="sr-only">门票条件</span><select value={cost} onChange={event => updateFilter('cost', event.target.value)}>{ATTRACTION_COSTS.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
+        {/* D5 (DECISIONS 31): the site's one styled select (ui Select: the chip look, the one chevron), named by its label. */}
+        <label className="xp-select"><span className="sr-only">选择兴趣</span><Select value={theme} onChange={event => updateFilter('theme', event.target.value)}>{ATTRACTION_THEMES.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</Select></label>
+        <label className="xp-select"><span className="sr-only">门票条件</span><Select value={cost} onChange={event => updateFilter('cost', event.target.value)}>{ATTRACTION_COSTS.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</Select></label>
       </div>
       <details className="xp-note"><summary>{t('费用与时长说明', 'About costs and visit times')}</summary><p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p></details>
     </section>

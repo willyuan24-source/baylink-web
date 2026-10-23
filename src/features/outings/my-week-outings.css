@@ -6,7 +6,7 @@
 .week-outings-heading nav { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-4); }
 .week-outings-heading nav a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--fs-keep-14); }
 .week-outings a { color:var(--color-brand-hover); text-underline-offset:var(--underline-offset); overflow-wrap:anywhere; }
-.week-outings button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand-hover); font:inherit; font-size:var(--fs-keep-14); cursor:pointer; }
+.week-outings button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--fs-keep-14); cursor:pointer; }
 .week-outings button:disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 .week-outings-help,.week-outings-toolbar { font-size:var(--fs-keep-14); line-height:var(--lh-read); color:var(--color-ink-3); }
 .week-outings-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr)); gap:var(--sp-4); margin:var(--sp-4) 0; }

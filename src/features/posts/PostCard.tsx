@@ -64,6 +64,17 @@ export function PostCover({ post, priority, sizes = '(max-width:767px) 50vw, 240
   </div>;
 }
 
+/** The post has Chinese text an English reader would otherwise have translated (usePostTranslation's own test). */
+export const writtenInChinese = ({ title, description, budget, timeInfo }: Pick<PostData, 'title' | 'description' | 'budget' | 'timeInfo'>) =>
+  /\p{Script=Han}/u.test(`${title}${description}${budget}${timeInfo}`);
+
+/** /en, a guest: the post is shown as its poster wrote it (UI9-R1-POLISH-2; the card and the post page). On the post page
+ * `onSignIn` adds the way forward, as a member's 「Original text · Show translation」 line (members translate, API H10). */
+export function PostOriginalNote({ onSignIn }: { onSignIn?: () => void }) {
+  return <div className="post-translation" lang="en" data-post-original=""><span><Languages size={13} aria-hidden="true" />Original text</span>
+    {onSignIn && <button type="button" onClick={event => { event.stopPropagation(); onSignIn(); }}>Sign in to translate</button>}</div>;
+}
+
 /** Status line: 待确认有效 / N 天前确认有效 / 已出租, and 站长发布 for the founder's seed posts. */
 export function PostStatusLine({ post }: { post: PostData }) {
   const { t, pick, english } = useUiCopy();
@@ -102,7 +113,10 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
   const canManage = isOwner || isAdmin;
   const [menuOpen, setMenuOpen] = useState(false);
   const { ref, visible } = usePostVisibility();
-  const reading = usePostTranslation(post, visible);
+  // /en: a guest's card asks for no translation (the API generates for members only and answers a guest's uncached post
+  // with 403, H10), so it shows the post as written with a quiet 「Original text」 line instead of a failed translation.
+  const guestOriginal = english && !currentUser && writtenInChinese(post);
+  const reading = usePostTranslation(post, visible && !guestOriginal);
   const displayed = reading.display;
   const all = normalizePostImages(post);
   const images = all.filter(url => !isDefaultCoverUrl(url));
@@ -125,7 +139,7 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
     </div>
     {price ? <p className="cm-card__price" translate="no">{price}</p> : null}
     <p className="ui-feed-card__meta cm-card__meta">{meta}</p>
-    <div className="cm-card__translation"><PostTranslationNotice reading={reading} /></div>
+    <div className="cm-card__translation">{guestOriginal ? <PostOriginalNote /> : <PostTranslationNotice reading={reading} />}</div>
     {post.isFeatured && <p className="cm-card__note"><Star aria-hidden="true" strokeWidth={1.75} />{t('编辑精选', 'Editor’s pick')}</p>}
     <PostStatusLine post={post} />
     <div className="ui-feed-card__save"><PostSaveHeart post={post} title={displayed.title} userId={currentUser?.id} /></div>

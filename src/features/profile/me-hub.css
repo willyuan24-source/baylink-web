@@ -78,7 +78,7 @@
 /* Settings sheets */
 .me-language { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
 .me-language button { display:flex; align-items:center; justify-content:space-between; width:100%; min-height:3.5rem; padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:400; }
-.me-language button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); font-weight:600; }
+.me-language button[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
 .me-language-error { margin:8px 0 0; color:var(--color-danger); font-size:var(--text-fact); }
 
 /* 通知 sub-view (NotificationPreferencesCard) */
@@ -100,7 +100,7 @@
 .me-notify label { display:flex; align-items:center; gap:10px; min-height:var(--control-height); color:var(--color-ink); font-size:var(--text-body); }
 .me-notify__default { display:block; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.5; }
 .me-notify input[type=checkbox] { width:1.25rem; height:1.25rem; flex:none; accent-color:var(--color-brand); }
-.me-notify fieldset button,.me-notify__retry { display:inline-flex; align-items:center; min-height:var(--control-height); margin-top:4px; padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.me-notify fieldset button,.me-notify__retry { display:inline-flex; align-items:center; min-height:var(--control-height); margin-top:4px; padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 .me-notify button:disabled { border-color:transparent; background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 .me-notify :is(button,input):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 @media (min-width:768px) { .me-notify { padding:24px; } .me-notify__channels { grid-template-columns:repeat(2, minmax(0, 1fr)); } }

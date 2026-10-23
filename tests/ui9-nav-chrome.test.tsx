@@ -258,9 +258,10 @@ test('UI9-R1 chrome: footer targets, 简洁 footer, pre-footer step, inside ring
   assert.ok(phoneMore, 'the phone 更多 tool keeps the outside ring');
   // N08: the chrome's selected looks are FOUNDATION's two (ink line, ink fill); brand-tint is not one of them.
   assert.match(css, /background:var\(--selected-line\)/);
-  assert.match(css, /\.site-app :is\(\.site-secondary-nav a\[aria-current=page\],\.site-language-menu>button\[aria-pressed=true\]\) \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  // UI9-R1-BUTTONS: with the selected edge (the rows carry a transparent 1px edge at rest), as a checked chip.
+  assert.match(css, /\.site-app :is\(\.site-secondary-nav a\[aria-current=page\],\.site-language-menu>button\[aria-pressed=true\]\) \{ border-color:var\(--selected-line\); background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
   assert.match(css, /\.site-mobile-item:is\(\.is-active,\[data-pending\]\) \.site-mobile-icon \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
-  assert.match(css, /\.site-navigation-more>summary\.is-active \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  assert.match(css, /\.site-navigation-more>summary\.is-active \{ border:1px solid var\(--selected-line\); background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
   // D2: lime means 免费 only; the AI tag is outlined brand on white.
   const aiTag = css.match(/\.site-ai-tag \{[^}]*\}/)?.[0] ?? '';
   assert.match(aiTag, /border:1px solid;/);

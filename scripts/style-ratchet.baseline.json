@@ -10,16 +10,16 @@
     "shadowKinds": 17,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 13,
-    "baylinkClasses": 276,
+    "baylinkClasses": 273,
     "arrowUpRight": 29,
-    "buttonLooks": 26,
+    "buttonLooks": 4,
     "fontSizeOffLadder": 26,
-    "fontSizeLiteral": 93,
+    "fontSizeLiteral": 90,
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 5,
-    "spacingOffScale": 641,
-    "englishUiUntranslated": 102,
+    "spacingOffScale": 640,
+    "englishUiUntranslated": 101,
     "lazyCssDuplicateSelectors": 0
   },
   "lazyCssDuplicates": [],
@@ -99,7 +99,6 @@
     "活动",
     "消息发送者",
     "涉嫌违法",
-    "湾区{0}信息",
     "疑似诈骗",
     "确认并添加标签 {0}",
     "简体中文",
@@ -210,32 +209,10 @@
       "var(--e2)"
     ],
     "button": [
-      "var(--color-brand) | var(--color-surface) | 1px solid var(--color-brand)",
       "var(--color-brand) | var(--color-surface) | var(--color-brand)",
-      "var(--color-brand) | white | 1px solid var(--color-brand)",
-      "var(--color-brand-deep) | var(--color-surface) | -",
-      "var(--color-brand-deep) | var(--color-surface) | 1px solid var(--color-brand-deep)",
-      "var(--color-brand-tint) | var(--color-brand) | 1px solid var(--color-brand)",
-      "var(--color-brand-tint) | var(--color-brand) | 1px solid var(--color-line-control)",
-      "var(--color-info-tint) | - | -",
-      "var(--color-ink-2) | white | 1px solid var(--color-ink-2)",
-      "var(--color-line) | var(--color-brand) | -",
-      "var(--color-surface) | - | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-brand) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-brand-deep) | -",
-      "var(--color-surface) | var(--color-brand-deep) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-brand-hover) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-ink) | .0625rem solid var(--color-line-control)",
       "var(--color-surface) | var(--color-ink) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-ink) | var(--color-line-control)",
       "var(--color-surface) | var(--color-ink-2) | 1px solid var(--color-line-control)",
-      "var(--color-surface) | var(--color-ink-3) | 1px solid var(--color-line-control)",
-      "var(--color-surface-2) | var(--color-ink) | -",
-      "var(--color-surface-2) | var(--color-ink-2) | 1px solid var(--color-line-control)",
-      "var(--color-surface-2) | var(--color-ink-3) | 1px solid var(--color-line-control)",
-      "white | - | 1px solid var(--color-line-control)",
-      "white | var(--color-brand-deep) | 1px solid var(--color-line-control)",
-      "white | var(--color-ink-3) | 1px solid var(--color-line-control)"
+      "var(--color-surface-2) | var(--color-ink) | -"
     ]
   },
   "styleFiles": {
@@ -306,7 +283,7 @@
       "spacingOffScale": 9
     },
     "src/components/HubPrerender.tsx": {
-      "baylinkClasses": 4
+      "baylinkClasses": 1
     },
     "src/components/legal-page.css": {
       "spacingOffScale": 2
@@ -470,7 +447,6 @@
       "spacingOffScale": 2
     },
     "src/features/feedback/feedback.css": {
-      "fontSizeLiteral": 1,
       "spacingOffScale": 10
     },
     "src/features/guides/guide-article.css": {
@@ -500,7 +476,6 @@
       "spacingOffScale": 2
     },
     "src/features/posts/community.css": {
-      "fontSizeLiteral": 1,
       "spacingOffScale": 23
     },
     "src/features/posts/CreatePostModal.tsx": {
@@ -559,8 +534,7 @@
       "arrowUpRight": 6
     },
     "src/styles/attractions.css": {
-      "fontSizeLiteral": 1,
-      "spacingOffScale": 19
+      "spacingOffScale": 18
     },
     "src/styles/discovery-workflow.css": {
       "fontSizeLiteral": 1,

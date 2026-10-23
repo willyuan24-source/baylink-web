@@ -46,8 +46,11 @@ const makePost = (id: string): PostData => ({
   createdAt: Date.now(), status: 'active',
 });
 const response = () => ({ ok: true, target: 'en', source: { ...source }, translation: { ...translation } });
+// UI9-R1-POLISH-2: English translation is for members (the API answers a guest's uncached post with 403, H10); a guest reads
+// the original with an "Original text" note (tests/ui9-r1-polish-2.test.tsx). These cases read as a signed-in member.
+const reader = { id: 'reader-1', nickname: 'Reader', role: 'user' } as UserData;
 const detailProps = {
-  currentUser: null, onClose: () => {}, onLoginNeeded: () => {}, onOpenChat: () => {},
+  currentUser: reader, onClose: () => {}, onLoginNeeded: () => {}, onOpenChat: () => {},
   onDeleted: () => {}, onImageClick: () => {}, onShare: () => {}, showToast: () => {}, onAskBayBay: () => {},
 };
 
@@ -109,9 +112,10 @@ test('offscreen cards wait until approaching the viewport before requesting a tr
     disconnect() {}
   } });
   let requests = 0;
-  api.request = async () => { requests++; return response(); };
+  // the member's ♡ reads its saved state too: only translation requests are counted
+  api.request = async (endpoint: string) => { if (endpoint.endsWith('/translation')) requests++; return response(); };
   await setLocale('en', false);
-  const view = render(<MemoryRouter><PostCard post={post} /></MemoryRouter>);
+  const view = render(<MemoryRouter><PostCard post={post} currentUser={reader} /></MemoryRouter>);
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);
   assert.equal(requests, 0);
   await act(async () => { reveal(); });

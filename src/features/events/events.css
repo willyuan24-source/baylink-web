@@ -27,8 +27,8 @@ html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:calc(
    44px items, 48 in 简洁显示), not sticky; one line at 390 in every language, a 2×2 grid at 大 / 特大 and in 简洁显示. */
 .ev-tabs-bar { margin:0 0 var(--sp-4); }
 .ev-tabs { display:flex; gap:var(--sp-1); width:max-content; max-width:100%; padding:var(--sp-1); border-radius:var(--r-pill); background:var(--color-surface-2); }
-.ev-tabs .ui-tabs__item { display:inline-flex; align-items:center; justify-content:center; flex:none; min-height:var(--control-height); padding:0 var(--sp-4); border-radius:var(--r-pill); color:var(--color-ink-2); font-size:var(--fs-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.ev-tabs .ui-tabs__item[aria-current] { background:var(--color-ink); color:var(--color-surface); }
+.ev-tabs .ui-tabs__item { display:inline-flex; align-items:center; justify-content:center; flex:none; min-height:var(--control-height); padding:0 var(--sp-4); border:1px solid transparent; border-radius:var(--r-pill); color:var(--color-ink-2); font-size:var(--fs-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.ev-tabs .ui-tabs__item[aria-current] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
 .ev-tabs .ui-tabs__item:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .ev-tabs .ui-tabs__item:not([aria-current]):hover { background:var(--color-surface); color:var(--color-ink); } }
 @media (max-width:767px) {
@@ -214,9 +214,12 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-week__range:active,.ev-week__day:active,.ev-month__day:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .ev-week__range:hover { background:var(--color-surface-2); } }
 .ev-week__days { grid-area:days; display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:0; margin:0; padding:0; list-style:none; }
-/* A day cell is a plain tap area (no fill or outline of its own, so it is not another button style); the chosen day fills
-   the circle behind its date and today rings it, as a phone calendar does. Its 4 px under the dot is part of the gap. */
-.ev-week__day,.ev-month__day { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:100%; padding:0; border:0; border-radius:var(--r-md); background:none; color:var(--color-ink); cursor:pointer; font-variant-numeric:tabular-nums; transition:scale var(--dur-1) var(--ease-out); }
+/* A day cell is a plain tap area (no fill or outline of its own, so it is not another button style); the chosen day takes
+   the one selected look (UI9-R1-BUTTONS, N08: the selected pair over the whole cell, as a checked chip or segment) and today
+   rings its date. The 1px edge is there at rest too (transparent), so choosing a day moves nothing. Its 4 px under the dot
+   is part of the gap. A cell is at most 4rem wide (centred in its column), so on a desktop week the chosen day is a capsule
+   like on a phone, not a 120px block. */
+.ev-week__day,.ev-month__day { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:100%; max-width:4rem; margin-inline:auto; padding:0; border:1px solid transparent; border-radius:var(--r-md); background:none; color:var(--color-ink); cursor:pointer; font-variant-numeric:tabular-nums; transition:scale var(--dur-1) var(--ease-out); }
 .ev-week__day { min-height:4rem; padding:var(--sp-1) 0; }
 .ev-week__weekday { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ev-week__date,.ev-month__num { display:grid; place-items:center; min-width:2.25rem; height:2.25rem; padding:0 var(--sp-1); border:1px solid transparent; border-radius:var(--r-pill); }
@@ -225,8 +228,10 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-week__dot[data-on] { background:var(--color-brand); }
 .ev-week__day[data-past]:not([aria-pressed=true]) { color:var(--color-ink-3); }
 .ev-week__day[aria-current=date] .ev-week__date,.ev-month__day[aria-current=date] .ev-month__num { border-color:var(--color-line-strong); }
-.ev-week__day[aria-pressed=true] .ev-week__date,.ev-month__day[aria-pressed=true] .ev-month__num { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
-.ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--color-ink); }
+:is(.ev-week__day,.ev-month__day)[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
+.ev-week__day[aria-pressed=true] .ev-week__date,.ev-month__day[aria-pressed=true] .ev-month__num { border-color:transparent; }
+.ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--selected-fg); }
+.ev-week__day[aria-pressed=true] .ev-week__dot[data-on] { background:var(--selected-fg); }
 .ev-week__day:focus-visible,.ev-month__day:focus-visible,.ev-week__range:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (max-width:767px) { html:is([data-reading=large],[data-reading=extra-large]) .ev-week__date { min-width:2rem; height:2rem; padding:0; font-size:var(--fs-keep-18); } }
 /* Where the day head's first ink is its text (no toggle in 简洁显示; at 大 / 特大 on a phone the two-line H2 is taller than the
@@ -260,7 +265,7 @@ html[data-simple] .ev-week { margin-bottom:calc(var(--section-gap) - var(--sp-2)
    primitive's even 1 1 0 split of a box sized to both labels cut the English "Map" to "M…". */
 .ev-calendar__mode { flex:none; }
 .ev-calendar__mode .ui-segmented__item { flex:1 0 auto; padding:0 var(--sp-4); }
-.ev-calendar__mode .ui-segmented__item[aria-checked=true] { border-color:transparent; background:var(--color-ink); color:var(--color-surface); font-weight:400; }
+.ev-calendar__mode .ui-segmented__item[aria-checked=true] { font-weight:400; }
 .ev-cities { margin:0 0 var(--sp-3); }
 html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([aria-pressed=true]) { display:none; }
 /* At 大 / 特大 on a phone the rail would hold only 全部 and 更多城市 (the range above opens the same sheet with the cities), so

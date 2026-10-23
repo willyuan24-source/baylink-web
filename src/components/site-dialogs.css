@@ -99,6 +99,14 @@ html[data-simple] .reading-sheet-card .reading-sample[data-size=extra-large] { f
 .reading-sheet-card .reading-sizes small { flex-basis:auto; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .reading-sheet-card .reading-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .reading-sheet-card .reading-simple-switch { border-radius:var(--r-lg); }
+/* UI9-R1-POLISH-2: on a desktop the Aa sheet is a panel the height of its content at the top right, 8px from the edges like
+   BayBay's drawer, with the site's one dialog look (--r-xl, e2, the ✕ 16px in from the corner) — not a 900px drawer with
+   570px of nothing under the 简洁显示 switch. It keeps the drawer's slide (ui.css). */
+@media (min-width:1024px) {
+  .ui-sheet.reading-sheet { align-self:flex-start; max-height:calc(100dvh - 2 * var(--sp-2)); margin:var(--sp-2); border-radius:var(--r-xl); }
+  .reading-sheet .ui-sheet__header { padding:var(--sp-4) var(--sp-4) var(--sp-2) var(--sp-5); }
+  .reading-sheet .ui-sheet__body { padding:var(--sp-1) var(--sp-5) var(--sp-5); }
+}
 @media (hover:hover) and (pointer:fine) { .reading-sheet-card .reading-sizes>button:not([aria-pressed=true]):hover { background:var(--color-surface-2); } }
 
 /* The picture viewer (ImageViewer): the site's one scrim (N10), the picture fading in from 96%, F's close button; out over

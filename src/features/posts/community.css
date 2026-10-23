@@ -41,9 +41,22 @@
 .cm-type-switch { display:flex; flex-wrap:wrap; gap:.5rem; }
 .cm-board__switches .ui-chip { flex:none; }
 
-.cm-board__results { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; margin:1rem 0 .75rem; }
-.cm-board__count { flex:1 1 16rem; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.cm-board__tools { display:flex; align-items:center; gap:.25rem; margin-left:auto; }
+/* The results line and the layout switch share one row at every width (UI9-R1-POLISH-2): the switch keeps the top right and
+   the line wraps beside it, its first line centred on the 44px controls. The line grows from 正在读取邻里信息… to the board's
+   longer note when the posts arrive; on a phone the switch used to sit on its own row under it and moved down 22px. */
+.cm-board__results { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-2) var(--sp-4); margin:var(--sp-4) 0 var(--sp-3); }
+.cm-board__count { flex:1 1 auto; min-width:0; margin:0; padding-block:calc((var(--control-height) - var(--text-fact) * 1.571) / 2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.cm-board__tools { display:flex; flex:none; align-items:center; gap:var(--sp-1); margin-left:auto; }
+/* The loading card (CommunityBoard.tsx PostCardSkeleton): the post card's own lines, each a shimmer bar inside a line of the
+   card's own type, so the card is exactly as tall as a post card in every reading mode and on /en. */
+.cm-card--skeleton { pointer-events:none; }
+.cm-card--skeleton .ui-skeleton:not([data-shape]) { display:inline-block; height:.875em; vertical-align:middle; border-radius:var(--r-sm); }
+.cm-card--skeleton [data-bar=long] { width:92%; }
+.cm-card--skeleton [data-bar=short] { width:56%; }
+.cm-card--skeleton [data-bar=price] { width:36%; }
+.cm-card--skeleton [data-bar=meta] { width:62%; }
+.cm-card--skeleton [data-bar=note] { width:5.5em; }
+.cm-card--skeleton .ui-status { width:6em; color:transparent; }
 .cm-board__stale { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; margin:0 0 .75rem; padding:.5rem .875rem; border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-ink); font-size:var(--text-fact); }
 .cm-board__stale p { margin:0; }
 .cm-board__empty { padding:1rem 0 .5rem; }
@@ -88,20 +101,39 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad-note { margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-read); }
 .cm-ad__delete { position:absolute; top:var(--sp-1); right:var(--sp-1); color:var(--color-danger); }
 .cm-ad.cm-ad--empty { display:block; flex-basis:100%; cursor:default; box-shadow:none; }
-/* The loading tile is the shared shimmer (.ui-skeleton, not .cm-ad: community.css loads after it and .cm-ad's surface would
-   cover the gradient), about a loaded tile's size so the page below does not jump when /ads answers: 176px on phone and
-   tablet (the text wraps to 2–4 lines), 131px once the right column reaches the 26rem tile (≥1024px). */
-.cm-ad-skeleton { flex:0 0 min(100%, 26rem); height:11rem; border-radius:var(--r-lg); }
-@media (min-width:1024px) { .cm-ad-skeleton { height:8.25rem; } }
+/* The loading tile (OfficialAds.tsx AdTileSkeleton, UI9-R1-POLISH-2): a .cm-ad with the tile's own lines, each a shimmer bar
+   in a line of that line's type, so it is the loaded tile's height in every reading mode and on /en (the fixed 176 / 132px
+   block was 38–65px short on /en, at 特大 and in 简洁显示). The second line of the text, the note and (zh) the disclosure
+   wraps only where the 26rem tile's text wraps: below 1024px, and in 简洁显示; /en's disclosure takes a third line on a phone
+   at 特大 and in 简洁显示. */
+.cm-ad--skeleton { pointer-events:none; }
+.cm-ad-skeleton__line { display:block; }
+.cm-ad--skeleton .cm-ad-skeleton__line>.ui-skeleton { display:inline-block; height:.875em; vertical-align:middle; }
+.cm-ad--skeleton [data-bar=title] { width:58%; }
+.cm-ad--skeleton [data-bar=long] { width:94%; }
+.cm-ad--skeleton [data-bar=short] { width:62%; }
+.cm-ad--skeleton .cm-ad-label { background:var(--color-surface-2); color:transparent; }
+.cm-ad-skeleton__line[data-line=wrap-en] { display:none; }
+@media (max-width:1023px) { :is(html[data-reading=extra-large],html[data-simple]) .cm-ad-skeleton__line[data-line=wrap-en] { display:block; } }
+@media (min-width:1024px) { html:not([data-simple]) .cm-ad-skeleton__line[data-line=wrap] { display:none; } }
 
 /* The promotion dialog and the admin's form (OfficialAds): the site scrim (no blur), the --r-xl panel with e2, the one close
-   button and the site buttons. The panel is portalled outside .site-app, so the focus rings are set here. */
+   button and the site buttons — the site's one dialog look (the feedback sheet, the guide picture and the desktop Aa panel
+   share it: --r-xl, e2, the ✕ 16px in from the top and right corner). The panel is portalled outside .site-app, so the
+   focus rings are set here. N24 (UI9-R1-POLISH-2): it leaves as it came (the scrim fades, the panel sinks 8px, --dur-2)
+   while useClosing keeps it mounted; below 1024px it stays above the tab bar (its bottom edge cut the AI badge). */
 .cm-ad-dialog { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-5) var(--sp-4); background:var(--scrim); animation:ui-fade var(--dur-3) var(--ease-out); }
+.cm-ad-dialog.is-closing { animation:ui-fade-out var(--dur-2) var(--ease-in) forwards; pointer-events:none; }
+.cm-ad-dialog.is-closing .cm-ad-dialog__panel { animation:cm-ad-sink var(--dur-2) var(--ease-in) forwards; }
 .cm-ad-dialog__panel { display:flex; flex-direction:column; width:min(100%, 32.5rem); max-height:86vh; max-height:86dvh; overflow:hidden; border-radius:var(--r-xl); background:var(--color-surface); color:var(--color-ink); box-shadow:var(--e2); animation:cm-ad-rise var(--dur-4) var(--ease-out); }
+@media (max-width:1023px) {
+  .cm-ad-dialog { padding-bottom:calc(var(--site-mobile-nav-height) + var(--sp-3)); }
+  .cm-ad-dialog__panel { max-height:100%; }
+}
 .cm-ad-dialog__panel--form { width:min(100%, 24rem); }
-.cm-ad-dialog__head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex:none; min-height:3.5rem; padding:var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-5); border-bottom:1px solid var(--color-line); }
+.cm-ad-dialog__head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex:none; min-height:3.5rem; padding:var(--sp-4) var(--sp-4) var(--sp-3) var(--sp-5); border-bottom:1px solid var(--color-line); }
 .cm-ad-dialog__head>h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:var(--lh-ui); font-weight:600; }
-.cm-ad-dialog__body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:var(--sp-4) var(--sp-5); }
+.cm-ad-dialog__body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:var(--sp-4) var(--sp-5) var(--sp-5); }
 .cm-ad-dialog__labels { margin:var(--sp-3) 0 0; }
 .cm-ad-dialog__body>.cm-ad-dialog__labels:first-child { margin-top:0; }
 .cm-ad-dialog__title { margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:var(--lh-ui); font-weight:600; overflow-wrap:anywhere; }
@@ -119,6 +151,7 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad-form { display:grid; gap:var(--sp-3); }
 .cm-ad-field { width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:max(1rem, var(--fs-body)); line-height:var(--lh-ui); resize:vertical; }
 @keyframes cm-ad-rise { from { opacity:0; translate:0 var(--sp-2); } }
+@keyframes cm-ad-sink { to { opacity:0; translate:0 var(--sp-2); } }
 @media (min-width:768px) {
   .cm-board { padding-top:1.5rem; }
   .cm-board__header { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:1.5rem; align-items:end; }
@@ -211,11 +244,29 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-action__count { font-variant-numeric:tabular-nums; color:var(--color-ink-2); }
 
 /* ---------- Post sheet (T20): a full-height page over the board ---------- */
-/* The page under the sheet is hidden while it is open: one H1, and nothing behind the sheet for a screen reader. */
+/* The page under the sheet is hidden while it is open: one H1, and nothing behind the sheet for a screen reader (this rule's
+   exact text is pinned by tests/post-sheet.test.tsx, so the board's entrance timing below is a rule of its own). */
 html[data-post-sheet] #root main { visibility:hidden; }
-.cm-sheet { position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; background:var(--color-bg); color:var(--color-ink); }
-.cm-sheet__toolbar { position:relative; display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex:none; min-height:3.5rem; padding:max(.25rem, env(safe-area-inset-top, 0px)) .5rem .25rem; border-bottom:1px solid var(--color-line); background:var(--color-surface); }
-.cm-sheet__back { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); padding:0 .75rem 0 .25rem; border-radius:var(--r-md); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+/* N24 (UI9-R1-POLISH-2): the page comes and goes like the site's other full-height panels — on a phone it rises from the
+   bottom and sinks back (the Sheet's keyframes, ui.css), from 1024px, where it covers the whole page, it fades in from 8px
+   below and out the same way (PostDetailModal.tsx keeps it mounted for the exit, SHEET_EXIT_MS). The board under it stays
+   on screen while it rises (the animation keeps <main> visible for that time) and shows again once it starts to leave. A
+   page that replaces one already open (sign-in remounts it) appears at once. */
+html[data-post-sheet] #root main { animation:cm-sheet-under var(--dur-5) linear; }
+.cm-sheet { position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; background:var(--color-bg); color:var(--color-ink); animation:ui-sheet-up var(--dur-5) var(--ease-out); }
+.cm-sheet.cm-sheet--replacing:not(.is-closing) { animation:none; }
+.cm-sheet.is-closing { animation:ui-sheet-down var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
+@media (min-width:1024px) {
+  .cm-sheet { animation:cm-sheet-in var(--dur-4) var(--ease-out); }
+  .cm-sheet.is-closing { animation:cm-sheet-out var(--dur-3) var(--ease-in) forwards; }
+}
+@keyframes cm-sheet-under { from, to { visibility:visible; } }
+@keyframes cm-sheet-in { from { opacity:0; translate:0 var(--sp-2); } }
+@keyframes cm-sheet-out { to { opacity:0; translate:0 var(--sp-2); } }
+/* The toolbar keeps the page's content line: 16px on a phone (⋯ ended at 382 beside a 374 photo), the body's column from
+   768px; 返回's chevron sits on that line (the button reaches 12px past it, its 44px target intact). */
+.cm-sheet__toolbar { position:relative; display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); flex:none; min-height:3.5rem; padding:max(var(--sp-1), env(safe-area-inset-top, 0px)) var(--sp-4) var(--sp-1); border-bottom:1px solid var(--color-line); background:var(--color-surface); }
+.cm-sheet__back { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); margin-left:calc(-1 * var(--sp-3)); padding:0 .75rem 0 .25rem; border-radius:var(--r-md); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .cm-sheet__back>svg { width:1.5rem; height:1.5rem; }
 .cm-sheet__toolbar-actions { position:relative; display:flex; align-items:center; gap:2px; }
 .cm-sheet__scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
@@ -266,10 +317,10 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-sheet__bar-note { flex:1; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 @media (min-width:768px) {
   .cm-sheet__body { padding:1.5rem 2rem 2.5rem; }
-  .cm-sheet h1 { font-size:2rem; line-height:1.3125; }
+  .cm-sheet h1 { font-size:var(--fs-keep-32); line-height:1.3125; }
   .cm-sheet__columns { grid-template-columns:minmax(0, 1fr) 20rem; align-items:start; }
   .cm-sheet__aside { position:sticky; top:0; }
-  .cm-sheet__toolbar,.cm-sheet__bar { padding-left:max(1rem, calc((100% - 60rem) / 2 + 1.5rem)); padding-right:max(1rem, calc((100% - 60rem) / 2 + 1.5rem)); }
+  .cm-sheet__toolbar,.cm-sheet__bar { padding-left:max(2rem, calc((100% - 60rem) / 2 + 2rem)); padding-right:max(2rem, calc((100% - 60rem) / 2 + 2rem)); }
   .cm-sheet__bar { justify-content:flex-end; }
   .cm-sheet__bar-price { flex:0 1 auto; margin-right:auto; }
 }

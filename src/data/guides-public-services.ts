@@ -47,7 +47,7 @@ export const publicServiceGuides: Guide[] = [
   },
   {
     slug: 'bay-area-medicare-hicap-medi-cal-guide',
-    title: '在湾区弄清 Medicare、Medi-Cal：先找免费 HICAP 咨询',
+    title: '在湾区弄清 Medicare、Medi‑Cal：先找免费 HICAP 咨询',
     subtitle: '接近 65 岁、照顾父母，或正在为保费和药费发愁',
     summary: '先打免费的 HICAP 1-800-434-0222；65 岁前后共 7 个月是首次报名期；2026 年 Part B 保费每月 $202.90；Medi-Cal 可网上、电话、邮寄或到县办公室申请。',
     category: 'newcomer', categoryLabel: '医疗与福利', emoji: '🩺',

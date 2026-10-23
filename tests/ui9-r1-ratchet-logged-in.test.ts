@@ -136,7 +136,8 @@ test('a pressed preference chip keeps its selected fill while the fieldset is di
   const sheet = rules.filter(rule => rule.file === 'src/features/profile/profile-personal-space.css');
   const pressed = sheet.find(rule => rule.selector === '.profile-preference-chips button[aria-pressed=true]');
   assert.ok(pressed, 'the pressed chip rule exists');
-  assert.equal(pressed.decls.background, 'var(--color-brand-tint)');
+  // UI9-R1-BUTTONS: the pressed chip is the one selected pair (FOUNDATION --selected-*), as every on state.
+  assert.equal(pressed.decls.background, 'var(--selected-bg)');
   const repaint = sheet.filter(rule => /:disabled/.test(rule.selector) && ('background' in rule.decls || 'border-color' in rule.decls));
   assert.ok(repaint.length > 0);
   for (const rule of repaint) {

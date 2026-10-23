@@ -121,14 +121,16 @@ test('N22: a stock cover keeps its 系统封面 note and drops the photo count (
   assert.equal(view.container.querySelector('.cm-card__price'), null);
 });
 
-test('N10: while /ads is pending the promotions show the shared shimmer tile (not a .cm-ad, whose surface hides it)', () => {
+test('N10: while /ads is pending the promotions show a loading tile with the tile\'s own lines (UI9-R1-POLISH-2), not pressable', () => {
   // first in the file: the ads cache is still empty, so the block starts loading (the request never answers here)
   api.request = (() => new Promise(() => {})) as typeof api.request;
   try {
     const view = render(<OfficialAds isAdmin={false} showToast={noop} onOpenDetail={noop} />);
     const track = view.container.querySelector('.cm-ads__track[aria-hidden=true]')!;
-    assert.equal(track.innerHTML, '<span class="ui-skeleton cm-ad-skeleton"></span>');
-    assert.equal(view.container.querySelector('.cm-ad'), null);
+    const tile = track.querySelector('.cm-ad.cm-ad--skeleton')!;
+    assert.ok(tile.querySelector('.ui-skeleton.cm-ad__thumb'), 'the shimmer thumbnail');
+    assert.deepEqual([...tile.querySelector('.cm-ad__body')!.children].map(child => child.className), ['cm-ad__labels', 'cm-ad__title', 'cm-ad__text', 'cm-ad__disclosure']);
+    assert.equal(view.container.querySelector('.cm-ad[role=button]'), null, 'nothing to press while loading');
   } finally { api.request = boardApi; }
 });
 
@@ -204,13 +206,12 @@ test('N09 / N02 / N16 / N15: search edge, section headings, the page gutter and 
   // the promotions skeleton and the admin's empty box are not pressable; the dialog head leaves room for the close ring
   assert.equal(declarations('.cm-ad:active').scale, undefined);
   assert.equal(declarations('.cm-ad:not(.cm-ad--empty):active').scale, '.985');
-  // the loading tile is the shared shimmer about a tile's size, not a .cm-ad (whose surface would cover the gradient)
-  const skeleton = declarations('.cm-ad-skeleton');
-  assert.equal(skeleton.background, undefined);
-  assert.equal(skeleton.height, '11rem');
-  assert.equal(declarations('.cm-ad-skeleton', '(min-width:1024px)').height, '8.25rem');
+  // the loading tile is a .cm-ad with the tile's own lines (UI9-R1-POLISH-2: its height follows the tile's type), never pressed
+  assert.equal(declarations('.cm-ad--skeleton')['pointer-events'], 'none');
+  assert.equal(declarations('.cm-ad-skeleton', '(min-width:1024px)').height, undefined, 'no fixed height left');
   assert.doesNotMatch(css, /cm-ad--loading/);
-  assert.match(declarations('.cm-ad-dialog__head').padding, /^var\(--sp-2\) var\(--sp-3\) var\(--sp-2\)/);
+  // the dialog head puts the ✕ 16px in from the panel's corner (the site's one dialog look, UI9-R1-POLISH-2)
+  assert.match(declarations('.cm-ad-dialog__head').padding, /^var\(--sp-4\) var\(--sp-4\) var\(--sp-3\)/);
   assert.equal(declarations('.cm-card .ui-sticker[data-tone=price]')['font-size'], undefined, 'no price sticker rule left');
   const page = declarations('.bay-home:not(.bay-home-editorial)');
   assert.equal(page['padding-inline'], 'var(--page-gutter)');
