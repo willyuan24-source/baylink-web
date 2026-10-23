@@ -74,9 +74,10 @@ test('DECISIONS 26: every day, the home lead = homeLeads[day] = the weekly card\
 test('the lead rule refuses a close-up face, a poster, AI and an information card, and takes a venue photo', () => {
   const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
   // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b) for cards, rows and detail
-  // pages; DECISIONS 32 (round 2) keeps every one of them out of the lead slots, so the list holds all six.
-  assert.equal(CLOSE_UP_FACE_IMAGES.size, 6);
-  const lumaFest = { id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' };
+  // pages; DECISIONS 32 (round 2) keeps every one of them out of the lead slots, so the list holds the five still on the site
+  // (UI9-IMG-B2 replaced LumaFest's posed volunteer photo with the festival's altar photo).
+  assert.equal(CLOSE_UP_FACE_IMAGES.size, 5);
+  const lumaFest = { id: 'x', imageKey: 'official-sausalito-goblin-jamboree-2026' };
   assert.equal(leadsWithPicture(lumaFest, context), false, 'a released close-up still never leads');
   assert.equal(leadsWithPicture(lumaFest, context, new Set()), true, 'off the list, the photo would lead');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');

@@ -85,9 +85,10 @@
     "sha256": "1c84a018c0f7e70d71663c433d6c6b2bf2e96c3b4d048cc41dbdb1707f7542cc"
   },
   "official-danville-scarecrow-stroll-2026": {
-    "originalUrl": "https://danville.ca.gov/ImageRepository/Document?documentId=13395",
-    "retrievedAt": "2026-10-08T10:03:29-07:00",
-    "sha256": "ee63b9513367bf818c7f459cea30b67d3319c7c8d1d26a6b4a77abe92ae1024c"
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://danville.ca.gov/ImageRepository/Document?documentID=13393",
+    "retrievedAt": "2026-10-23T13:49:03-07:00",
+    "sha256": "34ba2ddf6593cb628df7c03f36447d5c0e5b03646df428b0788c43458c0d1fe5"
   },
   "official-livermore-great-elephant-migration-2026": {
     "originalUrl": "https://images.squarespace-cdn.com/content/v1/5fb804341935362b3f7ec9da/cb1f3878-9d4c-40d6-83ef-be5a212c6f1c/Side+Profile+Elephant.JPG?format=2500w",
@@ -120,9 +121,10 @@
     "sha256": "34ddfb2124827685dcd1956984b2ec873f540d15ee9ad388d14d9284a86f70c9"
   },
   "official-r2-petaluma-lumafest-20261024": {
-    "originalUrl": "https://lumafest.santarosa.edu/sites/lumafest.santarosa.edu/files/inline-images/2025%20Blue%20Zones%20Booth%20Lumafest_160%20%281%29_1.jpg",
-    "retrievedAt": "2026-10-08T10:03:35-07:00",
-    "sha256": "5194e028b8b56082907fa9d1120e97941606dc8d3e747e7f5a39762b44c1ba57"
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://lumafest.santarosa.edu/sites/lumafest.santarosa.edu/files/inline-images/Altares%20Y%20Ofrendas%20LF%20Website_0.jpg",
+    "retrievedAt": "2026-10-23T13:48:45-07:00",
+    "sha256": "9d8aff306ae2955324d46e11d2e0515b08ebb02d25a9a87efb82a5299f08fcbb"
   },
   "official-r2-petaluma-cider-circus-2026": {
     "originalUrl": "https://images.squarespace-cdn.com/content/v1/61f781cf6ebc7779fb5bb957/7fbbd0df-62c3-4ab7-947c-def0d7dcfb1f/MarielleVChua-24.jpg?format=2500w",
@@ -180,9 +182,10 @@
     "sha256": "3e7b963754f7cc3423e2ac6342d7eaafbfdc2f87765b84a1005af44100eb0a95"
   },
   "official-san-jose-avenida-altares-2026": {
-    "originalUrl": "http://static1.squarespace.com/static/5c70f584797f74142d45f7cf/5c8bde1b419202e381dfb582/6a920245f065842e80cdad31/1790375168802/1920x1080_VISITSANJOSE_AVENIDA26.png?format=1500w",
-    "retrievedAt": "2026-10-08T10:05:29-07:00",
-    "sha256": "7a34c38765e0fba15b0c7a50913a6f521dcaf300d272ecd051313b84d84461e8"
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://images.squarespace-cdn.com/content/v1/5c70f584797f74142d45f7cf/4d8c5335-7418-46b1-8af3-23759a541788/2025-11-01+Avenida+de+Altares-SonyA7c-39.jpg",
+    "retrievedAt": "2026-10-23T13:48:49-07:00",
+    "sha256": "91782770f5f58ef4902cf4e8e9692dbdd9429333e30653a32798d6aad6429166"
   },
   "official-sf-halloween-hoopla-2026": {
     "originalUrl": "https://ybgfestival.org/wp-content/uploads/2024/03/110224_HalloweenHoopla_web_1.jpg",
@@ -285,9 +288,10 @@
     "sha256": "3883055606f1a9486cd2b90b9af6c2c9a2f6d0feed1f76e5035d47324918988e"
   },
   "official-pleasanton-pumpkins-after-dark-2026": {
-    "originalUrl": "https://alamedacountyfair.com/wp-content/uploads/2026/08/PAD_web.jpg",
-    "retrievedAt": "2026-10-15T22:05:19-07:00",
-    "sha256": "51dd53cfd76593f11746cf3577bec40d9bc4dd1b32a65310a521ac33e93f3649"
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://pumpkinsafterdark.com/wp-content/uploads/pad-originals/89b913b039a8c6c6d710.jpg.webp",
+    "retrievedAt": "2026-10-23T13:48:58-07:00",
+    "sha256": "0a3f3e65033e23117b4d476e9406f1738d1d7e3ebdf5c830bf4414e01b98f241"
   },
   "official-r2-vallejo-wonder-sundays-2026": {
     "originalUrl": "https://mareislandartstudios.com/wp-content/uploads/2026/08/step-into-wonder-poster-05.png",
@@ -419,34 +423,10 @@
     "retrievedAt": "2026-10-19T23:41:20-07:00",
     "sha256": "3f9dba88da6a6543c0e8a96064df160d9dd8e02ca48855f04e7d6a58c1206050"
   },
-  "official-r2-petaluma-lumafest-20261024-altar": {
-    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
-    "originalUrl": "https://lumafest.santarosa.edu/sites/lumafest.santarosa.edu/files/inline-images/Altares%20Y%20Ofrendas%20LF%20Website_0.jpg",
-    "retrievedAt": "2026-10-23T13:48:45-07:00",
-    "sha256": "9d8aff306ae2955324d46e11d2e0515b08ebb02d25a9a87efb82a5299f08fcbb"
-  },
-  "official-san-jose-avenida-altares-2026-altar": {
-    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
-    "originalUrl": "https://images.squarespace-cdn.com/content/v1/5c70f584797f74142d45f7cf/4d8c5335-7418-46b1-8af3-23759a541788/2025-11-01+Avenida+de+Altares-SonyA7c-39.jpg",
-    "retrievedAt": "2026-10-23T13:48:49-07:00",
-    "sha256": "91782770f5f58ef4902cf4e8e9692dbdd9429333e30653a32798d6aad6429166"
-  },
   "official-nov2026-fruitvale-dia-muertos": {
     "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
     "originalUrl": "https://unitycouncil.org/wp-content/uploads/2026/09/la_catrina_installed_1600.jpg",
     "retrievedAt": "2026-10-23T13:48:53-07:00",
     "sha256": "d2360fde160feb4a9b2fa4423818d48cda90ca3a62c09d1936557f86cb09d07b"
-  },
-  "official-pleasanton-pumpkins-after-dark-2026-arch": {
-    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
-    "originalUrl": "https://pumpkinsafterdark.com/wp-content/uploads/pad-originals/89b913b039a8c6c6d710.jpg.webp",
-    "retrievedAt": "2026-10-23T13:48:58-07:00",
-    "sha256": "0a3f3e65033e23117b4d476e9406f1738d1d7e3ebdf5c830bf4414e01b98f241"
-  },
-  "official-danville-scarecrow-stroll-2026-scarecrow": {
-    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
-    "originalUrl": "https://danville.ca.gov/ImageRepository/Document?documentID=13393",
-    "retrievedAt": "2026-10-23T13:49:03-07:00",
-    "sha256": "34ba2ddf6593cb628df7c03f36447d5c0e5b03646df428b0788c43458c0d1fe5"
   }
 }

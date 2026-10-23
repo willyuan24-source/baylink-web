@@ -19,7 +19,6 @@ export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
   'expanded-coyote-hills': { purpose: 'venue', eventIds: ['nov2026-coyote-hills-kids-birding'] },
   'roundup-south-existing-belmont': { purpose: 'venue', eventIds: ['belmont-centennial-fest-2026'] },
   'roundup-chase-center': { purpose: 'venue', eventIds: ["sf-warriors-heat-november-2026","sf-journey-final-frontier-november-2026"] },
-  'roundup-sap-center': { purpose: 'venue', eventIds: ["sj-sharks-flames-nov2-2026","sj-don-omar-nov-2026","sj-mon-laferte-nov-2026","sj-smashing-pumpkins-nov-2026"] },
   'roundup-oakland-arena': { purpose: 'venue', eventIds: ["oakland-xg-the-core-november-2026","oakland-jo-koy-november-2026"] },
   'roundup-levis-stadium': { purpose: 'venue', eventIds: ["santa-clara-49ers-raiders-nov-2026","santa-clara-49ers-seahawks-nov-2026","santa-clara-bruno-mars-oct-2026"] },
   'water-lantern-festival-promo': { purpose: 'theme', eventIds: ['foster-city-water-lantern-festival-2026'] },
@@ -29,7 +28,6 @@ export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
   ] },
   'coverage-redwood-port': { purpose: 'venue', eventIds: ['redwood-city-portfest-2026'] },
   'coverage-rio-vista': { purpose: 'venue', eventIds: ['rio-vista-bass-derby-2026'] },
-  'region-omca': { purpose: 'venue', eventIds: ['oakland-omca-friday-finale-2026'] },
   'coverage-laptop': { purpose: 'theme', eventIds: [
     'ai-conference-sf-2026', 'pyladies-snowflake-ai-data-2026', 'llmday-san-francisco-q4-2026',
     'runtime-modal-sf-2026', 'n8n-sf-tech-week-workshop-2026',

@@ -9,7 +9,7 @@
  * in code until the image registry carries the flag (an owner / data task).
  */
 const FLAGGED_CLOSE_UPS = [
-  'official-r2-petaluma-lumafest-20261024', // LumaFest 10/24: four volunteers posing at a booth, faces sharp and centred
+  // (UI9-IMG-B2, 10-23: LumaFest's posed volunteer photo left the site; its key now names the festival's 2025 altar photo.)
   'official-ferry-plaza-farmers-market-2026-autumn', // Ferry Plaza: one vendor, waist up, looking at the camera, centred
   'official-sausalito-goblin-jamboree-2026', // Goblin Jamboree: two women and four costumed girls posing close up
   'official-nov2026-presidio-dia-muertos-diwali', // Presidio Día de los Muertos: seven staff posing side by side
@@ -19,12 +19,12 @@ const FLAGGED_CLOSE_UPS = [
 
 /**
  * Released by the owner in chat on 2026-10-21 09:28 PT: 「圖片全部批准」 (the close-up section of the UI9-IMG-B1a approval
- * page listed these six keys; UI9-IMAGES DECISIONS 26 left the release to the owner). The release stands (DECISIONS 32):
+ * page listed six keys; UI9-IMAGES DECISIONS 26 left the release to the owner; five stay, the LumaFest photo was replaced
+ * by the B2 altar photo). The release stands (DECISIONS 32):
  * these photos show on their own cards, rows and detail pages. What DECISIONS 32 changed is the arrangement: they still
  * never lead. Never empty this set; a new close-up goes into the flagged list above, unreleased.
  */
 const OWNER_RELEASED: ReadonlySet<string> = new Set([
-  'official-r2-petaluma-lumafest-20261024',
   'official-ferry-plaza-farmers-market-2026-autumn',
   'official-sausalito-goblin-jamboree-2026',
   'official-nov2026-presidio-dia-muertos-diwali',
@@ -34,8 +34,8 @@ const OWNER_RELEASED: ReadonlySet<string> = new Set([
 
 /**
  * Posed group portraits that fill the frame (DECISIONS 32, round-2 OD4): a stage or booth line-up facing the camera. Fine
- * on a card or a row, never in a lead slot. The four LumaFest volunteers, the Goblin Jamboree families and the seven
- * Presidio staff are on the close-up list above already.
+ * on a card or a row, never in a lead slot. The Goblin Jamboree families and the seven Presidio staff are on the close-up
+ * list above already.
  */
 const POSED_GROUPS = [
   'official-sjpl-almaden-sounds-of-south-asia-2026', // Almaden Sounds of South Asia: some thirty musicians and students posing on a stage (home lead 11/9–11/14)

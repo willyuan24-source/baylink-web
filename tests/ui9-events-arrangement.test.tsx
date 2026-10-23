@@ -397,9 +397,9 @@ test('/calendar: a close-up face photo or a poster never leads a day (DECISIONS 
     assert.equal(leadOf(flagDay).html.includes(stem), false, `${flagDay}: listed, ${key} never leads the day`);
   } finally { flagged.delete(key); }
   assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), undefined, 'a released close-up never leads');
-  // The Danville poster is not on the list: cover.ts keeps it off a lead by its kind (DECISIONS 32).
-  assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
-  assert.equal(canLead({ id: 'x-poster', imageKey: 'official-danville-scarecrow-stroll-2026' }, today), false, 'a poster never leads');
+  // The Halloween Spectacular poster is not on the list: cover.ts keeps it off a lead by its kind (DECISIONS 32).
+  assert.equal(leadImageKey('official-mcm-halloween-spectacular-20261031'), 'official-mcm-halloween-spectacular-20261031');
+  assert.equal(canLead({ id: 'x-poster', imageKey: 'official-mcm-halloween-spectacular-20261031' }, today), false, 'a poster never leads');
 });
 
 test('events.css and cards.css: hover gated, no font-size literals, spacing on the --sp-* steps, no clamped card title', () => {

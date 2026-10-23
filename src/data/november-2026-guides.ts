@@ -169,7 +169,7 @@ export const november2026Guides: Guide[] = [
             "dateLabel": "11/1 周日 · 按首个周日规则换算",
             "requirement": "所有访客免费，现行规则包含特别展览。建议预订；现场票先到先得。",
             "description": "十一月首个周日是 11/1，这是按馆方每月规则换算的日期。餐饮、购物和停车另计；不用购买会员。",
-            "imageKey": "region-omca",
+            "imageKey": "venue-omca",
             "sourceUrl": "https://museumca.org/first-sundays/",
             "sourceLabel": "OMCA 免费首个周日与预约",
             "kind": "no-purchase"

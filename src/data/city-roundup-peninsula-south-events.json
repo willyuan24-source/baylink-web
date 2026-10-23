@@ -313,7 +313,7 @@
     "officialUrl": "https://www.sapcenter.com/events/detail/sharks-vs-kings-18",
     "sourceLabel": "SAP Center",
     "verifiedAt": "2026-10-02",
-    "imageKey": "roundup-sap-center"
+    "imageKey": "venue-sap-center"
   },
   {
     "id": "sj-don-omar-nov-2026",
@@ -341,7 +341,7 @@
     "officialUrl": "https://www.sapcenter.com/events/detail/don-omar",
     "sourceLabel": "SAP Center",
     "verifiedAt": "2026-10-02",
-    "imageKey": "roundup-sap-center"
+    "imageKey": "venue-sap-center"
   },
   {
     "id": "sj-mon-laferte-nov-2026",
@@ -369,7 +369,7 @@
     "officialUrl": "https://www.sapcenter.com/events/detail/mon-laferte",
     "sourceLabel": "SAP Center",
     "verifiedAt": "2026-10-02",
-    "imageKey": "roundup-sap-center"
+    "imageKey": "venue-sap-center"
   },
   {
     "id": "sj-smashing-pumpkins-nov-2026",
@@ -397,7 +397,7 @@
     "officialUrl": "https://www.sapcenter.com/events/detail/the-smashing-pumpkins",
     "sourceLabel": "SAP Center",
     "verifiedAt": "2026-10-02",
-    "imageKey": "roundup-sap-center"
+    "imageKey": "venue-sap-center"
   },
   {
     "id": "stanford-smu-football-nov-2026",

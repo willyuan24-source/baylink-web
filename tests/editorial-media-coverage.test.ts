@@ -35,8 +35,8 @@ test('new photo descriptions, captions and credits are translated on English pag
 });
 
 test('context-photo approvals do not permit different venues, real event photos or official posters to be borrowed', () => {
-  assert.equal(isApprovedEventContextPhoto('region-omca', 'oakland-omca-friday-finale-2026'), true);
-  assert.equal(isApprovedEventContextPhoto('region-omca', 'sf-ybg-dance-day-2026'), false);
+  assert.equal(isApprovedEventContextPhoto('coverage-yerba-buena', 'sf-ybg-dance-day-2026'), true);
+  assert.equal(isApprovedEventContextPhoto('coverage-yerba-buena', 'oakland-omca-friday-finale-2026'), false);
   assert.equal(isApprovedEventContextPhoto('event-opera', 'sf-ybg-dance-day-2026'), false);
   assert.equal(isApprovedEventContextPhoto('event-portola', 'sf-ybg-dance-day-2026'), false);
   assert.equal(isApprovedEventContextPhoto('toString', 'sf-ybg-dance-day-2026'), false);

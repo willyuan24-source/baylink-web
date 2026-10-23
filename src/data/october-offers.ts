@@ -50,7 +50,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     dateLabel: '10/4 周日 · 按首个周日规则', startDate: '2026-10-04', endDate: '2026-10-04', availability: 'dated', kind: 'no-purchase',
     requirement: '所有人免费，官网现行规则包含特别展览。建议网上预约；现场票先到先得。',
     description: '十月首个周日落在 10/4。可把 OMCA 和 Lake Merritt 周边散步安排在一起；免费的是入馆，餐饮与购物另计。',
-    imageKey: 'region-omca', sourceUrl: 'https://museumca.org/first-sundays/', sourceLabel: 'OMCA 首个周日与预约规则',
+    imageKey: 'venue-omca', sourceUrl: 'https://museumca.org/first-sundays/', sourceLabel: 'OMCA 首个周日与预约规则',
   },
   {
     id: 'asian-art-free-oct4', brand: 'ASIAN ART MUSEUM · SF', title: '10/4 亚洲艺术博物馆普通门票免费',

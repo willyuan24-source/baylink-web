@@ -71,8 +71,9 @@ const SKIPPED_1014 = [
 // The 2026-10-15 batch (owner approval 10-15 18:45 PT of five rows of the 10/24–25 and 10/31–11/1 image-candidates list):
 // all five used after looking at each one (CNT-MEDIA-3). One photo; the Pumpkins After Dark photo carries the event name
 // edge to edge, so it is shown whole like a graphic; two posters; SF Opera's season illustration as key art.
+// The Pumpkins After Dark title image was replaced by the producer's entrance photo in the 2026-10-23 batch (BATCH_1023).
 const BATCH_1015 = new Map([
-  ['pleasanton-pumpkins-after-dark-2026', 'graphic'], ['r2-vallejo-wonder-sundays-2026', 'poster'],
+  ['r2-vallejo-wonder-sundays-2026', 'poster'],
   ['r2-vallejo-wonder-deep-dive-2026', 'poster'], ['november-north-sonoma-harvest-market-2026', 'photo'], ['sf-opera-manon-2026', 'key-art'],
 ]);
 // CNT-MEDIA-4's rows of the 2026-10-16 batch (owner approval in chat 10-16 of three rows of
@@ -102,17 +103,27 @@ const BATCH_1019 = new Map([
   ['sjpl-village-square-thanksgiving-2026', 'photo'], ['sjpl-berryessa-diwali-2026', 'photo'],
   ['acl-fremont-funday-family-board-games-2026', 'photo'], ['november-north-healdsburg-market-2026', 'photo'],
 ]);
+// The 2026-10-23 batch (UI9-IMG-B2: the captain's approval under the owner's DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，
+// 更好，就可以通過」, chat 2026-10-23, after an independent skeptic recheck; lanes/UI9-IMG-B2/approved-b2-1023.json): five organiser
+// photos that can lead (DECISIONS 32). Four replace an older image of the same event in place (same key, new file): LumaFest's
+// posed volunteer photo, the Avenida de los Altares text poster, the Pumpkins After Dark title image and the Danville
+// straw-frame text banner; Fruitvale's La Catrina photo replaces a ③ stock picture.
+const BATCH_1023 = new Map([
+  ['r2-petaluma-lumafest-20261024', 'photo'], ['san-jose-avenida-altares-2026', 'photo'], ['nov2026-fruitvale-dia-muertos', 'photo'],
+  ['pleasanton-pumpkins-after-dark-2026', 'photo'], ['danville-scarecrow-stroll-2026', 'photo'],
+]);
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
   const batch1008 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-08'));
   const batch1014 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-14'));
-  assert.equal(batch1008.length, 43, 'the 2026-10-08 batch ships 43 of the 54 approved items (10 refused downloads, 1 kept a newer photo)');
-  assert.deepEqual([batch1008.filter(record => record.kind === 'photo').length, batch1008.filter(record => record.kind === 'poster').length], [21, 22], '21 photos, 22 posters / key art / collages / graphics');
+  // 43 of the 54 approved items shipped (10 refused downloads, 1 kept a newer photo); the 2026-10-23 batch replaced three of them.
+  assert.equal(batch1008.length, 40, 'the 2026-10-08 batch: 43 shipped, 3 replaced on 10-23');
+  assert.deepEqual([batch1008.filter(record => record.kind === 'photo').length, batch1008.filter(record => record.kind === 'poster').length], [20, 20], '20 photos, 20 posters / key art / collages / graphics');
   assert.deepEqual(new Set(batch1014.map(record => record.eventId)), BATCH_1014, 'the 2026-10-14 batch is exactly the 14 images used');
   assert.deepEqual([batch1014.filter(record => record.kind === 'photo').length, batch1014.filter(record => record.kind === 'poster').length], [5, 9], '5 photos, 9 posters / flyers / graphics');
   const batch1015 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-15'));
-  assert.deepEqual(new Map(batch1015.map(record => [record.eventId, record.artwork])), BATCH_1015, 'the 2026-10-15 batch is exactly the 5 approved images');
+  assert.deepEqual(new Map(batch1015.map(record => [record.eventId, record.artwork])), BATCH_1015, 'the 2026-10-15 batch: the 5 approved images, 1 replaced on 10-23');
   const batch1016 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-16'));
   const media4 = batch1016.filter(record => MEDIA_4_1016.has(record.eventId));
   assert.deepEqual(new Map(media4.map(record => [record.eventId, record.artwork])), MEDIA_4_1016, 'CNT-MEDIA-4 ships exactly its 2 photos');
@@ -146,7 +157,10 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.match(theme.caption, /活动页上的官方宣传图，是主题图/, id);
     assert.equal(theme.credit, '圣何塞公共图书馆官方活动页主题图', id);
   }
-  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length + batch1019.length);
+  const batch1023 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-23'));
+  assert.deepEqual(new Map(batch1023.map(record => [record.eventId, record.artwork])), BATCH_1023, 'the 2026-10-23 batch is exactly the 5 approved lead photos');
+  for (const record of batch1023) assert.equal((record.rights as { promoAllowed?: boolean }).promoAllowed, false, `${record.key}: an organiser photo never goes on a share card`);
+  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length + batch1019.length + batch1023.length);
   // A past parade's photo on the 2027 parade: the caption names its year and says it is not the 2027 parade.
   const parade = officialEventMedia.find(record => record.eventId === 'sf-chinese-new-year-parade-2027')!;
   assert.match(parade.caption, /2025 往届.*不是 2027 年的现场/);
@@ -184,7 +198,7 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.equal(record.rights.scope, 'same-event coverage only');
     for (const field of DOWNLOAD_RECORD) assert.equal(Object.hasOwn(record, field), false, `${record.key}: ${field} belongs in the download record, not the bundled registry`);
     assert.match(new URL(download(record).originalUrl).protocol, /^https?:$/);
-    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15|16|17|19)T\d{2}:\d{2}:\d{2}-07:00$/);
+    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15|16|17|19|23)T\d{2}:\d{2}:\d{2}-07:00$/);
     assert.match(download(record).sha256, /^[0-9a-f]{64}$/);
     // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
     // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).

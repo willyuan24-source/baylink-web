@@ -41,8 +41,9 @@ test('DECISIONS 32: a lead slot takes a ① or ② photograph only; a flyer, a c
     const alone = getCover(leadItem({ id: record.id, imageKey: key }), context);
     assert.equal(alone.tier === 'type' && alone.reason, 'not-a-photo', `${key}: a lead never shows the flyer`);
   }
-  // The six close-ups the owner released (10-21) stay released for cards, rows and detail pages, and never lead.
-  assert.equal(RELEASED_CLOSE_UPS.size, 6);
+  // The close-ups the owner released (10-21; five still on the site after UI9-IMG-B2 replaced LumaFest's) stay released for
+  // cards, rows and detail pages, and never lead.
+  assert.equal(RELEASED_CLOSE_UPS.size, 5);
   for (const key of [...CLOSE_UP_FACE_IMAGES, ...POSED_GROUP_IMAGES]) {
     const record = { id: `x-${key}`, imageKey: key };
     assert.ok(NOT_FOR_LEAD.has(key));

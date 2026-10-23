@@ -38,17 +38,19 @@ test('DECISIONS 15/32: one list for every lead slot; a close-up never leads, rel
   assert.equal(weekendLead.NOT_FOR_LEAD, NOT_FOR_LEAD);
   assert.equal(weekendLead.leadImageKey, leadImageKey);
   // The owner released all six flagged close-ups in chat on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): the release stands (they
-  // show on cards, rows and detail pages), and DECISIONS 32 (round 2) keeps every one of them out of the lead slots.
-  assert.ok(RELEASED_CLOSE_UPS.has('official-r2-petaluma-lumafest-20261024'), 'LumaFest (four volunteers posing) was flagged and released');
-  assert.deepEqual([CLOSE_UP_FACE_IMAGES.size, RELEASED_CLOSE_UPS.size], [6, 6]);
+  // show on cards, rows and detail pages), and DECISIONS 32 (round 2) keeps every one of them out of the lead slots. Five are
+  // still on the site: LumaFest's posed volunteer photo was replaced by the festival's 2025 altar photo (UI9-IMG-B2, 10-23).
+  assert.ok(RELEASED_CLOSE_UPS.has('official-sausalito-goblin-jamboree-2026'), 'Goblin Jamboree (families posing close up) was flagged and released');
+  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-r2-petaluma-lumafest-20261024'), false, 'the LumaFest key names the altar photo now');
+  assert.deepEqual([CLOSE_UP_FACE_IMAGES.size, RELEASED_CLOSE_UPS.size], [5, 5]);
   for (const key of RELEASED_CLOSE_UPS) {
     assert.ok(CLOSE_UP_FACE_IMAGES.has(key) && NOT_FOR_LEAD.has(key), `${key}: released, and still never a lead`);
     assert.equal(leadImageKey(key), undefined, `${key}: the lead slot draws the next candidate`);
   }
-  // The rule itself, on LumaFest's photo: no picture of its own in any lead slot (the slot draws the next candidate, here
+  // The rule itself, on the Goblin Jamboree photo: no picture of its own in any lead slot (the slot draws the next candidate, here
   // none: the type cover), never `leadsWithPicture`; the card keeps the photo. Off the list, it would lead.
   {
-    const key = 'official-r2-petaluma-lumafest-20261024';
+    const key = 'official-sausalito-goblin-jamboree-2026';
     const record = { id: 'x-close-up', imageKey: key };
     const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
     assert.equal(leadImageKeyFor(key, NOT_FOR_LEAD), undefined, 'a close-up never leads');

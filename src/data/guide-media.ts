@@ -259,7 +259,7 @@ const bySlug: Record<string, [string, string]> = {
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],
   'half-moon-bay-pumpkin-season-2026-guide': ['fresh-pumpkin-parade', 'fresh-hmb-pumpkins'],
   'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],
-  'oakland-lake-merritt-omca-half-day': ['region-omca', 'region-lake-merritt'],
+  'oakland-lake-merritt-omca-half-day': ['venue-omca', 'region-lake-merritt'],
   'stanford-cantor-campus-art-walk': ['region-stanford-quad', 'region-cantor'],
   'filoli-house-garden-day-trip': ['region-filoli-house', 'region-filoli-conservatory'],
   'san-jose-tech-japantown-day-trip': ['region-tech', 'region-japantown'],
