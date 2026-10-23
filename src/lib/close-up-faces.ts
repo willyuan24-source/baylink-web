@@ -41,6 +41,14 @@ const POSED_GROUPS = [
   'official-sjpl-almaden-sounds-of-south-asia-2026', // Almaden Sounds of South Asia: some thirty musicians and students posing on a stage (home lead 11/9–11/14)
 ];
 
+/**
+ * Venue photos that do not read as their venue or its event at lead size (UI9-IMG-B2, #68 live check 10-23): fine on a row
+ * or a card, never a lead; the lead goes to the next pick.
+ */
+const WEAK_LEAD_SCENES = [
+  'roundup-chase-center', // Chase Center: a corner of the building and half sky; reads as neither the arena nor a game
+];
+
 /** Every flagged close-up, released or not: none of them takes a lead slot (DECISIONS 32). */
 export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS);
 /** Flagged close-ups the owner released for cards, rows and detail pages (tests read it). */
@@ -48,10 +56,12 @@ export const RELEASED_CLOSE_UPS: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS
 /** Posed group portraits that fill the frame. */
 export const POSED_GROUP_IMAGES: ReadonlySet<string> = new Set(POSED_GROUPS);
 /**
- * The pictures no lead slot shows (close-ups and posed groups). Posters, flyers and AI pictures are kept off a lead by
+ * The pictures no lead slot shows (close-ups, posed groups and weak venue scenes). Posters, flyers and AI pictures are kept off a lead by
  * their kind in cover.ts (a lead takes only a photographic ① or ②), so they are not listed here.
  */
-export const NOT_FOR_LEAD: ReadonlySet<string> = new Set([...FLAGGED_CLOSE_UPS, ...POSED_GROUPS]);
+/** Venue photos too weak to lead (WEAK_LEAD_SCENES). */
+export const WEAK_LEAD_SCENE_IMAGES: ReadonlySet<string> = new Set(WEAK_LEAD_SCENES);
+export const NOT_FOR_LEAD: ReadonlySet<string> = new Set([...FLAGGED_CLOSE_UPS, ...POSED_GROUPS, ...WEAK_LEAD_SCENES]);
 
 /**
  * The image a lead slot may show given the pictures that never lead: none of its own for one of them (the slot draws the

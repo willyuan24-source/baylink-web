@@ -1,0 +1,7 @@
+{
+  "_format": "UI9-IMG-B2 record pins (src/lib/cover-candidates.ts coverCandidates): ③ stock pictures (GUIDE_IMAGES keys, rights.basis 'stock') that belong to one record only, tried after its own ① and venue ② and before its photo category's pool. Key '<kind>:<id>' (event | offer | opening | guide); value: keys in order. A pinned picture that is not in a shared pool shows on these records only (e.g. the Muni pictures on the three SFMTA records, never the transit pool).",
+  "pins": {
+    "guide:bay-area-medicare-hicap-medi-cal-guide": ["stock-guide-health-3"],
+    "guide:bay-area-dental-care-insurance-low-cost-guide": ["stock-guide-health-2"]
+  }
+}

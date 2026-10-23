@@ -1,6 +1,7 @@
 import venuePhotoFile from '../data/venue-photos.json';
 import categoryPhotoFile from '../data/category-photos.json';
 import aiCoverApprovalFile from '../data/ai-cover-approvals.json';
+import recordPhotoPinFile from '../data/record-photo-pins.json';
 import { photoCategoryOf, placePhotoCategory, postPhotoCategory, type PhotoCategoryId } from './photo-category';
 import type { CoverKind } from './cover';
 
@@ -10,7 +11,8 @@ import type { CoverKind } from './cover';
  * tables are arguments with the reviewed files as defaults.
  *   ① the record's own image (`imageKey`)
  *   ② its venue's approved photos (src/data/venue-photos.json, approved once per venue)
- *   ③ its photo category's stock pictures (src/data/category-photos.json), starting at a spot fixed by the record id
+ *   ③ the stock pictures pinned to this very record (src/data/record-photo-pins.json), then its photo category's stock
+ *     pictures (src/data/category-photos.json), starting at a spot fixed by the record id
  *   ④ AI illustrations the owner approved for this record or its category (src/data/ai-cover-approvals.json `for`)
  * Whether each candidate may be shown (rights, age, page de-duplication) is still cover.ts getCover's call.
  */
@@ -27,12 +29,15 @@ export type CoverTables = {
   venues: readonly VenuePhotos[];
   categories: Readonly<Partial<Record<PhotoCategoryId, readonly string[]>>>;
   ai: readonly { key: string; for?: readonly string[] }[];
+  /** ③ pictures pinned to one record ('<kind>:<id>'), shown before its category's pool (UI9-IMG-B2). */
+  pins?: Readonly<Record<string, readonly string[]>>;
 };
 
 export const COVER_TABLES: CoverTables = {
   venues: (venuePhotoFile as { venues: VenuePhotos[] }).venues,
   categories: (categoryPhotoFile as { categories: Partial<Record<PhotoCategoryId, string[]>> }).categories,
   ai: (aiCoverApprovalFile as { approvals: { key: string; for?: string[] }[] }).approvals,
+  pins: (recordPhotoPinFile as { pins: Record<string, string[]> }).pins,
 };
 
 /** The fields the candidates read: the record's id and own image, and the text that names its venue. */
@@ -135,6 +140,7 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const ownIsAi = !!record.imageKey && tables.ai.some(approval => approval.key === record.imageKey);
   if (!ownIsAi) add(record.imageKey);
   for (const venue of venuesFor(kind, record, tables.venues)) venue.imageKeys.forEach(add);
+  tables.pins?.[`${kind}:${record.id}`]?.forEach(add);
   const category = photoCategoryOf(kind, record);
   const pool = category ? tables.categories[category] ?? [] : [];
   const start = (limits.start ?? idSpot(record.id, pool.length)) % (pool.length || 1);
