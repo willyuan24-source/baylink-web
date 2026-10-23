@@ -38,12 +38,12 @@ export async function createGlyphOutliner() {
 }
 
 type Job = { svg: string; out: string };
-/** At most this many rasterizing workers on a big machine (each is about one core's work). */
-export const MAX_RASTER_WORKERS = 8;
+/** At most this many rasterizing workers (as before): a shared build machine keeps cores for the rest. */
+export const MAX_RASTER_WORKERS = 4;
 /**
  * How many rasterizing workers: SHARE_CARD_WORKERS when set (a whole number ≥ 1), else one per core, at most
  * MAX_RASTER_WORKERS. The main thread only lays the cards out (~9 s for 3,348 cards on a Mac against minutes of
- * rasterizing) and mostly waits, so the old "cores − 1" left half of a two-core Vercel build machine idle
+ * rasterizing) and mostly waits, so the old "cores − 1" left half of Vercel's two-core build machine idle
  * (HOTFIX-BUILD-TIME, 10-22: the build passed Vercel's 45-minute limit).
  */
 export function rasterWorkerCount(env: Record<string, string | undefined> = process.env, cores = availableParallelism()) {
