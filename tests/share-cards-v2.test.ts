@@ -141,6 +141,9 @@ test('UI9-IMG-A1b CI fix: the paper under a bright photo band stays exactly the 
   assert.equal(file[25], 3, 'still an 8-bit palette PNG');
   const png = PNG.sync.read(file), paper = rgbaKey(CARD_INK.paper);
   // HOTFIX-BUILD-TIME: the quantizer now reads resvg's raw pixels; the card is the one the PNG round trip drew, pixel for pixel
+  let translucent = 0;
+  for (let at = 3; at < drawn.length; at += 4) if (drawn[at] !== 255) translucent++;
+  assert.equal(translucent, 0, 'every pixel of the card is opaque, so cardPng takes the raw-pixel path checked below, not the PNG round trip');
   const roundTrip = await sharp(rendered.asPng()).png({ palette: true, colors: 192, effort: 4, compressionLevel: 0 }).toBuffer();
   const reference = await sharp(roundTrip).ensureAlpha().raw().toBuffer();
   for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === paper) reference.writeUInt32BE(paper, at);
