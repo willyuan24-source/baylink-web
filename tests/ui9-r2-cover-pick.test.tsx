@@ -150,6 +150,18 @@ test('R2-05: a list deals its ③ pictures first, so a card taking its first new
   assert.equal(new Set(srcs(many).slice(0, 5)).size, 5);
 });
 
+test('R2-05: the dealing is its own module behind lib/cover, so /plan\'s picks (getCover only) do not load it', () => {
+  // lib/cover only re-exports; cover-list.ts imports cover-core.ts, never cover.ts: a cycle would put the two in chunks that
+  // import each other (Rollup's warning) or back into one chunk on every page that shows a cover.
+  const facade = readFileSync('src/lib/cover.ts', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').trim().split('\n');
+  assert.deepEqual(facade, ["export * from './cover-core';", "export { resolveCovers } from './cover-list';"]);
+  const list = readFileSync('src/lib/cover-list.ts', 'utf8');
+  assert.match(list, /from '\.\/cover-core';/);
+  assert.doesNotMatch(list, /from '\.\/cover';/);
+  assert.doesNotMatch(readFileSync('src/lib/cover-core.ts', 'utf8'), /from '\.\/cover(-list)?';/);
+  assert.doesNotMatch(readFileSync('src/features/plan/PlanWeekendPicks.tsx', 'utf8'), /resolveCovers\(/);
+});
+
 test('R2-05: the boards\' records carry their whole ③ pool; the route\'s events keep their caps (the near window)', () => {
   const record = { id: 'x-offer', brand: 'Test', title: 'Birthday treat' };
   assert.equal(routeStock('offer', record, new Set()).stock, BOARD_STOCK);
