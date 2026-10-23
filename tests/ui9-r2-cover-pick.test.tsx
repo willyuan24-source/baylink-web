@@ -55,6 +55,7 @@ test('DECISIONS 32: a lead slot takes a ① or ② photograph only; a flyer, a c
   // picture of its own leads with its venue photo.
   assert.equal(leadsWithPicture({ id: 'x-flyer-venue', imageKey: POSTERS[0], imageKeys: [POSTERS[0], VENUE] }, context), false);
   assert.equal(leadsWithPicture({ id: 'x-venue', imageKeys: [VENUE] }, context), true);
+  assert.equal(leadsWithPicture({ id: 'x-own-stock', imageKey: 'stock-halloween-1', imageKeys: ['stock-halloween-1', VENUE] }, context), false, 'an own ③ key stops a lead (the slot draws it first)');
   assert.equal(isLeadPicture(getCover(coverItemFor('event', { id: 'x-stock', imageKeys: ['stock-halloween-1'] }), context)), false, 'a ③ picture is no lead picture');
 });
 
@@ -66,7 +67,9 @@ test('the home lead (getBuildWeekend): the editor\'s first pick with a photograp
   assert.deepEqual(weekend.picks.map(pick => [pick.event.id, pick.editorial?.rank]), [[ids[3], 4], [ids[0], 1], [ids[1], 2]]);
   assert.ok(buildCanLead(weekend.picks[0].event, today));
   for (const pick of weekend.picks.slice(1)) assert.equal(buildCanLead(pick.event, today), false, `${pick.event.id}: a card, not a lead`);
-  assert.ok(weekend.events.some(entry => entry.event.id === ids[2]), 'the third pick stays on the weekend list (the feed below)');
+  // It heads the feed the home shows (its first card, or its second when it has no picture): /plan's fourth card.
+  assert.ok(weekend.feed.slice(0, 2).some(entry => entry.event.id === ids[2]), 'the third pick heads the feed');
+  assert.equal(new Set([...weekend.picks, ...weekend.feed].map(entry => entry.event.id)).size, weekend.picks.length + weekend.feed.length, 'each event once');
 });
 
 test('the /events lead (arrangePicks) and each /calendar day lead (canLead) take the first event with a photograph', async () => {
@@ -88,10 +91,14 @@ test('/plan\'s first pick and the home lead in the generated snapshots are lead 
   const catalog = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8')) as { weekends: Record<string, { ids: string[] }>; events: { id: string; imageKey?: string; imageKeys?: string[] }[] };
   const plan = JSON.parse(readFileSync('src/data/generated/plan-weekend.json', 'utf8')) as { days: Record<string, { entries: { id: string }[] }>; events: Record<string, { id: string; imageKey?: string; imageKeys?: string[] }> };
   const byId = new Map(catalog.events.map(event => [event.id, event]));
+  // Snapshot days whose weekend has no lead photograph among its events (getBuildWeekend then keeps the picks as they are).
+  // Empty on 10-23 (10/23–11/19 checked); a day added here must name the weekend and why.
+  const NO_LEAD_PHOTOGRAPH = new Set<string>();
   let days = 0;
   for (const [day, snapshot] of Object.entries(catalog.weekends)) {
+    if (NO_LEAD_PHOTOGRAPH.has(day)) continue;
     const lead = byId.get(snapshot.ids[0]);
-    if (!lead || !leadsWithPicture(lead, { images: GUIDE_IMAGES, today: day })) continue;
+    assert.ok(lead && leadsWithPicture(lead, { images: GUIDE_IMAGES, today: day }), `${day}: the home lead ${snapshot.ids[0]} is a lead photograph`);
     days++;
     const first = plan.days[day]?.entries[0];
     if (!first) continue;
@@ -99,7 +106,7 @@ test('/plan\'s first pick and the home lead in the generated snapshots are lead 
     const shown = getCover(coverItemFor('event', { ...plan.events[first.id], id: first.id }), { images: GUIDE_IMAGES, today: day });
     assert.ok(isLeadPicture(shown), `${day}: /plan's first pick shows a lead photograph (${shown.tier})`);
   }
-  assert.ok(days > 0, 'the snapshots lead with photographs');
+  assert.ok(days > 0, 'snapshot days checked');
 });
 
 test('R2-05: a ③ picture is not shown twice on one page while an item has a candidate the page has not shown', () => {

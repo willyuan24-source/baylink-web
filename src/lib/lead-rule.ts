@@ -23,8 +23,9 @@ export const isLeadPicture = (cover: ResolvedCover, excluded: ReadonlySet<string
  * Whether this event can lead a page: what its lead slot draws (no page) is a lead picture, and it is the event's own ①
  * picture whenever that is one its card shows. A pick whose own picture is a flyer, a close-up or a posed group stays a
  * normal card and the next pick with a photograph leads (round-2 OD2), rather than leading with its venue photo; one with
- * no usable picture of its own (none, refused, or a ④ AI picture) may lead with its ② venue photo. `excluded` is the list
- * of pictures that never lead (close-up-faces.ts); a test passes its own.
+ * no usable picture of its own (none, refused, or a ④ AI picture) may lead with its ② venue photo. An own key that is a ③
+ * stock picture stops a lead too: the slot draws it first, and a ③ picture is no lead picture. `excluded` is the list of
+ * pictures that never lead (close-up-faces.ts); a test passes its own.
  */
 export function leadsWithPicture(record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, context: CoverContext, excluded: ReadonlySet<string> = NOT_FOR_LEAD): boolean {
   const { images, today, contextPhotos } = context;

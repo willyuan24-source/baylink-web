@@ -25,8 +25,9 @@ export const buildCanLead = (event: MonthlyEvent, today: string) =>
  * lead (the first pick: the home's lead card, homeLeads[day] in the events index, the weekly card's first, /plan's first
  * pick) is the first pick in the editor's order whose picture is a ① or ② photograph (never a poster or flyer, a close-up
  * face, a posed group, an AI picture or an information card), and the picks before it follow it as normal cards; when no
- * pick has one, the next editor pick or the weekend's first in the ranking that has one leads and the last pick returns to
- * the feed. A weekend with no such picture anywhere keeps its picks as they are (its lead slot draws its next candidate).
+ * pick has one, the next editor pick or the weekend's first in the ranking that has one leads and the last pick heads the
+ * feed (the home's next card and /plan's fourth, never dropped from either). A weekend with no such picture anywhere keeps
+ * its picks as they are (its lead slot draws its next candidate).
  */
 export function getBuildWeekend(today: string, catalog: MonthlyEvent[], picksByWeekend = WEEKEND_PICKS) {
   const weekend = getHomeWeekend(today, catalog, { ...ranking, picks: picksByWeekend });
@@ -41,6 +42,7 @@ export function getBuildWeekend(today: string, catalog: MonthlyEvent[], picksByW
       .find(entry => canLead(entry.event))
     ?? rankWeekendFallback(events.filter(entry => !taken.has(entry.event.id)), start, ranking).find(entry => canLead(entry.event));
   if (!lead) return weekend;
-  const moved = [lead, ...picks.filter(pick => pick !== lead)].slice(0, picks.length);
-  return { ...weekend, picks: moved, feed: weekendFeed(events, moved, start, ranking) };
+  const moved = [lead, ...picks.filter(pick => pick !== lead)];
+  const kept = moved.slice(0, picks.length);
+  return { ...weekend, picks: kept, feed: weekendFeed(events, kept, start, ranking, undefined, moved.slice(picks.length)) };
 }
