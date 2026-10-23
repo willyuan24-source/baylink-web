@@ -23,15 +23,16 @@
 .together-page :is(.outing-primary,.outing-secondary,.outing-link-button) { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:max(var(--control-height), 3rem); padding:0 var(--sp-5); border:1px solid transparent; border-radius:var(--r-pill); font-size:var(--text-body); font-weight:400; line-height:1.25; text-align:center; text-decoration:none; cursor:pointer; }
 .together-page .outing-primary { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-weight:600; }
 .together-page .outing-secondary { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); }
-/* A text link's words sit on the line the rest of the page starts and ends on (UI9-R1): its 8px side padding keeps the
-   44px target and is given back by a negative margin, so the target reaches 8px past the edge, into the gutter, and the
-   text does not move in. A trailing chevron gives back its own drawn inset (lucide draws it 5px inside its box). */
-.together-page .outing-link-button { min-height:var(--control-height); margin-inline:calc(-1 * var(--sp-2)); padding:0 var(--sp-2); background:transparent; color:var(--color-brand); text-decoration:underline; text-underline-offset:var(--underline-offset); text-decoration-thickness:var(--underline-thickness); }
+/* A text link's 8px side padding keeps its 44px target. */
+.together-page .outing-link-button { min-height:var(--control-height); padding:0 var(--sp-2); background:transparent; color:var(--color-brand); text-decoration:underline; text-underline-offset:var(--underline-offset); text-decoration-thickness:var(--underline-thickness); }
+/* A link on its own line, or ending a row on the content edge (先看看活动, 刷新列表, 清除筛选, 返回小队, 退出小队), keeps its
+   words on the line the rest of the page starts and ends on (UI9-R1): a negative margin gives the padding back, so the
+   target reaches 8px into the gutter and the words do not move in. Scoped (captain 10-22): a link beside another control
+   (an action row with more than the link: 接受 + 婉拒, 婉拒 / 移除成员 + 屏蔽; right after a button: 提交举报 + 关闭) keeps
+   its 8px, so the 44px targets never overlap. :where keeps the base weight (.outing-tabs>a's margin-left:auto still wins).
+   A trailing chevron gives back its own drawn inset (lucide draws it 5px inside its box). */
+.together-page .outing-link-button:where(:not(:is(.outing-inline-actions,.outing-member-actions)>:not(:only-child),:is(.outing-primary,.outing-secondary)+*)) { margin-inline:calc(-1 * var(--sp-2)); }
 .together-page .outing-link-button>.lucide-chevron-right:last-child { margin-inline-end:calc(-1 * var(--sp-1)); }
-/* Side by side (接受 + 婉拒, 婉拒 + 屏蔽, 移除成员 + 屏蔽) the shared edge is no content edge: the targets keep 8px apart
-   instead of overlapping, the words 16px from a button and 24px from another link. */
-.together-page :is(.outing-primary,.outing-secondary)+.outing-link-button { margin-inline-start:0; }
-.together-page .outing-link-button+:is(.outing-primary,.outing-secondary,.outing-link-button) { margin-inline-start:var(--sp-2); }
 .together-page .outing-danger { color:var(--color-danger); }
 @media (hover:hover) and (pointer:fine) {
   .together-page .outing-primary:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }

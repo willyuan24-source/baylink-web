@@ -214,7 +214,7 @@ test('UI9-R1 polish: 我的小队 for a guest leads with 登录后继续; the la
   assert.notEqual(field.parentElement!.querySelector('svg')!.getAttribute('width'), '16', 'the magnifier is sized by CSS (1em), not a fixed 16px');
   const css = postcss.parse(readFileSync('src/features/outings/outings.css', 'utf8'));
   const decl = (selector: string, prop: string) => { let value: string | undefined; css.walkRules(rule => { if (rule.selector === selector && !(rule.parent?.type === 'atrule')) rule.walkDecls(prop, d => { value = d.value; }); }); return value; };
-  assert.equal(decl('.together-page .outing-link-button', 'margin-inline'), 'calc(-1 * var(--sp-2))', 'a text link gives its 8px padding back');
+  assert.equal(decl('.together-page .outing-link-button:where(:not(:is(.outing-inline-actions,.outing-member-actions)>:not(:only-child),:is(.outing-primary,.outing-secondary)+*))', 'margin-inline'), 'calc(-1 * var(--sp-2))', 'a text link on its own line gives its 8px padding back');
   assert.equal(decl('.together-page .outing-link-button', 'padding'), '0 var(--sp-2)');
   assert.equal(decl('.together-page .outing-search-input svg', 'width'), '1em');
   assert.equal(decl('.together-page .outing-search-input input', 'padding-left'), 'calc(var(--sp-3) * 2 + 1em)');

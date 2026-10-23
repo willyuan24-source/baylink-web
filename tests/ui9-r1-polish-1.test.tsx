@@ -73,12 +73,27 @@ test('verify-release pins the account shell\'s full-screen height in the built d
   assert.match(script, /css\.includes\('\.account-shell\{min-height:100svh'\)/);
 });
 
-test('/together text links: the edge margin is given back only on a content edge, never between neighbours', () => {
+test('/together text links: the negative margin is scoped to a link on its own line or a row\'s edge, never beside a control', () => {
   const css = 'src/features/outings/outings.css';
-  assert.equal(rules(css, '.together-page .outing-link-button')['margin-inline'], 'calc(-1 * var(--sp-2))');
-  assert.equal(rules(css, '.together-page :is(.outing-primary,.outing-secondary)+.outing-link-button')['margin-inline-start'], '0');
-  assert.equal(rules(css, '.together-page .outing-link-button+:is(.outing-primary,.outing-secondary,.outing-link-button)')['margin-inline-start'], 'var(--sp-2)');
-  // The host's member row (接受 + 婉拒, 婉拒 / 移除成员 + 屏蔽) is an 8px-gap flex row: with the rules above the 44px targets
-  // keep 8px apart (8 gap - 8 + 8) and never overlap.
+  assert.equal(rules(css, '.together-page .outing-link-button')['margin-inline'], undefined, 'the base link keeps its 8px');
+  const scoped = '.together-page .outing-link-button:where(:not(:is(.outing-inline-actions,.outing-member-actions)>:not(:only-child),:is(.outing-primary,.outing-secondary)+*))';
+  assert.deepEqual(rules(css, scoped), { 'margin-inline': 'calc(-1 * var(--sp-2))' });
+  // The selector against the real /together shapes (OutingDetail, OutingsHub, OutingDiscussion, OutingTimePoll).
+  const page = new JSDOM(`<div class="together-page">
+    <div class="outing-member-actions"><button class="outing-secondary">接受</button><button class="outing-link-button" id="decline">婉拒</button><button class="outing-link-button" id="block-pending">屏蔽</button></div>
+    <div class="outing-member-actions"><button class="outing-link-button outing-danger" id="remove">移除成员</button><button class="outing-link-button" id="block-member">屏蔽</button></div>
+    <div class="outing-member-actions"><button class="outing-link-button" id="block-alone">屏蔽</button></div>
+    <div class="outing-inline-actions"><button class="outing-primary">用这张配图发起小队</button><button class="outing-link-button" id="clear-cover">取消带入</button></div>
+    <form class="outing-report"><button class="outing-secondary">提交举报</button><button class="outing-link-button" id="close">关闭</button></form>
+    <form class="outing-report"><p>举报已提交</p><button class="outing-link-button" id="close-sent">关闭</button></form>
+    <nav class="outing-tabs"><button>浏览小队</button><button>我的小队</button><a class="outing-link-button" id="events">先看看活动</a></nav>
+    <div class="outing-toolbar"><span>按具体日期</span><button class="outing-link-button" id="refresh">刷新列表</button></div>
+    <div class="outing-toolbar"><button class="outing-link-button" id="back">返回小队</button><button class="outing-secondary">刷新</button></div>
+    <div class="outing-filter-footer"><p>支持城市中文</p><button class="outing-link-button" id="clear-filters">清除筛选</button></div>
+    <aside class="outing-surface"><p>个人发起</p><button class="outing-link-button" id="leave">退出小队</button></aside>
+  </div>`).window.document;
+  const edge = [...page.querySelectorAll('.outing-link-button')].filter(link => link.matches(scoped)).map(link => link.id);
+  assert.deepEqual(edge, ['block-alone', 'close-sent', 'events', 'refresh', 'back', 'clear-filters', 'leave']);
+  // Beside a control the 44px targets stay apart by the row's own gap (the member row: 8px).
   assert.equal(rules(css, '.together-page .outing-member-actions').gap, 'var(--sp-2)');
 });
