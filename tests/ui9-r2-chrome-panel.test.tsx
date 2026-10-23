@@ -47,7 +47,8 @@ test('N10 / N11: the search pill rings with the focus tokens, BayBay\'s composer
   const line = decls(panel, '.baybay-conversation .bb-pause-line');
   assert.equal(line.color, 'var(--color-ink-2)');
   assert.equal(line['font-size'], 'var(--fs-meta)');
-  const call = decls(panel, '.baybay-conversation .bb-pause-line>a');
+  const call = decls(panel, '.baybay-conversation .bb-pause-line a');
+  assert.equal(decls(panel, '.baybay-conversation .bb-pause-line>span')['white-space'], 'nowrap', '特大 wraps before 急事拨打 911, never inside it');
   assert.equal(call.padding, 'var(--sp-3) var(--sp-2)');
   assert.equal(call.margin, 'calc(-1 * var(--sp-3)) calc(-1 * var(--sp-2))');
 });

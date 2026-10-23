@@ -472,7 +472,8 @@ function BayBayPauseLine({ at }: { at: string }) {
   const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(new Date(at));
   const day = part({ month: 'numeric', day: 'numeric' }), time = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const enDay = part({ month: 'short', day: 'numeric' }), enTime = part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '');
-  return <p className="bb-pause-line" data-notice="ai_pause_scheduled" role="note" translate="no">{copy(`AI 助手 ${day} ${time} 起暂停 · 急事拨打`, `AI pauses ${enDay}, ${enTime} · Emergencies:`)} <a href="tel:911">911</a></p>;
+  // Where the line must wrap (特大), it breaks before 急事拨打 911, never inside it.
+  return <p className="bb-pause-line" data-notice="ai_pause_scheduled" role="note" translate="no">{copy(`AI 助手 ${day} ${time} 起暂停`, `AI pauses ${enDay}, ${enTime}`)} · <span>{copy('急事拨打', 'Emergencies:')} <a href="tel:911">911</a></span></p>;
 }
 
 type TurnAnswerProps = {
