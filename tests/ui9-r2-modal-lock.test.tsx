@@ -32,6 +32,8 @@ beforeEach(() => {
   document.body.innerHTML = '<div id="root"><button id="opener">Open</button><main id="scroll-container" tabindex="-1"></main></div>';
   html.removeAttribute('style');
   document.body.removeAttribute('style');
+  // jsdom has no layout: give the page overlay scrollbars (no gutter to keep) unless a test says otherwise.
+  Object.defineProperty(html, 'clientWidth', { configurable: true, get: () => window.innerWidth });
 });
 afterEach(async () => { cleanup(); await microtask(); delete (html as { clientWidth?: number }).clientWidth; });
 

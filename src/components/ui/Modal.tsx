@@ -31,8 +31,8 @@ const lockScroll = (focusedElement: HTMLElement | null) => {
   const { style } = html;
   const appRoot = document.getElementById('root');
   originalPageState = { style, overflow: style.overflow, gutter: style.scrollbarGutter, appRoot, appRootInert: !!appRoot?.inert, focusedElement };
-  // A classic scrollbar (not the overlay kind of phones and macOS) is innerWidth - clientWidth wide; jsdom has no layout.
-  if (html.clientWidth > 0 && window.innerWidth > html.clientWidth) style.scrollbarGutter = 'stable';
+  // A classic scrollbar (not the overlay kind of phones and macOS) is innerWidth - clientWidth wide.
+  if (window.innerWidth > html.clientWidth) style.scrollbarGutter = 'stable';
   style.overflow = 'hidden';
   if (appRoot) appRoot.inert = true;
 };
@@ -83,7 +83,7 @@ export function useDialogWaitLock() {
   useIsomorphicLayoutEffect(() => {
     lockScroll(document.activeElement as HTMLElement | null);
     return () => {
-      const opener = originalPageState?.focusedElement || null;
+      const opener = originalPageState!.focusedElement;
       queueMicrotask(() => {
         unlockScroll();
         if (!scrollLockCount && document.activeElement === document.body) restoreFocus(opener);
@@ -113,11 +113,9 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
     // Only registered dialogs belong to the stack. Querying every portal in the DOM
     // would disable siblings whose mount effects have not run yet.
     syncModalStack();
-    let previouslyFocused = restoreFocusRefAtMount.current?.current || openerRef.current;
+    const previouslyFocused = restoreFocusRefAtMount.current?.current || openerRef.current;
 
     lockScroll(previouslyFocused);
-    // Inside DialogWait's lock, whose inert page may have moved focus to <body> (Chrome) before this dialog rendered.
-    if (previouslyFocused === document.body) previouslyFocused = originalPageState?.focusedElement || previouslyFocused;
 
     // Prefer a declared initial target; otherwise preserve a child's existing focus.
     // Remember a child's selected target across StrictMode's effect cleanup/replay.
@@ -170,7 +168,9 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
           if (!nextTop.contains(previouslyFocused) || !restoreFocus(previouslyFocused)) {
             (getFocusable(nextTop)[0] || nextTop).focus({ preventScroll: true });
           }
-        } else if (!restoreFocus(previouslyFocused) && !restoreFocus(originalPageFocus)) {
+        // The page's opener is the one the first lock kept: this dialog's own, or DialogWait's when this dialog replaced it
+        // (the wait's inert page can have moved focus to <body> before this dialog rendered).
+        } else if (!restoreFocus(originalPageFocus) && !restoreFocus(previouslyFocused)) {
           // A route change can remove the opener. Return to the app's main
           // content only after the final modal has released the background.
           restoreFocus(document.getElementById('scroll-container'));
