@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Languages, Loader2, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, Languages, Loader2, Sparkles } from 'lucide-react';
+import { CloseButton } from '../../components/ui/CloseButton';
 import { api } from '../../lib/api';
 import { translateText, useLocale, type Locale } from '../../i18n/locale';
 import type { Message } from '../../lib/types';
@@ -99,7 +100,7 @@ export function ChatAiComposer({ conversationId, selectedMessage, composerValue,
   }, [ai.completion]);
 
   return <section id="chat-ai-composer" className="chat-ai-panel" aria-label={tr('BayBay 回复助手')} translate="no" lang={locale}>
-    <div className="chat-ai-panel-heading"><h3><Sparkles size={16} aria-hidden="true" />{tr('BayBay 回复助手')}</h3><button type="button" aria-label={tr('关闭回复助手')} onClick={onClose}><X size={18} /></button></div>
+    <div className="chat-ai-panel-heading"><h3><Sparkles size={16} aria-hidden="true" />{tr('BayBay 回复助手')}</h3><CloseButton label={tr('关闭回复助手')} onClick={onClose} /></div>
     <p className="chat-ai-panel-hint">{tr('只根据你填写的意思和引用的消息拟稿，不会自动发送。')}</p>
     {selectedMessage && <blockquote className="chat-ai-reply-context"><span>{tr('参考这条消息')}</span><p translate="no">{selectedMessage.content}</p></blockquote>}
     <label htmlFor={intentId}>{tr('你想怎么回复？')}</label>

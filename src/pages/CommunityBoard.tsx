@@ -1,6 +1,6 @@
 // 邻里信息（测试中）: category boards /category/:slug, searches /?q=, the home page's expanded board, and the page under
 // /posts/:id and /users/:id deep links. Its own chunk (WEB-HOMEPREP); HomePage decides when to mount it.
-// WEB-COMMUNITY (T15): one H1 (the board's name) with 测试中, region chips, the 1:1 post cards in the WEB-UI feed grid,
+// WEB-COMMUNITY (T15): one H1 (the board's name) with one quiet 测试中 chip (UI9-R1 J1: the breadcrumb no longer repeats it), region chips, the 1:1 post cards in the WEB-UI feed grid,
 // every post by default (FC3-04: the older ones say so, a quiet board says 近 30 天 0 条新信息 instead of "empty", and an
 // empty 出租 list says so and offers 求租 instead of calling the whole board empty; a keyword miss offers 清除筛选),
 // one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
@@ -172,10 +172,10 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
 
   return <section className="cm-board" aria-labelledby="cm-board-title" data-mode={isDiscovery ? 'home' : isSearch ? 'search' : 'category'}>
     <header className="ui-page-header cm-board__header" id="home-feed-section">
-      {categorySlug && <nav className="ui-page-header__crumbs" aria-label={t('当前位置', 'Breadcrumb')}><Link to="/">{t('首页', 'Home')}</Link> › {t('邻里信息（测试中）', 'Neighborhood board (testing)')}</nav>}
+      {categorySlug && <nav className="ui-page-header__crumbs" aria-label={t('当前位置', 'Breadcrumb')}><Link to="/">{t('首页', 'Home')}</Link> › {t('邻里信息', 'Neighborhood board')}</nav>}
       <div className="cm-board__title-row">
         <Heading id="cm-board-title" className="ui-page-header__title">{isSearch ? t('搜索邻里信息', 'Search the neighborhood board') : name}</Heading>
-        <StatusChip tone="info">{t('测试中', 'Testing')}</StatusChip>
+        <StatusChip tone="neutral">{t('测试中', 'Beta')}</StatusChip>
       </div>
       <p className="ui-page-header__lede">{t('邻居发布，平台不逐条核实；联系和付款前请先确认。', 'Posted by neighbors and not verified by BAYLINK. Check before you contact or pay.')}</p>
       <div className="ui-page-header__actions"><Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button></div>
@@ -203,7 +203,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
     {/* The feed's heading (H1 board name → h2 → card h3s); the home board's own heading is already an h2. */}
     {!isDiscovery && <h2 className="sr-only">{isSearch ? t('搜索结果', 'Results') : feedLabel}</h2>}
     <div className="cm-board__results">
-      {resultsLine && <p className="cm-board__count" role="status" data-quiet={quiet ? '' : undefined}>{resultsLine}</p>}
+      {resultsLine && <p className="cm-board__count" role="status">{resultsLine}</p>}
       <div className="cm-board__tools">
         {hasFilters && <Button variant="text" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>}
         <FeedLayoutToggle effective={feedLayout.effective} onChange={feedLayout.setLayout} />

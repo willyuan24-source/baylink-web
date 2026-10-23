@@ -1,10 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin } from 'lucide-react';
 import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
-import { ModalShell } from './ui/Modal';
+import { DialogSlot } from './ui/DialogWait';
+import { lazyDialog } from './ui/lazy-dialog';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
+import { useOutletContext } from 'react-router-dom';
+import type { AppContextValue } from '../app/context';
+import { showUnavailable } from '../app/chunk-unavailable';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
@@ -24,17 +28,20 @@ export function GuideImageCaption({ image, poster = false, showKind = true }: { 
   </figcaption>;
 }
 
-export function GuideImageLightbox({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) {
-  return <ModalShell label={`图片放大：${image.alt}`} onClose={onClose} className="guide-image-overlay">
-    <div className="guide-image-dialog">
-      <button type="button" className="guide-image-close" onClick={onClose} aria-label="关闭放大图片"><X size={23} aria-hidden="true" /><span>关闭</span></button>
-      <figure>
-        <img src={image.src} alt={image.alt} width={image.width} height={image.height} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} decoding="async" />
-        <GuideImageCaption image={image} poster={poster} />
-      </figure>
-    </div>
-  </ModalShell>;
-}
+const lightbox = lazyDialog(() => import('./GuideLightbox'), m => m.GuideLightbox);
+
+/**
+ * The picture, enlarged (GuideLightbox.tsx). Its code and styles are a chunk of their own, out of the guide pages' first
+ * paint: warmed once the page is idle after a figure is drawn, so a tap usually opens it at once; before that the tap shows
+ * the scrim and a spinner (DialogWait) until it arrives. If it cannot load (offline, a stale deploy), it closes and the
+ * site's toast says so (暂时打不开…, with 重新加载 when online: chunk-unavailable.ts, as OverlayHost's dialogs); the page stays.
+ * Outside the app's outlet (a test) there is no toast to show. The app's context is read with react-router's hook (useApp is a
+ * chunk of its own: one more import line on the guide route).
+ */
+export const GuideImageLightbox = ({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) => {
+  const app = useOutletContext<AppContextValue | null>();
+  return <DialogSlot dialog={lightbox} onFail={lost => { onClose(); if (app) showUnavailable(app.showToast, lost); }} props={{ image, caption: <GuideImageCaption image={image} poster={poster} />, onClose }} />;
+};
 
 export function GuideFigure(props: FigureProps) {
   return <GuideFigureSession key={props.image.src} {...props} />;
@@ -42,6 +49,7 @@ export function GuideFigure(props: FigureProps) {
 
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { lightbox.warm(); }, []);
   // A tall photo in a pilot guide's step card is cut to 4:5 around its focus (guide-visuals.css), so it never fills more than a
   // screen. Only there: other articles and the city cards keep their own rules for the same figure.
   const portrait = variant === 'inline' && image.kind === 'photo' && !image.fullFrame && image.height > image.width;

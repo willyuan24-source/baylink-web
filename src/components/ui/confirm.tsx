@@ -2,7 +2,13 @@
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ModalShell } from './Modal';
+import { DialogSlot } from './DialogWait';
+import { lazyDialog } from './lazy-dialog';
+
+// The card is a chunk of its own (ConfirmDialog.tsx); the shell keeps only the queue. ConfirmHost warms it once the page is
+// idle, so the first confirm (删除计划, 取消收藏) opens at once; one asked before that shows DialogWait until it arrives.
+// tests/ui9-r1-overlays-offline.test.tsx blocks the chunk with a module hook (no test seam here).
+const confirmCard = lazyDialog(() => import('./ConfirmDialog'), m => m.ConfirmDialog);
 
 export type ConfirmOptions = {
   title?: string;
@@ -16,16 +22,17 @@ export type ConfirmOptions = {
 };
 
 type Resolver = (value: boolean | string | null) => void;
-type PendingConfirm = { opts: ConfirmOptions; resolve: Resolver };
+type PendingConfirm = { id: number; opts: ConfirmOptions; resolve: Resolver };
 
 let pushRequest: ((req: PendingConfirm) => void) | null = null;
+let nextId = 0;
 
 /** 确认框。resolve true=确认 / false=取消。Host 未挂载时退回原生 confirm。 */
 export const confirmDialog = (opts: ConfirmOptions | string): Promise<boolean> =>
   new Promise((resolve) => {
     const options: ConfirmOptions = typeof opts === 'string' ? { message: opts } : opts;
     if (!pushRequest) { resolve(window.confirm(options.message)); return; }
-    pushRequest({ opts: options, resolve: (v) => resolve(v === true) });
+    pushRequest({ id: ++nextId, opts: options, resolve: (v) => resolve(v === true) });
   });
 
 /** 带输入框的确认（替代 prompt）。resolve 输入内容 / null=取消。 */
@@ -33,68 +40,11 @@ export const promptDialog = (opts: ConfirmOptions): Promise<string | null> =>
   new Promise((resolve) => {
     if (!pushRequest) { resolve(window.prompt(opts.message, opts.input?.defaultValue || '')); return; }
     pushRequest({
+      id: ++nextId,
       opts: { ...opts, input: opts.input || {} },
       resolve: (v) => resolve(typeof v === 'string' ? v : null),
     });
   });
-
-const ConfirmDialog = ({ opts, onResolve }: { opts: ConfirmOptions; onResolve: Resolver }) => {
-  const [inputValue, setInputValue] = useState(opts.input?.defaultValue || '');
-  const hasInput = !!opts.input;
-  const confirm = () => onResolve(hasInput ? inputValue : true);
-  const cancel = () => onResolve(hasInput ? null : false);
-  return (
-    <ModalShell
-      onClose={cancel}
-      label={opts.title || '确认操作'}
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-6 backdrop-blur-sm animate-in fade-in duration-150"
-    >
-      <div className="w-full max-w-xs rounded-[24px] border border-black/[0.04] bg-white p-5 shadow-elevated animate-in zoom-in-95 fade-in duration-150">
-        <div className="flex items-start gap-3">
-          {opts.danger && (
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-              <AlertTriangle size={18} />
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            {opts.title && <h3 className="text-base font-bold text-baylink-text">{opts.title}</h3>}
-            <p className={`whitespace-pre-line text-sm leading-relaxed text-baylink-text-secondary ${opts.title ? 'mt-1.5' : ''}`}>
-              {opts.message}
-            </p>
-          </div>
-        </div>
-        {hasInput && (
-          <input
-            autoFocus
-            className="mt-3 w-full rounded-xl border border-baylink-border/60 bg-white p-3 text-sm outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15"
-            placeholder={opts.input?.placeholder}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && confirm()}
-          />
-        )}
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={cancel}
-            className="flex-1 rounded-xl border border-baylink-border/60 bg-white py-2.5 text-sm font-semibold text-baylink-text-secondary transition hover:bg-baylink-section/50 active:scale-[0.98]"
-          >
-            {opts.cancelText || '取消'}
-          </button>
-          <button
-            type="button"
-            onClick={confirm}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold text-white shadow-rest transition active:scale-[0.98] ${
-              opts.danger ? 'bg-red-500 hover:bg-red-600' : 'bg-baylink-green hover:bg-baylink-green-hover'
-            }`}
-          >
-            {opts.confirmText || '确认'}
-          </button>
-        </div>
-      </div>
-    </ModalShell>
-  );
-};
 
 export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const [queue, setQueue] = useState<PendingConfirm[]>([]);
@@ -102,6 +52,7 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
 
   useEffect(() => {
     pushRequest = (req) => setQueue((q) => [...q, req]);
+    confirmCard.warm();
     return () => { pushRequest = null; };
   }, []);
 
@@ -118,10 +69,13 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const current = queue[0];
   if (!current) return null;
 
-  const resolveAndNext: Resolver = (v) => {
-    current.resolve(v);
-    setQueue((q) => q.slice(1));
-  };
-
-  return <ConfirmDialog key={queue.length} opts={current.opts} onResolve={resolveAndNext} />;
+  // The answer resolves at once; the dialog leaves the queue when its exit has played, and the next one opens after it.
+  return <ConfirmSlot key={current.id} request={current} onGone={() => setQueue((q) => q.filter((p) => p !== current))} />;
 };
+
+/** One confirm: the card (loaded, or loading behind DialogWait); if it cannot load (offline, a stale deploy), the browser's own confirm / prompt answers instead. */
+const ConfirmSlot = ({ request, onGone }: { request: PendingConfirm; onGone: () => void }) => <DialogSlot dialog={confirmCard} onFail={() => {
+  const { message, input } = request.opts;
+  request.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
+  onGone();
+}} props={{ opts: request.opts, warning: <AlertTriangle size={18} />, onResolve: request.resolve, onGone }} />;

@@ -4,8 +4,8 @@ import { useUiCopy } from './ui/ui-copy';
 import './site-dialogs.css';
 
 /**
- * A post photo at full size: the warm scrim, the picture fading in from 96 %, F's close button. `closing` plays the exit
- * (OverlayHost keeps the viewer mounted for it, useExit). No blur behind it (N10). Styles: site-dialogs.css.
+ * A post photo at full size: the site's one scrim, the picture fading in from 96 %, F's close button. `closing` plays the
+ * exit (OverlayHost keeps the viewer mounted for it, useExit). No blur behind it (N10). Styles: site-dialogs.css.
  */
 export const ImageViewer = ({ src, closing = false, onClose }: { src: string; closing?: boolean; onClose: () => void }) => {
   const { t } = useUiCopy();

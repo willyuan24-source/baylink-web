@@ -1,8 +1,8 @@
 .guide-figure { margin:30px 0; min-width:0; }
 .guide-figure-open { display:block; position:relative; width:100%; padding:0; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-brand-tint); text-align:left; cursor:zoom-in; }
-.guide-figure-image { display:block; width:100%; height:auto; transition:transform .4s ease; }
+.guide-figure-image { display:block; width:100%; height:auto; transition:transform var(--dur-5) var(--ease-std); }
 .gd-step>.guide-figure--inline .guide-figure-image[data-portrait] { aspect-ratio:4/5; max-height:min(72vh,620px); object-fit:cover; }
-.guide-figure-open:focus-visible, .guide-route button:focus-visible, .guide-route a:focus-visible, .guide-route-stop:focus-visible, .guide-image-dialog a:focus-visible, .guide-image-close:focus-visible, .guide-poster-disclosure summary:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
+.guide-figure-open:focus-visible, .guide-route button:focus-visible, .guide-route a:focus-visible, .guide-route-stop:focus-visible, .guide-poster-disclosure summary:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
 .guide-figure--cover { margin:30px 0 26px; }
 .guide-figure--cover .guide-figure-open { border-radius:var(--r-xl); }
 .guide-figure--cover .guide-figure-image { aspect-ratio:1.9; object-fit:cover; }
@@ -30,14 +30,6 @@
 .guide-poster-disclosure summary::-webkit-details-marker { display:none; }
 .guide-poster-disclosure[open] summary { border-bottom:1px solid var(--color-line); }
 .guide-poster-disclosure[open] summary svg { transform:rotate(180deg); }
-.guide-image-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:rgb(var(--color-scrim-rgb) / .93); backdrop-filter:blur(10px); overflow:auto; }
-.guide-image-dialog { position:relative; width:min(1200px,100%); max-height:100%; padding-top:58px; }
-.guide-image-close { position:absolute; top:0; right:0; display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; min-width:44px; padding:10px 16px; border:1px solid rgb(var(--color-surface-rgb) / .33); border-radius:var(--r-pill); background:var(--color-brand-deep); color:var(--color-surface); font-size:var(--fs-meta); }
-.guide-image-dialog figure { margin:0; }
-.guide-image-dialog figure > img { display:block; width:100%; height:auto; max-height:calc(100dvh - 225px); object-fit:contain; border-radius:var(--r-md); }
-.guide-image-dialog .guide-image-caption { color:var(--color-brand-tint); padding:15px 8px; }
-.guide-image-dialog .guide-image-kind { background:var(--color-highlight); color:var(--color-brand-deep); }
-.guide-image-dialog a:focus-visible, .guide-image-close:focus-visible { outline-color:var(--color-brand); }
 .guide-route { padding:24px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); overflow:hidden; }
 .guide-route-eyebrow { display:flex; align-items:center; gap:7px; margin-bottom:10px; color:var(--color-brand); font-size:var(--text-caption); font-weight:400; }
 .guide-route-heading h3 { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:var(--lh-snug); font-weight:600; letter-spacing:0; }
@@ -75,9 +67,6 @@
   .guide-route-tabs button strong { font-size:var(--text-caption); }
   .guide-route-stop { padding:17px; }
   .guide-route-stop h4 { font-size:var(--fs-card); }
-
-  .guide-image-overlay { padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 14px); }
-  .guide-image-dialog figure > img { max-height:calc(100dvh - 235px); }
 }
 /* Hover only where a fine pointer can hover (UI9-GUIDES); the zoom stays still under reduced motion. */
 @media (hover:hover) and (pointer:fine) {
@@ -85,8 +74,6 @@
   .guide-figure--official-poster .guide-figure-open:hover .guide-figure-image { transform:none; }
   .guide-figure--preview.guide-figure--full-frame .guide-figure-open:hover .guide-figure-image { transform:none; }
   .guide-image-attribution a:hover { color:var(--color-ink); }
-  .guide-image-dialog .guide-image-attribution a:hover { color:white; }
 }
-@media(prefers-reduced-motion:reduce) { .guide-figure-image { transition:none; } }
 @media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:reduce) { .guide-figure-open:hover .guide-figure-image { transform:none; } }
 @media print { .guide-route-tabs, .guide-route-controls, .guide-figure-zoom { display:none; } .guide-route-stop[hidden] { display:block; } }

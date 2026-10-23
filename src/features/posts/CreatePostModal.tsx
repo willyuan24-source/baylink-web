@@ -1,6 +1,7 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
+import { CloseButton } from '../../components/ui/CloseButton';
 import { ModalShell } from '../../components/ui/Modal';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import './community.css';
@@ -56,21 +57,21 @@ const DefaultCoverPicker = ({
 
   return (
     <div className="member-compose-covers">
-      <p className="text-[0.8125rem] font-semibold text-baylink-text">没有照片？选择默认封面</p>
-      <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
+      <p className="text-[length:var(--text-caption)] font-semibold text-baylink-text">没有照片？选择默认封面</p>
+      <p className="mt-0.5 text-[length:var(--text-caption)] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
       {selected && (
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-baylink-green-light/30 p-2">
           <img src={selected.url} alt={selected.title} className="h-12 w-12 shrink-0 rounded-lg object-contain bg-baylink-section/50" />
-          <span className="min-w-0 flex-1 text-[0.8125rem] font-semibold text-baylink-text">已选：{selected.title}</span>
-          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[0.8125rem] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
+          <span className="min-w-0 flex-1 text-[length:var(--text-caption)] font-semibold text-baylink-text">已选：{selected.title}</span>
+          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[length:var(--text-caption)] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
         </div>
       )}
-      <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-[0.8125rem] font-semibold text-baylink-text transition hover:border-baylink-green/40">
+      <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-[length:var(--text-caption)] font-semibold text-baylink-text transition hover:border-baylink-green/40">
         {open ? '收起封面' : '选择默认封面'}
       </button>
       {open && (
         <div className="mt-3">
-          <p className="mb-2 text-[0.8125rem] font-semibold text-baylink-muted">推荐封面</p>
+          <p className="mb-2 text-[length:var(--text-caption)] font-semibold text-baylink-muted">推荐封面</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {displayCovers.map((cover) => {
               const isSelected = selected?.id === cover.id;
@@ -82,21 +83,21 @@ const DefaultCoverPicker = ({
                   className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
                 >
                   <img src={cover.url} alt={cover.title} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
-                  <p className="mt-1 truncate px-0.5 text-center text-[0.8125rem] font-normal text-baylink-text-secondary">{cover.title}</p>
+                  <p className="mt-1 truncate px-0.5 text-center text-[length:var(--text-caption)] font-normal text-baylink-text-secondary">{cover.title}</p>
                   {isSelected && (
-                    <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[0.8125rem] font-bold text-white">已选择</span>
+                    <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[length:var(--text-caption)] font-bold text-white">已选择</span>
                   )}
                 </button>
               );
             })}
           </div>
           {!expanded && others.length > 0 && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[0.8125rem] font-semibold text-baylink-green">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[length:var(--text-caption)] font-semibold text-baylink-green">
               查看更多封面（共 {DEFAULT_COVERS.length} 张）
             </button>
           )}
           {expanded && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[0.8125rem] font-semibold text-baylink-muted">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[length:var(--text-caption)] font-semibold text-baylink-muted">
               收起全部封面
             </button>
           )}
@@ -372,8 +373,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       <div className="member-compose-success">
         <h2 className="text-xl font-bold text-baylink-text">有一份没写完的草稿</h2>
         <p className="mt-3 text-sm text-baylink-text-secondary">{savedDraft.form.title || savedDraft.aiIntent.slice(0, 70) || '未命名的发布草稿'}</p>
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-baylink-text-secondary">保存于 {new Date(savedDraft.updatedAt).toLocaleString('zh-CN')}，仅在当前账号的本机浏览器中保留。照片没有保存，恢复后请重新选择。</p>
-        {initialIntent.trim() && <p className="mt-2 text-[0.8125rem] text-baylink-text-secondary">继续旧草稿会保留原来的内容；选择重新开始，会带入你这次向 BayBay 提出的需求。</p>}
+        <p className="mt-2 text-[length:var(--text-caption)] leading-relaxed text-baylink-text-secondary">保存于 {new Date(savedDraft.updatedAt).toLocaleString('zh-CN')}，仅在当前账号的本机浏览器中保留。照片没有保存，恢复后请重新选择。</p>
+        {initialIntent.trim() && <p className="mt-2 text-[length:var(--text-caption)] text-baylink-text-secondary">继续旧草稿会保留原来的内容；选择重新开始，会带入你这次向 BayBay 提出的需求。</p>}
         <div className="mt-6 flex flex-col gap-2">
           <button type="button" className="member-primary min-h-11" onClick={restoreDraft}>继续之前的草稿</button>
           <button type="button" className="member-secondary min-h-11" onClick={discardSavedDraft}>丢弃旧草稿，重新开始</button>
@@ -422,7 +423,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             <h2>{isEdit ? t('编辑信息', 'Edit your post') : t('发布到邻里信息', 'Post to the neighborhood board')}</h2>
             <p>{isEdit ? t('更新内容，让邻居看到准确的信息。', 'Keep it accurate for your neighbors.') : t('邻里信息还在测试中：照片在前，一句话说清楚，联系方式保持私密。', 'The board is in testing: photos first, one clear line, contact details kept private.')}</p>
           </div>
-          <button type="button" aria-label="关闭发布窗口" onClick={onClose} className="member-compose-close"><X size={18}/></button>
+          <CloseButton label="关闭发布窗口" onClick={onClose} />
         </div>
         <ol className="member-compose-progress" aria-label="发布步骤">
           {['选择类型', '填写内容', '发布设置'].map((label, index) => <li key={label} className={step === index + 1 ? 'is-current' : step > index + 1 ? 'is-complete' : ''} aria-current={step === index + 1 ? 'step' : undefined}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><strong>{label}</strong></li>)}
@@ -468,7 +469,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                 ))}
               </div>
             </div>
-            <div className="member-compose-actions"><button type="button" disabled={!typeChosen || imageCompressing || submitting} onClick={() => { if (typeChosen && !imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
+            <div className="member-compose-actions"><button type="button" disabled={!typeChosen || imageCompressing || submitting} onClick={() => { if (typeChosen && !imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
           </div>
         )}
 
@@ -511,8 +512,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             />}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <label htmlFor="post-title" className="text-[0.8125rem] font-semibold text-baylink-text">帖子标题</label>
-                <span className="text-[0.8125rem] text-baylink-muted">一句话说清楚需求或服务</span>
+                <label htmlFor="post-title" className="text-[length:var(--text-caption)] font-semibold text-baylink-text">帖子标题</label>
+                <span className="text-[length:var(--text-caption)] text-baylink-muted">一句话说清楚需求或服务</span>
               </div>
               <input
                 className="member-compose-input"
@@ -526,18 +527,18 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             {hints.quickTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hints.quickTags.map((tag) => (
-                  <button key={tag} type="button" aria-label={`确认并添加标签 ${tag}`} onClick={() => addTagToDesc(tag)} className="text-[0.8125rem] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
+                  <button key={tag} type="button" aria-label={`确认并添加标签 ${tag}`} onClick={() => addTagToDesc(tag)} className="text-[length:var(--text-caption)] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
                 ))}
               </div>
             )}
-            {hints.quickTags.length > 0 && <p className="px-0.5 text-[0.8125rem] text-baylink-muted">确认实际条件后再加标签，例如包水电、可养宠物；标签会公开显示。</p>}
+            {hints.quickTags.length > 0 && <p className="px-0.5 text-[length:var(--text-caption)] text-baylink-muted">确认实际条件后再加标签，例如包水电、可养宠物；标签会公开显示。</p>}
             {hints.checklist.length > 0 && (
-              <p className="text-[0.8125rem] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
+              <p className="text-[length:var(--text-caption)] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
             )}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <label htmlFor="post-description" className="text-[0.8125rem] font-semibold text-baylink-text">详细内容</label>
-                <span className="text-[0.8125rem] text-baylink-muted">补充位置、价格、时间和具体要求</span>
+                <label htmlFor="post-description" className="text-[length:var(--text-caption)] font-semibold text-baylink-text">详细内容</label>
+                <span className="text-[length:var(--text-caption)] text-baylink-muted">补充位置、价格、时间和具体要求</span>
               </div>
               <textarea
                 className="member-compose-input member-compose-description"
@@ -549,16 +550,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
               />
             </div>
             {form.type === 'provider' && form.category === '租屋' && (
-              <div className={`rounded-xl border p-3 text-[0.8125rem] leading-relaxed ${needsFairHousingReview(`${form.title}\n${form.description}`) ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-baylink-border bg-baylink-section text-baylink-text-secondary'}`}>
+              <div className={`rounded-xl border p-3 text-[length:var(--text-caption)] leading-relaxed ${needsFairHousingReview(`${form.title}\n${form.description}`) ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-baylink-border bg-baylink-section text-baylink-text-secondary'}`}>
                 <p>租房描述建议写房屋条件、租金、入住人数和生活习惯。涉及族裔、国籍、家庭或其他受保护身份的筛选条件，请先核对公平住房规则；共用生活空间等例外需结合实际情况确认。</p>
                 {needsFairHousingReview(`${form.title}\n${form.description}`) && <p className="mt-1 font-semibold">这段文字可能包含身份筛选条件，请在发布前检查上下文和适用规则。</p>}
                 <a href={FAIR_HOUSING_SOURCE} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-semibold underline">查看 California CRD 公平住房说明</a>
               </div>
             )}
-            <p className="px-0.5 text-[0.8125rem] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
+            <p className="px-0.5 text-[length:var(--text-caption)] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
             {showContactWarning && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-[0.8125rem] leading-relaxed text-amber-900">
+                <p className="text-[length:var(--text-caption)] leading-relaxed text-amber-900">
                   检测到可能的联系方式。{PUBLIC_CONTACT_NOTICE}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -599,11 +600,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                         showToast('已填入联系方式设置，请继续检查标题和正文中的联系方式。', 'info');
                       }
                     }}
-                    className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[0.8125rem] font-semibold text-white"
+                    className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[length:var(--text-caption)] font-semibold text-white"
                   >
                     移到私密联系方式
                   </button>
-                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[0.8125rem] font-normal text-amber-900">
+                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[length:var(--text-caption)] font-normal text-amber-900">
                     我确认保留公开显示
                   </button>
                 </div>
@@ -627,8 +628,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             />
             </details>
             <div className="member-compose-actions">
-              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="member-secondary flex-1 disabled:opacity-50">上一步</button>
-              <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="member-primary flex-[2] disabled:opacity-50">{imageCompressing ? '照片处理中…' : '下一步'}<ArrowRight size={16} aria-hidden="true" /></button>
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="member-secondary flex-1">上一步</button>
+              <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="member-primary flex-[2]">{imageCompressing ? '照片处理中…' : '下一步'}<ArrowRight size={16} aria-hidden="true" /></button>
             </div>
           </div>
         )}
@@ -637,7 +638,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
           <div className="member-compose-step space-y-4">
             <div className="member-compose-section-title"><span><MapPin size={18} aria-hidden="true" /></span><div><h3>补充发布设置</h3><p>确认地区、时间，以及你希望被联系的方式。</p></div></div>
             <div>
-              <label className="block text-[0.8125rem] font-normal text-baylink-text-secondary mb-2">选择地区</label>
+              <label className="block text-[length:var(--text-caption)] font-normal text-baylink-text-secondary mb-2">选择地区</label>
               <div className="grid grid-cols-2 gap-2">
                 {REGIONS.map(r => (
                   <button
@@ -676,19 +677,19 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             <div className="member-compose-contact"><ContactPreferenceForm value={contactPreference} onChange={setContactPreference} /></div>
             {isEdit && (
               <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
-                <label htmlFor="post-status" className="mb-2 block text-[0.8125rem] font-semibold">信息状态</label>
+                <label htmlFor="post-status" className="mb-2 block text-[length:var(--text-caption)] font-semibold">信息状态</label>
                 <select id="post-status" value={postStatus} onChange={(e) => { setPostStatus(e.target.value as 'active' | 'closed'); setConfirmAvailability(false); }} className="w-full rounded-lg border border-baylink-border bg-white p-2 text-sm">
                   <option value="active">仍在进行</option><option value="closed">{closedStatusLabel}</option>
                 </select>
-                {postStatus === 'active' && editingPost?.authorId === user.id && <label className="mt-3 flex items-start gap-2 text-[0.8125rem] leading-relaxed">
+                {postStatus === 'active' && editingPost?.authorId === user.id && <label className="mt-3 flex items-start gap-2 text-[length:var(--text-caption)] leading-relaxed">
                   <input type="checkbox" className="mt-0.5 accent-baylink-green" checked={confirmAvailability} onChange={(e) => setConfirmAvailability(e.target.checked)} />
                   <span>我已重新核实，这条信息目前仍然有效。<span className="block mt-1 text-baylink-muted">仅修改文字不会更新有效性确认时间。</span></span>
                 </label>}
               </div>
             )}
             <div className="member-compose-actions">
-              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(2)} className="member-secondary flex-1 disabled:opacity-50">上一步</button>
-              <button type="button" onClick={handleSubmit} disabled={submitting || imageCompressing} className="member-primary flex-[2] disabled:opacity-50">
+              <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(2)} className="member-secondary flex-1">上一步</button>
+              <button type="button" onClick={handleSubmit} disabled={submitting || imageCompressing} className="member-primary flex-[2]">
                 {imageCompressing ? '照片处理中…' : submitting ? (isEdit ? '保存中...' : '发布中...') : (isEdit ? '保存修改' : '确认发布')}
               </button>
             </div>

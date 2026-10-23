@@ -1,14 +1,18 @@
 /* WEB-FEEDBACK: the feedback sheet, the tester consent sheet and the tester button. Loaded with the sheet on first use.
    Phone: a bottom sheet; from 768px a centred dialog. Tokens and rem only; every control is at least --control-height. */
-.feedback-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgb(22 46 41 / 45%)}
-.feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6}
+/* N10 / N24: the site's one scrim (no blur). Phone: the sheet slides up like every bottom sheet (ui.css); from 768px the dialog
+   grows from 96%. Out over --dur-2 (EXIT_MS) while useClosing (FeedbackSheet.tsx) keeps it mounted; 0 under reduced motion and in 简洁显示. */
+.feedback-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:var(--scrim);animation:feedback-fade var(--dur-3) var(--ease-out)}
+.feedback-overlay.is-closing{animation:feedback-fade-out var(--dur-2) var(--ease-in) forwards;pointer-events:none}
+.feedback-overlay.is-closing .feedback-sheet{animation:feedback-sink var(--dur-2) var(--ease-in) forwards}
+.feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6;animation:feedback-rise var(--dur-5) var(--ease-out)}
 @media(min-width:768px){
   .feedback-overlay{align-items:center;padding:1.5rem}
-  .feedback-sheet{max-width:35rem;max-height:calc(100dvh - 3rem);padding:1.5rem 1.75rem;border-radius:var(--r-lg)}
+  .feedback-sheet{max-width:35rem;max-height:calc(100dvh - 3rem);padding:1.5rem 1.75rem;border-radius:var(--r-lg);animation:feedback-grow var(--dur-4) var(--ease-out)}
+  .feedback-overlay.is-closing .feedback-sheet{animation-name:feedback-shrink}
 }
 .feedback-sheet-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
 .feedback-sheet-header h2{margin:.375rem 0 0;font-size:1.25rem;line-height:1.4;font-weight:600;color:var(--color-ink)}
-.feedback-sheet-close{display:grid;flex:none;place-items:center;width:var(--control-height);height:var(--control-height);border:1px solid var(--color-line-strong);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink)}
 .feedback-sheet-lede{margin:.5rem 0 1rem;font-size:var(--text-body);color:var(--color-ink-2)}
 .feedback-sheet-subject{margin:-.5rem 0 1rem;font-size:var(--text-fact);color:var(--color-ink-2);overflow-wrap:anywhere}
 .feedback-sheet-subject span{font-weight:600;color:var(--color-ink)}
@@ -52,5 +56,9 @@
 .feedback-tester-button{position:fixed;right:1rem;bottom:calc(var(--site-mobile-nav-height) + .75rem);z-index:45;display:inline-flex;align-items:center;gap:.375rem;min-height:3rem;padding:0 1rem;border:1px solid var(--color-brand-deep);border-radius:var(--r-pill);background:var(--color-brand-deep);color:var(--color-surface);font-size:var(--text-fact);font-weight:600;box-shadow:var(--e1)}
 .feedback-tester-button:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(min-width:1024px){.feedback-tester-button{right:1.5rem;bottom:1.5rem}}
-@media(prefers-reduced-motion:no-preference){.feedback-sheet{animation:feedback-rise .16s ease-out}}
-@keyframes feedback-rise{from{transform:translateY(1rem);opacity:.6}to{transform:none;opacity:1}}
+@keyframes feedback-fade{from{opacity:0}}
+@keyframes feedback-fade-out{to{opacity:0}}
+@keyframes feedback-rise{from{translate:0 100%}}
+@keyframes feedback-sink{to{translate:0 100%}}
+@keyframes feedback-grow{from{opacity:0;scale:.96}}
+@keyframes feedback-shrink{to{opacity:0;scale:.96}}

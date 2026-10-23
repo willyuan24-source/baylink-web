@@ -1,6 +1,8 @@
 import { useId, useRef, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
+import { useClosing } from '../../components/ui/closing';
+import { CloseButton } from '../../components/ui/CloseButton';
 import { translateText, useLocale } from '../../i18n/locale';
 import { recordProductEvent } from '../../lib/product-events';
 import { buildFeedbackPayload, FEEDBACK_CONTACT_MAX, FEEDBACK_REASONS, FEEDBACK_TEXT_MAX, isFeedbackReason, submitFeedback, type FeedbackFailure } from './feedback-api';
@@ -57,18 +59,20 @@ export default function FeedbackSheet({ request, tester, onClose, onLeaveTester,
     }
   };
   const textLength = [...text].length;
+  // N24: every way out (✕, 取消, 关闭, Esc, the scrim) plays the sheet's exit first (useClosing; feedback.css).
+  const [closing, leave] = useClosing(onClose);
   const leaveTester = () => { onLeaveTester?.(); setLeftTester(true); if (testerContact && contact === testerContact) setContact(''); };
 
-  return <ModalShell onClose={onClose} className="feedback-overlay" labelledBy={`${id}title`}>
+  return <ModalShell onClose={leave} className={`feedback-overlay${closing ? ' is-closing' : ''}`} labelledBy={`${id}title`}>
     <div className="feedback-sheet" data-kind={kind}>
       <header className="feedback-sheet-header">
         <h2 id={`${id}title`}>{state === 'sent' ? t(COMMON_COPY.thanksTitle) : t(copy.title)}</h2>
-        <button type="button" className="feedback-sheet-close" aria-label={t(COMMON_COPY.closeSheet)} onClick={onClose}><X size={22} aria-hidden="true" /></button>
+        <CloseButton label={t(COMMON_COPY.closeSheet)} onClick={leave} />
       </header>
       {state === 'sent' ? <div className="feedback-sheet-done" role="status">
         <Check size={28} aria-hidden="true" />
         <p>{t(COMMON_COPY.thanksBody)}</p>
-        <button ref={closeButton} type="button" className="feedback-primary" onClick={onClose}>{t(COMMON_COPY.close)}</button>
+        <button ref={closeButton} type="button" className="feedback-primary" onClick={leave}>{t(COMMON_COPY.close)}</button>
       </div> : <form className="feedback-sheet-form" noValidate onSubmit={event => { event.preventDefault(); void submit(); }}>
         <p className="feedback-sheet-lede">{t(copy.lede)}</p>
         {kind === 'content' && request.title && <p className="feedback-sheet-subject">{t(COMMON_COPY.about)}<span translate="no">{translateText(request.title, locale)}</span></p>}
@@ -96,7 +100,7 @@ export default function FeedbackSheet({ request, tester, onClose, onLeaveTester,
         {failure && <p className="feedback-failure" role="alert">{t(FAILURE_COPY[failure])}{(failure === 'daily' || failure === 'global') && <> <a href={`mailto:${FEEDBACK_EMAIL}`} translate="no">{FEEDBACK_EMAIL}</a></>}</p>}
         <div className="feedback-actions">
           <button type="submit" className="feedback-primary" disabled={state === 'sending'} aria-busy={state === 'sending'}>{state === 'sending' ? t(COMMON_COPY.sending) : t(COMMON_COPY.send)}</button>
-          <button type="button" className="feedback-secondary" onClick={onClose}>{t(COMMON_COPY.cancel)}</button>
+          <button type="button" className="feedback-secondary" onClick={leave}>{t(COMMON_COPY.cancel)}</button>
         </div>
         {tester && !leftTester && <p className="feedback-tester">{t(COMMON_COPY.testerNote)} · <button type="button" onClick={leaveTester}>{t(COMMON_COPY.testerLeave)}</button></p>}
         {leftTester && <p className="feedback-tester" role="status">{t(COMMON_COPY.testerLeft)}</p>}

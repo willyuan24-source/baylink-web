@@ -1,6 +1,7 @@
-// Neighbourhood post cards (T15, design.md §4.7): the WEB-UI feed card family — a 1:1 photo (or a coded category cover)
-// with the price on it, a two-line title, one meta line (area · posted date) and a status line; ♡ above the stretched
-// link. Contact, share and 有用 live on the post sheet. Owners and admins keep their ⋯ menu on the card.
+// Neighbourhood post cards (T15, design.md §4.7): the WEB-UI feed card family — a 1:1 photo (or a coded category cover),
+// a two-line title, the price line (UI9-R1: text under the title, as DECISIONS 21 puts every price; grouped, N06), one
+// meta line (area · posted date) and a status line. On the photo only ♡ and one sticker (N22): the photo count, or 系统封面
+// on a stock cover. Contact, share and 有用 live on the post sheet. Owners and admins keep their ⋯ menu on the card.
 import { useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -23,6 +24,7 @@ import { PostSaveHeart } from './PostSaveHeart';
 import { usePostTranslation } from './usePostTranslation';
 import { usePostVisibility } from './usePostVisibility';
 import { PostTranslationNotice } from './PostTranslationNotice';
+import { formatPostPrice } from './post-price';
 
 const categoryIcons: Record<string, typeof House> = {
   租屋: House, 闲置: Armchair, 维修: Wrench, 接送: Car, 兼职: BriefcaseBusiness, 搬家: Truck, 清洁: Sparkles, 翻译: Languages,
@@ -92,7 +94,7 @@ type PostCardProps = {
 const plainClick = (event: MouseEvent) => !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0;
 
 export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: PostCardProps) => {
-  const { t, pick, english } = useUiCopy();
+  const { t, pick, english, locale } = useUiCopy();
   const location = useLocation();
   const backgroundLocation = location.state?.backgroundLocation || location;
   const isAdmin = currentUser?.role === 'admin';
@@ -102,7 +104,12 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
   const { ref, visible } = usePostVisibility();
   const reading = usePostTranslation(post, visible);
   const displayed = reading.display;
-  const images = normalizePostImages(post).filter(url => !isDefaultCoverUrl(url));
+  const all = normalizePostImages(post);
+  const images = all.filter(url => !isDefaultCoverUrl(url));
+  // A stock cover already carries its 系统封面 note, and an owner's or admin's card its ⋯ menu: no photo count beside them
+  // (on the photo ♡ + one more control or sticker, N22).
+  const photoCount = canManage || (all[0] && isDefaultCoverUrl(all[0])) ? 0 : images.length;
+  const price = post.budget ? formatPostPrice(displayed.budget, locale) : '';
   const meta = [post.city ? pick(regionName(post.city)) : t('湾区', 'Bay Area'), postedOn(post.createdAt, english)].filter(Boolean).join(' · ');
   const close = () => setMenuOpen(false);
   return <article ref={ref} className="ui-feed-card cm-card" data-layout={layout} data-closed={post.status === 'closed' ? '' : undefined}>
@@ -112,13 +119,11 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
     </h3>
     <div className="ui-feed-card__media">
       <PostCover post={post} priority={priority}>
-        <StickerRow>
-          {post.budget ? <Sticker tone="price" slot="start"><span translate="no">{displayed.budget}</span></Sticker> : null}
-          {images.length > 1 ? <Sticker tone="neutral" slot="end"><Images aria-hidden="true" strokeWidth={1.75} className="cm-sticker-icon" />{images.length}</Sticker> : null}
-        </StickerRow>
+        {photoCount > 1 ? <StickerRow><Sticker tone="neutral" slot="end"><Images aria-hidden="true" strokeWidth={1.75} className="cm-sticker-icon" />
+          <span className="sr-only">{t('照片', 'Photos')} </span>{photoCount}</Sticker></StickerRow> : null}
       </PostCover>
     </div>
-    {layout === 'list' && post.budget ? <p className="cm-card__price" translate="no">{displayed.budget}</p> : null}
+    {price ? <p className="cm-card__price" translate="no">{price}</p> : null}
     <p className="ui-feed-card__meta cm-card__meta">{meta}</p>
     <div className="cm-card__translation"><PostTranslationNotice reading={reading} /></div>
     {post.isFeatured && <p className="cm-card__note"><Star aria-hidden="true" strokeWidth={1.75} />{t('编辑精选', 'Editor’s pick')}</p>}

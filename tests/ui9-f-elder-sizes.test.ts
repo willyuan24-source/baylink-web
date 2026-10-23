@@ -229,7 +229,6 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
     ['@media (max-width:720px)', '.together-page .outing-detail-head h1', 28, 28],
   ]],
   ['src/features/posts/community.css', [
-    ['', '.cm-card .ui-sticker[data-tone=price]', 15, 14],
     ['', '.cm-sheet h1', 26, 24],
     ['', '.cm-sheet__price', 22, 20],
   ]],
@@ -287,7 +286,9 @@ test('elder modes: no component size the ladder codemod lowered is smaller than 
   // were overridden (the hero H1 reads --text-h1, together-page.css then outings.css) and are gone; the poll H2 reads
   // --text-section like the outing page's other H2s (never below its old 20.8px in an elder mode); the phone outing H1
   // (28px literal) reads --fs-keep-28 and is pinned.
-  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 65);
+  // 64 since UI9-R1-CATEGORY moved the post card's price off the photo (the .cm-card__price line reads --fs-body, 16px, larger
+  // than the 14px sticker in every mode).
+  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 64);
   const cases: Case[] = [];
   for (const width of [390, 768, 1023, 1024, 1440]) for (const reading of [undefined, 'large', 'extra-large'] as const) for (const simple of [false, true]) cases.push({ width, reading, simple });
   const resolvers = cases.map(c => ({ c, px: fsPx(c) }));
