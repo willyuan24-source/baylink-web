@@ -217,8 +217,9 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 /* A day cell is a plain tap area (no fill or outline of its own, so it is not another button style); the chosen day takes
    the one selected look (UI9-R1-BUTTONS, N08: the selected pair over the whole cell, as a checked chip or segment) and today
    rings its date. The 1px edge is there at rest too (transparent), so choosing a day moves nothing. Its 4 px under the dot
-   is part of the gap. */
-.ev-week__day,.ev-month__day { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:100%; padding:0; border:1px solid transparent; border-radius:var(--r-md); background:none; color:var(--color-ink); cursor:pointer; font-variant-numeric:tabular-nums; transition:scale var(--dur-1) var(--ease-out); }
+   is part of the gap. A cell is at most 4rem wide (centred in its column), so on a desktop week the chosen day is a capsule
+   like on a phone, not a 120px block. */
+.ev-week__day,.ev-month__day { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:100%; max-width:4rem; margin-inline:auto; padding:0; border:1px solid transparent; border-radius:var(--r-md); background:none; color:var(--color-ink); cursor:pointer; font-variant-numeric:tabular-nums; transition:scale var(--dur-1) var(--ease-out); }
 .ev-week__day { min-height:4rem; padding:var(--sp-1) 0; }
 .ev-week__weekday { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ev-week__date,.ev-month__num { display:grid; place-items:center; min-width:2.25rem; height:2.25rem; padding:0 var(--sp-1); border:1px solid transparent; border-radius:var(--r-pill); }
