@@ -59,7 +59,9 @@ export function buildPlanWeekend(): PlanWeekendSnapshot {
       const accepted = asLead.length ? asLead : accept(order, false);
       const first = accepted[0] && getCover({ kind: 'event', id: event.id, imageKey: accepted[0] }, { images: GUIDE_IMAGES, today: day });
       const shown = accepted.slice(0, first && first.tier === 'stock' ? 2 : 1);
-      for (const key of shown) images[key] = GUIDE_IMAGES[key];
+      // The strip's covers are decorative (alt=""; the card's title names the event) and 本页图片来源 reads the credit, not
+      // the alt text, so the record ships without it: /plan's route JS is tight (UI9-R2 batch 1).
+      for (const key of shown) images[key] = { ...GUIDE_IMAGES[key], alt: '' };
       if (event.imageKeys) events[event.id] = { ...events[event.id], imageKeys: shown };
     }
   }
