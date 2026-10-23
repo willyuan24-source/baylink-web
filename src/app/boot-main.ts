@@ -13,10 +13,12 @@ import { matchRoute, routePathname } from './route-table';
 let boot: { path: string; html: string; exact: boolean } | null = null;
 // The account shell is a full screen tall (me-hub.css), so its footer starts below the fold. A short page replacing it (the
 // guest views of /me/bookings and /messages) would pull the footer up into the window: a layout shift. So the page that
-// replaces the shell keeps the shell's promise for this visit: <main> stays a full screen tall (100vh, as .site-route-wait
-// in site-chrome.css, for the same reason) until the reader leaves the boot path. A longer page is unaffected.
+// replaces the shell keeps the shell's promise for this visit, and no more than that: <main> is at least tall enough that
+// the footer starts just below the fold (100vh, as .site-route-wait in site-chrome.css: below it in every phone toolbar
+// state), until the reader leaves the boot path. A page that already ends below the fold (/me) keeps its own end and its
+// pre-footer gap.
 let shellHold: string | null = null;
-const SHELL_HOLD = '100vh';
+let shellHoldHeight: string | null = null;
 
 /**
  * main.tsx, before the first render: keep the prerendered <main> when it was rendered for this URL, or when it is the
@@ -29,6 +31,7 @@ export function captureBootMain(): void {
   if (typeof document === 'undefined') return;
   boot = null;
   shellHold = null;
+  shellHoldHeight = null;
   const main = document.querySelector<HTMLElement>('#root main[data-prerender-path]');
   if (!main || !main.innerHTML.trim()) return;
   const path = routePathname(window.location.pathname);
@@ -69,12 +72,26 @@ export function BootMainSettled(): null {
 
 /**
  * After every commit of the layout (it re-renders on each location change), before paint: on the boot path that opened on
- * the account shell, <main> keeps the shell's full-screen height; on any other path the hold is gone for good.
+ * the account shell, <main> keeps the footer below the fold; on any other path the hold is gone for good. The height is
+ * measured once, on the first page's commit with no hold on: 100vh less where <main> starts and the step from its end to
+ * the footer's top (the 12px footer step), less 1px so rounding never lets the footer's top edge into the window.
  */
 function holdShellHeight(): void {
   if (!shellHold) return;
   const main = document.querySelector<HTMLElement>('#root main');
-  if (routePathname(window.location.pathname) === shellHold) { main?.style.setProperty('min-height', SHELL_HOLD); return; }
-  main?.style.removeProperty('min-height');
-  shellHold = null;
+  if (!main) return;
+  if (routePathname(window.location.pathname) !== shellHold) {
+    main.style.removeProperty('min-height');
+    shellHold = null;
+    shellHoldHeight = null;
+    return;
+  }
+  if (!shellHoldHeight) {
+    main.style.removeProperty('min-height');
+    const box = main.getBoundingClientRect();
+    const footer = document.querySelector<HTMLElement>('footer.site-footer');
+    const step = footer ? Math.max(0, footer.getBoundingClientRect().top - box.bottom) : 0;
+    shellHoldHeight = `calc(100vh - ${Math.max(0, Math.floor(box.top + window.scrollY + step) - 1)}px)`;
+  }
+  main.style.setProperty('min-height', shellHoldHeight);
 }

@@ -266,14 +266,18 @@ test('boot-main: the prerendered <main> is the fallback only for its own URL, an
   dom.reconfigure({ url: 'https://www.baylink.us/' });
 });
 
-test('boot-main: the page that replaces the account shell keeps its full-screen height until the reader leaves', async () => {
+test('boot-main: the page that replaces the account shell keeps the footer below the fold until the reader leaves', async () => {
   // A short guest view (/me/bookings, /messages) replacing the 100svh shell would pull the footer into the window: a shift.
   const shell = '<div id="root"><main data-prerender-path="/me"><div class="ui-container account-shell" data-size="content"><div aria-busy="true"></div></div></main></div>';
   dom.reconfigure({ url: 'https://www.baylink.us/en/me/bookings' });
   document.body.innerHTML = shell;
   captureBootMain();
-  document.body.innerHTML = '<div id="root"><main></main></div>';
+  document.body.innerHTML = '<div id="root"><main></main><footer class="site-footer"></footer></div>';
   const main = document.querySelector<HTMLElement>('#root main')!;
+  // Desktop layout facts: <main> starts under the 76px header, its page ends at 300, the footer's 12px step follows.
+  let mainBox = { top: 76, bottom: 300 };
+  main.getBoundingClientRect = () => ({ ...mainBox }) as DOMRect;
+  document.querySelector<HTMLElement>('footer.site-footer')!.getBoundingClientRect = () => ({ top: mainBox.bottom + 12 }) as DOMRect;
   let resolvePage!: () => void;
   let loaded = false;
   const ready = new Promise<void>(resolve => { resolvePage = resolve; }).then(() => { loaded = true; });
@@ -283,9 +287,11 @@ test('boot-main: the page that replaces the account shell keeps its full-screen 
   assert.match(main.innerHTML, /account-shell/, 'the shell stands in while the route is suspended');
   await act(async () => { resolvePage(); await ready; });
   assert.equal(main.textContent, 'sign in');
-  assert.equal(main.style.minHeight, '100vh', 'the short page keeps the shell height on the boot path');
+  // 100vh - (76 + 12) + 1: the footer's top lands 1px under the fold, no lower (a page ending below it keeps its own end).
+  assert.equal(main.style.minHeight, 'calc(100vh - 87px)', 'the short page keeps the footer below the fold on the boot path');
+  mainBox = { top: 40, bottom: 900 };
   view.rerender(tree());
-  assert.equal(main.style.minHeight, '100vh', 'a re-render on the same path keeps it');
+  assert.equal(main.style.minHeight, 'calc(100vh - 87px)', 'a re-render on the same path keeps it, measured once');
   dom.reconfigure({ url: 'https://www.baylink.us/en/guides' });
   view.rerender(tree());
   assert.equal(main.style.minHeight, '', 'another path: the hold is gone');
