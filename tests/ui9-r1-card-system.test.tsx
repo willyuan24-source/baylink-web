@@ -115,7 +115,8 @@ test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumb
 });
 
 test('N08: one selected look (ink fill) for chips and segments; the open status has no brand-tint fill', () => {
-  assert.equal(decls(CARDS, '.ui-segmented__item[aria-checked=true]').background, 'var(--color-ink)');
+  // UI9-R1-BUTTONS: the pair is FOUNDATION's --selected-* tokens (ink fill, white words, ink edge).
+  assert.equal(decls(CARDS, '.ui-segmented__item[aria-checked=true]').background, 'var(--selected-bg)');
   assert.equal(decls(COVERS, '.ui-status[data-tone=open]').background, 'transparent');
 });
 

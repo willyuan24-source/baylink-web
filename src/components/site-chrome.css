@@ -98,7 +98,7 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app .site-navigation-more>.site-navigation-panel { top:calc(100% + 1px); width:22rem; max-width:calc(100vw - 2 * var(--page-gutter)); max-height:calc(100dvh - 6rem); }
 .site-app .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; }
 .site-app .site-navigation-panel .site-secondary-nav--about,.site-app .site-navigation-account { margin-top:var(--sp-2); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
-.site-app .site-secondary-nav>:is(a,button),.site-app .site-navigation-account button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
+.site-app .site-secondary-nav>:is(a,button),.site-app .site-navigation-account button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid transparent; border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
 .site-app .site-secondary-nav>:is(a,button)>svg,.site-app .site-navigation-account button>svg { flex:none; }
 .site-app .site-secondary-nav>:is(a,button):active,.site-app .site-navigation-account button:active { background:var(--color-surface-2); }
 @media (hover:hover) and (pointer:fine) { .site-app .site-secondary-nav>:is(a,button):hover,.site-app .site-navigation-account button:hover { background:var(--color-surface-2); } }
@@ -109,11 +109,12 @@ html[data-simple] .site-app .site-more-community { display:none; }
 .site-app .site-navigation-account p { padding:var(--sp-1) var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .site-app .site-language-menu { width:14rem; }
 .site-app .site-language-title { padding:var(--sp-2) var(--sp-3) var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); }
-.site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
+.site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid transparent; border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
 .site-app .site-language-menu>button:active { background:var(--color-surface-2); }
 @media (hover:hover) and (pointer:fine) { .site-app .site-language-menu>button:hover { background:var(--color-surface-2); } }
-/* N08: the current 更多 row and the chosen language take the selected pair (icons follow the text). */
-.site-app :is(.site-secondary-nav a[aria-current=page],.site-language-menu>button[aria-pressed=true]) { background:var(--selected-bg); color:var(--selected-fg); }
+/* N08: the current 更多 row and the chosen language take the selected pair (icons follow the text), edge included: the rows
+   carry a transparent 1px edge at rest, so the on row looks exactly like a checked chip and nothing moves. */
+.site-app :is(.site-secondary-nav a[aria-current=page],.site-language-menu>button[aria-pressed=true]) { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
 .site-app .site-language-error { padding:var(--sp-2) var(--sp-3); color:var(--color-danger); font-size:var(--fs-meta); }
 
 /* Global footer (content arrangement §5; G10, G12): a light warm surface, so the BAYLINK wordmark stays deep green; 12px
@@ -206,7 +207,7 @@ html[data-simple] .site-app .site-footer-about { display:none; }
   .site-app .site-navigation-more { order:3; align-items:center; margin-left:0; }
   .site-app .site-navigation-more>summary { width:var(--tool-size); height:var(--tool-size); min-height:0; padding:0; border-radius:var(--r-md); color:var(--color-ink); }
   .site-app .site-navigation-more>summary::after,.site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
-  .site-app .site-navigation-more>summary.is-active { background:var(--selected-bg); color:var(--selected-fg); }
+  .site-app .site-navigation-more>summary.is-active { border:1px solid var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
   /* The phone/tablet 更多 tool sits 16px from the edge like Aa and 我的: its ring stays outside with the fill's corners (an
      inside brand ring on the ink selected fill was 2.27:1). Same (0,3,1) as the focus-inside rule, later. */
   .site-app .site-navigation-more>summary:focus-visible { outline-offset:var(--focus-ring-offset); border-radius:var(--r-md); }
