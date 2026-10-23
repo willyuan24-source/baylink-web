@@ -27,7 +27,7 @@ export function hubCardData(locale: CardLocale, t: Translate, today: string) {
  * UI9-R2 N20 (DECISIONS 21, OD12): the picture each hub card fronts, best first. A hub card promotes BAYLINK itself, so
  * its picture is one promotion allows (share-card-model.ts shareable: `rights.promoAllowed`, never AI art — DECISIONS 24
  * keeps ④ and the 3D postcards off share cards — never CC BY-SA): today only the approved ③ category stock pictures
- * (category-stock-photos.json, Unsplash, owner-approved 10-21) are, until a ① or ② picture with promotion rights exists.
+ * (category-stock-photos.json: Unsplash / CC0, owner-approved 10-21) are, until a ① or ② picture with promotion rights exists.
  * Chosen by eye for the hub's subject: evergreen (no season), no faces (backs and silhouettes only), no text or logos,
  * and each reads under the band's shade, its 示意图 label and the brand pill (lanes/UI9-R2-SHARE-HUB/pick). `focal`
  * ([x, y] %) places the 1200 × 346 band where the stock record has none:
@@ -35,7 +35,7 @@ export function hubCardData(locale: CardLocale, t: Translate, today: string) {
  *   events   a fairground's Ferris wheels against a sunset sky
  *   guides   a library aisle of books — guides with official sources
  *   explore  a trail along a rocky coast
- *   plan     a walker with a backpack on a forest trail, from behind — a day out
+ *   plan     a family on a forest trail, from behind — a day out
  *   tools    an open laptop on a desk — work it out in the browser
  *   brand    the San Francisco skyline across the bay at golden hour (about, archive and the other pages without a card)
  * The later pictures stand in when one loses its clearance; no two hubs share one.
