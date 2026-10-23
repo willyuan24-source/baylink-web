@@ -16,33 +16,58 @@ const syncModalStack = () => {
   });
 };
 
-// 滚动锁计数：body 和内部滚动容器（#scroll-container）一起锁，嵌套弹层全部关闭后才解锁
-let scrollLockCount = 0;
-let originalPageState: {
-  body: HTMLElement; bodyOverflow: string;
+// 页面锁（滚动 + inert）计数：嵌套弹层全部关闭后才解锁。
+// The viewport takes its overflow from <html>: design.css's `html { overflow-x:clip }` keeps body's value from reaching it,
+// so a lock on body left the page scrolling under an open dialog. The lock sets overflow:hidden on <html> and keeps a classic
+// scrollbar's gutter (scrollbar-gutter: stable), so nothing moves sideways. Body is left alone: overflow:hidden there makes
+// body the scroll container of the sticky top bar, which then jumps off the screen behind the dialog. For the same reason
+// #scroll-container (the guide rails, the detail actions) is locked only when it really scrolls.
+type PageState = {
+  html: HTMLElement; htmlOverflow: string; htmlGutter: string;
   scroller: HTMLElement | null; scrollerOverflow: string;
   appRoot: HTMLElement | null; appRootInert: boolean;
   focusedElement: HTMLElement | null;
-} | null = null;
+};
+let scrollLockCount = 0;
+let originalPageState: PageState | null = null;
+// DialogWait hands its lock to the dialog that replaces it. The Suspense commit removes the wait before the dialog's layout
+// effect runs, so the wait's release is put off to a microtask and the dialog takes the lock over: no unlock and relock, and
+// the opener the wait kept stays the one focus returns to.
+let handOffPending = false;
+
+const scrolls = (element: HTMLElement) => {
+  const style = window.getComputedStyle(element);
+  return [style.overflow, style.overflowX, style.overflowY].some(value => /auto|scroll/.test(value || ''));
+};
+
 const lockScroll = (focusedElement: HTMLElement | null) => {
   if (++scrollLockCount !== 1) return;
-  const body = document.body;
-  const scroller = document.getElementById('scroll-container');
+  if (handOffPending && originalPageState) { handOffPending = false; return; }
+  const html = document.documentElement;
+  const found = document.getElementById('scroll-container');
+  const scroller = found && scrolls(found) ? found : null;
   const appRoot = document.getElementById('root');
-  originalPageState = { body, bodyOverflow: body.style.overflow, scroller,
-    scrollerOverflow: scroller?.style.overflow || '', appRoot, appRootInert: !!appRoot?.inert,
-    focusedElement };
-  body.style.overflow = 'hidden';
+  // A classic scrollbar (not the overlay kind of phones and macOS) is innerWidth - clientWidth wide; jsdom has no layout.
+  const scrollbar = html.clientWidth > 0 && window.innerWidth > html.clientWidth;
+  originalPageState = { html, htmlOverflow: html.style.overflow, htmlGutter: html.style.getPropertyValue('scrollbar-gutter'),
+    scroller, scrollerOverflow: scroller?.style.overflow || '', appRoot, appRootInert: !!appRoot?.inert, focusedElement };
+  if (scrollbar) html.style.setProperty('scrollbar-gutter', 'stable');
+  html.style.overflow = 'hidden';
   if (scroller) scroller.style.overflow = 'hidden';
   if (appRoot) appRoot.inert = true;
 };
-const unlockScroll = () => {
-  if (--scrollLockCount !== 0 || !originalPageState) return;
-  const { body, bodyOverflow, scroller, scrollerOverflow, appRoot, appRootInert } = originalPageState;
-  body.style.overflow = bodyOverflow;
+const restorePage = () => {
+  if (!originalPageState) return;
+  const { html, htmlOverflow, htmlGutter, scroller, scrollerOverflow, appRoot, appRootInert } = originalPageState;
+  html.style.overflow = htmlOverflow;
+  if (htmlGutter) html.style.setProperty('scrollbar-gutter', htmlGutter); else html.style.removeProperty('scrollbar-gutter');
   if (scroller) scroller.style.overflow = scrollerOverflow;
   if (appRoot) appRoot.inert = appRootInert;
   originalPageState = null;
+};
+const unlockScroll = () => {
+  if (--scrollLockCount !== 0) return;
+  restorePage();
 };
 
 const canRestoreFocus = (element: HTMLElement | null): element is HTMLElement => {
@@ -60,6 +85,17 @@ const restoreFocus = (element: HTMLElement | null) => {
   return document.activeElement === element;
 };
 
+// Older iOS Safari can still pan the page under overflow:hidden. A one-finger drag on the scrim itself is stopped there; the
+// dialog's own content (and a scrim that scrolls) keeps its scrolling, and two fingers still zoom.
+const guardScrimTouch = (scrim: HTMLElement, wholeLayer = false) => {
+  const onTouchMove = (e: TouchEvent) => {
+    if (e.touches.length !== 1 || (!wholeLayer && e.target !== scrim) || scrolls(scrim)) return;
+    if (e.cancelable) e.preventDefault();
+  };
+  scrim.addEventListener('touchmove', onTouchMove, { passive: false });
+  return () => scrim.removeEventListener('touchmove', onTouchMove);
+};
+
 // The scroll lock, inert background and initial focus must land in the same commit
 // that shows the dialog. A passive effect can run a frame later when the dialog
 // mounts through a non-sync update (e.g. a lazy dialog resolving its Suspense
@@ -69,6 +105,35 @@ const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : us
 const getFocusable = (container: HTMLElement): HTMLElement[] =>
   Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
     .filter((el) => el.getClientRects().length > 0);
+
+/**
+ * DialogWait's hold on the page while a dialog's chunk loads: the dialogs' own lock (no scrolling, an inert #root), taken in
+ * the commit that shows the scrim. Focus is not moved (Chrome itself moves it off an opener that turns inert, to <body>); the
+ * opener is kept with the lock. The dialog that replaces the wait takes the lock over; a wait that ends without one (the
+ * opener went away, the chunk failed) releases the page a microtask later and gives focus back to the opener if it was lost.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useDialogWaitLock(scrimRef: React.RefObject<HTMLElement>) {
+  useIsomorphicLayoutEffect(() => {
+    const active = document.activeElement as HTMLElement | null;
+    lockScroll(active && active !== document.body ? active : null);
+    const scrim = scrimRef.current;
+    const stopTouch = scrim ? guardScrimTouch(scrim, true) : undefined;
+    return () => {
+      stopTouch?.();
+      if (scrollLockCount !== 1 || !originalPageState) { unlockScroll(); return; }
+      scrollLockCount = 0;
+      handOffPending = true;
+      const opener = originalPageState.focusedElement;
+      queueMicrotask(() => {
+        if (!handOffPending) return;
+        handOffPending = false;
+        restorePage();
+        if (!document.activeElement || document.activeElement === document.body) restoreFocus(opener);
+      });
+    };
+  }, []);
+}
 
 /** 弹层行为 hook：挂载期间锁滚动、陷住 Tab 焦点、Esc 触发 onClose、卸载时还原焦点。 */
 export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.RefObject<HTMLElement>, restoreFocusRef?: React.RefObject<HTMLElement>) {
@@ -91,9 +156,12 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
     // Only registered dialogs belong to the stack. Querying every portal in the DOM
     // would disable siblings whose mount effects have not run yet.
     syncModalStack();
-    const previouslyFocused = restoreFocusRefAtMount.current?.current || openerRef.current;
+    let previouslyFocused = restoreFocusRefAtMount.current?.current || openerRef.current;
 
     lockScroll(previouslyFocused);
+    // Taking over DialogWait's lock: its inert page may have moved focus to <body> (Chrome) before this dialog rendered.
+    if (!previouslyFocused || previouslyFocused === document.body) previouslyFocused = originalPageState?.focusedElement || previouslyFocused;
+    const stopTouch = guardScrimTouch(container);
 
     // Prefer a declared initial target; otherwise preserve a child's existing focus.
     // Remember a child's selected target across StrictMode's effect cleanup/replay.
@@ -132,6 +200,7 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
 
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
+      stopTouch();
       const wasTop = modalStack[modalStack.length - 1]?.id === stackId;
       const originalPageFocus = originalPageState?.focusedElement || null;
       const idx = modalStack.findIndex((entry) => entry.id === stackId);
