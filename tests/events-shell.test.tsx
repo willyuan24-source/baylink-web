@@ -449,8 +449,9 @@ test('RC-33: a phone-wide cover (the picks, the calendar lead) asks for the 800w
   const picks = [...events.querySelectorAll('.ev-picks img.ui-cover__img')];
   assert.ok(picks.length > 0);
   for (const img of events.querySelectorAll('.ev-picks .ev-lead img.ui-cover__img')) assert.match(img.getAttribute('sizes')!, cap);
-  // A pick row may carry an approved AI cover (2026-10-21): its half-width phone card or 88 px desktop thumbnail asks for less.
-  for (const img of picks) assert.match(img.getAttribute('sizes')!, /^(?:\(max-width: 767px\) (?:266px|calc\(50vw - 22px\)), |88px$)/);
+  // A pick row may carry an approved AI cover (2026-10-21): its half-width phone card or 88 px desktop thumbnail asks for less
+  // (an 88 px square crops a wider file to its height, so it asks for the crop: calc(88px * 1.50), UI9-R2-FOUNDATION N21).
+  for (const img of picks) assert.match(img.getAttribute('sizes')!, /^(?:\(max-width: 767px\) (?:266px|calc\(50vw - 22px\)), |(?:88px|calc\(88px \* \d\.\d\d\))$)/);
   assert.equal(picks[0].getAttribute('fetchpriority'), 'high', 'the first pick is the eager LCP image');
   const calendar = ssr('/calendar?date=2026-10-10', <CalendarPage today={today} />);
   const lead = calendar.querySelector('.ev-calendar__lead img.ui-cover__img')!;
