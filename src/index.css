@@ -26,8 +26,6 @@ html, body, #root {
   overflow-x: hidden;
 }
 
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .baybay-scroll {
   scrollbar-width: thin;

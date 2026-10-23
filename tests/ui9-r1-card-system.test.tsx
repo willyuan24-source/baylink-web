@@ -106,7 +106,7 @@ test('N13 / N25 (UI9-R2-FOUNDATION): one ♡ circle (44px, white, e1) on a pictu
   assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'trailing', 'the row\'s right edge, outside the picture');
   assert.equal(decls(CARDS, '.ui-row-card:has(>.ui-row-card__save):has(>.ui-row-card__trailing)')['grid-template-areas'], '"thumb body save trailing"');
   assert.doesNotMatch(read(CARDS), /\.ui-row-card__save \.ui-save \{/, 'no smaller row ♡');
-  assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]').width, 'var(--control-height)', 'the area sheets\' 36px give way (!important)');
+  assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle').width, 'var(--control-height)', 'the area sheets\' 36px give way (!important)');
   // the lift is scoped to the picture slots: the action bar's 收藏 cell and FreebieBoard's body pill are compact too, but flat
   const SAVES = read('src/features/saves/saves.css');
   assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');

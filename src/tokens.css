@@ -85,10 +85,10 @@
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
   /* A picture's label on a picture ≤ 200 px wide (R2-03, covers.css): its size follows the picture, not Aa — 13px, and 12px
-     on a picture ≤ 120 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (the html[data-reading]
-     rules below divide out the root's growth) and in 简洁显示 (badges are the exception to its 16px floor, followup 14).
+     on a picture ≤ 120 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (px on purpose: the
+     root's Aa growth must not reach it) and in 简洁显示 (badges are the exception to its 16px floor, followup 14).
      Larger pictures' labels read --fs-badge and grow with Aa. */
-  --fs-label-thumb:.8125rem; --fs-label-tiny:.75rem;
+  --fs-label-thumb:13px; --fs-label-tiny:12px;
   /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, the lead / pick card titles, the primary button and the one
      key value of a fact block; 500 (medium) for feed and row card titles (D3: a feed is not half bold). */
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
@@ -157,8 +157,10 @@
 } }
 /* N04 / J1 P18 / followup 14 (UI9-R2-FOUNDATION): no caption is below 14px on a phone or a desktop — --text-caption reads
    the meta step. 13px stays only for what --fs-badge names directly (photo provenance badges, image and legal credits),
-   for the two caption users that are badges and credits, and inside the 3D postcard blocks (DECISIONS 1: pixel-identical). */
-:where(.ui-provenance,.ui-cover-credit,.home-3d,.home-3d-strip,.xp-3d,.gd-opus) { --text-caption:var(--fs-badge); }
+   for the two caption users that are badges and credits, and inside the 3D postcard blocks on phones, where they had it
+   (DECISIONS 1: pixel-identical). */
+:where(.ui-provenance,.ui-cover-credit) { --text-caption:var(--fs-badge); }
+@media(max-width:1023px) { :where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus) { --text-caption:var(--fs-badge); } }
 /* Latin line heights and measure on English pages (N05). */
 /* --measure: 62ch keeps an English line at ≤ 75 characters (N05; 66ch ran to ~77 on the guides library). */
 :root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:62ch; }
@@ -197,8 +199,8 @@ html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-ro
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
    carries the same factor into the vw middle of fluid headings (clamp(2rem, calc(4vw * var(--fluid-scale)), 3rem)). */
 html { font-size:100%; }
-html[data-reading=large] { font-size:112.5%; --fluid-scale:1.125; --fs-label-thumb:calc(.8125rem / 1.125); --fs-label-tiny:calc(.75rem / 1.125); }
-html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; --fs-label-thumb:.65rem; --fs-label-tiny:.6rem; }
+html[data-reading=large] { font-size:112.5%; --fluid-scale:1.125; }
+html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; }
 /* 大 / 特大 below a desktop keep the heading steps they had before tokens v2 (title 26, section 22px x the Aa factor:
    32.5 / 27.5px at 特大), so an elder's headings never get smaller than on the old ladder (24 / 20 would give 30 / 25).
    The two values replace the ladder's 24 / 20 at these sizes, so the step count stays the same. 简洁显示 sets its own,
@@ -246,10 +248,8 @@ html[data-reading=extra-large][data-simple] { --fs-body:1.15rem; }
 :where(body>[role=dialog],body>.site-toast) svg.lucide[stroke-width="2"] { stroke-width:1.75; }
 :where(p,li,dd) { text-wrap:pretty; }
 /* N06 (UI9-R1; N05 UI9-R2-FOUNDATION: every language): every page inherits the pretty wrap (spans, labels, card meta and
-   fact values too, not only p / li / dd), so no short last line. A longhand, so a component's nowrap or balance still wins.
-   The 3D postcards' words wrap on English pages exactly as before (DECISIONS 1). */
+   fact values too, not only p / li / dd), so no short last line. A longhand, so a component's nowrap or balance still wins. */
 :root { text-wrap-style:pretty; }
-:root:not(:lang(zh)) :where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus) { text-wrap-style:auto; }
 :where(h1,h2,h3,h4) { line-break:strict; word-break:auto-phrase; }
 /* The 3D world keeps its own HUD geometry at every text size (D26). reading-init.js already skips /opus-bay and /play;
    this covers a stale attribute. */
@@ -260,7 +260,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 :root { --feed-cols:2; }
 @media(max-width:767px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) { --feed-cols:1; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.home-destinations,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
 }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
@@ -329,11 +329,11 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .bl-guide-checklist { font-size:var(--text-reading); line-height:var(--lh-read); color:var(--color-ink); }
 .bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:var(--lh-read); }
 /* Extend the same reading preferences to practical tools and publishing. */
-.site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:var(--lh-read); }
-.site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:var(--lh-ui); }
-.site-app :is(.attraction-page,.life-tools) button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
-.site-app :is(.attraction-page,.life-tools) :is(input,select,textarea) { font-size:var(--text-body); }
-.life-tools :is(.tools-picker-card small,.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
+.site-app .life-tools p { font-size:var(--text-body); line-height:var(--lh-read); }
+.site-app .life-tools :is(small,label,summary) { font-size:var(--text-fact); line-height:var(--lh-ui); }
+.site-app .life-tools button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
+.site-app .life-tools :is(input,select,textarea) { font-size:var(--text-body); }
+.life-tools :is(.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
 .life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
 .life-tools :is(.tool-swap,.tool-icon-button) { width:var(--control-height); height:var(--control-height); }
 .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
@@ -342,7 +342,6 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .member-compose-dialog button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
 .member-compose-dialog :is(input,select,textarea) { font-size:var(--text-body); }
 .member-compose-dialog [class*="text-[0.6875rem]"] { font-size:var(--text-fact); }
-.member-compose-dialog .member-compose-close { width:var(--control-height); height:var(--control-height); }
 .member-compose-dialog .member-compose-type>div:last-of-type { font-size:var(--text-fact); line-height:var(--lh-ui); }
 /* Authentication portals share the reading size, including utility-sized safety copy. */
 .member-auth-dialog :is(p,small,label,[role=alert]) { font-size:var(--text-fact); line-height:var(--lh-read); }

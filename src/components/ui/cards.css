@@ -58,8 +58,6 @@
 /* R2-11: at most 3 lines under a card's title — when; status · place on ONE line (the place gives way with "…", the status
    chip before it never does); the ✓ line. */
 .ui-feed-card__meta { margin:0; overflow:hidden; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); white-space:nowrap; text-overflow:ellipsis; }
-/* The free price in the older place · price line is the one 免费 look (covers.css .ui-status[data-tone=free]). */
-.ui-meta-price>strong { padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-weight:400; }
 .ui-meta-price { white-space:nowrap; }
 .ui-meta-sep { white-space:pre; }
 /* The ✓ 官网核对 / 媒体报道 line (decisions 3, 17; OD8): on every card, but quiet — caption size, ink-3 (the lightest ink at

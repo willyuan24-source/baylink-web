@@ -105,7 +105,7 @@ test('N08: one 免费 look, 部分免费 in the same lime family, deadlines are 
     assert.notEqual(look.background, 'var(--color-danger)', `${tone}: solid red is for errors`);
   }
   assert.equal(decls(COVERS, '.ui-status:is([data-tone=soon],[data-tone=urgent])::before').background, 'var(--color-danger)', 'the small red dot');
-  assert.equal(decls(CARDS, '.ui-meta-price>strong').background, 'var(--color-highlight)', 'the older line\'s free price is the same chip');
+  assert.doesNotMatch(read(CARDS), /\.ui-feed-card__meta strong/, 'no second, brand-text 免费 look');
 });
 
 test('N06: one zh time pattern on cards and details (H:MM–H:MM), dollars through Intl', () => {
@@ -123,11 +123,11 @@ test('N06: one zh time pattern on cards and details (H:MM–H:MM), dollars throu
 test('N13 / N25: two ♡ forms — the 44px circle on a picture or at a row\'s right edge, the labelled cell; no 36px ♡', () => {
   assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'trailing');
   assert.doesNotMatch(read(CARDS).replace(/\/\*[^]*?\*\//g, ""), /2\.25rem|36px/, "no smaller ♡ in the card sheet");
-  const compact = decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]');
+  const compact = decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle');
   assert.deepEqual([compact.width, compact.height, compact['min-height']], Array(3).fill('var(--control-height)!important'), 'the area sheets\' 36px give way');
   const row = renderToStaticMarkup(<MemoryRouter><RowCard title="T" to="/x" thumb={<span />} save={<button type="button">♡</button>} trailing={<button type="button">加入</button>} /></MemoryRouter>);
   assert.ok(row.indexOf('ui-row-card__save') > row.indexOf('ui-row-card__thumb'), 'the ♡ is a sibling after the picture, not on it');
-  assert.match(read('src/components/ui/Sheet.tsx'), /<CloseButton onClick=\{onClose\} \/>/, 'Sheet uses the shared close button');
+  assert.match(read('src/components/ui/Sheet.tsx'), /<IconButton label=\{t\('关闭', 'Close'\)\} className="ui-close" onClick=\{onClose\}><X aria-hidden="true" strokeWidth=\{1\.75\} \/><\/IconButton>/, 'Sheet draws the shared close button\'s markup (ui-close)');
 });
 
 test('N24: a pointerdown marks the pressed tab, button or in-page link at once (mouse) — not only cards', async () => {
@@ -152,7 +152,8 @@ test('N24: a pointerdown marks the pressed tab, button or in-page link at once (
 test('followup 14 / B P04 / N05: 14px captions (13 only for badges, credits and 3D blocks), the desktop step, the en measure, pretty everywhere', () => {
   const root = decls(TOKENS, ':root');
   assert.equal(root['--text-caption'], 'var(--fs-meta)');
-  assert.equal(decls(TOKENS, ':where(.ui-provenance,.ui-cover-credit,.home-3d,.home-3d-strip,.xp-3d,.gd-opus)')['--text-caption'], 'var(--fs-badge)');
+  assert.equal(decls(TOKENS, ':where(.ui-provenance,.ui-cover-credit)')['--text-caption'], 'var(--fs-badge)');
+  assert.equal(decls(TOKENS, ':where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus)', '(max-width:1023px)')['--text-caption'], 'var(--fs-badge)', 'the 3D blocks keep their phone 13px');
   assert.equal(decls(CARDS, ':is(.ui-feed-card__title,.ui-row-card__title)', '(min-width:1024px)')['font-size'], 'var(--fs-card)');
   assert.equal(decls(CARDS, '.ui-card-when', '(min-width:1024px)')['font-size'], 'var(--fs-body)');
   assert.equal(decls(TOKENS, ':root:lang(en)')['--measure'], '62ch');

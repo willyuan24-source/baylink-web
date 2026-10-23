@@ -114,7 +114,7 @@ test('N04 / J1 P18 / followup 14: captions are 14px on phones and desktops; prov
   assert.equal(rootTokens({ width: 390 }).px('--text-caption'), 14);
   assert.equal(rootTokens({ width: 1440 }).px('--text-caption'), 14);
   assert.equal(rootTokens({ width: 1440, reading: 'extra-large' }).px('--text-caption'), 18);
-  const keep = tokens.nodes.find(node => node.type === 'rule' && (node as Rule).selector === ':where(.ui-provenance,.ui-cover-credit,.home-3d,.home-3d-strip,.xp-3d,.gd-opus)') as Rule | undefined;
+  const keep = tokens.nodes.find(node => node.type === 'rule' && (node as Rule).selector === ':where(.ui-provenance,.ui-cover-credit)') as Rule | undefined;
   assert.ok(keep, 'the badge / credit rule exists');
   assert.equal(keep!.nodes.find(node => node.type === 'decl' && node.prop === '--text-caption')?.toString(), '--text-caption:var(--fs-badge)');
 });
