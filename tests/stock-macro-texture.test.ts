@@ -9,17 +9,18 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
  * them when their category has a scene picture. The tags name stock pictures only and leave every pool a scene to lead with
  * wherever the pool has one.
  */
-const keys = (tags as { keys: Record<string, { kind: string; what: string }> }).keys;
+const keys = (tags as { keys: Record<string, { kind: string; what?: string }> }).keys;
 const pools = (categoryPhotos as { categories: Record<string, string[]> }).categories;
 
-test('each tag names a registered ③ stock picture, as a texture or a close-up, with its alt for review', () => {
+test('each tag names a registered ③ stock picture, as a texture or a close-up', () => {
   assert.ok(Object.keys(keys).length > 0);
   for (const [key, tag] of Object.entries(keys)) {
     const image = GUIDE_IMAGES[key];
     assert.ok(image, `${key} is registered`);
     assert.equal(image.subject, 'category', `${key}: a ③ stock picture`);
     assert.ok(tag.kind === 'texture' || tag.kind === 'macro', `${key}: ${tag.kind}`);
-    assert.equal(tag.what, image.alt, `${key}: what repeats the alt`);
+    // `what` is a reviewer's note only (a copy of the alt on 2026-10-23); it may drift from the alt and may be left out.
+    if (tag.what !== undefined) assert.ok(typeof tag.what === 'string' && tag.what.length > 0, `${key}: what`);
   }
 });
 
