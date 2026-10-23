@@ -53,9 +53,14 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   assert.match(HOME_CSS, /\.home-picks>\.home-section-head,\.home-picks__all \{ grid-area:1 \/ 7 \/ 2 \/ -1; \}/);
   assert.match(HOME_CSS, /\.home-picks__list>li:first-child,\.home-empty \{ grid-area:2 \/ 7 \/ 5 \/ -1; \}/);
   assert.match(HOME_CSS, /\.home-top>\.home-share \{ grid-column:7 \/ -1;/);
-  // /guides: the elder band on four columns, its rows in 2–4, the panel reaching past the column edges by its own padding.
-  assert.match(LIBRARY_CSS, /\.gl-band \{ --gl-band-bleed:var\(--sp-4\); display:grid; grid-template-columns:repeat\(4, minmax\(0, 1fr\)\);[^}]*margin-inline:calc\(var\(--gl-band-bleed\) \* -1\); padding:var\(--sp-5\) var\(--gl-band-bleed\); \}/);
-  assert.match(LIBRARY_CSS, /\.gl-band>\.gl-band__rows \{ grid-area:1 \/ 2 \/ 3 \/ -1; \}/);
+  // /guides: the elder band's panel reaches past the column edges by its own padding in every desktop mode but 简洁, so its
+  // cards start on the columns of the topic sections under it: at 标准 the four (rows in 2–4); at 大 / 特大 (review r2) the
+  // three of the base band, under its heading — the four-column placement is 标准's only.
+  assert.match(LIBRARY_CSS, /html:not\(\[data-simple\]\) \.gl-band \{ --gl-band-bleed:var\(--sp-4\); margin-inline:calc\(var\(--gl-band-bleed\) \* -1\); padding:var\(--inset-panel\) var\(--gl-band-bleed\); \}/);
+  assert.match(LIBRARY_CSS, /html:not\(\[data-reading\$=large\],\[data-simple\]\) \.gl-band \{ display:grid; grid-template-columns:repeat\(4, minmax\(0, 1fr\)\);/);
+  assert.match(LIBRARY_CSS, /html:not\(\[data-reading\$=large\],\[data-simple\]\) \.gl-band>\.gl-band__rows \{ grid-area:1 \/ 2 \/ 3 \/ -1; \}/);
+  assert.doesNotMatch(LIBRARY_CSS, /html:not\(\[data-reading=extra-large\],\[data-simple\]\) \.gl-band(>[^{]*)? \{[^}]*grid-(template-columns:repeat\(4|area)/, '大 keeps the three columns of its topic sections');
+  assert.match(LIBRARY_CSS, /\.gl-band \.gl-band__rows \{ display:grid; grid-template-columns:repeat\(3, minmax\(0, 1fr\)\); gap:var\(--grid-gutter\); \}/);
   // Review r1: in one column each band guide is a card (the 3:2 picture over the whole title), not a squeezed row, and its
   // ③④ chip is one line. The pictures keep the thumbnail `sizes`, which carries the short English label ('Stock photo').
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
