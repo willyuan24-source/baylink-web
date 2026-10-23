@@ -307,6 +307,14 @@ html[data-simple] .site-app .site-footer-about { display:none; }
   html:lang(en) .site-app .site-reading-label { display:none; }
   html:lang(en) .site-app .site-reading-label-short { display:inline; }
 }
+/* 特大 and 简洁显示 (and English 大) from 1024 to 1279px (followup 26: English 更多 ran under the search icon): the tools keep
+   their place but name themselves shorter — the globe alone (the language stays its accessible name), 我的 as its icon,
+   English "Aa Size". */
+@media(min-width:1024px) and (max-width:1279px) {
+  html:is([data-reading=extra-large],[data-simple],[data-reading=large]:lang(en)) .site-app :is(.site-language-name,.site-topbar-account>span) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  html:is([data-reading=extra-large],[data-simple],[data-reading=large]):lang(en) .site-app .site-reading-label { display:none; }
+  html:is([data-reading=extra-large],[data-simple],[data-reading=large]):lang(en) .site-app .site-reading-label-short { display:inline; }
+}
 @media(max-width:359px) {
   .site-app .site-header-brand img { width:104px; }
   .site-app :is(.site-reading-label,.site-reading-label-short) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }

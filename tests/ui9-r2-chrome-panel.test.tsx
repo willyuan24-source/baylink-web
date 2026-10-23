@@ -65,3 +65,13 @@ test('OverlayHost: the chunk fallbacks sit on token classes (no Tailwind shadow 
   assert.deepEqual([decls(css, '.site-chunk-disc')['border-radius'], decls(css, '.site-chunk-disc')['box-shadow']], ['var(--r-circle)', 'var(--e2)']);
   assert.deepEqual([decls(css, '.site-chunk-card')['border-radius'], decls(css, '.site-chunk-card')['box-shadow']], ['var(--r-xl)', 'var(--e2)']);
 });
+
+test('followup 26: from 1024 to 1279px at 特大, in 简洁显示 and English 大 the header tools name themselves shorter', () => {
+  let rule = '';
+  postcss.parse(read('src/components/site-chrome.css')).walkAtRules('media', media => {
+    if (media.params.replace(/\s/g, '') !== '(min-width:1024px)and(max-width:1279px)') return;
+    media.walkRules(found => { if (/site-language-name/.test(found.selector)) rule = found.toString(); });
+  });
+  assert.match(rule, /html:is\(\[data-reading=extra-large\],\[data-simple\],\[data-reading=large\]:lang\(en\)\) \.site-app :is\(\.site-language-name,\.site-topbar-account>span\)/);
+  assert.match(rule, /clip-path:inset\(50%\)/, 'visually hidden, still the accessible name');
+});
