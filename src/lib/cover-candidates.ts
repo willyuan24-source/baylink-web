@@ -56,11 +56,71 @@ export function venuesFor(kind: CoverKind, record: CandidateRecord, venues: Cove
 /** Stock pictures over the image budgets' rungs (verify:images: 800 w ≤ 90 KB, 1200 w ≤ 150 KB): every other picture first. */
 export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
 
+/**
+ * Macro and texture stock (UI9-R2, round-2 judge B P15 and owner material #2): a pattern or a close-up detail with no scene
+ * (candy corn, chalk, hands in soil, a stack of old books, motion blur, bokeh). Fine on a thumbnail, weak as a big picture,
+ * so it is never a record's first ③ candidate while its category has a scene picture: the detail hero, a lead that falls
+ * back to ③ and every other hero-size slot take the first ③ (UI9-IMAGES DECISIONS 22 order). Checked by eye on 10-23 on
+ * all 233 pool pictures (lanes/UI9-R2-COVER-PICK/tools/stock-*.png); kept in code until the image registry carries a tag.
+ * The guide pools' object pictures (envelopes, a chain on wood, a pencil on paper) stay off the list: a guide carries one
+ * ③ picture, so moving them back put one form-filling picture on two cards of /guides (measured 10-23: 8 repeats in 17 days).
+ */
+export const MACRO_STOCK: ReadonlySet<string> = new Set([
+  'stock-halloween-4', // candy corn filling the frame
+  'stock-kids-craft-5', // chalk sticks
+  'stock-kids-craft-7', // a ring of coloured pencils
+  'stock-green-volunteer-1', // hands in soil
+  'stock-book-sale-3', // a stack of old books
+  'stock-book-sale-4', // a row of book spines
+  'stock-class-workshop-2', // metal type in a tray
+  'stock-classical-music-3', // a cello bow, close up
+  'stock-dia-de-muertos-5', // one marigold, close up
+  'stock-fun-run-3', // running legs in motion blur
+  'stock-transit-4', // a painted arrow on a bike lane
+  'stock-transit-6', // a passing train in motion blur
+  'stock-winter-holidays-4', // out-of-focus lights
+  'stock-winter-holidays-6', // a string of lights, close up
+  'stock-sports-football-2', // yard lines on turf
+  'stock-sports-basketball-4', // a court seen from straight above
+  'stock-sports-basketball-5', // an arena in motion blur
+  'stock-swap-meet-2', // a heap of puzzle pieces
+  'stock-kids-play-1', // puzzle pieces on a table
+  'stock-guide-documents-6', // a stack of tabbed papers
+  'stock-film-1', // popcorn tubs from above
+  'stock-farmers-market-4', // fruit crates from above
+  'stock-ice-skating-1', // one skate, close up
+]);
+
+/**
+ * /ai-in-the-bay's sessions (UI9-R2): the past AI Week and Tech Week cards have no picture of their own, and the three
+ * tech-meetup pictures alone came back every third card. These ③ pictures follow them on that page: a laptop on a desk,
+ * an empty meeting room, a phone at a table (no faces, logos or screen text; checked by eye 10-23 on the pools' sheet).
+ */
+export const AI_SESSION_STOCK: readonly string[] = ['stock-tech-help-4', 'stock-talk-bookclub-3', 'stock-tech-help-2'];
+
+/** An /ai-in-the-bay session's candidates: its own, then AI_SESSION_STOCK after its category's ③ pictures (before any ④). */
+export function aiSessionCandidates(record: CandidateRecord, tables: CoverTables = COVER_TABLES): string[] {
+  const keys = coverCandidates('event', record, tables);
+  const extra = AI_SESSION_STOCK.filter(key => !keys.includes(key));
+  const at = keys.findIndex(key => key !== record.imageKey && tables.ai.some(approval => approval.key === key));
+  return at < 0 ? [...keys, ...extra] : [...keys.slice(0, at), ...extra, ...keys.slice(at)];
+}
+
 /** A stable small number from the record id, so a record always starts its category's pictures at the same spot. */
 export function idSpot(id: string, size: number): number {
   let hash = 0;
   for (const char of id) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
   return size ? hash % size : 0;
+}
+
+/**
+ * A category's pictures with a scene picture first (MACRO_STOCK): the first scene picture moves ahead of the macro or
+ * texture pictures before it, and the rest keep their order, so the rotation keeps every picture in play for rows and
+ * thumbnails.
+ */
+export function sceneFirst(keys: readonly string[], macro: ReadonlySet<string> = MACRO_STOCK): string[] {
+  const scene = keys.findIndex(key => !macro.has(key));
+  return scene <= 0 ? [...keys] : [keys[scene], ...keys.slice(0, scene), ...keys.slice(scene + 1)];
 }
 
 /**
@@ -80,7 +140,7 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const start = (limits.start ?? idSpot(record.id, pool.length)) % (pool.length || 1);
   // A pool picture whose files miss the 800 w / 1200 w size targets goes after the others (B1b review: stock-halloween-5).
   const rotated = pool.map((_, i) => pool[(start + i) % pool.length]);
-  const ordered = [...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))];
+  const ordered = sceneFirst([...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))]);
   const shown = Math.min(pool.length, stock);
   for (let i = 0; i < shown; i++) add(ordered[i]);
   // A capped list (what a route ships) carries ④ only for a record whose category has no ③ picture.
@@ -140,11 +200,23 @@ export function categorySpots(kind: CoverKind, records: readonly CandidateRecord
   return spots;
 }
 
-/** The route cap for one record: DENSE_STOCK in a dense category, else ROUTE_STOCK; its start from categorySpots. */
+/**
+ * The boards' records (offers and new shops: events-boards.json, which the 免费与优惠 and 新店 views load with their own
+ * chunks, outside the route budgets) carry their category's whole ③ pool (UI9-R2): a board as it opens then shows no stock
+ * picture twice, and one grown with 再看 none within ADJACENT_CARDS cards (measured 10-23 over 17 days: 0, was 4–5 at
+ * one to four taps). A number, not Infinity, so the list stops before ④ as a capped one does.
+ */
+export const BOARD_STOCK = 99;
+
+/**
+ * The cap for one record: BOARD_STOCK on a board, else DENSE_STOCK in a dense category and ROUTE_STOCK otherwise (the
+ * route's events); its start from categorySpots.
+ */
 export const routeStock = (kind: CoverKind, record: CandidateRecord, dense: ReadonlySet<PhotoCategoryId>, spots?: ReadonlyMap<string, number>): CandidateLimits => {
   const category = photoCategoryOf(kind, record as Record<string, unknown>);
   const start = spots?.get(record.id);
-  return { stock: category && dense.has(category) ? DENSE_STOCK : ROUTE_STOCK, ...(start !== undefined ? { start } : {}) };
+  const stock = kind === 'offer' || kind === 'opening' ? BOARD_STOCK : category && dense.has(category) ? DENSE_STOCK : ROUTE_STOCK;
+  return { stock, ...(start !== undefined ? { start } : {}) };
 };
 
 /**

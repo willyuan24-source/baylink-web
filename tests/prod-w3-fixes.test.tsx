@@ -163,7 +163,7 @@ test('legal pages: Chinese readers start with the Chinese summary, English reade
   assert.equal(px(group.gap), 24);
 });
 
-test('/ai-in-the-bay folds the ended sessions behind one button and shows a shared theme photo once', () => {
+test('/ai-in-the-bay folds the ended sessions behind one button; every card shows a picture, spread over the pool', () => {
   const view = render(<MemoryRouter initialEntries={['/ai-in-the-bay']}><AiLocalPage today="2026-10-12" /></MemoryRouter>);
   assert.equal(view.queryAllByRole('article').length, 0);
   assert.ok(view.getAllByRole('link', { name: '看本周末活动' }).some(link => link.closest('.ui-state')), 'the folded state points to this weekend');
@@ -179,8 +179,13 @@ test('/ai-in-the-bay folds the ended sessions behind one button and shows a shar
   fireEvent.change(view.getByRole('combobox'), { target: { value: 'all' } });
   const cards = view.getAllByRole('article');
   assert.ok(cards.length >= 8, `${cards.length} past sessions`);
-  const srcs = [...view.container.querySelectorAll('.bl-ai-event-media img')].map(img => img.getAttribute('src'));
-  assert.equal(new Set(srcs).size, srcs.length, `each photo once: ${srcs.join(', ')}`);
+  // UI9-IMAGES DECISIONS 21 (UI9-R2-COVER-PICK): every card shows a picture, so a session without its own picture takes its
+  // category's ③ pool, rotated by the cover page: neighbouring cards never share one and the pool is used evenly.
+  const srcs = [...view.container.querySelectorAll('.bl-ai-event-media img')].map(img => img.getAttribute('src')!);
+  assert.equal(srcs.length, cards.length, 'every card shows a picture');
+  srcs.slice(1).forEach((src, index) => assert.notEqual(src, srcs[index], `cards ${index + 1} and ${index + 2}: ${src} twice in a row`));
+  const most = Math.max(...[...new Set(srcs)].map(src => srcs.filter(other => other === src).length));
+  assert.ok(most <= Math.ceil(srcs.length / new Set(srcs).size), `the pool is used evenly: ${srcs.join(', ')}`);
 });
 
 test('at 特大 and in 简洁显示 the weekend day buttons have short names, and the day bar scrolls with the list', () => {

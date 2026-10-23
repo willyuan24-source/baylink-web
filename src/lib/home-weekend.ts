@@ -86,12 +86,15 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
 
 /**
  * The feed: the rest of the weekend in the home ranking (Chinese-language, free, family, real photo, flagship), with the
- * best real photos on the grid's diagonal. Also the build's, after it moves a lead (home-weekend-build.ts).
+ * best real photos on the grid's diagonal. Also the build's, after it moves a lead (home-weekend-build.ts): `head` (the
+ * editor pick the new lead pushed out of the three) is the feed's first card, so the home shows it next and /plan as its
+ * fourth; the ranking's photos keep their diagonal places after it.
  */
 export function weekendFeed<T extends { event: MonthlyEvent; date: string }>(events: readonly T[], picks: readonly { event: MonthlyEvent }[], start: string,
-  ranking: { hasPhoto: (imageKey: string) => boolean; hasRealPhoto: (imageKey: string) => boolean; flagships: ReadonlySet<string> }, feedLimit = HOME_FEED_SIZE): T[] {
-  const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), start, ranking);
-  return featurePhotos(rest, entry => ranking.hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
+  ranking: { hasPhoto: (imageKey: string) => boolean; hasRealPhoto: (imageKey: string) => boolean; flagships: ReadonlySet<string> }, feedLimit = HOME_FEED_SIZE, head: readonly T[] = []): T[] {
+  const rest = rankWeekendFallback(events.filter(entry => ![...picks, ...head].some(pick => pick.event.id === entry.event.id)), start, ranking);
+  const slots = FEED_PHOTO_SLOTS.filter(slot => slot >= head.length).map(slot => slot - head.length);
+  return [...head, ...featurePhotos(rest, entry => ranking.hasPhoto(entry.event.imageKey), slots)].slice(0, feedLimit);
 }
 
 /** Days with a dated /weekly card: each home snapshot day in the week after the home catalog was generated. */

@@ -23,7 +23,7 @@ test('every home snapshot day has its cards, each an event of the snapshot on on
       assert.ok(date >= start && date <= end && date >= day, `${day}: ${id} on ${date}`);
       assert.doesNotMatch(event.en.title, /[㐀-鿿]/u, `${id}: English title`);
       // UI9-IMG-A1b: the candidates the strip may show (imageKeys, else its own image) ship with their records.
-      for (const key of event.imageKeys ?? (event.imageKey ? [event.imageKey] : [])) if (GUIDE_IMAGES[key]) assert.deepEqual(generated.images[key], GUIDE_IMAGES[key], `${id}: ${key}'s image record`);
+      for (const key of event.imageKeys ?? (event.imageKey ? [event.imageKey] : [])) if (GUIDE_IMAGES[key]) assert.deepEqual(generated.images[key], { ...GUIDE_IMAGES[key], alt: '' }, `${id}: ${key}'s image record (no alt text: the strip's covers are decorative)`);
       if (event.imageKeys) assert.ok(event.imageKeys.length > 0, `${id}: a picture to show`);
     }
   }

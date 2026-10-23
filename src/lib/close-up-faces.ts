@@ -1,12 +1,12 @@
 /**
- * Photos whose subject is a close-up of identifiable faces (owner rule, UI-9 DECISIONS 15: such a photo never leads a page).
- * An image here can still be a feed or row cover; it only never takes a lead slot: the /events lead and the calendar day's
- * lead (features/events/weekend-lead.ts canLead) and the home lead: the lead is the next pick with a ① or ② picture
- * (UI9-IMAGES DECISIONS 26, home-weekend-build.ts), never an information card (DECISIONS 21); cover.ts never puts ④ on a
- * lead. The home catalog keeps the photo for the feed and /plan. Checked by eye
- * on 10-20 on every image that could lead from 10/20 to 11/9: the home leads, the /events weekend leads and each day's
- * /calendar lead in every region (the acceptance review found the Ferry Plaza vendor leading /calendar). It is editorial
- * image data kept in code until the image registry carries the flag (an owner / data task); the owner may release an entry.
+ * Photos whose subject is a close-up of identifiable faces (owner rule, UI-9 DECISIONS 15) and posed group portraits that
+ * fill the frame. UI-9 DECISIONS 32 (round 2): such a photo never takes a lead slot (the home lead, the /events lead, each
+ * /calendar day's lead, /plan's first pick: lib/lead-rule.ts), released by the owner or not; it stays a feed, row, card
+ * and detail picture. A lead goes to the next pick with a photographic ① or ② picture (UI9-IMAGES DECISIONS 26,
+ * home-weekend-build.ts, features/events/weekend-lead.ts canLead), never an information card (DECISIONS 21); cover.ts
+ * keeps posters, flyers and ④ off a lead by the image's kind. Checked by eye on 10-20 and again on 10-23 on every ① / ②
+ * photo that could lead from 10/23 to 11/15 (lanes/UI9-R2-COVER-PICK/tools/lead-photos-*.png). Editorial image data kept
+ * in code until the image registry carries the flag (an owner / data task).
  */
 const FLAGGED_CLOSE_UPS = [
   'official-r2-petaluma-lumafest-20261024', // LumaFest 10/24: four volunteers posing at a booth, faces sharp and centred
@@ -19,8 +19,9 @@ const FLAGGED_CLOSE_UPS = [
 
 /**
  * Released by the owner in chat on 2026-10-21 09:28 PT: 「圖片全部批准」 (the close-up section of the UI9-IMG-B1a approval
- * page listed these six keys; UI9-IMAGES DECISIONS 26 left the release to the owner). A released key leads like any other
- * photo. The flagged list stays above as the record of what was checked; a new close-up goes there unreleased.
+ * page listed these six keys; UI9-IMAGES DECISIONS 26 left the release to the owner). The release stands (DECISIONS 32):
+ * these photos show on their own cards, rows and detail pages. What DECISIONS 32 changed is the arrangement: they still
+ * never lead. Never empty this set; a new close-up goes into the flagged list above, unreleased.
  */
 const OWNER_RELEASED: ReadonlySet<string> = new Set([
   'official-r2-petaluma-lumafest-20261024',
@@ -32,23 +33,35 @@ const OWNER_RELEASED: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * The close-ups that still never lead: flagged and not released by the owner (none since 2026-10-21). Approved AI covers
- * never lead either, but by the lead rule (lib/lead-rule.ts; cover.ts refuses ④ on a lead, DECISIONS 24), not by this list.
+ * Posed group portraits that fill the frame (DECISIONS 32, round-2 OD4): a stage or booth line-up facing the camera. Fine
+ * on a card or a row, never in a lead slot. The four LumaFest volunteers, the Goblin Jamboree families and the seven
+ * Presidio staff are on the close-up list above already.
  */
-export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS.filter(key => !OWNER_RELEASED.has(key)));
-/** Flagged close-ups the owner released (tests read it). */
+const POSED_GROUPS = [
+  'official-sjpl-almaden-sounds-of-south-asia-2026', // Almaden Sounds of South Asia: some thirty musicians and students posing on a stage (home lead 11/9–11/14)
+];
+
+/** Every flagged close-up, released or not: none of them takes a lead slot (DECISIONS 32). */
+export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS);
+/** Flagged close-ups the owner released for cards, rows and detail pages (tests read it). */
 export const RELEASED_CLOSE_UPS: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS.filter(key => OWNER_RELEASED.has(key)));
+/** Posed group portraits that fill the frame. */
+export const POSED_GROUP_IMAGES: ReadonlySet<string> = new Set(POSED_GROUPS);
+/**
+ * The pictures no lead slot shows (close-ups and posed groups). Posters, flyers and AI pictures are kept off a lead by
+ * their kind in cover.ts (a lead takes only a photographic ① or ②), so they are not listed here.
+ */
+export const NOT_FOR_LEAD: ReadonlySet<string> = new Set([...FLAGGED_CLOSE_UPS, ...POSED_GROUPS]);
 
 /**
- * The image a lead slot may show given the close-ups that still never lead: none of its own for one of them (the slot draws
- * the item's next candidate). Pure, so a test can pass a close-up the owner has not released (the list
- * is empty since 2026-10-21, and the rule still binds the next one flagged).
+ * The image a lead slot may show given the pictures that never lead: none of its own for one of them (the slot draws the
+ * item's next candidate). Pure, so a test can pass its own list.
  */
-export const leadImageKeyFor = (imageKey: string | undefined, closeUps: ReadonlySet<string>): string | undefined =>
-  imageKey && closeUps.has(imageKey) ? undefined : imageKey;
+export const leadImageKeyFor = (imageKey: string | undefined, excluded: ReadonlySet<string>): string | undefined =>
+  imageKey && excluded.has(imageKey) ? undefined : imageKey;
 
 /**
- * The image a lead slot may show: none of its own for a close-up of faces. A page whose candidates all have one (a day where
- * only such an event runs) still leads with that event, with its next candidate (a ③ category photo).
+ * The image a lead slot may show: none of its own for a close-up of faces or a posed group. A page whose candidates all
+ * have one (a day where only such an event runs) still leads with that event, with its next candidate (② or ③).
  */
-export const leadImageKey = (imageKey: string | undefined): string | undefined => leadImageKeyFor(imageKey, CLOSE_UP_FACE_IMAGES);
+export const leadImageKey = (imageKey: string | undefined): string | undefined => leadImageKeyFor(imageKey, NOT_FOR_LEAD);

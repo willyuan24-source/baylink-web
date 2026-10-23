@@ -19,7 +19,7 @@ const { MemoryRouter } = await import('react-router-dom');
 const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const model = await import('../src/features/events/events-model');
-const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES, leadImageKey } = await import('../src/features/events/weekend-lead');
+const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES, NOT_FOR_LEAD, leadImageKey } = await import('../src/features/events/weekend-lead');
 const { RELEASED_CLOSE_UPS } = await import('../src/lib/close-up-faces');
 const { dayWhenLine } = await import('../src/features/events/event-lines');
 const { ImageCredits } = await import('../src/features/events/ImageCredits');
@@ -51,23 +51,25 @@ test('the index carries home\'s lead per day, and the /events lead and pick rows
   const weekendEvents = model.INDEX_EVENTS.filter(event => [weekend.start, weekend.end].some(day => nextOccurrence(event, day) === day));
   const picks = model.weekendPicks(weekendEvents, today, { limit: 5 });
   const home = homeLeadFor(today, picks);
-  const { lead, rows } = arrangePicks(picks, today, home);
+  // As the page: the weekend in its ranking is where the lead comes from when no pick has a lead photo (DECISIONS 26/32).
+  const { lead, rows } = arrangePicks(picks, today, home, model.weekendRanked(weekendEvents, today));
   assert.ok(lead, 'a lead');
   assert.notEqual(lead!.event.id, home, 'never home\'s lead');
   assert.ok(!rows.some(item => item.event.id === home), 'home\'s lead is no pick row');
-  assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead!.event.imageKey), 'no close-up face leads');
-  // A pick whose photo shows close-up faces never leads, even when it is first. None is left unreleased since 2026-10-21,
-  // so flag the lead's own photo as one the owner has not released, for this check only (the pages read the shared list).
+  assert.ok(!NOT_FOR_LEAD.has(lead!.event.imageKey), 'no close-up face or posed group leads');
+  assert.equal(canLead(lead!.event, today), true, 'the lead has a ① or ② photograph (DECISIONS 32)');
+  // A pick whose photo shows close-up faces never leads, even when it is first: put the lead's own photo on the list, for
+  // this check only (the pages read the shared list).
   const face = { ...lead!, event: { ...lead!.event, id: 'x-face' } };
   assert.equal(canLead(face.event, today), true, 'as it ships, the photo leads');
-  assert.equal(canLead(face.event, today, new Set([face.event.imageKey!])), false, 'flagged, it cannot lead');
-  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  assert.equal(canLead(face.event, today, new Set([face.event.imageKey!])), false, 'listed, it cannot lead');
+  const flagged = NOT_FOR_LEAD as Set<string>;
   flagged.add(face.event.imageKey!);
   try {
     assert.equal(canLead(face.event, today), false);
-    assert.notEqual(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'the next pick that can lead leads');
+    assert.notEqual(arrangePicks([face, ...picks], today, 'none', model.weekendRanked(weekendEvents, today)).lead?.event.id, 'x-face', 'the next event that can lead leads');
   } finally { flagged.delete(face.event.imageKey!); }
-  assert.equal(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'released, it leads');
+  assert.equal(arrangePicks([face, ...picks], today, 'none').lead?.event.id, 'x-face', 'off the list, it leads');
   // With no entry for the day, the first weekend pick is home's lead.
   assert.equal(homeLeadFor('2099-01-01', picks, {}), picks[0].event.id);
 });
@@ -340,30 +342,32 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
   if (todayEnd) assert.ok(within(todayEnd as HTMLElement).getByRole('link', { name: `明天 ${md(addCalendarDays(today, 1))}` }));
 });
 
-test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferry Plaza vendor led 10/20, 10/22, 10/27, 10/29)', () => {
-  // The owner released the Ferry Plaza photo with the other five flagged close-ups in chat on 2026-10-21 (「圖片全部批准」).
+test('/calendar: a close-up face photo or a poster never leads a day (DECISIONS 15/32: the Ferry Plaza vendor led 10/20, 10/22, 10/27, 10/29)', () => {
+  // The owner released the Ferry Plaza photo with the other five flagged close-ups in chat on 2026-10-21 (「圖片全部批准」);
+  // DECISIONS 32 (round 2) keeps it, released, out of the lead slots.
   assert.ok(RELEASED_CLOSE_UPS.has('official-ferry-plaza-farmers-market-2026-autumn'));
-  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'), false);
+  assert.equal(NOT_FOR_LEAD.has('official-ferry-plaza-farmers-market-2026-autumn'), true);
+  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'), true);
   const byId = new Map(model.INDEX_EVENTS.map(event => [event.id, event]));
-  let faceDays = 0;
+  const stemOf = (key: string | undefined) => (key && GUIDE_IMAGES[key]?.src || '').replace(/\.webp$/, '');
   for (let offset = 0; offset < 7; offset++) {
     const day = addCalendarDays(today, offset);
-    if (model.INDEX_EVENTS.some(event => CLOSE_UP_FACE_IMAGES.has(event.imageKey) && nextOccurrence(event, day) === day)) faceDays++;
     const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
     const card = view.container.querySelector('.ev-calendar__lead');
     const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
     const lead = href && byId.get(href.replace(/^\/events\/|\?.*$/g, ''));
-    // The day's lead is an event whose picture can lead (Ferry Plaza never, on 10/20 or after), or, when the day has none,
-    // the first one in its type cover: never a face photo.
+    // The day's lead is an event whose picture can lead (a ① or ② photograph: Ferry Plaza never, on 10/20 or after), or,
+    // when the day has none, the first one with its next candidate: never a face photo or a poster.
     const canLeadThatDay = model.INDEX_EVENTS.some(event => nextOccurrence(event, day) === day && canLead(event, today));
-    if (lead && canLeadThatDay) assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead.imageKey), `${day}: ${lead.id} leads with a close-up face photo`);
-    if (lead && CLOSE_UP_FACE_IMAGES.has(lead.imageKey)) assert.equal(card!.querySelector('img'), null, `${day}: ${lead.id} leads with its face photo`);
+    if (lead && canLeadThatDay) assert.ok(canLead(lead, today), `${day}: ${lead.id} leads without a lead photo`);
+    const own = lead ? GUIDE_IMAGES[lead.imageKey] : undefined;
+    if (lead && own && (NOT_FOR_LEAD.has(lead.imageKey) || own.kind !== 'photo' || own.fullFrame)) {
+      assert.equal(card!.innerHTML.includes(stemOf(lead.imageKey)), false, `${day}: ${lead.id} leads with its ${own.kind} ${lead.imageKey}`);
+    }
     cleanup();
   }
-  // Released close-ups count as no face days: the list of unreleased ones is empty since 2026-10-21.
-  assert.equal(faceDays, 0, 'no unreleased close-up runs in the week tested');
-  // The rule still binds the next close-up flagged: flag the first day's lead photo as one the owner has not released, for
-  // this check only (the page reads the shared list), and that photo leaves the day's lead.
+  // The rule binds every picture on the list: put the first day's lead photo on it, for this check only (the page reads the
+  // shared list), and that photo leaves the day's lead.
   const leadOf = (day: string) => {
     const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
     const card = view.container.querySelector('.ev-calendar__lead');
@@ -373,11 +377,12 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
     return result;
   };
   // A day whose lead shows its own registered picture: a lead whose imageKey is a shared key (e.g. 'weekend') shows its venue
-  // photo instead, so flagging its key would test nothing (10-23: the Warriors game led with the Chase Center venue photo).
+  // photo instead, and one that leads with its ② venue photo (its own being a ④ AI picture) is no help either, so flagging
+  // its key would test nothing (10-23: the Warriors game led with the Chase Center venue photo).
   const ownPicture = (day: string) => {
     const { event, html } = leadOf(day);
-    const src = event?.imageKey ? GUIDE_IMAGES[event.imageKey]?.src : undefined;
-    return !!event && !!src && canLead(event, today) && html.includes(src.replace(/\.webp$/, ''));
+    const stem = stemOf(event?.imageKey);
+    return !!event && !!stem && canLead(event, today) && html.includes(stem);
   };
   const flagDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offset)).find(ownPicture);
   assert.ok(flagDay, 'a day in the week leads with a photo');
@@ -386,13 +391,15 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
   // The photo's file stem: the lead's <img> is one of its sized files.
   const stem = (GUIDE_IMAGES[key]?.src ?? '').replace(/\.webp$/, '');
   assert.ok(stem && before.html.includes(stem), `${flagDay}: ${before.event!.id} leads with ${key}`);
-  const flagged = CLOSE_UP_FACE_IMAGES as Set<string>;
+  const flagged = NOT_FOR_LEAD as Set<string>;
   flagged.add(key);
   try {
-    assert.equal(leadOf(flagDay).html.includes(stem), false, `${flagDay}: flagged, ${key} never leads the day`);
+    assert.equal(leadOf(flagDay).html.includes(stem), false, `${flagDay}: listed, ${key} never leads the day`);
   } finally { flagged.delete(key); }
-  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), 'official-ferry-plaza-farmers-market-2026-autumn', 'a released photo leads as itself');
+  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), undefined, 'a released close-up never leads');
+  // The Danville poster is not on the list: cover.ts keeps it off a lead by its kind (DECISIONS 32).
   assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
+  assert.equal(canLead({ id: 'x-poster', imageKey: 'official-danville-scarecrow-stroll-2026' }, today), false, 'a poster never leads');
 });
 
 test('events.css and cards.css: hover gated, no font-size literals, spacing on the --sp-* steps, no clamped card title', () => {
