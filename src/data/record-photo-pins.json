@@ -2,6 +2,20 @@
   "_format": "UI9-IMG-B2 record pins (src/lib/cover-candidates.ts coverCandidates): ③ stock pictures (GUIDE_IMAGES keys, rights.basis 'stock') that belong to one record only, tried after its own ① and venue ② and before its photo category's pool. Key '<kind>:<id>' (event | offer | opening | guide); value: keys in order. A pinned picture that is not in a shared pool shows on these records only (e.g. the Muni pictures on the three SFMTA records, never the transit pool).",
   "pins": {
     "guide:bay-area-medicare-hicap-medi-cal-guide": ["stock-guide-health-3"],
-    "guide:bay-area-dental-care-insurance-low-cost-guide": ["stock-guide-health-2"]
+    "guide:bay-area-dental-care-insurance-low-cost-guide": ["stock-guide-health-2"],
+    "event:smcl-portola-valley-mid-autumn-lantern-2026": ["stock-lantern-1"],
+    "event:berkeley-college-information-day-2026": ["stock-campus-open-day-1"],
+    "event:sfzoo-zoolights-2026": ["stock-winter-holidays-8"],
+    "offer:sfmta-free-muni-seniors": ["stock-muni-1","stock-muni-2"],
+    "offer:chase-center-ticket-muni-included": ["stock-muni-1","stock-muni-2"],
+    "offer:muni-youth-free": ["stock-muni-1","stock-muni-2"],
+    "event:sf-world-of-dumplings-2026": ["stock-dumplings-1","stock-dumplings-2","stock-food-festival-1"],
+    "event:menlo-park-trunk-or-treat-2026": ["stock-halloween-7"],
+    "event:orinda-trunk-and-treat-october-2026": ["stock-halloween-7"],
+    "event:concord-police-trunk-treat-2026": ["stock-halloween-7"],
+    "event:windsor-trick-or-treat-trail-2026": ["stock-halloween-7","stock-halloween-6","stock-halloween-5","stock-halloween-2"],
+    "event:sf-financial-planning-day-oct24-2026": ["stock-tech-meetup-2"],
+    "event:sfpl-western-addition-open-house-oct24-2026": ["stock-library-4","stock-library-9"],
+    "event:acl-cherryland-chinese-storytimes-oct24-2026": ["stock-storytime-6","stock-storytime-3","stock-storytime-5"]
   }
 }
