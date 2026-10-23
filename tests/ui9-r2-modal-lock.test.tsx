@@ -198,3 +198,43 @@ test('a wait inside an open dialog keeps the outer lock and leaves it to the out
   assert.equal(html.style.overflow, '');
   assert.ok(document.activeElement === opener());
 });
+
+test('under React.StrictMode (effects run, clean up and run again) the wait still holds the page, and lets go on cancel and on close', async () => {
+  const strict = (lazy: ReturnType<typeof controlledDialog>) => <React.StrictMode><DialogSlot dialog={lazy.slot} onFail={() => {}} props={{ onClose: () => {} }} /></React.StrictMode>;
+  // Cancelled: the doubled effect's deferred release does not leave the page locked or unlocked early.
+  const cancelled = controlledDialog();
+  opener().focus();
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(strict(cancelled)); });
+  await microtask();
+  assert.equal(html.style.overflow, 'hidden', 'the release of the first effect run is balanced by the second run');
+  assert.equal(appRoot().inert, true);
+  view.unmount();
+  await microtask();
+  assert.equal(html.style.overflow, '');
+  assert.equal(appRoot().inert, false);
+  assert.ok(document.activeElement === opener());
+  // The chunk arrives: the dialog takes over the lock, and closing releases it.
+  const lazy = controlledDialog();
+  const styles: (string | null)[] = [];
+  const watch = new dom.window.MutationObserver(records => { for (const r of records) styles.push(r.oldValue); });
+  watch.observe(html, { attributes: true, attributeFilter: ['style'], attributeOldValue: true });
+  await act(async () => { view = render(strict(lazy)); });
+  await microtask();
+  assert.equal(html.style.overflow, 'hidden');
+  assert.equal(appRoot().inert, true);
+  await lazy.arrive();
+  await microtask();
+  assert.equal(wait(), null);
+  assert.ok(view.getByRole('dialog', { name: 'Loaded dialog' }).contains(document.activeElement));
+  assert.equal(html.style.overflow, 'hidden');
+  assert.equal(appRoot().inert, true);
+  styles.push(...watch.takeRecords().map(r => r.oldValue));
+  watch.disconnect();
+  assert.equal(styles.length, 1, 'locked once: the replayed effects never unlock and relock the page');
+  view.unmount();
+  await microtask();
+  assert.equal(html.style.overflow, '');
+  assert.equal(appRoot().inert, false);
+  assert.ok(document.activeElement === opener(), 'focus is back on the opener');
+});
