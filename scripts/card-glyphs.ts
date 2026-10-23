@@ -43,8 +43,9 @@ export const MAX_RASTER_WORKERS = 4;
 /**
  * How many rasterizing workers: SHARE_CARD_WORKERS when set (a whole number ≥ 1), else one per core, at most
  * MAX_RASTER_WORKERS. The main thread only lays the cards out (~9 s for 3,348 cards on a Mac against minutes of
- * rasterizing) and mostly waits, so the old "cores − 1" left half of Vercel's two-core build machine idle
- * (HOTFIX-BUILD-TIME, 10-22: the build passed Vercel's 45-minute limit).
+ * rasterizing) and mostly waits, so the old "cores − 1" left half of a two-core build machine idle — Vercel's is
+ * taken to have two (not measured; the generator's log line now prints the core count) (HOTFIX-BUILD-TIME, 10-22:
+ * the build passed Vercel's 45-minute limit).
  */
 export function rasterWorkerCount(env: Record<string, string | undefined> = process.env, cores = availableParallelism()) {
   const forced = Number(env.SHARE_CARD_WORKERS);
