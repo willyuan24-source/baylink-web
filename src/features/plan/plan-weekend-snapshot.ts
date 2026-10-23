@@ -16,7 +16,9 @@ import { getHomeWeekend } from '../../lib/home-weekend';
  */
 export const PLAN_WEEKEND_SHOWN = 4;
 
-export type PlanWeekendEvent = HomeEvent & { en: { title: string; shortTitle?: string; place: string } };
+/** A record's fields no /plan card reads (EventFactsInput and the cover): left out, as /plan's route JS is tight (UI9-R2). */
+const UNREAD = ['region', 'verifiedAt'] as const;
+export type PlanWeekendEvent = Omit<HomeEvent, typeof UNREAD[number]> & { en: { title: string; shortTitle?: string; place: string } };
 export type PlanWeekendDay = { start: string; end: string; entries: { id: string; date: string }[] };
 export type PlanWeekendSnapshot = { days: Record<string, PlanWeekendDay>; events: Record<string, PlanWeekendEvent>; images: Record<string, GuideImage> };
 
@@ -42,7 +44,8 @@ export function buildPlanWeekend(): PlanWeekendSnapshot {
       const event = item as HomeEvent;
       if (!events[event.id]) {
         const shortTitle = event.shortTitle ? translateText(event.shortTitle, 'en') : '';
-        events[event.id] = { ...event, en: { title: translateText(event.title, 'en'), ...(shortTitle && !HAN.test(shortTitle) ? { shortTitle } : {}), place: translateText(eventPlace(event as unknown as EventFactsInput), 'en') } };
+        const card = Object.fromEntries(Object.entries(event).filter(([key]) => !(UNREAD as readonly string[]).includes(key))) as Omit<HomeEvent, typeof UNREAD[number]>;
+        events[event.id] = { ...card, en: { title: translateText(event.title, 'en'), ...(shortTitle && !HAN.test(shortTitle) ? { shortTitle } : {}), place: translateText(eventPlace(event as unknown as EventFactsInput), 'en') } };
       }
       // The first candidate the ladder accepts (imageKeys: ① own, ② venue, ③ stock, ④ approved AI; UI9-IMG-A1b), so a pick
       // whose own image is no cover still shows a picture (never an information card); a second one only for a ③ picture,
