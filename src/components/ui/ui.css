@@ -19,7 +19,10 @@
 
 /* Buttons: six looks site-wide (H29, N12) — primary (brand fill, white 600 label, one per section), secondary (white, control
    border 3.8:1, ink 400; the icon button is the same look in a circle) and quiet (brand text, no fill or border); plus the
-   chip and the segmented control (cards.css). Pills (tokens v2). A label that wraps keeps 8px above and below it (#60 live
+   chip and the segmented control (cards.css). A feature sheet that styles its own <button> writes one of the first two
+   exactly as here (UI9-R1-BUTTONS, scripts/check-style-ratchet.mjs buttonLooks): primary `background:var(--color-brand);
+   color:var(--color-surface); border-color:var(--color-brand)`, secondary `background:var(--color-surface);
+   color:var(--color-ink); border:1px solid var(--color-line-control)`; an on state is the selected pair below. Pills (tokens v2). A label that wraps keeps 8px above and below it (#60 live
    check: 家人版 two-line pills had 2.4–3px): the padding is --sp-2 on top of the min-height, which still sets one-line pills.
    Hover only where a pointer can hover; every control answers a press at once (scale, which composes with any transform). */
 .ui-button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:max(var(--control-height), 3rem); padding:var(--sp-2) 20px; border:1px solid transparent; border-radius:var(--r-pill); font-size:var(--fs-body); line-height:1.25; font-weight:var(--fw-regular); text-decoration:none; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
@@ -37,15 +40,17 @@
 /* H62: an icon button is a full 44px target (48 in 简洁显示), not a 40px circle with a stretched hit area. */
 .ui-icon-button { position:relative; display:inline-grid; place-items:center; flex:none; width:var(--control-height); height:var(--control-height); padding:0; border:1px solid var(--color-line-control); border-radius:var(--r-circle); background:var(--color-surface); color:var(--color-ink); cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ui-icon-button::before { content:""; position:absolute; inset:-2px; border-radius:var(--r-circle); }
-.ui-icon-button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
+.ui-icon-button[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
 .ui-icon-button>svg { width:1.25rem; height:1.25rem; }
 @media (min-width:1024px) { .ui-button { min-height:var(--control-height); } }
 
-/* Filter chip: the one selected look site-wide (N08) is ink background and white text (400: the fill carries the state); the
-   pressed icon button and the checked segment (cards.css) take it too. */
+/* Filter chip: the one selected look site-wide (N08) is the selected pair (tokens.css --selected-bg / -fg / -line: ink fill,
+   white text, 400: the fill carries the state, and a 1px edge in the fill's colour); the pressed icon button, the checked
+   segment and tab (cards.css, events.css), the chosen day (events.css) and the current menu row (site-chrome.css) take it
+   too. Navigation is not selection: the current nav item and breadcrumb are ink words (+ the nav's underline). */
 .ui-chip { position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-meta); line-height:1.25; font-weight:var(--fw-regular); white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ui-chip::before { content:""; position:absolute; inset:-2px 0; }
-.ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:400; }
+.ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); font-weight:400; }
 .ui-chip__count { font-size:var(--text-caption); opacity:.75; font-variant-numeric:tabular-nums; }
 .ui-chip>svg { width:1rem; height:1rem; flex:none; }
 .ui-chip-row { display:flex; gap:8px; overflow-x:auto; padding:2px 16px; margin:0 -16px; scroll-padding-inline:16px; scrollbar-width:none; }
@@ -137,6 +142,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 /* Page header and containers: one H1 spec, three widths, gutters 16/24/32. */
 .ui-page-header { display:flex; flex-direction:column; gap:8px; margin:0 0 24px; }
 .ui-page-header__crumbs { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.ui-page-header__crumbs [aria-current=page] { color:var(--role-ink); }
 .ui-page-header__title { margin:0; color:var(--color-ink); font-size:var(--text-h1); line-height:var(--lh-h1); font-weight:600; letter-spacing:0; text-wrap:balance; }
 .ui-page-header[data-size=display] .ui-page-header__title { font-size:var(--text-display); line-height:var(--lh-display); }
 .ui-page-header__lede { max-width:40em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }

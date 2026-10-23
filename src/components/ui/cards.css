@@ -107,7 +107,7 @@
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 /* The checked segment takes the one selected look (N08: the chips' ink fill and white text, ui.css), so a page has one
    "chosen" colour; the fill is the cue (16.5:1 against the sunken track). */
-.ui-segmented__item[aria-checked=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
+.ui-segmented__item[aria-checked=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
 
 /* Card skeleton: same geometry as the card it stands in for (the shimmer is ui.css .ui-skeleton). */
 .ui-skeleton-card { display:flex; flex-direction:column; gap:var(--sp-2); }
