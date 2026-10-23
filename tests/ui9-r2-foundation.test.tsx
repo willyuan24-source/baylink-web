@@ -87,11 +87,11 @@ test('R2-03: one label component, bottom-left inside the picture at every size, 
 });
 
 test('R2-11: ≤ 3 lines under a card title — when, one status · place line, the quiet ✓ line; only that line has a ✓', () => {
-  const meta = decls(CARDS, '.ui-feed-card__meta');
-  assert.deepEqual([meta['white-space'], meta['text-overflow'], meta.overflow], ['nowrap', 'ellipsis', 'hidden']);
-  const trust = decls(CARDS, '.ui-feed-card__trust');
+  const meta = decls(CARDS, ':is(.ui-feed-card__when,.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span)');
+  assert.deepEqual([meta['white-space'], meta['text-overflow'], meta.overflow], ['nowrap', 'ellipsis', 'hidden'], 'the when, status · place and ✓ words: one line each');
+  const trust = decls(CARDS, ':is(.ui-feed-card__trust,.ui-hero-card__trust)');
   assert.deepEqual([trust['font-size'], trust.color], ['var(--text-caption)', 'var(--color-ink-3)'], 'caption size, the lightest ink at ≥ 4.5:1');
-  assert.equal(decls(CARDS, '.ui-feed-card__trust>svg').color, undefined, 'its ✓ in the same ink');
+  assert.equal(decls(CARDS, ':is(.ui-feed-card__trust,.ui-hero-card__trust)>svg').color, undefined, 'its ✓ in the same ink');
   assert.doesNotMatch(read(COVERS), /content:"✓"/, '已开业 has no ✓ of its own');
   for (const line of ['.ui-card-when', '.ui-hero-card__meta']) assert.equal(decls(COVERS, line)['line-height'], 'var(--lh-ui)', `${line}: the body ladder (N05)`);
 });
@@ -108,13 +108,10 @@ test('R2-11: the when and ✓ lines hold one line on a feed card — the when li
   assert.equal(card.querySelector('.ui-feed-card__when')!.textContent, 'Sun, Oct 25 · 10:30am–11am', 'the whole line stays in the DOM');
   assert.equal(card.querySelectorAll('.ui-feed-card__when>.ui-when-piece').length, 3);
   assert.equal(card.querySelector('.ui-feed-card__trust>span')!.textContent, 'News report · checked Sep 28');
-  const when = decls(CARDS, '.ui-feed-card>.ui-feed-card__when');
-  assert.deepEqual([when['white-space'], when['text-overflow'], when.overflow, when['font-variant-numeric']], ['nowrap', 'ellipsis', 'hidden', 'normal']);
-  const cut = decls(CARDS, '.ui-feed-card>.ui-feed-card__when:has(>.ui-when-piece)');
+  assert.equal(decls(COVERS, '.ui-card-when')['font-variant-numeric'], undefined, 'proportional figures: 周六 10/24 · 10:30、11:30 fits 173 px');
+  const cut = decls(CARDS, '.ui-feed-card__when:has(>.ui-when-piece)');
   assert.deepEqual([cut.display, cut['flex-wrap'], cut['max-height']], ['flex', 'wrap', 'calc(var(--lh-ui) * 1em)'], 'a piece that does not fit moves to a clipped second line');
   assert.equal(decls(CARDS, '.ui-when-piece')['white-space'], 'pre');
-  const trust = decls(CARDS, '.ui-feed-card>.ui-feed-card__trust>span');
-  assert.deepEqual([trust['white-space'], trust['text-overflow'], trust['min-width']], ['nowrap', 'ellipsis', '0']);
 });
 
 test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in a 173 px square: 260px); 3D postcards keep theirs', () => {

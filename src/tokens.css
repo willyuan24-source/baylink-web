@@ -336,7 +336,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .site-app .life-tools :is(input,select,textarea) { font-size:var(--text-body); }
 .life-tools :is(.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
 .life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
-.life-tools :is(.tool-swap,.tool-icon-button) { width:var(--control-height); height:var(--control-height); }
+.life-tools .tool-swap { width:var(--control-height); height:var(--control-height); }
 .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
 .life-tools .tool-converter-row { grid-template-columns:minmax(0,1fr) var(--control-height) minmax(0,1fr); }
 .member-compose-dialog :is(p,small,label) { font-size:var(--text-fact); line-height:var(--lh-read); }
@@ -356,13 +356,12 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
 }
-@media(prefers-reduced-motion:reduce) { .reading-dialog,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
+@media(prefers-reduced-motion:reduce) { .reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .event-participation-note,.editorial-share-actions>p { font-size:var(--text-caption); color:var(--color-ink-3); }
 .event-participation-buttons button,.editorial-share-buttons button { min-height:var(--control-height); font-size:var(--text-fact); }
 .guide-image-kind,.bl-freebie-picture>figcaption { font-size:var(--text-caption); }
 .planner-page .planner-editor.is-empty { align-self:start; }
 .planner-page .planner-empty p { font-size:var(--text-body); color:var(--color-ink-2); }
-.planner-page .planner-empty .planner-primary { min-height:var(--control-height); gap:8px; }
 @media(max-width:760px) {
   .planner-workspace>.planner-editor.is-empty { order:1; }
   .planner-workspace>.planner-editor.has-stops { order:-1; }

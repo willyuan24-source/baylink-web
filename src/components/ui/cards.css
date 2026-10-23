@@ -37,7 +37,6 @@
 @media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:2; } }
 @media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:3; } }
 .ui-feed-grid[data-layout=list] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
-.ui-feed-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--sp-3); }
 .ui-layout-toggle { display:inline-flex; gap:var(--sp-1); }
 
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
@@ -55,20 +54,20 @@
 /* BayBay's sideways card row scrolls (overflow-x:auto, no inline padding): the layer stays inside the card there. */
 .bb-cards .ui-feed-card .ui-card-link::after { inset:0; }
 .ui-card-link:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
-/* R2-11: at most 3 lines under a card's title — the when line, one line cut only between its pieces (Card.tsx WhenPieces;
-   text it cannot split ends in "…"; proportional figures, so "周六 10/24 · 10:30、11:30" fits 173 px); status · place on ONE
-   line (the place gives way with "…", the status chip before it never does); the ✓ line, its words ending in "…" when long. */
-.ui-feed-card>.ui-feed-card__when { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-variant-numeric:normal; }
-.ui-feed-card>.ui-feed-card__when:has(>.ui-when-piece) { display:flex; flex-wrap:wrap; max-height:calc(var(--lh-ui) * 1em); }
+/* R2-11: at most 3 lines under a card's title. The when line is one line, cut only between its pieces (Card.tsx
+   WhenPieces; text it cannot split ends in "…"; covers.css draws it in proportional figures, so "周六 10/24 · 10:30、11:30"
+   fits 173 px); status · place is ONE line (the place gives way with "…", the status chip before it never does); the ✓
+   line's words end in "…" when long. */
+:is(.ui-feed-card__when,.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span) { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.ui-feed-card__when:has(>.ui-when-piece) { display:flex; flex-wrap:wrap; max-height:calc(var(--lh-ui) * 1em); }
 .ui-when-piece { white-space:pre; }
-.ui-feed-card>.ui-feed-card__trust>span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.ui-feed-card__meta { margin:0; overflow:hidden; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); white-space:nowrap; text-overflow:ellipsis; }
+.ui-feed-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ui-meta-price { white-space:nowrap; }
 .ui-meta-sep { white-space:pre; }
 /* The ✓ 官网核对 / 媒体报道 line (decisions 3, 17; OD8): on every card, but quiet — caption size, ink-3 (the lightest ink at
    ≥ 4.5:1: 5.7:1 on paper; critic-r2 §4's floor over OD8's 55–60%), its ✓ in the same ink. */
-.ui-feed-card__trust { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:var(--lh-ui); }
-.ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; }
+:is(.ui-feed-card__trust,.ui-hero-card__trust) { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:var(--lh-ui); }
+:is(.ui-feed-card__trust,.ui-hero-card__trust)>svg { flex:none; width:.875rem; height:.875rem; }
 .ui-feed-card__save { position:absolute; top:var(--sp-1); right:var(--sp-1); z-index:3; }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { font-size:var(--text-card); line-height:var(--lh-snug); }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__meta { font-size:var(--fs-body); }
@@ -88,7 +87,7 @@
 .ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
 .ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:var(--lh-ui); font-weight:400; font-variant-numeric:tabular-nums; }
 .ui-row-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-medium); }
-.ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
+:is(.ui-row-card__meta,.ui-hero-card__reason) { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
 /* ♡ on a row (RowCard `save`; N13 / N25): the one 44px circle (48 in 简洁显示), on the row's right edge outside the picture,
    so an 88px thumbnail stays whole; a row with a trailing action too (加入) puts the ♡ just before it. No 36px ♡ remains. */
@@ -163,10 +162,7 @@
 .ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
 .ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:var(--r-pill); background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:var(--lh-ui); font-variant-numeric:tabular-nums; }
 .ui-hero-card__save { position:absolute; top:8px; right:8px; z-index:3; }
-.ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }
-.ui-hero-card__trust { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:var(--lh-ui); }
-.ui-hero-card__trust>svg { flex:none; width:.875rem; height:.875rem; }
 @media (min-width:1024px) {
   .ui-hero-card__title { font-size:var(--fs-keep-28); }
   /* B P04 / N04: the desktop card text one ladder step up — titles 17 → 18, the when line 14 → 16; meta and ✓ stay 14. */
@@ -174,11 +170,9 @@
   .ui-card-when { font-size:var(--fs-body); }
 }
 
-/* Card titles (after the card rules above, which they refine): no one-word last line. */
-:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
-/* P07: 2px of room on every side (a first glyph's side bearing, "Berkeley" at 1440), given back with a negative inline
-   margin so the text stays on the grid. */
-:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { padding:2px; margin-inline:-2px; }
+/* Card titles (after the card rules above, which they refine): no one-word last line; P07: 2px of room on every side (a
+   first glyph's side bearing, "Berkeley" at 1440), given back with a negative inline margin so the text stays on the grid. */
+:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { padding:2px; margin-inline:-2px; text-wrap:pretty; }
 @media (max-width:359px) {
   /* RV-14: one long Latin word ("Petaluma" at 特大) breaks inside a narrow card instead of running past it. */
   :is(.ui-row-card__title,.ui-feed-card__title) { overflow-wrap:anywhere; }

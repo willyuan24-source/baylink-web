@@ -64,7 +64,7 @@
 
 /* The card meta (G18, R2-11; Card.tsx, HeroCard.tsx): line 1 when, line 2 status · place (cards.css: one line), then the ✓
    line; one-line UI text, so the body ladder's --lh-ui (N05), not the card titles' --lh-snug. */
-.ui-card-when { margin:0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); font-variant-numeric:tabular-nums; }
+.ui-card-when { margin:0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ui-hero-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__when { font-size:var(--fs-body); }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__when { font-size:var(--fs-body); } }
