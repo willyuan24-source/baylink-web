@@ -62,6 +62,8 @@ export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
  * so it is never a record's first ③ candidate while its category has a scene picture: the detail hero, a lead that falls
  * back to ③ and every other hero-size slot take the first ③ (UI9-IMAGES DECISIONS 22 order). Checked by eye on 10-23 on
  * all 233 pool pictures (lanes/UI9-R2-COVER-PICK/tools/stock-*.png); kept in code until the image registry carries a tag.
+ * The guide pools' object pictures (envelopes, a chain on wood, a pencil on paper) stay off the list: a guide carries one
+ * ③ picture, so moving them back put one form-filling picture on two cards of /guides (measured 10-23: 8 repeats in 17 days).
  */
 export const MACRO_STOCK: ReadonlySet<string> = new Set([
   'stock-halloween-4', // candy corn filling the frame
