@@ -17,7 +17,7 @@ Object.assign(globalThis, {
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
-const { render, cleanup, act } = await import('@testing-library/react');
+const { render, cleanup, act, fireEvent } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { CoverImage, StatusChip, statusLook, COVER_SIZES } = await import('../src/components/ui');
 const { setLocale, translateText } = await import('../src/i18n/locale');
@@ -32,6 +32,8 @@ const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(async () => { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); });
 const wrap = (node: React.ReactNode) => render(<MemoryRouter>{node}</MemoryRouter>);
+/** A top-level rule's declarations, as written ('a:b; c:d'). */
+const postcssRule = (css: string, selector: string) => { let found = ''; postcss.parse(css).walkRules(rule => { if (rule.parent?.type === 'root' && rule.selector === selector) found = rule.nodes.map(node => node.toString()).join('; '); }); return found; };
 const today = '2026-10-19';
 const guidesIndex = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'utf8'));
 
@@ -127,7 +129,7 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   const css = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.doesNotMatch(css, /text-transform:\s*uppercase/);
   assert.doesNotMatch(css, /letter-spacing:\s*[\d.]+(?:em|px)/, 'no letter-spaced caps (G6)');
-  postcss.parse(css).walkDecls('font-size', declaration => assert.match(declaration.value, /^var\(--(?:fs-(?:badge|meta|body|card|card-lg|section|title)|text-caption)\)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`));
+  postcss.parse(css).walkDecls('font-size', declaration => assert.match(declaration.value, /^(?:var\(--(?:fs-(?:badge|meta|body|card|card-lg|section|title|label-thumb|label-tiny)|text-caption)\)|0)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`));
   const size = css.replace(/\r\n/g, '\n').length; // the content, not the checkout's line endings (a Windows clone has CRLF)
   assert.ok(size <= 8 * 1024, `covers.css ${size} B ≤ 8 KB (the information-card families are gone)`);
   assert.doesNotMatch(css, /ui-type-cover|\.tc-|@container tc/, 'no information-card rules');
@@ -144,11 +146,11 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   assert.equal(poster.container.querySelectorAll('img').length, 1, 'no blurred backdrop');
   assert.equal(poster.container.querySelector('[data-cover]')?.getAttribute('data-family'), 'poster');
   cleanup();
-  // A picture outside the listing feeds (no kind: /explore's attraction cards, whose caption covers the bottom; a guide's
-  // title picture) keeps its top-left badge as it was (DECISIONS 2).
+  // A picture outside the listing feeds (no kind: /explore's attraction cards, a guide's or a detail page's title picture)
+  // takes the same bottom-left chip since R2-03 (one label component at every size); only the 3D postcards keep their badge.
   const outside = wrap(<CoverImage image={photo} label="资料图 · 2024" />);
   assert.equal(outside.container.querySelector('[data-cover="image"]')?.hasAttribute('data-family'), false);
-  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), false);
+  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
   cleanup();
   // The 3D postcards: the same markup as before UI9-C (no family, no chip attribute) and the same badge rule.
   const postcard = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" ratio="16:9" ratioLock kind="place" />);
@@ -159,19 +161,30 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   postcss.parse(css).walkRules(rule => { if (rule.selector.includes('.ui-provenance') && rule.selector !== '.ui-provenance') assert.match(rule.selector, /\[data-chip\]/, `${rule.selector} excludes the 3D postcards`); });
 });
 
-test('review fixes: a poster fills its board at its own shape; the feed default is 3:2; 88 px thumbnails wrap their chip; 简洁 rows drop the ♡; skeletons reserve the 3:2 cover', async () => {
+test('review fixes: a poster sits whole on a blurred copy of itself in a full-bleed frame; the feed default is 3:2; every picture takes the chip; 简洁 rows drop the ♡; skeletons reserve the 3:2 cover', async () => {
   const late = { id: 'l', title: '夜市', startDate: '2026-10-24', endDate: '2026-10-24', city: 'Fremont', category: 'food', cost: 'free', audience: [], sessions: [{ date: '2026-10-24', start: '19:00', end: '01:00' }] };
   // The card's line prints the record's own close past midnight.
   assert.deepEqual(eventWhenLine(late as never, today), { zh: '周六 10/24 · 19:00–1:00', en: 'Sat, Oct 24 · 7pm–1am' });
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
-  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \{ container-type:size;/);
-  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*position:static; width:100%; width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var\(--sp-1\)/);
+  // DECISIONS 32 OD1 (R2-01): one full-bleed frame — no mat, padding, white keyline or shadow; the flyer is contained (never
+  // cropped) over a blurred copy of the decoded file (--ui-backdrop = its currentSrc, set once it has loaded).
+  assert.doesNotMatch(sheet, /\.ui-cover\[data-fit=contain\] \{/, 'no board rule: the frame is the plain cover');
+  assert.equal(postcssRule(sheet, '.ui-cover[data-fit=contain] .ui-cover__img'), 'object-fit:contain');
+  assert.match(postcssRule(sheet, '.ui-cover[data-fit=contain]::before'), /^content:""; position:absolute; inset:-12%; background:var\(--ui-backdrop, none\) 50% 50% \/ cover no-repeat; filter:blur\(18px\)/);
+  assert.equal(postcssRule(sheet, '.ui-cover[data-fit=contain][data-loaded]::before'), 'opacity:1');
   const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
-  assert.equal(flyer.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '3');
+  const frame = flyer.container.querySelector<HTMLElement>('[data-cover="image"]')!;
+  assert.equal(frame.hasAttribute('data-loaded'), false, 'no label or backdrop before the picture decodes');
+  assert.equal(frame.style.getPropertyValue('--ui-backdrop'), '');
+  const flyerImg = frame.querySelector('img')!;
+  assert.equal(flyerImg.getAttribute('style'), null, 'a poster has no crop position');
+  fireEvent.load(flyerImg);
+  assert.equal(frame.hasAttribute('data-loaded'), true);
+  assert.equal(frame.style.getPropertyValue('--ui-backdrop'), `url("${flyerImg.src}")`, 'the backdrop is the same file');
   cleanup();
   assert.match(sheet, /aspect-ratio:var\(--ui-feed-ratio, var\(--ui-cover-ratio, 3 \/ 2\)\)/, 'the feed default is 3:2 (decision 20)');
   const photo = { src: '/p.webp', alt: '', width: 1200, height: 900 };
-  const thumb = wrap(<CoverImage image={photo} label="官方图 · 照片" sizes={COVER_SIZES.thumb} />);
+  const thumb = wrap(<CoverImage image={photo} label="官方图 · 照片" />);
   assert.equal(thumb.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
   cleanup();
   const postcardThumb = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" sizes={COVER_SIZES.thumb} />);

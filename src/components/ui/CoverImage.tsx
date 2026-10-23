@@ -6,7 +6,7 @@ import { ProvenanceBadge } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
 import { COVER_SIZES } from './cover-sizes';
 import type { CoverAsset, CoverTier, ResolvedCover } from '../../lib/cover';
-import { tierLabelOf } from '../../lib/cover-labels';
+import { keptLabel, tierLabelOf } from '../../lib/cover-labels';
 
 /** The feed default is 3:2 (UI9-C, captain decision 20; `5:4` is accepted from older callers and draws that default); `16:10` is the BayBay answer card (264 wide, design.md §4.7.7). */
 export type CoverRatio = '3:4' | '4:5' | '5:4' | '1:1' | '16:9' | '16:10' | '3:2';
@@ -18,9 +18,13 @@ export type CoverImageProps = {
   image: Pick<CoverAsset, 'src' | 'alt' | 'width' | 'height'> & Partial<Pick<CoverAsset, 'srcSet' | 'lqip' | 'scene3d'>>;
   /** The badge words (DECISIONS 23: tierLabelOf through <Cover>; getImageProvenance for a 3D postcard); omit only where shown elsewhere. */
   label?: string;
+  /** The label's one-line short words for a picture ≤ 200 px wide (DECISIONS 23's 88 px words: 官方图, 2025 往届, Stock photo);
+   *  covers.css shows them instead of `label` there, so a label never wraps or covers a thumbnail. */
+  shortLabel?: string;
   /** The tier the badge names (data-tier): a ③ 示意图 or ④ AI 示意图 badge stays on the picture in every size and mode. */
   tier?: Exclude<CoverTier, 'type'>;
-  /** `contain`: a poster or full-frame artwork, shown whole on a solid board with a white mat (never blurred or cropped). */
+  /** `contain`: a poster or full-frame artwork, shown whole and centred on a blurred, colour-sampled copy of itself that fills
+   *  the frame (DECISIONS 32 OD1: one full-bleed frame, no mat, border or shadow); the poster itself is never blurred or cropped. */
   fit?: 'cover' | 'contain';
   focal?: readonly [number, number];
   ratio?: CoverRatio;
@@ -39,6 +43,7 @@ export type CoverImageProps = {
   fallback?: Src;
   /** The ③ badge words the fallback shows (示意图 / Stock photo): a stand-in never keeps the failed picture's ① or ② words. */
   fallbackLabel?: string;
+  fallbackShort?: string;
   /** Overlays other than the badge (none on listing covers since UI9-C: ♡ is the card's). */
   children?: ReactNode;
   className?: string;
@@ -51,38 +56,42 @@ export type CoverImageProps = {
 const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.complete && !img.naturalWidth && !!img.currentSrc;
 
 /**
- * One picture cover: srcset/sizes, a dominant-colour ground (LQIP), the focal-point crop (photo) or the whole flyer on its
- * board (poster), and one badge at its bottom-left (DECISIONS 23). Render through `getCover()` and <Cover>; never pick
- * images here. A file that fails to load (onError, DECISIONS 21) becomes the cover's `fallback` (a same-category ③
+ * One picture cover: srcset/sizes, a dominant-colour ground (LQIP), the focal-point crop (photo) or the whole flyer centred
+ * on a blurred copy of itself (poster, DECISIONS 32 OD1), and one label at its bottom-left (DECISIONS 23, R2-03) that fades in
+ * once the picture has decoded (R2-18: never a label on a flat LQIP block). Render through `getCover()` and <Cover>; never
+ * pick images here. A file that fails to load (onError, DECISIONS 21) becomes the cover's `fallback` (a same-category ③
  * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
- * (`image.scene3d`) and the pictures outside the listing feeds keep their frame and top-left ink badge (DECISIONS 1, 2).
+ * (`image.scene3d`) keep their frame and top-left ink badge exactly (DECISIONS 1).
  */
-export function CoverImage({ image, label: ownLabel, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, children, className }: CoverImageProps) {
+export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, fallbackShort, children, className }: CoverImageProps) {
   // 1: the cover's own file failed and its fallback shows; 2: neither loaded (the LQIP colour shows). Tied to the file: the
   // same mounted card given another picture (a filter, a list change) starts again from that picture.
   const [failure, setFailure] = useState<{ src: string; step: 1 | 2 }>();
   const failed = failure?.src === image.src ? failure.step : 0;
   const fail = () => setFailure({ src: image.src, step: failed === 0 && fallback && fallback.src !== image.src ? 1 : 2 });
+  // The file that has decoded (the label shows, and a poster's backdrop is that same file: its currentSrc, so 0 requests more).
+  const [shownFile, setShownFile] = useState<{ src: string; url: string }>();
   const standIn = failed === 1 && !!fallback;
   const shown: Src = standIn ? fallback : image;
   // The stand-in is a ③ stock photo: its own badge words and tier, cropped like any photo (never a poster's board).
   const label = standIn ? fallbackLabel : ownLabel;
+  const shortLabel = standIn ? fallbackShort : ownShort;
   const tier = standIn ? 'stock' : ownTier;
   const fit = standIn ? 'cover' : ownFit;
   const focal = standIn ? [50, 50] as const : ownFocal;
-  const style = { '--ui-lqip': image.lqip } as CSSProperties;
-  // A poster's own shape (--ui-img-ratio, covers.css) lets the flyer fill its board however narrow `sizes` says the slot is.
-  const imgStyle = (fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : { '--ui-img-ratio': image.width / image.height }) as CSSProperties;
+  const loaded = failed < 2 && shownFile?.src === shown.src;
+  const decoded = (img: HTMLImageElement) => { if (!loaded) setShownFile({ src: shown.src, url: img.currentSrc || img.src }); };
+  const style = { '--ui-lqip': image.lqip, '--ui-backdrop': loaded && fit === 'contain' ? `url("${shownFile.url}")` : undefined } as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
   const listing = kind && !image.scene3d;
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}
-    data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} style={style}>
-    {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async" style={imgStyle} {...loading}
-      onError={fail} ref={img => { if (failedBeforeHydration(img)) fail(); }} />}
-    {/* A listing cover's chip sits bottom-left (DECISIONS 23); a picture outside the listing feeds (/explore's attraction
-        cards, whose caption covers the bottom, a guide's title picture, a detail page's venue photo) and the 3D postcards
-        keep the top-left ink badge they had (DECISIONS 1 and 2); an 88 px thumbnail always takes the chip. */}
-    {label && <ProvenanceBadge label={label} tier={tier} plain={!listing && (!!image.scene3d || sizes !== COVER_SIZES.thumb)} />}
+    data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} data-loaded={loaded ? '' : undefined} style={style}>
+    {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async"
+      style={fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : undefined} {...loading} onError={fail} onLoad={event => decoded(event.currentTarget)}
+      ref={img => { if (failedBeforeHydration(img)) fail(); else if (img?.complete && img.naturalWidth) decoded(img); }} />}
+    {/* Every picture's label is the one chip at its bottom-left (DECISIONS 23, R2-03: listing covers, a guide's or a detail
+        page's title picture, /explore's cards); only the 3D postcards keep their top-left ink badge (DECISIONS 1). */}
+    {label && <ProvenanceBadge label={label} short={shortLabel} tier={tier} plain={!!image.scene3d} />}
     {children}
   </div>;
 }
@@ -96,22 +105,28 @@ export type CoverSlot = {
   priority?: boolean;
   /** The card around the cover already reads the title and facts. */
   decorative?: boolean;
-  /** The short English badge ('Stock photo', DECISIONS 23's 88 px words) for a picture that is a small thumbnail somewhere;
-   *  default: when `sizes` is the 88 px thumbnail's. A slot that is a thumbnail on phones and a large card on desktops (the
-   *  /guides band) passes `short` with its own wider `sizes`, so the label no longer decides which file the browser picks. */
+  /** Older callers' "this slot is a thumbnail" flag. The label now carries its full and short words and the picture's own
+   *  width picks one (covers.css, ≤ 200 px), so a slot that is a thumbnail on phones and a large card on desktops (the
+   *  /guides band) needs no flag; it is accepted and ignored. */
   short?: boolean;
 };
 
-/** The DECISIONS 23 badge words for a resolved picture, in the page's language; the short English on an 88 px thumbnail. */
+type LabelledCover = Parameters<typeof tierLabelOf>[0] & { label?: { zh: string; en: string } };
+/** The DECISIONS 23 label of a resolved picture in the page's language: [full words, short words for a picture ≤ 200 px]. */
+function useTierWords() {
+  const { locale, pick } = useUiCopy();
+  return (cover: LabelledCover): readonly [string, string] => {
+    // A kept label (照片 · 年份, 资料图 · 年份, BAYLINK 实拍) is the resolver's own words, dated on the page's day.
+    const label = cover.tier === 'photo' && cover.label ? keptLabel(pick(cover.label)) : tierLabelOf(cover);
+    return locale === 'en' ? [label.en, label.enShort] : locale === 'zh-Hant' ? [label.zhHant, label.zhHantShort] : [label.zh, label.zhShort];
+  };
+}
+
+/** The DECISIONS 23 badge words for a resolved picture, in the page's language; `thumb`: its short words (≤ 200 px). */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useTierLabel() {
-  const { locale, pick } = useUiCopy();
-  return (cover: Parameters<typeof tierLabelOf>[0] & { label?: { zh: string; en: string } }, thumb = false) => {
-    // A kept label (照片 · 年份, 资料图 · 年份, BAYLINK 实拍) is the resolver's own words, dated on the page's day.
-    if (cover.tier === 'photo' && cover.label) return pick(cover.label);
-    const label = tierLabelOf(cover);
-    return locale === 'en' ? thumb ? label.enShort : label.en : locale === 'zh-Hant' ? label.zhHant : label.zh;
-  };
+  const words = useTierWords();
+  return (cover: LabelledCover, thumb = false) => words(cover)[thumb ? 1 : 0];
 }
 
 /**
@@ -121,14 +136,15 @@ export function useTierLabel() {
  * in its LQIP colour. UI9-IMAGES DECISIONS 21: no date board, ticket, shop sign or title plate. The ♡ is the card's; the
  * date, price and deadline live in the caption (Card.tsx `when` and meta lines).
  */
-export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, short, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
-  const label = useTierLabel();
+export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
+  const words = useTierWords();
   const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
   if (!cover) return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
-  const thumb = short ?? sizes === COVER_SIZES.thumb;
-  return <CoverImage image={cover.image} label={label(cover, thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
+  const [label, short] = words(cover);
+  const [stockLabel, stockShort] = words({ tier: 'stock', image: cover.image });
+  return <CoverImage image={cover.image} label={label} shortLabel={short} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
     sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
-    fallbackLabel={cover.fallback ? label({ tier: 'stock', image: cover.image }, thumb) : undefined}>{children}</CoverImage>;
+    fallbackLabel={cover.fallback && stockLabel} fallbackShort={cover.fallback && stockShort}>{children}</CoverImage>;
 }
 
 /** The empty picture frame (LQIP ground, same box): what a cover shows while it has no picture to show. */
@@ -137,17 +153,11 @@ export function LqipCover({ ratio, ratioLock, lqip, className }: { ratio?: Cover
 }
 
 /**
- * A row's 13 px provenance line (RowCard `credit`): the badge words of a ①② picture, which leave the 88 px thumbnail for the
- * line; a ③ 示意图 / ④ AI 示意图 badge stays on the thumbnail in every mode (DECISIONS 23), so the line leaves it out.
+ * A row's provenance line (RowCard `credit`): none since R2-03. Every tier's label sits on the thumbnail itself, bottom-left
+ * in its short one-line words (DECISIONS 23), so a row prints no second copy of it; the callers keep their `credit` slot.
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export function useRowCredit() {
-  const label = useTierLabel();
-  return (resolved: ResolvedCover) => {
-    const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
-    return !cover || cover.tier === 'stock' || cover.tier === 'ai' ? undefined : label(cover);
-  };
-}
+export const useRowCredit = (): ((cover: ResolvedCover) => string | undefined) => () => undefined;
 
 /** A credit after its badge words: a ③ credit that repeats them ("示意图 · 摄影 … / Unsplash") drops the repeat. */
 // eslint-disable-next-line react-refresh/only-export-components

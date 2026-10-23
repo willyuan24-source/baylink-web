@@ -92,10 +92,9 @@
 .ui-row-card__save .ui-save>svg { width:1.125rem; height:1.125rem; }
 /* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved). */
 [data-simple] .ui-row-card__save:not(#saved *) { display:none; }
-/* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
+/* An 88px thumbnail keeps its label as every picture does (covers.css: bottom-left, one line, its short words); the date
+   and price are already in the row. */
 .ui-row-card__thumb .ui-stickers { display:none; }
-.ui-row-card__thumb .ui-provenance { top:auto; right:0; bottom:0; left:0; max-width:none; padding:2px var(--sp-1); border-radius:0; text-align:center; }
-.ui-row-card__thumb .ui-provenance[data-chip] { line-height:var(--lh-snug); white-space:normal; }
 :is(.ui-row-card__meta,.ui-feed-card__meta)>svg { display:inline-block; vertical-align:-2px; }
 
 /* The segmented control (DayToggle, 列表 | 地图); the view row's tabs are in features/events/events.css. */
@@ -147,6 +146,8 @@
 .ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-columns:minmax(0, 1fr); }
 .ui-hero-card[data-overlay] .ui-hero-card__media>* { grid-area:1 / 1; }
 .ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
+/* The picture's label stays bottom-left on a hero too (R2-03): the text on the photo stands on it, not over it. */
+.ui-hero-card[data-overlay] .ui-hero-card__media:has(.ui-provenance[data-chip]) .ui-hero-card__text { margin-bottom:calc(var(--sp-4) + 1.75rem); }
 .ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */

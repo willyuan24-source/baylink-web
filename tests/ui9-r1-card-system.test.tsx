@@ -126,13 +126,13 @@ test('N02: a state title inside a section is body size; N24: no motion literal i
   assert.doesNotMatch(ui, /(?:animation|transition)[^;{}]*\b\d*\.?\d+m?s\b/, 'durations are --dur-* tokens');
 });
 
-test('follow-up 8: a dated ①② chip keeps its edition alone on a cover ≤ 120px', () => {
-  const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" tier="official" />);
-  assert.match(html, /<span class="ui-provenance__lead">官方图 · <\/span>2025 往届/);
-  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" plain />), /lead/, 'the 3D postcard badge stays as it was');
-  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="场馆照 · 2024" tier="venue" />), /lead/);
-  assert.match(renderToStaticMarkup(<ProvenanceBadge label="Official image · 2025 edition" tier="official" />), /lead">Official image · <\/span>2025 edition/);
-  assert.equal(decls(COVERS, '.ui-provenance[data-chip] .ui-provenance__lead', 'ui-cover (max-width:120px)').display, 'none');
+test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a picture ≤ 200 px, one line, its text the full words', () => {
+  const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />);
+  assert.match(html, /data-short="2025 往届">官方图 · 2025 往届<\/span>/);
+  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" plain />), /data-short/, 'the 3D postcard badge stays as it was');
+  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="示意图" short="示意图" tier="stock" />), /data-short/, 'no copy when the words are the same');
+  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]::after', 'ui-cover (max-width:200px)').content, 'attr(data-short) / ""');
+  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]', 'ui-cover (max-width:200px)')['font-size'], '0');
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
@@ -141,11 +141,10 @@ test('follow-up 3: /plan head copy and empty state balance their lines and keep 
   assert.equal(rule['word-break'], 'keep-all');
 });
 
-test('Follow-up 8: a dated chip on a cover ≤ 120px shows its edition and still wraps, so a label is never cut', () => {
+test('Follow-up 8 (R2-03): a label is one line at every size; on a cover ≤ 120px it is 12 px whatever Aa says, so 家人版 English fits', () => {
   const small = read(COVERS).split('@container ui-cover (max-width:120px)')[1].split('\n}')[0];
-  assert.match(small, /\.ui-provenance\[data-chip\] \.ui-provenance__lead \{ display:none; \}/);
-  assert.doesNotMatch(small, /nowrap/, 'English 家人版 (20px words on a 112px cover) wraps instead of clipping "2025 editio"');
-  assert.equal(decls(COVERS, '.ui-provenance[data-chip]')['white-space'], 'normal');
+  assert.match(small, /font-size:var\(--fs-label-tiny\)/);
+  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]')['white-space'], 'nowrap');
 });
 
 test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balance applies at every width', () => {

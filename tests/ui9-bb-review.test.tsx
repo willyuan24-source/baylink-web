@@ -72,7 +72,9 @@ test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance 
       assert.equal(credit, null, `${model.key}: no credit line repeats the chip`);
       assert.match(row.querySelector('.ui-row-card__thumb [data-provenance]')?.textContent ?? '', /示意图/, `${model.key}: the chip on the picture`);
     } else {
-      assert.equal(credit?.textContent, tierLabelOf(model.cover).zh, `${model.key}: the photo's provenance (官方图 …) as the row's credit`);
+      // R2-03: a ①② label stays on the thumbnail too (one label component at every size), never a credit line.
+      assert.equal(credit, null, `${model.key}: no credit line`);
+      assert.equal(row.querySelector('.ui-row-card__thumb [data-provenance]')?.textContent, tierLabelOf(model.cover).zh, `${model.key}: the photo's label (官方图 …) on the picture`);
     }
     const check = row.querySelector('.ui-row-card__meta .bb-card__check');
     assert.match(check?.textContent || '', /^官网核对 \d{1,2}\/\d{1,2}$/, `${model.key}: the ✓ line stays (decisions 3, 17)`);

@@ -370,9 +370,9 @@ test('an empty filter offers one primary that widens the narrower filter, with i
 });
 
 test('简洁 and 家人版 rows keep the 示意图 / AI 示意图 chip on a ③ category photo and an approved AI cover (UI9-IMAGES DECISIONS 23)', async () => {
-  // A ①② thumbnail's words move into the row's source line (and leave it in 简洁); a ③ picture says 示意图 and a ④ one
-  // AI 示意图 on the picture itself in every size and mode (covers.css keeps their chip on the thumbnail), never twice.
-  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-row-card__thumb \.ui-provenance\[data-chip\]:not\(\[data-tier=stock\],\[data-tier=ai\]\) \{ display:none; \}/);
+  // Every tier's label sits on the thumbnail itself in every size and mode (R2-03: no rule hides it for a source line); a
+  // ③ picture says 示意图 and a ④ one AI 示意图 there, never twice.
+  assert.doesNotMatch(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-row-card__thumb \.ui-provenance\[data-chip\]:not/);
   const { images } = model.coverContext(today);
   const aiKey = Object.keys(images).find(key => images[key].aiCoverApproved);
   const stockKey = Object.keys(images).find(key => key.startsWith('stock-'));

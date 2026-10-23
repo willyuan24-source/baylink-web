@@ -84,6 +84,11 @@
      below) it is the size the rule had before tokens v2, so no elder text is smaller than it was. */
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
+  /* A picture's label on a picture ≤ 200 px wide (R2-03, covers.css): its size follows the picture, not Aa — 13px, and 12px
+     on a picture ≤ 120 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (the html[data-reading]
+     rules below divide out the root's growth) and in 简洁显示 (badges are the exception to its 16px floor, followup 14).
+     Larger pictures' labels read --fs-badge and grow with Aa. */
+  --fs-label-thumb:.8125rem; --fs-label-tiny:.75rem;
   /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, the lead / pick card titles, the primary button and the one
      key value of a fact block; 500 (medium) for feed and row card titles (D3: a feed is not half bold). */
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
@@ -192,8 +197,8 @@ html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-ro
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
    carries the same factor into the vw middle of fluid headings (clamp(2rem, calc(4vw * var(--fluid-scale)), 3rem)). */
 html { font-size:100%; }
-html[data-reading=large] { font-size:112.5%; --fluid-scale:1.125; }
-html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; }
+html[data-reading=large] { font-size:112.5%; --fluid-scale:1.125; --fs-label-thumb:calc(.8125rem / 1.125); --fs-label-tiny:calc(.75rem / 1.125); }
+html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; --fs-label-thumb:.65rem; --fs-label-tiny:.6rem; }
 /* 大 / 特大 below a desktop keep the heading steps they had before tokens v2 (title 26, section 22px x the Aa factor:
    32.5 / 27.5px at 特大), so an elder's headings never get smaller than on the old ladder (24 / 20 would give 30 / 25).
    The two values replace the ladder's 24 / 20 at these sizes, so the step count stays the same. 简洁显示 sets its own,

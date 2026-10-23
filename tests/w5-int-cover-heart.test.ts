@@ -37,7 +37,7 @@ test('one stylesheet draws the cover ♡ circle: saves.css', () => {
 
 test('the ♡ sits in a cover’s top-right corner, clear of its one bottom-left badge (UI9-IMAGES DECISIONS 23)', () => {
   // A picture carries only the ♡ (top-right, the card's) and its badge (bottom-left): the two never meet.
-  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-provenance\[data-chip\] \{ top:auto; bottom:var\(--sp-2\); left:var\(--sp-2\);/);
+  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-cover>\.ui-provenance\[data-chip\] \{ top:auto; right:auto; bottom:var\(--sp-2\); left:var\(--sp-2\);/);
   assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-hero-card__save \{ position:absolute; top:8px; right:8px;/);
   assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-feed-card__save \{ position:absolute; top:var\(--sp-1\); right:var\(--sp-1\);/);
 });
