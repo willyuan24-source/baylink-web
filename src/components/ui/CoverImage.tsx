@@ -43,7 +43,6 @@ export type CoverImageProps = {
   fallback?: Src;
   /** The ③ badge words the fallback shows (示意图 / Stock photo): a stand-in never keeps the failed picture's ① or ② words. */
   fallbackLabel?: string;
-  fallbackShort?: string;
   /** Overlays other than the badge (none on listing covers since UI9-C: ♡ is the card's). */
   children?: ReactNode;
   className?: string;
@@ -63,7 +62,7 @@ const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.com
  * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
  * (`image.scene3d`) keep their frame and top-left ink badge exactly (DECISIONS 1).
  */
-export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, fallbackShort, children, className }: CoverImageProps) {
+export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier: ownTier, fit: ownFit = 'cover', focal: ownFocal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, fallbackLabel, children, className }: CoverImageProps) {
   // 1: the cover's own file failed and its fallback shows; 2: neither loaded (the LQIP colour shows). Tied to the file: the
   // same mounted card given another picture (a filter, a list change) starts again from that picture.
   const [failure, setFailure] = useState<{ src: string; step: 1 | 2 }>();
@@ -75,7 +74,7 @@ export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier:
   const shown: Src = standIn ? fallback : image;
   // The stand-in is a ③ stock photo: its own badge words and tier, cropped like any photo (never a poster's board).
   const label = standIn ? fallbackLabel : ownLabel;
-  const shortLabel = standIn ? fallbackShort : ownShort;
+  const shortLabel = standIn ? undefined : ownShort;
   const tier = standIn ? 'stock' : ownTier;
   const fit = standIn ? 'cover' : ownFit;
   const focal = standIn ? [50, 50] as const : ownFocal;
@@ -141,10 +140,9 @@ export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.f
   const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
   if (!cover) return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
   const [label, short] = words(cover);
-  const [stockLabel, stockShort] = words({ tier: 'stock', image: cover.image });
   return <CoverImage image={cover.image} label={label} shortLabel={short} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
     sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
-    fallbackLabel={cover.fallback && stockLabel} fallbackShort={cover.fallback && stockShort}>{children}</CoverImage>;
+    fallbackLabel={cover.fallback && words({ tier: 'stock', image: cover.image })[0]}>{children}</CoverImage>;
 }
 
 /** The empty picture frame (LQIP ground, same box): what a cover shows while it has no picture to show. */
