@@ -30,7 +30,7 @@ const { render, fireEvent, cleanup, within, act } = await import('@testing-libra
 const { MemoryRouter, StaticRouter, useLocation } = await import('react-router-dom');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const { EventsView } = await import('../src/components/EventsView');
-const { INDEX_EVENTS, listEvents, matchesFilters, weekendTabs, weekendPicks } = await import('../src/features/events/events-model');
+const { INDEX_EVENTS, listEvents, matchesFilters, weekendTabs, weekendPicks, weekendRanked } = await import('../src/features/events/events-model');
 const { isFreeToAttend, nextOccurrence } = await import('../src/lib/monthly');
 const { normalizeSearchText } = await import('../src/lib/search-synonyms');
 
@@ -344,9 +344,10 @@ test('every remaining October weekend including Halloween has a published activi
       assert.ok(weekend.has(id), `${id} is on the weekend of ${today}`);
       assert.ok(nextOccurrence(item(id), today), `${id} has not ended before ${today}`);
     }
-    // The editor's block: never home's lead (it returns to the feed), the lead first, then up to three pick rows.
+    // The editor's block: never home's lead (it returns to the feed), the lead first, then up to three pick rows. As the page,
+    // the weekend in its ranking gives the lead when no pick has a ① or ② photograph (DECISIONS 26/32).
     const picks = weekendPicks(INDEX_EVENTS, today, { limit: 5 });
-    const { lead, rows } = arrangePicks(picks, today, homeLeadFor(today, picks));
+    const { lead, rows } = arrangePicks(picks, today, homeLeadFor(today, picks), weekendRanked(INDEX_EVENTS, today));
     assert.deepEqual(pickIds(view.container).slice(0, 1 + Math.min(3, rows.length)), [lead!, ...rows.slice(0, 3)].map(pick => pick.event.id));
     cleanup();
   }
