@@ -65,12 +65,14 @@ export function PostCover({ post, priority, sizes = '(max-width:767px) 50vw, 240
 }
 
 /** The post has Chinese text an English reader would otherwise have translated (usePostTranslation's own test). */
-const writtenInChinese = ({ title, description, budget, timeInfo }: Pick<PostData, 'title' | 'description' | 'budget' | 'timeInfo'>) =>
+export const writtenInChinese = ({ title, description, budget, timeInfo }: Pick<PostData, 'title' | 'description' | 'budget' | 'timeInfo'>) =>
   /\p{Script=Han}/u.test(`${title}${description}${budget}${timeInfo}`);
 
-/** /en, a guest: the post is shown as its poster wrote it (UI9-R1-POLISH-2; the card and the post page). */
-export function PostOriginalNote() {
-  return <div className="post-translation" lang="en" data-post-original=""><span><Languages size={13} aria-hidden="true" />Original text</span></div>;
+/** /en, a guest: the post is shown as its poster wrote it (UI9-R1-POLISH-2; the card and the post page). On the post page
+ * `onSignIn` adds the way forward, as a member's 「Original text · Show translation」 line (members translate, API H10). */
+export function PostOriginalNote({ onSignIn }: { onSignIn?: () => void }) {
+  return <div className="post-translation" lang="en" data-post-original=""><span><Languages size={13} aria-hidden="true" />Original text</span>
+    {onSignIn && <button type="button" onClick={event => { event.stopPropagation(); onSignIn(); }}>Sign in to translate</button>}</div>;
 }
 
 /** Status line: 待确认有效 / N 天前确认有效 / 已出租, and 站长发布 for the founder's seed posts. */

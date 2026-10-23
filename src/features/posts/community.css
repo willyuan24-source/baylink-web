@@ -244,14 +244,17 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-action__count { font-variant-numeric:tabular-nums; color:var(--color-ink-2); }
 
 /* ---------- Post sheet (T20): a full-height page over the board ---------- */
-/* The page under the sheet is hidden while it is open: one H1, and nothing behind the sheet for a screen reader. */
+/* The page under the sheet is hidden while it is open: one H1, and nothing behind the sheet for a screen reader (this rule's
+   exact text is pinned by tests/post-sheet.test.tsx, so the board's entrance timing below is a rule of its own). */
 html[data-post-sheet] #root main { visibility:hidden; }
 /* N24 (UI9-R1-POLISH-2): the page comes and goes like the site's other full-height panels — on a phone it rises from the
    bottom and sinks back (the Sheet's keyframes, ui.css), from 1024px, where it covers the whole page, it fades in from 8px
    below and out the same way (PostDetailModal.tsx keeps it mounted for the exit, SHEET_EXIT_MS). The board under it stays
-   on screen while it rises (the animation keeps <main> visible for that time) and shows again once it starts to leave. */
+   on screen while it rises (the animation keeps <main> visible for that time) and shows again once it starts to leave. A
+   page that replaces one already open (sign-in remounts it) appears at once. */
 html[data-post-sheet] #root main { animation:cm-sheet-under var(--dur-5) linear; }
 .cm-sheet { position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; background:var(--color-bg); color:var(--color-ink); animation:ui-sheet-up var(--dur-5) var(--ease-out); }
+.cm-sheet.cm-sheet--replacing:not(.is-closing) { animation:none; }
 .cm-sheet.is-closing { animation:ui-sheet-down var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
 @media (min-width:1024px) {
   .cm-sheet { animation:cm-sheet-in var(--dur-4) var(--ease-out); }

@@ -1,9 +1,11 @@
 // UI9-R1-POLISH-2 (followups-r2 16–24 from the #64 live check, DECISIONS 31 D5):
 //   /category's prerendered first paint is the board's own loading state (no other page, CLS 0) · loading cards with a post
-//   card's lines · one row for the results line and the layout switch · each board's own short search example
+//   card's lines · one row for the results line and the layout switch · each board's own short search example · the board's
+//   guides heading and links as the app's strip, kept by the app on the prerendered URL (no drop and return)
 //   /en guests send no translation request and read "Original text" · the promotions dialog leaves with its exit, one close
 //   control, above the phone tab bar; its loading tile has the tile's own lines · the post page rises / sinks and keeps the
-//   content line · one dialog look (feedback, guide picture, desktop Aa panel) · /explore D5
+//   content line and appears at once when it replaces an open one (sign-in) · one dialog look (feedback, guide picture, desktop
+//   Aa panel) · /explore D5
 import assert from 'node:assert/strict';
 import test, { after, afterEach, before } from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -11,8 +13,7 @@ import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import postcss, { type Rule } from 'postcss';
 import React from 'react';
-import type { AppContextValue } from '../src/app/context';
-import type { PostData } from '../src/lib/types';
+import type { PostData, UserData } from '../src/lib/types';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body><div id="root"><main><h1>首页</h1></main></div></body></html>', { url: 'https://www.baylink.us/category/rent', pretendToBeVisual: true });
 Object.assign(globalThis, {
@@ -33,14 +34,15 @@ const { StaticRouter } = await import('react-router');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
-const { default: CommunityBoard, CategoryBoardPrerender } = await import('../src/pages/CommunityBoard');
+const { default: CommunityBoard, CategoryBoardPrerender, loadingBoardContext } = await import('../src/pages/CommunityBoard');
 const { CategoryGuidesPrerender, CategoryHubPrerender } = await import('../src/components/HubPrerender');
+const { CategoryGuideStrip } = await import('../src/components/CategoryGuideStrip');
 const { PostCard } = await import('../src/features/posts/PostCard');
 const { PostDetailModal } = await import('../src/features/posts/PostDetailModal');
 const { AdDetailModal, OfficialAds } = await import('../src/features/ads/OfficialAds');
 const { EXIT_MS } = await import('../src/components/ui/closing');
-const { SLUG_TO_CATEGORY } = await import('../src/routing');
 const { getGuidesForCategorySlug } = await import('../src/data/guides');
+const { SLUG_TO_CATEGORY } = await import('../src/routing');
 
 const originalRequest = api.request;
 const pending = (() => new Promise(() => {})) as typeof api.request;
@@ -67,18 +69,11 @@ const post = (id: string, overrides: Partial<PostData> = {}): PostData => ({
   category: '租屋', timeInfo: '', budget: '$1900', description: '近 BART。', contactInfo: null, likesCount: 0, hasLiked: false, imageUrls: [],
   commentsCount: 0, comments: [], createdAt: Date.now(), status: 'active', confirmedAt: null, ...overrides,
 });
-/** The board inside the app's outlet context, as the app renders it before the posts arrive. */
-const loadingBoard = (entry: string, slug: string) => {
-  const context = {
-    user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: SLUG_TO_CATEGORY[slug], feedError: false, isInitialLoading: true,
-    isLoadingMore: false, hasMore: false, blockedUserIds: [], retryFeed: noop, setKeyword: noop, setRegionFilter: noop, setFeedType: noop,
-    searchPostsNow: noop, handleLoadMore: noop, navigateToPost: noop, openCreate: noop, openEditPost: noop, handleDeletePost: noop,
-    handleToggleFeature: noop, handleToggleBlockUser: noop, openReportTarget: noop, openAdDetail: noop, showToast: noop, adsRefreshKey: 0,
-  } as unknown as AppContextValue;
-  return render(<MemoryRouter initialEntries={[entry]}><Routes><Route element={<Outlet context={context} />}>
-    <Route path="/category/:categorySlug" element={<div className="bay-home"><CommunityBoard onScrollToFeed={noop} scrollRequest={0} /></div>} />
+/** The board inside the app's outlet context, as the app renders it before the posts arrive (the prerender's own context). */
+const loadingBoard = (entry: string, slug: string, Board: typeof CommunityBoard = CommunityBoard) =>
+  render(<MemoryRouter initialEntries={[entry]}><Routes><Route element={<Outlet context={loadingBoardContext(slug)} />}>
+    <Route path="/category/:categorySlug" element={<div className="bay-home"><Board onScrollToFeed={noop} scrollRequest={0} /></div>} />
   </Route></Routes></MemoryRouter>);
-};
 const prerender = (slug: string, location = `/category/${slug}`, basename?: string) => new JSDOM(renderToStaticMarkup(
   <StaticRouter basename={basename} location={location}><CategoryBoardPrerender slug={slug} guideStrip={<CategoryGuidesPrerender slug={slug} />} /></StaticRouter>)).window.document;
 
@@ -91,8 +86,13 @@ test('/category: the prerendered page is the board in its loading state, box for
     }
     assert.equal(page.querySelector('.bay-home > section.cm-board')!.getAttribute('data-mode'), 'category', 'HomePage\'s wrapper around the board');
     assert.equal(page.querySelectorAll('.cm-card--skeleton').length, 4);
+    // the end-of-list line's room under the loading row: the guides strip stays put when a one-row board arrives
+    assert.equal(page.querySelector('[aria-busy=true] .cm-board__end')!.getAttribute('aria-hidden'), 'true');
     // the board's guides in their place for readers and crawlers before the app runs: the strip's three guides
     assert.deepEqual([...page.querySelectorAll('.cm-guides__list a')].map(link => link.getAttribute('href')), getGuidesForCategorySlug(slug, 3).map(guide => `/guides/${guide.slug}`));
+    // …box for box the app's own strip once it has loaded: its heading (租房前先看, not a generic one), links and titles
+    const strip = await waitFor(() => { const found = view.container.querySelector('.cm-guides'); assert.ok(found); return found; }, { timeout: 10000 });
+    assert.equal(page.querySelector('.cm-guides')!.outerHTML, strip.outerHTML, `${slug} .cm-guides`);
     assert.ok(page.querySelector('.cm-board__notes'), 'the safety notes and the other boards');
     assert.doesNotMatch(page.body.textContent!, /最新帖子和地区筛选会在页面加载后显示/);
     cleanup();
@@ -108,6 +108,41 @@ test('/category: the prerendered page is the board in its loading state, box for
   const script = readFileSync('scripts/prerender.tsx', 'utf8');
   assert.match(script, /const boardModules = \(path: string\) => COMMUNITY_VISIBLE && path\.startsWith\('\/category\/'\) \? \['src\/pages\/CommunityBoard\.tsx'\] : \[\];/);
   assert.match(script, /COMMUNITY_VISIBLE\s+\? <CategoryBoardPrerender slug=\{slug\} guideStrip=\{<CategoryGuidesPrerender slug=\{slug\} \/>\} \/> : <CategoryHubPrerender slug=\{slug\} \/>/);
+});
+
+test('/category: the prerendered guides heading is each board\'s own (the app strip\'s words), in every language', async () => {
+  for (const locale of ['zh-Hans', 'en', 'zh-Hant'] as const) {
+    await setLocale(locale, false);
+    for (const slug of Object.keys(SLUG_TO_CATEGORY)) {
+      const page = prerender(slug);
+      const view = render(<MemoryRouter><CategoryGuideStrip categorySlug={slug} /></MemoryRouter>);
+      const heading = page.querySelector('.cm-guides__title');
+      if (!heading) { assert.equal(getGuidesForCategorySlug(slug, 3).length, 0, `${slug}: guides but no strip`); cleanup(); continue; }
+      await waitFor(() => assert.equal(view.container.querySelector('.cm-guides__title')?.textContent, heading.textContent, `${locale} ${slug}`), { timeout: 10000 });
+      cleanup();
+    }
+  }
+});
+
+test('/category: on the URL it was prerendered for, the app keeps the prerendered guides strip from its first render (no drop and return)', async () => {
+  const root = document.getElementById('root')!;
+  const before = root.innerHTML;
+  const prerendered = prerender('rent').querySelector('.bay-home')!.outerHTML;
+  root.innerHTML = `<main data-prerender-path="/category/rent">${prerendered}</main>`;
+  // a fresh copy of the board's module reads the prerendered page, as the chunk does when HomePage loads it before the first render
+  const fresh = await import(`../src/pages/CommunityBoard.tsx?prerendered=${Date.now()}`) as { default: typeof CommunityBoard };
+  root.innerHTML = before;
+  const view = loadingBoard('/category/rent', 'rent', fresh.default);
+  assert.equal(view.container.querySelector('.cm-guides')!.outerHTML, new JSDOM(prerendered).window.document.querySelector('.cm-guides')!.outerHTML, 'the same strip, at once');
+  cleanup();
+  // another URL (another board, a language switch) loads the board's own strip as before
+  dom.reconfigure({ url: 'https://www.baylink.us/category/used' });
+  try {
+    const other = loadingBoard('/category/used', 'used', fresh.default);
+    assert.equal(other.container.querySelector('.cm-guides'), null);
+    await waitFor(() => assert.ok(other.container.querySelector('.cm-guides__title')), { timeout: 10000 });
+    assert.equal(other.container.querySelector('.cm-guides__title')!.textContent, '二手交易先看');
+  } finally { dom.reconfigure({ url: 'https://www.baylink.us/category/rent' }); }
 });
 
 test('/category: a loading card has a post card\'s own lines (cover, two title lines, price, meta, /en original line, status)', async () => {
@@ -129,7 +164,9 @@ test('/category: each board names its own short search example (whole at 特大 
   assert.equal(prerender('rent').querySelector('.cm-search input')!.getAttribute('placeholder'), '如「单间」或城市名');
   assert.equal(prerender('used').querySelector('.cm-search input')!.getAttribute('placeholder'), '如「沙发」或城市名');
   await setLocale('en', false);
-  assert.equal(prerender('used', '/en/category/used', '/en').querySelector('.cm-search input')!.getAttribute('placeholder'), 'Try “sofa” or a city');
+  // English: an example that finds posts (the API searches their own, mostly Chinese, words and the English area names)
+  assert.equal(prerender('rent', '/en/category/rent', '/en').querySelector('.cm-search input')!.getAttribute('placeholder'), 'Try “Studio” or a city');
+  assert.equal(prerender('used', '/en/category/used', '/en').querySelector('.cm-search input')!.getAttribute('placeholder'), 'Try “East Bay”');
   await setLocale('zh-Hant', false);
   assert.equal(prerender('rent', '/zh-Hant/category/rent', '/zh-Hant').querySelector('.cm-search input')!.getAttribute('placeholder'), '如「單間」或城市名');
 });
@@ -145,6 +182,12 @@ test('/en: a guest\'s cards and post page send no translation request and say "O
     onImageClick={noop} onShare={noop} showToast={noop} onAskBayBay={noop} /></MemoryRouter>);
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)); });
   assert.ok(within(sheet.getByRole('dialog')).getByText('Original text'));
+  // the post page offers the way forward: members translate
+  let signIn = 0;
+  sheet.rerender(<MemoryRouter><PostDetailModal post={post('g2')} currentUser={null} onClose={noop} onLoginNeeded={() => { signIn += 1; }} onOpenChat={noop} onDeleted={noop}
+    onImageClick={noop} onShare={noop} showToast={noop} onAskBayBay={noop} /></MemoryRouter>);
+  fireEvent.click(within(sheet.getByRole('dialog')).getByRole('button', { name: 'Sign in to translate' }));
+  assert.equal(signIn, 1);
   assert.equal(calls.filter(path => path.endsWith('/translation')).length, 0, 'no POST /posts/:id/translation for a guest');
   cleanup();
   // a post written in English needs no note; a Chinese reader's card never shows it
@@ -201,9 +244,19 @@ test('the post page plays its exit (the board shows again at once) and keeps its
   assert.equal(document.documentElement.hasAttribute('data-post-sheet'), false, 'the board under it shows as the page leaves');
   assert.equal(closed, 0);
   await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
+  cleanup();
+  // signing in on the post page remounts it (keyed on the reader): the new page appears at once, it does not rise again
+  const props = { post: post('s2'), onClose: noop, onLoginNeeded: noop, onOpenChat: noop, onDeleted: noop, onImageClick: noop, onShare: noop, showToast: noop, onAskBayBay: noop };
+  const first = render(<MemoryRouter><PostDetailModal {...props} currentUser={null} /></MemoryRouter>);
+  assert.equal(first.getByRole('dialog').classList.contains('cm-sheet--replacing'), false, 'the first opening rises');
+  first.rerender(<MemoryRouter><PostDetailModal {...props} currentUser={{ id: 'member-2', nickname: '邻居乙' } as UserData} /></MemoryRouter>);
+  assert.ok(first.getByRole('dialog').classList.contains('cm-sheet--replacing'));
+  assert.ok(document.documentElement.hasAttribute('data-post-sheet'));
+  assert.equal(declarations(COMMUNITY, '.cm-sheet.cm-sheet--replacing:not(.is-closing)').animation, 'none');
   assert.equal(declarations(COMMUNITY, '.cm-sheet').animation, 'ui-sheet-up var(--dur-5) var(--ease-out)');
   assert.equal(declarations(COMMUNITY, '.cm-sheet.is-closing').animation, 'ui-sheet-down var(--dur-3) var(--ease-in) forwards');
   assert.equal(declarations(COMMUNITY, '.cm-sheet', '(min-width:1024px)').animation, 'cm-sheet-in var(--dur-4) var(--ease-out)');
+  assert.equal(declarations(COMMUNITY, 'html[data-post-sheet] #root main').animation, 'cm-sheet-under var(--dur-5) linear', 'the board shows while the page rises');
   assert.match(declarations(COMMUNITY, '.cm-sheet__toolbar').padding, / var\(--sp-4\) /, '16px on a phone');
   assert.equal(declarations(COMMUNITY, '.cm-sheet__toolbar,.cm-sheet__bar', '(min-width:768px)')['padding-left'], undefined);
   const wide = postcss.parse(readFileSync(COMMUNITY, 'utf8'));
@@ -222,9 +275,9 @@ test('one dialog look: feedback, the guide picture and the desktop Aa panel (--r
   assert.equal(declarations(lightbox, '.guide-image-close').top, 'var(--sp-4)');
   assert.equal(declarations(lightbox, '.guide-image-dialog').padding, 'calc(var(--sp-4) + var(--control-height) + var(--sp-3)) var(--sp-4) var(--sp-4)', 'the ✕ in its own top row');
   assert.match(declarations(lightbox, '.guide-image-overlay', '(max-width:639px)').padding, / var\(--sp-4\) /, 'the phone panel on the 16px line');
-  // the two picture-viewer backgrounds are the captain's (INT5): untouched here
-  assert.equal(declarations(lightbox, '.guide-image-overlay').background, 'var(--scrim)');
-  assert.equal(declarations('src/components/site-dialogs.css', '.site-image-viewer').background, 'var(--scrim)');
+  // the two picture-viewer backgrounds are the captain's (INT5 makes them --scrim-media): not this lane's, either value passes
+  assert.match(declarations(lightbox, '.guide-image-overlay').background, /^var\(--scrim(-media)?\)$/);
+  assert.match(declarations('src/components/site-dialogs.css', '.site-image-viewer').background, /^var\(--scrim(-media)?\)$/);
   const aa = declarations('src/components/site-dialogs.css', '.ui-sheet.reading-sheet', '(min-width:1024px)');
   assert.deepEqual([aa['align-self'], aa['border-radius'], aa.margin], ['flex-start', 'var(--r-xl)', 'var(--sp-2)']);
   assert.equal(declarations('src/components/site-dialogs.css', '.reading-sheet .ui-sheet__header', '(min-width:1024px)').padding, 'var(--sp-4) var(--sp-4) var(--sp-2) var(--sp-5)');

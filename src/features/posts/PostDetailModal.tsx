@@ -23,7 +23,7 @@ import { PostDetailContactPanel } from '../../components/PostDetailContactPanel'
 import { normalizePostImages } from '../../lib/constants';
 import { friendlyErrorMessage, isPostEdited } from '../../lib/format';
 import type { PostData, UserData } from '../../lib/types';
-import { PostCard, PostCover, PostOriginalNote, PostStatusLine, UsefulLikeButton } from './PostCard';
+import { PostCard, PostCover, PostOriginalNote, PostStatusLine, UsefulLikeButton, writtenInChinese } from './PostCard';
 import { PostSaveHeart } from './PostSaveHeart';
 import { postAvailability } from '../../lib/postAvailability';
 import { setPageMetadata } from '../../lib/seo';
@@ -101,7 +101,7 @@ const SHEET_EXIT_MS = 200;
 const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContactLoginNeeded, onOpenChat, onOpenUserProfile, onDeleted, onEdit, onToggleFeature, onImageClick, onShare, onLike, showToast, onReport, onToggleBlockUser, blockedUserIds, detailRefreshing, onAskBayBay }: PostDetailProps) => {
   const { t, pick, english, locale } = useUiCopy();
   // /en, a guest: no translation request (members only, API H10); the post as written, marked 「Original text」 (as the cards).
-  const guestOriginal = english && !currentUser && /\p{Script=Han}/u.test(`${post.title}${post.description}${post.budget}${post.timeInfo}`);
+  const guestOriginal = english && !currentUser && writtenInChinese(post);
   const reading = usePostTranslation(post, !guestOriginal);
   const displayed = reading.display;
   // The price as written, with digit groups (UI9-R1 N06; the card shows the same string).
@@ -118,6 +118,10 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   // N24 (UI9-R1-POLISH-2): 返回 and Esc play the page's exit first (community.css: it sinks on a
   // phone, fades from 1024px; --dur-3), and the board under it shows again as it starts to leave.
   const [closing, leave] = useClosing(onClose, SHEET_EXIT_MS);
+  // A post page that takes the place of one already open (signing in here remounts the session; OverlayHost keys it on the
+  // reader too) appears at once instead of rising again over a hidden board: its render runs before the old page's cleanup,
+  // so data-post-sheet is still set.
+  const [replacing] = useState(() => typeof document !== 'undefined' && document.documentElement.hasAttribute('data-post-sheet'));
   useLayoutEffect(() => { if (closing) document.documentElement.removeAttribute('data-post-sheet'); }, [closing]);
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
   const [input, setInput] = useState('');
@@ -269,7 +273,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const meta = [post.city ? pick(regionName(post.city)) : '', postedOn(post.createdAt, english), isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
 
   return (
-    <ModalShell onClose={leave} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className={`cm-sheet${closing ? ' is-closing' : ''}`}>
+    <ModalShell onClose={leave} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className={`cm-sheet${replacing ? ' cm-sheet--replacing' : ''}${closing ? ' is-closing' : ''}`}>
       <header className="cm-sheet__toolbar">
         <button type="button" onClick={leave} className="cm-sheet__back"><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{t('返回', 'Back')}</button>
         <div className="cm-sheet__toolbar-actions">
@@ -304,7 +308,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
           <p className="cm-sheet__eyebrow"><span>{pick(categoryName(post.category))}</span><span aria-hidden="true">·</span><span>{pick(types[post.type === 'client' ? 'client' : 'provider'])}</span>
             {post.isFeatured && <><span aria-hidden="true">·</span><span>{t('编辑精选', 'Editor’s pick')}</span></>}</p>
           <h1 translate="no" ref={titleRef} tabIndex={-1}>{displayed.title}</h1>
-          {guestOriginal ? <PostOriginalNote /> : <PostTranslationNotice reading={reading} />}
+          {guestOriginal ? <PostOriginalNote onSignIn={onLoginNeeded} /> : <PostTranslationNotice reading={reading} />}
           {price && <p className="cm-sheet__price" translate="no">{price}</p>}
           <div className="cm-sheet__availability"><PostStatusLine post={post} /><p>{english ? (availability.tone === 'confirmed' ? 'Confirmed by the poster; BAYLINK does not guarantee availability or the outcome of a deal.' : availability.tone === 'closed' ? 'The poster has ended this post.' : 'Not reconfirmed recently; ask the poster whether it still stands before you contact them.') : t(availability.detail, availability.detail)}</p></div>
           {detailRefreshing && <p className="cm-sheet__availability" role="status"><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {t('正在同步最新内容…', 'Updating…')}</p>}

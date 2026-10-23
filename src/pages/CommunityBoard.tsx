@@ -6,7 +6,7 @@
 // one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
 import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, Outlet, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
 import '../components/ui/ui.css';
 import '../components/ui/covers.css';
 import '../components/ui/cards.css';
@@ -42,17 +42,43 @@ export interface CommunityBoardProps {
 
 /**
  * The search field's example (UI9-R1-POLISH-2): each board names a word its own readers search for, and the whole line stays
- * short enough to show in full on a 390px phone at 特大 (it was cut mid-character: 「搜标题或地点，如「搬」).
+ * short enough to show in full on a 390px phone at 特大 (it was cut mid-character: 「搜标题或地点，如「搬」). In English the
+ * example is one that finds posts: the API searches the posts' own words (mostly Chinese) and knows the four English area
+ * names (baylink-api lib/postSearch.js), so “Studio” on the rental board (its posts say Studio) and an area elsewhere.
  */
 const SEARCH_EXAMPLES: Record<string, { zh: string; en: string }> = {
-  全部: { zh: '搬家', en: 'moving' }, 租屋: { zh: '单间', en: 'room' }, 闲置: { zh: '沙发', en: 'sofa' }, 本地服务: { zh: '维修', en: 'repair' },
-  搬家: { zh: '搬家', en: 'moving' }, 清洁: { zh: '保洁', en: 'maid' }, 接送: { zh: '机场', en: 'SFO' }, 维修: { zh: '水管', en: 'pipes' },
-  翻译: { zh: '驾照', en: 'DMV' }, 兼职: { zh: '餐馆', en: 'cafe' }, 其他: { zh: '家教', en: 'tutor' },
+  全部: { zh: '搬家', en: '“East Bay”' }, 租屋: { zh: '单间', en: '“Studio” or a city' }, 闲置: { zh: '沙发', en: '“East Bay”' },
+  本地服务: { zh: '维修', en: '“East Bay”' }, 搬家: { zh: '搬家', en: '“East Bay”' }, 清洁: { zh: '保洁', en: '“East Bay”' },
+  接送: { zh: '机场', en: '“East Bay”' }, 维修: { zh: '水管', en: '“East Bay”' }, 翻译: { zh: '驾照', en: '“East Bay”' },
+  兼职: { zh: '餐馆', en: '“East Bay”' }, 其他: { zh: '家教', en: '“East Bay”' },
 };
 const searchExample = (board: string) => {
   const example = SEARCH_EXAMPLES[board] || SEARCH_EXAMPLES.全部;
-  return { zh: `如「${example.zh}」或城市名`, en: `Try “${example.en}” or a city` };
+  return { zh: `如「${example.zh}」或城市名`, en: `Try ${example.en}` };
 };
+
+/**
+ * The board's guides as the prerendered page showed them (CategoryGuidesPrerender, UI9-R1-POLISH-2 review), read from the
+ * prerendered <main> when this chunk loads: HomePage loads it before its first render on a category page, so before the app
+ * replaces that markup. On that URL the board shows them in place of the lazy strip (CategoryGuideStrip.tsx), which rendered
+ * nothing until its chunk and the guides corpus arrived ~110 ms later, so the notes under it jumped up and back on a desktop
+ * taller than ~905px (1920 × 1080: CLS 0.026). Another board or a language switch is another URL: the strip loads as before.
+ */
+type PrerenderedGuides = { url: string; title: string; guides: { slug: string; title: string }[] };
+const prerenderedGuides: PrerenderedGuides | null = (() => {
+  if (typeof document === 'undefined') return null;
+  const section = document.querySelector('#root main[data-prerender-path] .cm-guides');
+  const title = section?.querySelector('.cm-guides__title')?.textContent?.trim() || '';
+  const guides = [...(section?.querySelectorAll('.cm-guides__list a') || [])]
+    .map(link => ({ slug: /\/guides\/([^/?#]+)/.exec(link.getAttribute('href') || '')?.[1] || '', title: link.textContent?.trim() || '' }));
+  return title && guides.length && guides.every(guide => guide.slug && guide.title) ? { url: window.location.pathname, title, guides } : null;
+})();
+function PrerenderedGuideStrip({ snapshot }: { snapshot: PrerenderedGuides }) {
+  return <section className="cm-guides" aria-labelledby="cm-guides-title">
+    <h2 className="cm-guides__title" id="cm-guides-title">{snapshot.title}</h2>
+    <ul className="cm-guides__list">{snapshot.guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}><span>{guide.title}</span><ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></li>)}</ul>
+  </section>;
+}
 
 /**
  * The board's loading card (UI9-R1-POLISH-2, /category CLS): a post card's own boxes — the cover at the feed's ratio, two title
@@ -243,7 +269,9 @@ function CommunityBoardView({ scrollRequest, guideStrip }: CommunityBoardProps &
 
     {feedError && posts.length > 0 && <div role="status" className="cm-board__stale"><p>{t('更新失败，下面是已加载的信息。', 'Could not refresh; showing what was already loaded.')}</p><Button variant="text" icon={<RotateCw aria-hidden="true" strokeWidth={1.75} />} onClick={retryFeed}>{t('重试', 'Try again')}</Button></div>}
     {unavailable ? <ErrorState headingLevel="h3" title={t('邻里信息暂时没能加载', 'The board didn’t load')} body={t('可能是网络不稳或服务暂时繁忙。稍后再试一次。', 'The connection or our service may be busy. Please try again in a moment.')} onRetry={retryFeed} homeTo={null} />
-      : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><PostCardSkeleton english={english} /></FeedItem>)}</FeedGrid></div>
+      : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><PostCardSkeleton english={english} /></FeedItem>)}</FeedGrid>
+        {/* The end-of-list line's room, so the guides strip under it stays put when the posts arrive (1920 × 1080: it moved 45px). */}
+        <p className="cm-board__end" aria-hidden="true">{'\u00a0'}</p></div>
         : posts.length === 0 ? <div className="cm-board__empty">{emptyState}</div>
           : <>
             <FeedGrid label={feedLabel} ratio="1:1" layout={feedLayout.layout}>
@@ -255,7 +283,8 @@ function CommunityBoardView({ scrollRequest, guideStrip }: CommunityBoardProps &
               : <p className="cm-board__end">{t('已经是全部信息', 'That’s everything for now')}</p>}
           </>}
 
-    {categorySlug && !keyword && (guideStrip ?? <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>)}
+    {categorySlug && !keyword && (guideStrip ?? (prerenderedGuides && window.location.pathname === prerenderedGuides.url ? <PrerenderedGuideStrip snapshot={prerenderedGuides} />
+      : <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>))}
 
     <div className="cm-board__notes">
       <section className="cm-board__safety" aria-label={t('交易安全', 'Trading safety')}>
@@ -276,6 +305,18 @@ function CommunityBoardView({ scrollRequest, guideStrip }: CommunityBoardProps &
 
 const noop = () => {};
 /**
+ * The app's outlet context while a category board waits for its first posts (UI9-R1-POLISH-2): what the prerendered board
+ * renders with, and what the lane test renders the app's board with, so the two cannot drift apart. Typed against the
+ * app's context: a renamed or retyped field fails the type check instead of the prerender.
+ */
+export const loadingBoardContext = (slug: string) => ({
+  user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: SLUG_TO_CATEGORY[slug] || '全部',
+  feedError: false, isInitialLoading: true, isLoadingMore: false, hasMore: false, blockedUserIds: [], adsRefreshKey: 0,
+  showToast: noop, setFeedType: noop, setKeyword: noop, searchPostsNow: noop, setRegionFilter: noop, handleLoadMore: noop, retryFeed: noop,
+  navigateToPost: noop, openCreate: noop, openEditPost: noop, handleDeletePost: noop, handleToggleFeature: noop, handleToggleBlockUser: noop,
+  openReportTarget: noop, openAdDetail: noop,
+}) satisfies Partial<AppContextValue>;
+/**
  * The prerendered first paint of /category/:slug (scripts/prerender.tsx; UI9-R1-POLISH-2): the board itself in its loading
  * state — the header, search, filters, results line and loading cards the app renders before the posts arrive, inside
  * HomePage's wrapper — so the app's first render replaces it box for box. The old text stand-in (its footer at y = 715 on a
@@ -283,14 +324,7 @@ const noop = () => {};
  * different page on screen meanwhile. `guideStrip` puts the board's guides in their place for readers and crawlers.
  */
 export function CategoryBoardPrerender({ slug, guideStrip }: { slug: string; guideStrip?: ReactNode }) {
-  const context = {
-    user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: SLUG_TO_CATEGORY[slug] || '全部',
-    feedError: false, isInitialLoading: true, isLoadingMore: false, hasMore: false, blockedUserIds: [], adsRefreshKey: 0,
-    showToast: noop, setFeedType: noop, setKeyword: noop, searchPostsNow: noop, setRegionFilter: noop, handleLoadMore: noop, retryFeed: noop,
-    navigateToPost: noop, openCreate: noop, openEditPost: noop, handleDeletePost: noop, handleToggleFeature: noop, handleToggleBlockUser: noop,
-    openReportTarget: noop, openAdDetail: noop,
-  } as unknown as AppContextValue;
-  return <Routes><Route element={<Outlet context={context} />}>
+  return <Routes><Route element={<Outlet context={loadingBoardContext(slug)} />}>
     <Route path="/category/:categorySlug" element={<div className="bay-home"><CommunityBoardView onScrollToFeed={noop} scrollRequest={0} guideStrip={guideStrip} /></div>} />
   </Route></Routes>;
 }

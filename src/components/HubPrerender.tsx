@@ -41,16 +41,34 @@ export function CategoryHubPrerender({ slug }: { slug: string }) {
 }
 
 /**
- * The board's guides in the prerendered category page (UI9-R1-POLISH-2): the same section, classes and three guides as the
- * board's own strip (CategoryGuideStrip.tsx, which loads the guides corpus after the page), so a reader before the app runs
- * and a crawler get them in their place under the loading cards. The app's strip replaces it below the fold.
+ * Each board's heading over its guides: the same words as the board's own strip (CategoryGuideStrip.tsx STRIP_TITLES, which
+ * this file cannot import: it loads before the prerender's CSS hook; the lane test keeps the two the same).
+ */
+const CATEGORY_GUIDES_TITLES: Record<string, { zh: string; en: string }> = {
+  service: { zh: '找本地服务先看', en: 'Before you hire someone' },
+  rent: { zh: '租房前先看', en: 'Before you rent' },
+  used: { zh: '二手交易先看', en: 'Before you buy or sell' },
+  moving: { zh: '找本地服务先看', en: 'Before you hire someone' },
+  cleaning: { zh: '预约清洁先看', en: 'Before you book a cleaner' },
+  ride: { zh: '接送通勤先看', en: 'Rides and commuting' },
+  repair: { zh: '安排维修先看', en: 'Before you book a repair' },
+  translation: { zh: '找翻译先看', en: 'Before you hire a translator' },
+  'part-time': { zh: '联系招聘方之前', en: 'Before you contact an employer' },
+};
+
+/**
+ * The board's guides in the prerendered category page (UI9-R1-POLISH-2): the same section, classes, heading and three guides
+ * as the board's own strip (CategoryGuideStrip.tsx, which loads the guides corpus after the page), so a reader before the app
+ * runs and a crawler get them in their place under the loading cards. The app's board keeps showing this strip on the URL it
+ * was prerendered for (CommunityBoard.tsx prerenderedGuides), so it never drops out and comes back.
  */
 export function CategoryGuidesPrerender({ slug }: { slug: string }) {
-  const { t, locale } = useUiCopy();
+  const { t, pick, locale } = useUiCopy();
   const items = getGuidesForCategorySlug(slug, 3);
   if (!items.length) return null;
+  const title = CATEGORY_GUIDES_TITLES[slug];
   return <section className="cm-guides" aria-labelledby="cm-guides-title">
-    <h2 className="cm-guides__title" id="cm-guides-title">{t('相关生活指南', 'Related guides')}</h2>
+    <h2 className="cm-guides__title" id="cm-guides-title">{title ? pick(title) : t('相关生活指南', 'Related guides')}</h2>
     <ul className="cm-guides__list">{items.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}><span>{translateText(guide.title, locale)}</span><ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></li>)}</ul>
   </section>;
 }
