@@ -134,6 +134,9 @@ test('N24: Tailwind animate-spin and animate-pulse compile to the token loop (no
 
 test('N05: the together footnotes keep a reading measure', () => {
   assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'max-width'), ['var(--measure)']);
+  // At the measure the closing note wraps; Chinese breaks between phrases only (measured: 各自处理。| 出发前请再次核对…).
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break'), ['keep-all']);
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'overflow-wrap'), ['break-word']);
 });
 
 test('NAV PR B: the profile stamp has no tracking and no blur; .outing-eyebrow stays in sentence case without tracking', () => {

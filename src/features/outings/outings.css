@@ -52,8 +52,9 @@
 .together-page :is(.outing-tabs>button,.outing-cover-modes>button,.outing-cover-options>button):disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 :where(.together-page) button:disabled { cursor:not-allowed; }
 
-/* Small print: 14px (N04), ink-3, at most a reading measure wide (N05, UI9-R2-RATCHET). */
-.together-page .outing-footnote { max-width:var(--measure); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); }
+/* Small print: 14px (N04), ink-3, at most a reading measure wide (N05, UI9-R2-RATCHET). Chinese wraps between phrases (after
+   ，、；。), so the page's closing note breaks after 各自处理。 and not inside 再次 (G8). */
+.together-page .outing-footnote { max-width:var(--measure); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); word-break:keep-all; overflow-wrap:break-word; }
 .together-page .outing-eyebrow { font-size:var(--text-fact); font-weight:400; color:var(--color-brand); }
 
 /* Hub head: H1, lede and the one primary of the section (发起小队). */
