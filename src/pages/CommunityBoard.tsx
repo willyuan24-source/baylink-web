@@ -45,9 +45,9 @@ export interface CommunityBoardProps {
  * short enough to show in full on a 390px phone at 特大 (it was cut mid-character: 「搜标题或地点，如「搬」).
  */
 const SEARCH_EXAMPLES: Record<string, { zh: string; en: string }> = {
-  全部: { zh: '搬家', en: 'moving' }, 租屋: { zh: '单间', en: 'room' }, 闲置: { zh: '沙发', en: 'sofa' }, 本地服务: { zh: '水管', en: 'plumber' },
-  搬家: { zh: '搬家', en: 'moving' }, 清洁: { zh: '保洁', en: 'cleaning' }, 接送: { zh: '机场', en: 'airport' }, 维修: { zh: '水管', en: 'plumbing' },
-  翻译: { zh: '驾照', en: 'license' }, 兼职: { zh: '餐馆', en: 'restaurant' }, 其他: { zh: '家教', en: 'tutor' },
+  全部: { zh: '搬家', en: 'moving' }, 租屋: { zh: '单间', en: 'room' }, 闲置: { zh: '沙发', en: 'sofa' }, 本地服务: { zh: '维修', en: 'repair' },
+  搬家: { zh: '搬家', en: 'moving' }, 清洁: { zh: '保洁', en: 'maid' }, 接送: { zh: '机场', en: 'SFO' }, 维修: { zh: '水管', en: 'pipes' },
+  翻译: { zh: '驾照', en: 'DMV' }, 兼职: { zh: '餐馆', en: 'cafe' }, 其他: { zh: '家教', en: 'tutor' },
 };
 const searchExample = (board: string) => {
   const example = SEARCH_EXAMPLES[board] || SEARCH_EXAMPLES.全部;
