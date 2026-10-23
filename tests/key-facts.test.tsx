@@ -104,7 +104,7 @@ test('the action bar (DETAIL contract): 收藏 · 发家人 · 问 BayBay, then 
   assert.deepEqual(JSON.parse(window.localStorage.getItem(READER_LIBRARY_KEY)!).recent, ['bay-area-medicare-hicap-medi-cal-guide'], 'opening a guide records it in 最近读过');
   fireEvent.click(within(actions).getByRole('button', { name: '问 BayBay 这一页' }));
   assert.equal(asked.length, 1);
-  assert.match(asked[0], /^我正在读《在湾区弄清 Medicare、Medi-Cal：先找免费 HICAP 咨询》。.*第一步/);
+  assert.match(asked[0], /^我正在读《在湾区弄清 Medicare、Medi‑Cal：先找免费 HICAP 咨询》。.*第一步/);
   assert.doesNotMatch(asked[0], /出发前/);
 });
 
