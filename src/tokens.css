@@ -84,9 +84,9 @@
      below) it is the size the rule had before tokens v2, so no elder text is smaller than it was. */
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
-  /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, card titles (feed, lead, pick, row), the primary button and
-     the one key value of a fact block. */
-  --fw-regular:400; --fw-strong:600;
+  /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, the lead / pick card titles, the primary button and the one
+     key value of a fact block; 500 (medium) for feed and row card titles (D3: a feed is not half bold). */
+  --fw-regular:400; --fw-medium:500; --fw-strong:600;
   /* Line height and measure per script (N05): one ladder. CJK here, Latin under :lang(en) below. Paragraphs, list items and
      any copy that may wrap read --lh-read (1.75 / Latin 1.55); one-line UI text (labels, meta, controls) --lh-ui (1.6 /
      1.45); headings --lh-tight; --lh-snug (1.4) is for card titles only, never for multi-line body copy. */
@@ -107,6 +107,9 @@
   --e1:0 1px 2px rgb(58 42 20 / .1), 0 2px 6px rgb(58 42 20 / .06);
   --e2:0 12px 32px rgb(40 28 12 / .16), 0 2px 8px rgb(40 28 12 / .08);
   --scrim:rgb(var(--color-scrim-rgb) / .44);
+  /* Picture viewers (post photo viewer, guide lightbox): the page below must not show through around the picture, so they
+     sit on the dark media scrim; every other overlay keeps --scrim (#64 live check, 10-22). */
+  --scrim-media:rgb(var(--color-scrim-rgb) / .92);
   /* Motion (N24): five durations, all ≤280ms, and three easings. Reduced motion and 简洁显示 set every duration to 0. */
   --dur-1:120ms; --dur-2:160ms; --dur-3:200ms; --dur-4:240ms; --dur-5:280ms;
   --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1); --ease-std:cubic-bezier(.4,0,.2,1);

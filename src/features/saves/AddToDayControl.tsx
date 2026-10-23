@@ -15,7 +15,7 @@ import { prepareSaveAnnouncer } from './save-announcer';
  * "已加入 10/10 计划 · 查看". Guests keep the plan in this browser; signed-in plans go to the account. Plan D19.
  * Loaded on its own by `AddToDayPlan`, which shows the same button, disabled, until this module has arrived.
  */
-export default function AddToDayControl({ stop, date, title, compact, short, className, today }: AddToDayPlanProps) {
+export default function AddToDayControl({ stop, date, title, compact, short, className, today, variant }: AddToDayPlanProps) {
   const app = useApp();
   const locale = useLocale();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
@@ -40,9 +40,11 @@ export default function AddToDayControl({ stop, date, title, compact, short, cla
     }
   };
   return <span className={['saves-day', className].filter(Boolean).join(' ')}>
-    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale, state.status === 'done' ? shownDay : undefined)} disabled={state.status === 'busy'} onClick={() => void add()}>
+    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} data-variant={variant} data-done={variant === 'icon' && state.status === 'done' ? '' : undefined} aria-label={addToDayName(title, locale, state.status === 'done' ? shownDay : undefined)} disabled={state.status === 'busy'} onClick={() => void add()}>
       {state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}
-      {state.status === 'done' ? t(`已加入 ${day}`, `In your ${shownDay} plan`) : t('加入这天计划', short ? 'Add to day' : 'Add to this day’s plan')}
+      {/* The icon variant's short word starts its name (WCAG 2.5.3): 加入 / Add, then 已加入 / In your 10/22 plan. */}
+      {variant === 'icon' ? <span className="saves-add-day__word">{state.status === 'done' ? t('已加入', `In your ${shownDay} plan`) : t('加入', 'Add')}</span>
+        : state.status === 'done' ? t(`已加入 ${day}`, `In your ${shownDay} plan`) : t('加入这天计划', short ? 'Add to day' : 'Add to this day’s plan')}
     </button>
     {state.status === 'error' && <span className="saves-day__error" role="alert">{state.message}</span>}
     {state.toast && <SaveToast message={state.toast} actionLabel={t('查看', 'View')} to={`/my-week#plan-${date}`} closeLabel={t('关闭提示', 'Dismiss')} onClose={() => setState(current => ({ ...current, toast: undefined }))} />}

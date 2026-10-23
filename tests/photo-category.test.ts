@@ -45,6 +45,25 @@ test('the override table names known kinds and categories', () => {
   }
 });
 
+// UI9-R1-AFTER-A1-COPY: an override key that names no record (a typo, a renamed id) would quietly hand the card back to
+// the keyword rules — the CPR class got the pottery picture that way. Records are read from the undated source lists.
+test('every override names a record that exists, and the CPR, Hidden Treasures and Western Addition fixes hold', async () => {
+  const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
+  const { currentFreebies } = await import('../src/data/october-offers');
+  const { currentOpenings } = await import('../src/data/local-discoveries');
+  const { currentRegionalBulletins } = await import('../src/data/october-2026-bulletins');
+  const known = new Set([
+    ...MONTHLY_EVENTS.map(e => `event:${e.id}`), ...currentFreebies.map(o => `offer:${o.id}`), ...currentOpenings.map(o => `opening:${o.id}`),
+    ...currentRegionalBulletins.map(b => `bulletin:${b.id}`), ...guides.map(g => `guide:${g.slug}`),
+  ]);
+  const unknown = Object.keys((overrideFile as { overrides: Record<string, string> }).overrides).filter(key => !known.has(key));
+  assert.deepEqual(unknown, [], 'override keys without a record');
+  const event = (id: string) => MONTHLY_EVENTS.find(e => e.id === id)!;
+  assert.equal(eventPhotoCategory(event('monte-sereno-cpr-aed-october-2026')), 'guide-health');
+  assert.equal(eventPhotoCategory(event('cupertino-hidden-treasures-2026')), 'swap-meet');
+  assert.equal(eventPhotoCategory(event('sfpl-western-addition-open-house-oct24-2026')), 'library');
+});
+
 test('the rules put typical records in the pool their picture shows', () => {
   const ev = (title: string, venue = '', extra: object = {}) => eventPhotoCategory({ id: 't', title, venue, ...extra });
   assert.equal(ev('Cupertino 图书馆周六亲子故事时间', 'Cupertino 图书馆 101 室', { category: 'family' }), 'storytime');

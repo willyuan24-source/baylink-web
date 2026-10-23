@@ -197,7 +197,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "title": "YBG Dance Day：免费试跳不同舞风",
     "startDate": "2026-10-11",
     "endDate": "2026-10-11",
-    "dateLabel": "10 月 11 日 · 10:00–16:00",
+    "dateLabel": "10/11 · 10:00–16:00",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Yerba Buena Gardens · Great Lawn / East Plaza / Crepe Myrtle Garden",

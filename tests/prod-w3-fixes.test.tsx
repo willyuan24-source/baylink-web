@@ -253,9 +253,10 @@ test('small fixes: the offer page title in display case, the price never clipped
 });
 
 test('a card meta that hides the " · " before the price puts the price on its own line (/plan 本周末精选 at 大 / 特大 / 简洁)', () => {
-  // The dot lives inside the price (<span class="ui-meta-place"/><span class="ui-meta-price"><span class="ui-meta-sep"> · </span>…),
-  // and the meta is a wrapping text line since tokens v2, not a flex row: hiding the dot alone glued "Main Street部分免费".
-  assert.match(readFileSync('src/features/plan/PlanWeekendPicks.tsx', 'utf8'), /<span className="ui-meta-place">.*<span className="ui-meta-price"><span className="ui-meta-sep"> · <\/span>/);
+  // The meta is a wrapping text line since tokens v2, not a flex row: hiding the dot alone glued "Main Street部分免费". Since
+  // UI9-R1-AFTER-A1-CARD-SYSTEM the /plan strip prints line 2 as every event card does (status chip · place, STATUS_TONE), so
+  // a rule that hides the dot puts the price and the place on lines of their own.
+  assert.match(readFileSync('src/features/plan/PlanWeekendPicks.tsx', 'utf8'), /data-tone=\{STATUS_TONE\[price\.tone\]\}>\{pick\(price\.text\)\}<\/span>\}\{price && <span className="ui-meta-sep">\{'\\u00a0· '\}<\/span>\}<span className="ui-meta-place">/);
   const normal = (text: string) => text.replace(/\s*([>+~,])\s*/g, '$1').replace(/\s+/g, ' ').trim();
   const checked: string[] = [];
   const walk = (directory: string) => {

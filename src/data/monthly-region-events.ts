@@ -31,7 +31,7 @@ export const regionalSeptemberEvents: MonthlyEvent[] = [
     title: 'Bark in the Park：和狗狗过节',
     startDate: '2026-09-19',
     endDate: '2026-09-19',
-    dateLabel: '9 月 19 日 · 周六',
+    dateLabel: '9/19 · 周六',
     region: 'south-bay',
     city: 'San Jose',
     venue: 'William Street Park',

@@ -95,8 +95,12 @@
 .tool-checklist-progress progress::-webkit-progress-bar{background:var(--color-surface)}
 .tool-checklist-progress progress::-webkit-progress-value{background:var(--color-brand)}
 .tool-checklist-progress progress::-moz-progress-bar{background:var(--color-brand)}
-.tool-checklist-custom{display:flex;align-items:end;gap:10px}
-.tool-checklist-custom .tool-field{flex:1}
+/* 自己补充 (UI9-R1 N1): the tasks one under another like the template's, then 新待办: the field and 添加待办 in one row at
+   one height (the row stretches both to the button's 48px), the hint under the row. */
+.tool-checklist-item+.tool-checklist-add{margin-top:var(--sp-3)}
+.tool-checklist-add-row{display:flex;align-items:stretch;gap:var(--sp-2)}
+.tool-checklist-add-row>input{flex:1 1 0;min-width:0}
+.tool-checklist-add-row>.ui-button{flex:none}
 .tool-checklist-reset{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--r-md);background:var(--color-warning-tint);color:var(--color-ink);font-size:var(--text-fact)}
 @media(min-width:1024px){
   .tools-layout{grid-template-columns:17rem minmax(0,1fr);gap:32px}
@@ -125,7 +129,6 @@
   .tool-converter-row input,.tool-conversion-result output{min-height:67px;padding:12px 8px;font-size:var(--fs-keep-20)}
   .tool-budget-results{grid-template-columns:1fr;gap:10px}
   .tool-member-row{grid-template-columns:minmax(0,1fr) 72px var(--control-height);gap:6px}
-  .tool-checklist-custom{flex-direction:column;align-items:stretch}
   .tools-footer{flex-direction:column;align-items:flex-start}
 }
 /* Every control inside a tool is a full tap target (44px; 48px in 简洁显示 through --control-height): the field rule above,

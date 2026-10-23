@@ -20,8 +20,8 @@ test('free admission results include Newark Days and Petaluma while retaining pa
   assert.ok(filterMonthlyEvents(MONTHLY_EVENTS, { cost: 'free', date: 'october', region: 'north-bay' }, '2026-09-15').includes(petaluma));
   assert.match(newark.costLabel, /游乐设施、餐饮及部分项目另付/);
   assert.match(petaluma.costLabel, /基础入场及停车免费/);
-  assert.match(petaluma.costLabel, /日间大迷宫6岁以上\$9、5岁及以下免费/);
-  assert.match(petaluma.costLabel, /周五周六夜迷宫\$13/);
+  assert.match(petaluma.costLabel, /日间大迷宫 6 岁以上 \$9、5 岁及以下免费/);
+  assert.match(petaluma.costLabel, /周五周六夜迷宫 \$13/);
   assert.match(petaluma.costLabel, /其他项目、南瓜和餐饮另付/, 'paid extras stay in the cost line; the plan no longer repeats it');
 });
 

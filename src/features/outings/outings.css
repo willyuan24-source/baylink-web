@@ -23,7 +23,16 @@
 .together-page :is(.outing-primary,.outing-secondary,.outing-link-button) { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:max(var(--control-height), 3rem); padding:0 var(--sp-5); border:1px solid transparent; border-radius:var(--r-pill); font-size:var(--text-body); font-weight:400; line-height:1.25; text-align:center; text-decoration:none; cursor:pointer; }
 .together-page .outing-primary { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-weight:600; }
 .together-page .outing-secondary { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); }
+/* A text link's 8px side padding keeps its 44px target. */
 .together-page .outing-link-button { min-height:var(--control-height); padding:0 var(--sp-2); background:transparent; color:var(--color-brand); text-decoration:underline; text-underline-offset:var(--underline-offset); text-decoration-thickness:var(--underline-thickness); }
+/* A link on its own line, or ending a row on the content edge (先看看活动, 刷新列表, 清除筛选, 返回小队, 退出小队), keeps its
+   words on the line the rest of the page starts and ends on (UI9-R1): a negative margin gives the padding back, so the
+   target reaches 8px into the gutter and the words do not move in. Scoped (captain 10-22): a link beside another control
+   (an action row with more than the link: 接受 + 婉拒, 婉拒 / 移除成员 + 屏蔽; right after a button: 提交举报 + 关闭) keeps
+   its 8px, so the 44px targets never overlap. :where keeps the base weight (.outing-tabs>a's margin-left:auto still wins).
+   A trailing chevron gives back its own drawn inset (lucide draws it 5px inside its box). */
+.together-page .outing-link-button:where(:not(:is(.outing-inline-actions,.outing-member-actions)>:not(:only-child),:is(.outing-primary,.outing-secondary)+*)) { margin-inline:calc(-1 * var(--sp-2)); }
+.together-page .outing-link-button>.lucide-chevron-right:last-child { margin-inline-end:calc(-1 * var(--sp-1)); }
 .together-page .outing-danger { color:var(--color-danger); }
 @media (hover:hover) and (pointer:fine) {
   .together-page .outing-primary:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
@@ -61,9 +70,10 @@
 .together-page .outing-discovery-filter { margin-bottom:var(--sp-5); padding:var(--sp-5) 0; border-block:1px solid var(--color-line); }
 .together-page .outing-filter-main { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto; align-items:end; gap:var(--sp-4); }
 .together-page .outing-filter-main label { min-width:0; }
-.together-page .outing-search-input { position:relative; display:flex; align-items:center; min-width:0; }
-.together-page .outing-search-input svg { position:absolute; left:var(--sp-3); color:var(--color-ink-3); pointer-events:none; }
-.together-page .outing-search-input input { padding-left:calc(var(--sp-3) * 2 + 1rem); }
+.together-page .outing-search-input { position:relative; display:flex; align-items:center; min-width:0; font-size:var(--text-body); }
+/* The magnifier is 1em of the field's text, so it grows with 大 / 特大 / 简洁 like the words (家人版 drew it at 16px). */
+.together-page .outing-search-input svg { position:absolute; left:var(--sp-3); width:1em; height:1em; color:var(--color-ink-3); pointer-events:none; }
+.together-page .outing-search-input input { padding-left:calc(var(--sp-3) * 2 + 1em); }
 .together-page .outing-date-field { display:grid; gap:var(--sp-2); margin-top:var(--sp-4); }
 /* The four date chips wrap instead of scrolling sideways (phone 特大 and English cut 选日期 off at the edge). */
 .together-page .ui-date-chips { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
@@ -138,7 +148,6 @@
 .together-page .outing-person svg { flex:none; }
 .together-page .outing-member-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-2); }
 .together-page .outing-join-form { margin-top:var(--sp-4); }
-.together-page .outing-waitlist-review a { padding-left:0; }
 .together-page .outing-report { margin-top:var(--sp-4); padding:var(--sp-4); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-warm-tint); }
 .together-page .outing-report label { margin-bottom:var(--sp-3); }
 
@@ -188,7 +197,7 @@
   .together-page .outing-hero { flex-direction:column; align-items:stretch; gap:var(--sp-4); }
   .together-page .outing-hero>button { align-self:flex-start; }
   .together-page .outing-detail-head h1 { font-size:var(--fs-keep-28); }
-  .together-page .outing-tabs>a { margin-left:0; }
+  .together-page .outing-tabs>a { margin-left:calc(-1 * var(--sp-2)); }
   .together-page :is(.outing-grid,.outing-detail-grid,.outing-fields,.outing-advanced-fields) { grid-template-columns:minmax(0,1fr); }
   .together-page .outing-fields .is-wide { grid-column:auto; }
   .together-page .outing-advanced-fields { gap:var(--sp-3); }

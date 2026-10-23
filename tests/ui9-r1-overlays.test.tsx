@@ -171,6 +171,12 @@ test('SaveToast is the one Toast: its look, its close button, its exit; the anno
   assert.doesNotMatch(source, /createPortal|site-toast-box/, 'one toast system');
 });
 
+test('picture viewers sit on the dark media scrim so the page below does not show through (#64 live check)', () => {
+  assert.match(read('src/tokens.css'), /--scrim-media:rgb\(var\(--color-scrim-rgb\) \/ \.92\);/);
+  assert.match(read('src/components/site-dialogs.css'), /\.site-image-viewer \{[^}]*background:var\(--scrim-media\)/);
+  assert.match(read('src/components/guide-lightbox.css'), /\.guide-image-overlay \{[^}]*background:var\(--scrim-media\)/);
+});
+
 test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corners and --dur-* motion', () => {
   for (const file of ['src/components/guide-visuals.css', 'src/components/guide-lightbox.css', 'src/components/site-dialogs.css', 'src/features/feedback/feedback.css', 'src/styles/event-import.css']) {
     const css = read(file);

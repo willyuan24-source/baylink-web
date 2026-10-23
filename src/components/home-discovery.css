@@ -14,12 +14,19 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-head { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .home-head__dateline,.home-head__identity,.home-trust,.home-share p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
 .home-head__title { font-size:var(--text-display); line-height:var(--lh-display); font-weight:600; text-wrap:balance; }
-.home-ask { display:flex; align-items:center; gap:var(--sp-2); margin-top:var(--sp-2); padding:1px 1px 1px var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); }
+.home-ask { display:flex; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2); padding:1px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); }
 .home-ask:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); }
 .home-ask input { flex:1; min-width:0; min-height:var(--control-height); border:0; padding:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); outline:none; }
 .home-ask input::placeholder { color:var(--color-ink-3); }
 .home-discovery :is(.home-ask,.home-section-head__more,.home-credits summary,.home-baybay) svg { width:1rem; height:1rem; }
-.home-head .home-ask-baybay { display:none; align-self:flex-start; }
+/* J3 P12: the box is the hero's one BayBay entry — its otter is a 44 px button that opens BayBay with what is typed. Sized in
+   px, so at 大 / 特大 it does not take the example question's room; its own 8 px around the 28 px otter is the space before
+   the text (the gap after it is cancelled). 简洁 has no otter (data-simple=hide, D6): the submit button's 问 BayBay switch is
+   the way to BayBay there, as before, and the whole example fits the box at 家人版. */
+.home-ask__otter { display:inline-grid; place-items:center; flex:none; width:44px; height:44px; margin-inline-end:calc(var(--sp-1) * -1); padding:0; border:0; border-radius:var(--r-pill); background:transparent; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
+.home-ask__otter>img { width:28px; height:28px; }
+.home-ask__otter:active { scale:.94; background:var(--color-surface-2); }
+html[data-simple] .home-ask { padding-inline-start:var(--sp-3); }
 
 /* Section heads: one H2, the date as a kicker, one "all" link (the /plan picks reuse these three). */
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin-bottom:var(--stack-head); }
@@ -69,8 +76,7 @@ html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:no
 .home-mood::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / .3) 0%, rgb(var(--color-scrim-rgb) / .62) 38%, rgb(var(--color-scrim-rgb) / .8) 100%); }
 .home-mood__text { display:flex; flex-direction:column; min-width:0; padding:var(--sp-2) var(--sp-3); }
 .home-mood__label { font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; overflow-wrap:anywhere; }
-.home-mood__blurb { font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; }
-.home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
+.home-mood__blurb { font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; text-wrap:balance; }
 /* 大 / 特大: the same grid, a taller tile so the bigger words stay on the scrim's dark part. */
 html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 
@@ -100,7 +106,6 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-3d-strip__text strong { font-size:var(--text-body); line-height:1.5; font-weight:600; text-wrap:pretty; }
 .home-3d-strip__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .home-3d-strip__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.home-3d-strip:hover strong { text-decoration:underline; text-underline-offset:4px; }
 @media (min-width:768px) and (max-width:1023px) { .home-feed .ui-feed-grid { grid-auto-flow:row dense; } }
 @media (min-width:768px) { .home-3d-strip .home-3d-strip__art { width:15rem; } .home-3d-strip { gap:24px; padding:12px; } .home-3d-strip__text strong { font-size:var(--text-card); } }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip { flex-direction:column; align-items:stretch; } :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip .home-3d-strip__art { width:100%; } }
@@ -111,7 +116,6 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-baybay h2 { font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .home-baybay ul { display:grid; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
 .home-baybay button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); width:100%; height:100%; min-height:3rem; padding:var(--sp-2) var(--sp-4); border:1px solid var(--color-on-brand-muted); border-radius:var(--r-md); background:transparent; color:inherit; font-size:var(--text-fact); line-height:var(--lh-snug); text-align:start; }
-.home-baybay button:hover { border-color:var(--color-highlight); }
 .home-baybay svg { flex:none; }
 
 /* ⑥ guides: wrapped intent chips, four 3:2 covers, the topic link and 发给家人（大字版）. */
@@ -139,7 +143,6 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-3d__text strong { font-size:var(--text-card); line-height:1.444; font-weight:600; }
 .home-3d__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .home-3d__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.home-3d:hover strong { text-decoration:underline; text-underline-offset:4px; }
 
 /* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. */
 .home-credits { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
@@ -152,6 +155,15 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-credits a { color:var(--color-brand); text-decoration:underline; }
 /* 简洁显示: the credit and licence links are 48px targets too (they sit in a list, not in a sentence). */
 html[data-simple] .home-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); }
+
+/* N23: hover only where a pointer can hover (touch screens keep the press states). */
+@media (hover:hover) and (pointer:fine) {
+  .home-ask__otter:hover { background:var(--color-surface-2); }
+  .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
+  .home-3d-strip:hover strong { text-decoration:underline; text-underline-offset:4px; }
+  .home-3d:hover strong { text-decoration:underline; text-underline-offset:4px; }
+  .home-baybay button:hover { border-color:var(--color-highlight); }
+}
 
 /* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
    guides — a 112 px thumbnail, the text beside it, ♡ at the row's end (not in 简洁, decision 16). */
@@ -180,7 +192,6 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
 
 @media (min-width:768px) {
   .bay-home.bay-home-editorial { padding:24px 24px 48px; }
-  .home-head .home-ask-baybay { display:inline-flex; }
   .home-baybay ul { grid-template-columns:repeat(3, minmax(0, 1fr)); }
   .home-end { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:start; gap:24px; }
   .home-end>:last-child { grid-column:2; }
@@ -194,18 +205,19 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-head { gap:var(--sp-4); }
   :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
   .home-ask { margin-top:var(--sp-3); }
-  /* The masthead in columns 1–5 beside the lead (6–12); picks 2–3 in 1–6 and the share card in 7–12 below, all on one
-     12-column grid: the picks section and its list are display:contents here, so their children are the grid's items. */
+  /* The masthead in columns 1–6 beside the lead (7–12); picks 2–3 in 1–3 and 4–6 and the share card in 7–12 below, all on
+     one 12-column grid: the picks section and its list are display:contents here, so their children are the grid's items.
+     N16 (UI9-R1): every card starts on the feed's four columns (112 / 422 / 732 / 1042 at 1440), the lead included. */
   .home-top { display:grid; grid-template:repeat(3, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }
   .home-picks,.home-picks__list { display:contents; }
-  .home-head { grid-area:1 / 1 / 3 / 6; }
-  .home-picks>.home-section-head,.home-picks__all { grid-area:1 / 6 / 2 / -1; }
+  .home-head { grid-area:1 / 1 / 3 / 7; }
+  .home-picks>.home-section-head,.home-picks__all { grid-area:1 / 7 / 2 / -1; }
   .home-picks__all { justify-self:end; }
   /* 看本周末全部 N 场 shares the H2's cell: the H2 wraps before it (en at 1024 at 大 / 特大). */
   .home-picks>.home-section-head h2 { max-width:calc(100% - 13rem); }
-  .home-picks__list>li:first-child,.home-empty { grid-area:2 / 6 / 5 / -1; }
-  .home-trust { grid-area:3 / 1 / 4 / 6; }
-  .home-top>.home-moods { grid-area:4 / 1 / 5 / 6; margin:0; }
+  .home-picks__list>li:first-child,.home-empty { grid-area:2 / 7 / 5 / -1; }
+  .home-trust { grid-area:3 / 1 / 4 / 7; }
+  .home-top>.home-moods { grid-area:4 / 1 / 5 / 7; margin:0; }
   .home-picks__list>li+li,.home-top>.home-share { grid-area:5 / span 3; margin-top:var(--sp-2); }
   .home-top>.home-share { grid-column:7 / -1; justify-content:center; }
 }

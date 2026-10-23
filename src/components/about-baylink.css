@@ -1,8 +1,9 @@
 /* About and 我们怎么核对 (/about; UI9-NAV, content arrangement §8): the 1216 frame (content at x = 112 in a 1440 window),
    the reading column in grid columns 1-8 at the measure (36em CJK, 66ch Latin), 联系与反馈 as an aside in columns 9-12
-   level with the H1; sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. The page ends 16px (phone) / 24px
-   (desktop) above the footer (UI9-R1 N15). Links read the underline tokens (N13). Tokens only. */
-.about-page{padding-block:var(--sp-5) var(--sp-4);color:var(--color-ink);overflow-wrap:anywhere}
+   level with the H1; sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. The page ends 32px (phone) / 40px
+   (desktop) above the footer, so the blank above it reads 55-61 / 54-58 with the chrome's 12px footer step (UI9-R1 N15,
+   CHROME's 52-64 band; 32 left the desktop at 46-50). Links read the underline tokens (N13). Tokens only. */
+.about-page{padding-block:var(--sp-5) var(--sp-6);color:var(--color-ink);overflow-wrap:anywhere}
 .about-page .ui-page-header{margin-bottom:0}
 .about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline var(--underline-thickness);text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);text-decoration-skip-ink:none}
 .about-layout{display:grid;gap:var(--section-gap)}
@@ -28,10 +29,14 @@ html[data-simple] .about-more{display:none}
 .about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-ui)}
 .about-page .about-badge{position:static;display:inline-block;max-width:100%;white-space:normal}
 .about-contact{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-5);margin-top:var(--sp-3)}
+/* 反馈与报错 has its box from the first paint (UI9-R1: CLS 0.0023 on a desktop): its own sheet (feedback-entry.css) is
+   requested after the app's first render, and until then the prerendered button took the body size with no gap, so the
+   mail button sat beside it and dropped to the next row (52px) when the sheet arrived. The same metrics as that sheet. */
+.about-contact>.feedback-footer-link{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:var(--control-height);font-size:var(--text-fact)}
 .about-policies{margin:var(--sp-2) 0 0}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:var(--sp-1)}}
 @media(min-width:1024px){
-  .about-page{padding-block:var(--sp-6) var(--sp-5)}
+  .about-page{padding-block:var(--sp-6) calc(var(--sp-6) + var(--sp-2))}
   .about-layout{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gutter);align-items:start}
   .about-main{grid-column:1 / span 8;grid-row:1}
   /* Level with the H1: the breadcrumb line above it is the aside's top margin. */

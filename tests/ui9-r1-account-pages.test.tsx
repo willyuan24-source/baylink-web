@@ -68,19 +68,21 @@ test('/me sits on the wide frame (x = 112 at 1440), tiles on the grid, sections,
   assert.equal(one(file, '.me-subview>*')['max-width'], 'var(--container-reading)');
 });
 
-test('pre-footer (N15): /me, my-week, /about and the 404 end at most 24px above the footer', () => {
-  assert.match(one('src/features/profile/me-hub.css', '.me-hub').padding, / calc\(env\(safe-area-inset-bottom, 0px\) \+ var\(--sp-5\)\)$/);
-  assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-5)');
-  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-3)');
-  assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-4)');
-  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-5)');
+test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the chrome\'s 12px footer step (#61)', () => {
+  assert.match(one('src/features/profile/me-hub.css', '.me-hub').padding, / calc\(env\(safe-area-inset-bottom, 0px\) \+ var\(--sp-7\)\)$/);
+  assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-7)');
+  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-6)');
+  assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-6)');
+  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) calc(var(--sp-6) + var(--sp-2))');
   const page = one('src/components/not-found.css', '.nf-page');
-  assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-4)');
+  assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-6)');
   // 反馈与报错 stays 8px under the actions (no fill that would strand it above the footer on a tall window), and the
   // page stylesheet leaves the chrome's <main> alone.
   assert.equal(page.flex, undefined);
   assert.equal(one('src/components/not-found.css', '.nf-actions').margin, 'var(--section-gap) 0 var(--sp-2)');
   assert.equal(one('src/components/not-found.css', '.nf-feedback')['margin-top'], undefined);
+  // The lazy 反馈与报错 link's row is held from the first paint (the prerender has an empty .nf-feedback).
+  assert.equal(one('src/components/not-found.css', '.nf-feedback')['min-height'], 'var(--control-height)');
   assert.doesNotMatch(readFileSync('src/components/not-found.css', 'utf8'), /site-main/);
   // Desktop: the four place cards are 88 tall, which fills a 1440 x 900 window to ≤ 64 above the footer.
   assert.equal(one('src/components/not-found.css', '.nf-links a', '(min-width:1024px)')['min-height'], '5.5rem');
@@ -130,4 +132,55 @@ test('/about: the 还有 row has no " · " separators, so no line of it can star
   assert.equal(row.display, 'flex');
   assert.equal(row['flex-wrap'], 'wrap');
   assert.equal(row['column-gap'], 'var(--sp-4)');
+});
+
+test('UI9-R1 polish: one chevron hint on the four /me tiles, 小队与预约 side by side on a desktop; my-week\'s empty import is the ui empty state; /about\'s feedback button has its box from the first paint', () => {
+  const hub = 'src/features/profile/me-hub.css';
+  // The three tiles that open a page or a sheet end their title with the chevron 小队与预约's links carry.
+  const chevron = one(hub, ':is(a,button).me-tile .me-tile__title::after');
+  assert.equal(chevron.width, '1rem');
+  assert.equal(chevron.background, 'var(--color-brand)');
+  assert.match(chevron.mask, /m9 18 6-6-6-6/, 'lucide chevron-right, as the links draw it');
+  assert.equal(one(hub, '.me-tile__links a').gap, 'var(--sp-1)', 'the chevron follows its label (no space-between)');
+  assert.equal(one(hub, '.me-tile__links a')['justify-content'], undefined);
+  assert.equal(one(hub, '.me-tile__links', '(min-width:1024px)')['flex-direction'], 'row', 'two links side by side: no ~85px blank under the other tiles');
+  // 我导入的活动 with nothing upcoming: no dashed frame, the icon in the brand-tint circle.
+  const empty = one('src/features/saves/my-week.css', '.my-week__legacy .imported-event-empty');
+  assert.equal(empty.border, '0');
+  assert.equal(empty['flex-direction'], 'column');
+  assert.equal(empty['text-align'], 'center');
+  const icon = one('src/features/saves/my-week.css', '.my-week__legacy .imported-event-empty>svg');
+  assert.equal(icon.background, 'var(--color-brand-tint)');
+  assert.equal(icon['border-radius'], 'var(--r-circle)');
+  assert.equal(icon.padding, 'var(--sp-4)', 'a 64px circle on the spacing scale');
+  // 反馈与报错 on /about: the metrics of feedback-entry.css, which only arrives after the app's first render.
+  const feedback = one('src/components/about-baylink.css', '.about-contact>.feedback-footer-link');
+  const entry = readFileSync('src/features/feedback/feedback-entry.css', 'utf8');
+  assert.match(entry, /\.feedback-footer-link\{display:inline-flex;align-items:center;gap:\.5rem;min-height:var\(--control-height\);[^}]*font-size:var\(--text-fact\)/);
+  assert.deepEqual([feedback.display, feedback['align-items'], feedback.gap, feedback['min-height'], feedback['font-size']], ['inline-flex', 'center', 'var(--sp-2)', 'var(--control-height)', 'var(--text-fact)']);
+});
+
+test('UI9-R1 polish: my-week\'s 行程 loads in the empty line\'s box, so 收藏 below does not jump when there are no plans', async () => {
+  const sheet = 'src/features/saves/my-week.css';
+  const line = one(sheet, '.my-week__empty-line');
+  assert.equal(line['line-height'], '1.625');
+  assert.equal(line.padding, '16px');
+  const busy = one(sheet, '.my-week__head+[aria-busy=true]');
+  assert.equal(busy['min-height'], 'calc(1.625 * var(--text-body))', 'one line of the empty line on a desktop');
+  assert.equal(busy.padding, '16px');
+  assert.equal(busy['box-sizing'], 'content-box');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]', '(max-width:767px)')['min-height'], 'calc(2 * 1.625 * var(--text-body))', 'two on a phone');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]>.ui-row-card').display, 'none');
+  // The 行程 section is the one whose loading block follows its head directly (收藏's follows its note).
+  const page = readFileSync('src/pages/MyWeekPage.tsx', 'utf8');
+  assert.match(page, /<\/Button><\/div>\s*\{library\.loading \? <SkeletonFeed rows count=\{2\} \/>/);
+  // The rule keys on SkeletonFeed's rows markup (components/ui/SkeletonCard.tsx): one aria-busy block of RowCards right
+  // where it is rendered. A change there must fail here, not silently bring the 0.0413 shift back.
+  const { SkeletonFeed } = await import('../src/components/ui/SkeletonCard');
+  const block = render(<SkeletonFeed rows count={2} />).container.firstElementChild!;
+  assert.equal(block.getAttribute('aria-busy'), 'true');
+  assert.equal(block.querySelectorAll(':scope>.ui-row-card').length, 2);
+  // It reads as loading: the skeleton's shimmer, none under reduced motion.
+  assert.equal(busy.animation, 'ui-shimmer calc(6 * var(--dur-3)) linear infinite', 'the skeleton\'s 1.2s, from the motion tokens');
+  assert.equal(one(sheet, '.my-week__head+[aria-busy=true]', '(prefers-reduced-motion:reduce)').animation, 'none');
 });

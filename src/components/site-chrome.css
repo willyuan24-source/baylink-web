@@ -128,6 +128,14 @@ html[data-simple] .site-app .site-more-community { display:none; }
 .site-app .site-footer-brand strong { color:var(--color-brand); font-size:var(--fs-card); font-weight:var(--fw-strong); letter-spacing:.08em; }
 .site-app .site-footer-line { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
 .site-app .site-footer-claim { white-space:nowrap; }
+/* A Chinese phone line breaks between words, never inside one (UI9-R1: it split 办事指 / 南, the claim's nowrap leaving no
+   break before it): CJK words stay whole (keep-all breaks only at the spaces around ·) and a 17.5em measure puts the break
+   after the first ·, so 免费 · 不用登录 reads whole on the second line at every Aa size; a word wider than a very narrow
+   phone still wraps (overflow-wrap). English keeps the rule above. */
+@media (max-width:599px) {
+  .site-app .site-footer-line:lang(zh) { max-width:17.5em; word-break:keep-all; overflow-wrap:anywhere; }
+  .site-app .site-footer-line:lang(zh) .site-footer-claim { white-space:normal; }
+}
 .site-app .site-footer-links { display:grid; align-content:start; }
 /* N25: every link is a full target, 44px tall (48 in 简洁显示) and its word plus 12px each side wide (≥52px: no label is
    under two characters), so the words stay 24px apart and on the column's edge (the row reaches 12px past it). */
@@ -312,7 +320,11 @@ html[data-simple] .site-app .site-footer-about { display:none; }
 
 /* Route feedback (UI9-F): the tapped link answers at once (the press styles and data-pending), the page keeps its height
    while the next route loads, and a brand bar runs at the top only after 150ms, so a fast route never flashes it, until
-   the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). */
+   the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). The wait is a full screen tall, so the
+   footer is never in the first screen while it shows (a short page arriving would pull it up: a layout shift). 100vh, not
+   100svh: on a phone vh is the large viewport (toolbar retracted), so header + 100vh stays below the fold in every toolbar
+   state, while header + 100svh can show the footer's top once the toolbar has retracted; neither unit changes while the
+   toolbar moves (dvh would relayout). At boot the account shell and the 404 stand in for it (app/boot-main.ts). */
 .site-route-wait { flex:1 1 auto; min-height:100vh; }
 .site-route-progress { position:fixed; inset:0 0 auto; z-index:90; height:3px; overflow:hidden; opacity:0; pointer-events:none; animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards; }
 .site-route-progress::before { content:""; position:absolute; inset:0; background:var(--color-brand); transform-origin:0; animation:site-route-run calc(6 * var(--dur-3)) var(--ease-std) infinite; }

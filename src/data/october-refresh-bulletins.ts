@@ -34,7 +34,7 @@ export const octoberRefreshBulletins: RegionalBulletin[] = [
     "label": "旧金山",
     "title": "Mechanics’ Institute 装修：先查楼层与活动地点",
     "dateLabel": "10/1–3 图书馆二、三楼关闭；10/5 二楼重开",
-    "summary": "三楼预计十二月中旬重开，部分节目会移址或线上举行；预计时间仍可能调整。这是机构服务公告，不是免费公共图书馆福利。前往57 Post Street前，先查当日开放楼层和参加资格。",
+    "summary": "三楼预计十二月中旬重开，部分节目会移址或线上举行；预计时间仍可能调整。这是机构服务公告，不是免费公共图书馆福利。前往 57 Post Street 前，先查当日开放楼层和参加资格。",
     "sourceLabel": "Mechanics’ Institute",
     "sourceUrl": "https://www.milibrary.org/about-us/renovation/",
     "expiresAt": "2026-10-31",

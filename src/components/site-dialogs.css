@@ -103,7 +103,7 @@ html[data-simple] .reading-sheet-card .reading-sample[data-size=extra-large] { f
 
 /* The picture viewer (ImageViewer): the site's one scrim (N10), the picture fading in from 96%, F's close button; out over
    --dur-3 while OverlayHost keeps it mounted. No blur behind it. */
-.site-image-viewer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:var(--scrim); animation:site-viewer-in var(--dur-3) var(--ease-out); }
+.site-image-viewer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:var(--scrim-media); animation:site-viewer-in var(--dur-3) var(--ease-out); }
 .site-image-viewer__img { max-width:100%; max-height:90vh; border-radius:var(--r-lg); object-fit:contain; box-shadow:var(--e2); animation:site-image-in var(--dur-4) var(--ease-out); }
 .site-image-viewer__close { position:absolute; top:calc(env(safe-area-inset-top,0px) + var(--sp-5)); right:var(--sp-5); }
 .site-image-viewer.is-closing { animation:site-viewer-out var(--dur-3) var(--ease-in) forwards; pointer-events:none; }

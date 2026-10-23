@@ -127,7 +127,7 @@ test('H06: an empty 长辈友好 list offers the 长辈与家属 guides and BayB
   assert.ok(empty.getByRole('button', { name: '清除筛选' }));
 });
 
-test('H02: list headers state when their items were checked — most of them, and the latest — never the edition date', () => {
+test('H02: the check summary reads most and latest dates, never the edition date; the events head states no check date (AFTER-A1)', () => {
   assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28', all: false });
   assert.equal(checkSummary([], '2026-10-13'), null);
   const zh = (text: string) => text;
@@ -136,9 +136,14 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
-  // UI9-EVENTS (G12): said as checks against the official pages, then the quiet 我们怎么核对 link; press reports (DECISIONS 17)
-  // are counted, not promised an official source.
-  assert.match(facts, /(?:每条附官方链接|\d+ 条来自媒体报道) · 官网核对 (?:多数 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|\d+\/\d+) · 我们怎么核对$/);
+  // UI9-R1 AFTER-A1: the events head states no check date at all (so never the edition's): each card prints its own
+  // ✓ 官网核对 M/D or 媒体报道 · M/D 核对 line (DECISIONS 3 / 17), and the quiet 我们怎么核对 link explains the checks.
+  assert.match(facts, /^\d+ 场 · \d+ 场免费 · 我们怎么核对$/);
+  const cards = [...page.querySelectorAll('.ui-feed-card')];
+  assert.ok(cards.length > 0);
+  const trust = cards.flatMap(card => [...card.querySelectorAll('.ui-feed-card__trust')]);
+  assert.ok(trust.length > 0);
+  for (const line of trust) assert.match(line.textContent!, /^(官网核对 \d+\/\d+|媒体报道 · \d+\/\d+ 核对)$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
   // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).

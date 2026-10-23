@@ -289,7 +289,7 @@ const GuideDetailSession = ({
         </div>}
         <nav className="bl-guide-toc gd-toc" aria-label={t('文章目录', 'Contents')}>
           <Disclosure className="gd-toc__phone" summary={<>{t('目录', 'Contents')}<span className="gd-toc__count">{t(`${headings.length} 个章节`, `${headings.length} section${headings.length === 1 ? '' : 's'}`)}</span></>}>{contents}</Disclosure>
-          <div className="gd-toc__desk"><h2>{t('目录', 'Contents')}</h2>{contents}</div>
+          <div className="gd-toc__desk">{/* N02: a label, not an H2 — the nav is named 文章目录 and a 14 px H2 sat under the 24 px slide titles. */}<p className="gd-toc__label">{t('目录', 'Contents')}</p>{contents}</div>
         </nav>
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {leadDiagrams && <div className="gd-lead-diagrams">{leadDiagrams}</div>}

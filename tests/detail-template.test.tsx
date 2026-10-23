@@ -194,7 +194,7 @@ test('怎么领 · 怎么用 numbers only the steps a listing numbers itself; he
   assert.equal(muni.querySelector('.detail-steps ol'), null, 'a description sentence is not step 1');
   assert.ok(muni.querySelectorAll('.detail-steps ul > li').length >= 3);
   const happy = page(findItem('offer', 'sunnyvale-st-johns-happy-hour-ongoing'));
-  assert.match(happy.querySelector('.detail-steps__note')?.textContent || '', /^截至2026-09-29官网可见。/);
+  assert.match(happy.querySelector('.detail-steps__note')?.textContent || '', /^截至 2026-09-29 官网可见。/);
   assert.ok(![...happy.querySelectorAll('.detail-steps li')].some(li => /官网可见|未公布有效期/.test(li.textContent || '')), 'no hedge in the list');
   const record = buildDetailRecord(findItem('offer', 'oakland-tool-library'));
   if (record.item.kind !== 'offer') return;

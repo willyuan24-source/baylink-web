@@ -1992,7 +1992,7 @@
    "sha1": "3c1b4800a278a1a5",
    "lqip": "#321",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2015,7 +2015,7 @@
    "sha1": "afa115554a5ee180",
    "lqip": "#db9",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2038,7 +2038,7 @@
    "sha1": "a8be7aa0926b3619",
    "lqip": "#876",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2061,7 +2061,7 @@
    "sha1": "3c38e023a98e23ba",
    "lqip": "#bba",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2084,7 +2084,7 @@
    "sha1": "d10e1ea1913d33ca",
    "lqip": "#644",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2107,7 +2107,7 @@
    "sha1": "2a821b2b40db9c72",
    "lqip": "#877",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2130,7 +2130,7 @@
    "sha1": "697216e5bfed5411",
    "lqip": "#a87",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2153,7 +2153,7 @@
    "sha1": "bdc11c56f41fc55b",
    "lqip": "#887",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2386,7 +2386,7 @@
    "sha1": "60e058ab7ffe3a76",
    "lqip": "#aa9",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2409,7 +2409,7 @@
    "sha1": "13fd7d2dbf673a88",
    "lqip": "#888",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2432,7 +2432,7 @@
    "sha1": "a3db2077e0143500",
    "lqip": "#888",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2441,11 +2441,19 @@
      "width": 480,
      "height": 320,
      "bytes": 23344
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-city-sights-3-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 89708,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-city-sights-3-small.webp 480w",
-    "/guides/category-stock/stock-city-sights-3.webp 1280w"
+    "/guides/category-stock/stock-city-sights-3-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-class-workshop-1.webp": {
@@ -2541,7 +2549,7 @@
    "sha1": "9b8ed5dd426784f8",
    "lqip": "#100",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2564,7 +2572,7 @@
    "sha1": "e7ca0121cbc8b7c9",
    "lqip": "#444",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2587,7 +2595,7 @@
    "sha1": "500061da90e064df",
    "lqip": "#999",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2596,10 +2604,19 @@
      "width": 480,
      "height": 320,
      "bytes": 12976
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-classical-music-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 29054,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-classical-music-4-small.webp 480w",
+    "/guides/category-stock/stock-classical-music-4-800.webp 800w",
     "/guides/category-stock/stock-classical-music-4.webp 1280w"
    ]
   },
@@ -2610,7 +2627,7 @@
    "sha1": "4b8997a37a3ac04f",
    "lqip": "#222",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2720,7 +2737,7 @@
    "sha1": "7a9a90fdaaa33ae0",
    "lqip": "#644",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2743,7 +2760,7 @@
    "sha1": "54323c2b6174984c",
    "lqip": "#532",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2766,7 +2783,7 @@
    "sha1": "c906b69346412163",
    "lqip": "#712",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2789,7 +2806,7 @@
    "sha1": "b8d2cd726b85a0fd",
    "lqip": "#431",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2812,7 +2829,7 @@
    "sha1": "04e533bf3492ef70",
    "lqip": "#542",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2835,7 +2852,7 @@
    "sha1": "4220223b0c1f6d2f",
    "lqip": "#b97",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2858,7 +2875,7 @@
    "sha1": "c8edac1fc5261212",
    "lqip": "#555",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -2881,7 +2898,7 @@
    "sha1": "c58af22347aa083f",
    "lqip": "#aa9",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4233,7 +4250,7 @@
    "sha1": "200e7b4a3585a406",
    "lqip": "#ddd",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4256,7 +4273,7 @@
    "sha1": "0ca56c30bb3e31cb",
    "lqip": "#865",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4279,7 +4296,7 @@
    "sha1": "c6c30cb0b0a2b904",
    "lqip": "#a98",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4371,7 +4388,7 @@
    "sha1": "ee74ac1d4bb6e20b",
    "lqip": "#876",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4394,7 +4411,7 @@
    "sha1": "0850a2ba56cac7ea",
    "lqip": "#bba",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4417,7 +4434,7 @@
    "sha1": "5e1dc3886a375966",
    "lqip": "#a97",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4440,7 +4457,7 @@
    "sha1": "17a090a58c07ec56",
    "lqip": "#876",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4449,11 +4466,19 @@
      "width": 480,
      "height": 384,
      "bytes": 24918
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-guide-newcomer-3-1200.webp",
+     "width": 1200,
+     "height": 960,
+     "bytes": 84274,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-guide-newcomer-3-small.webp 480w",
-    "/guides/category-stock/stock-guide-newcomer-3.webp 1280w"
+    "/guides/category-stock/stock-guide-newcomer-3-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-guide-newcomer-4.webp": {
@@ -4463,7 +4488,7 @@
    "sha1": "7ef67095be4a4897",
    "lqip": "#775",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4472,10 +4497,19 @@
      "width": 480,
      "height": 270,
      "bytes": 25564
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-guide-newcomer-4-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 48454,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-guide-newcomer-4-small.webp 480w",
+    "/guides/category-stock/stock-guide-newcomer-4-800.webp 800w",
     "/guides/category-stock/stock-guide-newcomer-4.webp 1280w"
    ]
   },
@@ -4509,7 +4543,7 @@
    "sha1": "db68467572612b1a",
    "lqip": "#211",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4532,7 +4566,7 @@
    "sha1": "9e701a0e204847d0",
    "lqip": "#a75",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4555,7 +4589,7 @@
    "sha1": "e03e972186d4774a",
    "lqip": "#eca",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4601,7 +4635,7 @@
    "sha1": "fd1e59bbce5a1cdf",
    "lqip": "#965",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4624,7 +4658,7 @@
    "sha1": "e938537650edda49",
    "lqip": "#531",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4647,7 +4681,7 @@
    "sha1": "0c08b2cb644ec648",
    "lqip": "#876",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -4656,10 +4690,19 @@
      "width": 480,
      "height": 360,
      "bytes": 21950
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-guide-school-3-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 41848,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-guide-school-3-small.webp 480w",
+    "/guides/category-stock/stock-guide-school-3-800.webp 800w",
     "/guides/category-stock/stock-guide-school-3.webp 1280w"
    ]
   },
@@ -5495,7 +5538,7 @@
    "sha1": "a4a54f9a36786ea7",
    "lqip": "#811",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -5518,7 +5561,7 @@
    "sha1": "b6c1a599e89d0d93",
    "lqip": "#955",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -5541,7 +5584,7 @@
    "sha1": "c41740efd120550b",
    "lqip": "#654",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -5550,11 +5593,28 @@
      "width": 480,
      "height": 360,
      "bytes": 31198
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-lunar-new-year-3-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 65212,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-lunar-new-year-3-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 121244,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-lunar-new-year-3-small.webp 480w",
-    "/guides/category-stock/stock-lunar-new-year-3.webp 1280w"
+    "/guides/category-stock/stock-lunar-new-year-3-800.webp 800w",
+    "/guides/category-stock/stock-lunar-new-year-3-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-museum-1.webp": {
@@ -5951,7 +6011,7 @@
    "sha1": "5d58f456d294ed17",
    "lqip": "#112",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -5974,7 +6034,7 @@
    "sha1": "92c948c6691cb01c",
    "lqip": "#234",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -5997,7 +6057,7 @@
    "sha1": "27477da84b4f7b07",
    "lqip": "#445",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6006,10 +6066,19 @@
      "width": 480,
      "height": 320,
      "bytes": 12558
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-night-sky-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 26478,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-night-sky-3-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-3-800.webp 800w",
     "/guides/category-stock/stock-night-sky-3.webp 1280w"
    ]
   },
@@ -6020,7 +6089,7 @@
    "sha1": "2f7c25d580671996",
    "lqip": "#222",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6029,10 +6098,19 @@
      "width": 480,
      "height": 320,
      "bytes": 9526
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-night-sky-4-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 22316,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-night-sky-4-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-4-800.webp 800w",
     "/guides/category-stock/stock-night-sky-4.webp 1280w"
    ]
   },
@@ -6345,7 +6423,7 @@
    "sha1": "a205ef00c74387bd",
    "lqip": "#765",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6561,7 +6639,7 @@
    "sha1": "1c1fabbadb265cc8",
    "lqip": "#100",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6584,7 +6662,7 @@
    "sha1": "9944c57f30514e77",
    "lqip": "#b71",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6607,7 +6685,7 @@
    "sha1": "a334e443ddf79aa4",
    "lqip": "#b43",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6630,7 +6708,7 @@
    "sha1": "62e41e77fbfe597b",
    "lqip": "#555",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6653,7 +6731,7 @@
    "sha1": "d291885d91eba084",
    "lqip": "#586",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6662,11 +6740,28 @@
      "width": 480,
      "height": 320,
      "bytes": 26412
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-football-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 60162,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-sports-football-2-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 112040,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-football-2-small.webp 480w",
-    "/guides/category-stock/stock-sports-football-2.webp 1280w"
+    "/guides/category-stock/stock-sports-football-2-800.webp 800w",
+    "/guides/category-stock/stock-sports-football-2-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-sports-football-3.webp": {
@@ -6676,7 +6771,7 @@
    "sha1": "58d0b8978246a4b9",
    "lqip": "#788",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6685,10 +6780,19 @@
      "width": 480,
      "height": 360,
      "bytes": 17960
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-football-3-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 37684,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-football-3-small.webp 480w",
+    "/guides/category-stock/stock-sports-football-3-800.webp 800w",
     "/guides/category-stock/stock-sports-football-3.webp 1280w"
    ]
   },
@@ -6699,7 +6803,7 @@
    "sha1": "1a2f67ee11042329",
    "lqip": "#453",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6708,10 +6812,19 @@
      "width": 480,
      "height": 320,
      "bytes": 22328
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-football-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 45112,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-football-4-small.webp 480w",
+    "/guides/category-stock/stock-sports-football-4-800.webp 800w",
     "/guides/category-stock/stock-sports-football-4.webp 1280w"
    ]
   },
@@ -6722,7 +6835,7 @@
    "sha1": "6846901c7d8c4101",
    "lqip": "#774",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6745,7 +6858,7 @@
    "sha1": "b97bada66e7be8a6",
    "lqip": "#783",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6754,11 +6867,28 @@
      "width": 480,
      "height": 360,
      "bytes": 33798
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-game-4-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 73062,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-sports-game-4-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 128750,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-game-4-small.webp 480w",
-    "/guides/category-stock/stock-sports-game-4.webp 1280w"
+    "/guides/category-stock/stock-sports-game-4-800.webp 800w",
+    "/guides/category-stock/stock-sports-game-4-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-sports-game-5.webp": {
@@ -6768,7 +6898,7 @@
    "sha1": "b5f37063203b8f92",
    "lqip": "#dcb",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6777,10 +6907,19 @@
      "width": 480,
      "height": 360,
      "bytes": 11282
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-game-5-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 29092,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-game-5-small.webp 480w",
+    "/guides/category-stock/stock-sports-game-5-800.webp 800w",
     "/guides/category-stock/stock-sports-game-5.webp 1280w"
    ]
   },
@@ -6791,7 +6930,7 @@
    "sha1": "8883959b5e80ecd1",
    "lqip": "#854",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6814,7 +6953,7 @@
    "sha1": "858aec1b86a93dfd",
    "lqip": "#ccb",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6837,7 +6976,7 @@
    "sha1": "09e13552693a112b",
    "lqip": "#bbc",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6846,10 +6985,19 @@
      "width": 480,
      "height": 318,
      "bytes": 11520
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-sports-hockey-3-800.webp",
+     "width": 800,
+     "height": 529,
+     "bytes": 24914,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-sports-hockey-3-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-3-800.webp 800w",
     "/guides/category-stock/stock-sports-hockey-3.webp 1280w"
    ]
   },
@@ -6860,7 +7008,7 @@
    "sha1": "822366907e2693f0",
    "lqip": "#a87",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -6906,7 +7054,7 @@
    "sha1": "6390350d54d7bf9b",
    "lqip": "#89a",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7528,7 +7676,7 @@
    "sha1": "e6e92ef11f18cc08",
    "lqip": "#753",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7537,10 +7685,19 @@
      "width": 480,
      "height": 320,
      "bytes": 16844
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-thanksgiving-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 29746,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-thanksgiving-1-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-1-800.webp 800w",
     "/guides/category-stock/stock-thanksgiving-1.webp 1280w"
    ]
   },
@@ -7551,7 +7708,7 @@
    "sha1": "22d2d39284e0c143",
    "lqip": "#854",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7560,10 +7717,19 @@
      "width": 480,
      "height": 320,
      "bytes": 21480
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-thanksgiving-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 41560,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-thanksgiving-2-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-2-800.webp 800w",
     "/guides/category-stock/stock-thanksgiving-2.webp 1280w"
    ]
   },
@@ -7574,7 +7740,7 @@
    "sha1": "00befed6641a4cbd",
    "lqip": "#754",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7583,10 +7749,19 @@
      "width": 480,
      "height": 320,
      "bytes": 20732
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-thanksgiving-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 39260,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-thanksgiving-3-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-3-800.webp 800w",
     "/guides/category-stock/stock-thanksgiving-3.webp 1280w"
    ]
   },
@@ -7597,7 +7772,7 @@
    "sha1": "c3539dc2018fd53b",
    "lqip": "#764",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7606,11 +7781,19 @@
      "width": 480,
      "height": 299,
      "bytes": 20154
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-thanksgiving-4-1200.webp",
+     "width": 1200,
+     "height": 748,
+     "bytes": 78484,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-thanksgiving-4-small.webp 480w",
-    "/guides/category-stock/stock-thanksgiving-4.webp 1280w"
+    "/guides/category-stock/stock-thanksgiving-4-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-transit-2.webp": {
@@ -7651,7 +7834,7 @@
    "sha1": "c02f22c900f6aefd",
    "lqip": "#433",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7660,10 +7843,19 @@
      "width": 480,
      "height": 320,
      "bytes": 8080
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-transit-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 17310,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-transit-4-small.webp 480w",
+    "/guides/category-stock/stock-transit-4-800.webp 800w",
     "/guides/category-stock/stock-transit-4.webp 1280w"
    ]
   },
@@ -7674,7 +7866,7 @@
    "sha1": "9c8499546bb7cbb9",
    "lqip": "#554",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7697,7 +7889,7 @@
    "sha1": "d1b5b560aeef4588",
    "lqip": "#762",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7720,7 +7912,7 @@
    "sha1": "b763347f40e784e4",
    "lqip": "#675",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7729,11 +7921,28 @@
      "width": 480,
      "height": 360,
      "bytes": 34224
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-transit-7-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 86310,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-transit-7-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 141378,
+     "quality": 46
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-transit-7-small.webp 480w",
-    "/guides/category-stock/stock-transit-7.webp 1280w"
+    "/guides/category-stock/stock-transit-7-800.webp 800w",
+    "/guides/category-stock/stock-transit-7-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-transit-8.webp": {
@@ -7743,7 +7952,7 @@
    "sha1": "f7f1827daa1d9b59",
    "lqip": "#544",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7766,7 +7975,7 @@
    "sha1": "5c57a1185b03f17e",
    "lqip": "#675",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7775,10 +7984,19 @@
      "width": 480,
      "height": 320,
      "bytes": 18154
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-transit-9-800.webp",
+     "width": 800,
+     "height": 532,
+     "bytes": 34426,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/category-stock/stock-transit-9-small.webp 480w",
+    "/guides/category-stock/stock-transit-9-800.webp 800w",
     "/guides/category-stock/stock-transit-9.webp 1280w"
    ]
   },
@@ -7789,7 +8007,7 @@
    "sha1": "57c9781d878deee8",
    "lqip": "#9aa",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7812,7 +8030,7 @@
    "sha1": "25f8e8a14f7900ea",
    "lqip": "#964",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7835,7 +8053,7 @@
    "sha1": "c3f50e60270dba2e",
    "lqip": "#332",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -7858,7 +8076,7 @@
    "sha1": "762c13e7f03038da",
    "lqip": "#a75",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -9515,7 +9733,7 @@
    "sha1": "fcfdf30b6f278873",
    "lqip": "#432",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -9524,11 +9742,19 @@
      "width": 480,
      "height": 320,
      "bytes": 20994
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/community-2026/cinema-night-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 51860,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/community-2026/cinema-night-small.webp 480w",
-    "/guides/community-2026/cinema-night.webp 1536w"
+    "/guides/community-2026/cinema-night-1200.webp 1200w"
    ]
   },
   "/guides/community-2026/community-accessible-transit.webp": {
@@ -9949,7 +10175,7 @@
    "sha1": "18663b21572f2c09",
    "lqip": "#444",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -9958,11 +10184,28 @@
      "width": 480,
      "height": 320,
      "bytes": 36328
+    },
+    {
+     "rung": 800,
+     "file": "/guides/community-2026/outdoor-cinema-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 50796,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/community-2026/outdoor-cinema-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 90772,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/community-2026/outdoor-cinema-small.webp 480w",
-    "/guides/community-2026/outdoor-cinema.webp 1536w"
+    "/guides/community-2026/outdoor-cinema-800.webp 800w",
+    "/guides/community-2026/outdoor-cinema-1200.webp 1200w"
    ]
   },
   "/guides/coverage-2026/coverage-classic-car.webp": {
@@ -10909,7 +11152,7 @@
    "sha1": "94ab4e2e22304f34",
    "lqip": "#653",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -10918,11 +11161,28 @@
      "width": 480,
      "height": 320,
      "bytes": 46584
+    },
+    {
+     "rung": 800,
+     "file": "/guides/distinct/event-piano-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 83980,
+     "quality": 58
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/distinct/event-piano-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 141244,
+     "quality": 52
     }
    ],
    "srcset": [
     "/guides/distinct/event-piano-small.webp 480w",
-    "/guides/distinct/event-piano.webp 1536w"
+    "/guides/distinct/event-piano-800.webp 800w",
+    "/guides/distinct/event-piano-1200.webp 1200w"
    ]
   },
   "/guides/distinct/event-portola.webp": {
@@ -11579,7 +11839,7 @@
    "sha1": "b1edc3af23db6e5f",
    "lqip": "#986",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -11588,11 +11848,19 @@
      "width": 480,
      "height": 320,
      "bytes": 25818
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/distinct/october-library-culture-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 58084,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/distinct/october-library-culture-small.webp 480w",
-    "/guides/distinct/october-library-culture.webp 1536w"
+    "/guides/distinct/october-library-culture-1200.webp 1200w"
    ]
   },
   "/guides/distinct/october-north-bay-culture.webp": {
@@ -13338,7 +13606,7 @@
    "sha1": "a6b20cccbf6b1981",
    "lqip": "#532",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -13347,10 +13615,19 @@
      "width": 480,
      "height": 320,
      "bytes": 22116
+    },
+    {
+     "rung": 800,
+     "file": "/guides/november/theater-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 27438,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/november/theater-small.webp 480w",
+    "/guides/november/theater-800.webp 800w",
     "/guides/november/theater.webp 1536w"
    ]
   },
@@ -19644,7 +19921,7 @@
    "sha1": "3eb09ca78a7595c2",
    "lqip": "#986",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -19653,11 +19930,19 @@
      "width": 480,
      "height": 320,
      "bytes": 40508
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/september-refresh/refresh-makers-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 84542,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/september-refresh/refresh-makers-small.webp 480w",
-    "/guides/september-refresh/refresh-makers.webp 1280w"
+    "/guides/september-refresh/refresh-makers-1200.webp 1200w"
    ]
   },
   "/guides/september-refresh/refresh-music.webp": {
@@ -19667,7 +19952,7 @@
    "sha1": "eaf04b8bc8c26c04",
    "lqip": "#a86",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -19676,11 +19961,19 @@
      "width": 480,
      "height": 320,
      "bytes": 35208
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/september-refresh/refresh-music-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 77192,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/september-refresh/refresh-music-small.webp 480w",
-    "/guides/september-refresh/refresh-music.webp 1280w"
+    "/guides/september-refresh/refresh-music-1200.webp 1200w"
    ]
   },
   "/guides/september-refresh/refresh-pets.webp": {
@@ -19690,7 +19983,7 @@
    "sha1": "c59aabc8098603ad",
    "lqip": "#a86",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -19699,11 +19992,28 @@
      "width": 480,
      "height": 320,
      "bytes": 44638
+    },
+    {
+     "rung": 800,
+     "file": "/guides/september-refresh/refresh-pets-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 59566,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/september-refresh/refresh-pets-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 99058,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/september-refresh/refresh-pets-small.webp 480w",
-    "/guides/september-refresh/refresh-pets.webp 1280w"
+    "/guides/september-refresh/refresh-pets-800.webp 800w",
+    "/guides/september-refresh/refresh-pets-1200.webp 1200w"
    ]
   },
   "/guides/september-refresh/refresh-sailing.webp": {

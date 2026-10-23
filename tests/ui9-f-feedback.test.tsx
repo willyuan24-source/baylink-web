@@ -38,8 +38,10 @@ test('home search is never disabled: an empty submit offers the example question
   const view = render(<MemoryRouter><HomeHead {...props} /></MemoryRouter>);
   const form = view.getByRole('search');
   const box = within(form).getByRole('textbox') as HTMLInputElement;
-  const button = within(form).getByRole('button');
-  assert.equal(button.hasAttribute('disabled'), false);
+  // UI9-R1 J3 P12: the box's otter is the hero's one BayBay button, beside the submit button; neither is ever disabled.
+  const buttons = within(form).getAllByRole('button');
+  assert.equal(buttons.filter(button => button.getAttribute('type') === 'submit').length, 1);
+  assert.deepEqual(buttons.map(button => button.hasAttribute('disabled')), buttons.map(() => false));
   fireEvent.submit(form);
   assert.equal(box.value, '这周末带爸妈去哪？');
   assert.equal(document.activeElement, box);

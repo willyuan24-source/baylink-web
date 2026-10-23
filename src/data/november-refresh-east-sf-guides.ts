@@ -30,39 +30,39 @@ export const novemberRefreshEastSfGuides: Guide[] = [
     "sourceNote": "2026年10月5日核对 EBRPD 活动页及官方公开报名详情。报名窗口已公布不等于已开放或一定有余位；出发前复查天气、确认邮件与公园公告。",
     "sources": [
       {
-        "title": "Big Break 湿地散步：11月四个场次",
+        "title": "Big Break 湿地散步：11 月四个场次",
         "url": "https://www.ebparks.org/events/big-break-nature-walk-29",
-        "description": "11月1、8、14、15日 14:00–15:00"
+        "description": "11 月 1、8、14、15 日 14:00–15:00"
       },
       {
-        "title": "Black Diamond 山径挑战：5.2英里爬升路线",
+        "title": "Black Diamond 山径挑战：5.2 英里爬升路线",
         "url": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
-        "description": "11月1日 9:00–13:00"
+        "description": "11/1 9:00–13:00"
       },
       {
         "title": "Brushy Peak：原住民历史与山地徒步",
         "url": "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
-        "description": "11月1日 9:00–13:00"
+        "description": "11/1 9:00–13:00"
       },
       {
         "title": "Hayward 周一观鸟：West Winton 入口",
         "url": "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
-        "description": "11月2日 9:00–12:00"
+        "description": "11/2 9:00–12:00"
       },
       {
         "title": "Martinez 滨水周一观鸟",
         "url": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
-        "description": "11月9日 9:00–12:00"
+        "description": "11/9 9:00–12:00"
       },
       {
         "title": "Coyote Hills 儿童识鸟游戏",
         "url": "https://www.ebparks.org/events/birding-basics-kids",
-        "description": "11月14日 11:00–12:00"
+        "description": "11/14 11:00–12:00"
       },
       {
-        "title": "Hayward 海湾晨间观鸟：6岁起报名",
+        "title": "Hayward 海湾晨间观鸟：6 岁起报名",
         "url": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
-        "description": "11月15日 8:00–10:00"
+        "description": "11/15 8:00–10:00"
       }
     ],
     "blocks": [
@@ -96,13 +96,13 @@ export const novemberRefreshEastSfGuides: Guide[] = [
       },
       {
         "type": "link",
-        "title": "Big Break 湿地散步：11月四个场次",
+        "title": "Big Break 湿地散步：11 月四个场次",
         "text": "11月1、8、14、15日 14:00–15:00。活动和停车免费；无需报名。跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
         "url": "https://www.ebparks.org/events/big-break-nature-walk-29"
       },
       {
         "type": "link",
-        "title": "Black Diamond 山径挑战：5.2英里爬升路线",
+        "title": "Black Diamond 山径挑战：5.2 英里爬升路线",
         "text": "11月1日 9:00–13:00。活动免费；岗亭有人值守时停车$5；须报名。12岁起的环线，爬升约1,300英尺，含陡坡和不平整土路。适合能完成中长距离山路的人，不按轻松亲子散步推荐。",
         "url": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike"
       },
@@ -132,7 +132,7 @@ export const novemberRefreshEastSfGuides: Guide[] = [
       },
       {
         "type": "link",
-        "title": "Hayward 海湾晨间观鸟：6岁起报名",
+        "title": "Hayward 海湾晨间观鸟：6 岁起报名",
         "text": "11月15日 8:00–10:00。免费；须报名，余位以官网为准。欢迎初学者，可借双筒望远镜。6岁起，从 Grant Avenue 入口出发；大雨取消，晨间注意保暖。",
         "url": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0"
       },
@@ -182,22 +182,22 @@ export const novemberRefreshEastSfGuides: Guide[] = [
       {
         "title": "Flour Craft 季节烘焙演示",
         "url": "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
-        "description": "10月10日 11:00–11:45"
+        "description": "10/10 11:00–11:45"
       },
       {
         "title": "Mission 市集：亡灵节与万圣节下午",
         "url": "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
-        "description": "10月29日 15:00–19:00"
+        "description": "10/29 15:00–19:00"
       },
       {
         "title": "Ferry Plaza 秋果品尝与墨西哥烘焙演示",
         "url": "https://foodwise.org/events/fall-fruit-celebration/",
-        "description": "10月31日 11:00–13:00；演示11:00–11:45"
+        "description": "10/31 11:00–13:00；演示 11:00–11:45"
       },
       {
-        "title": "Mission Community Market：2026收季最后一天",
+        "title": "Mission Community Market：2026 收季最后一天",
         "url": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
-        "description": "11月12日 15:00–19:00"
+        "description": "11/12 15:00–19:00"
       },
       {
         "title": "Mission Community Market",
@@ -239,7 +239,7 @@ export const novemberRefreshEastSfGuides: Guide[] = [
       },
       {
         "type": "link",
-        "title": "Mission Community Market：2026收季最后一天",
+        "title": "Mission Community Market：2026 收季最后一天",
         "text": "11月12日 15:00–19:00。逛市集；食材、餐饮和商品按摊位付费。Foodwise 明确11月12日是2026年最后一场，之后休季、计划2027年3月回归。适合补买季节食材，不额外承诺尚未公布的免费餐食或表演。",
         "url": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/"
       },

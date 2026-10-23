@@ -17,14 +17,16 @@
  * file did (tests/ui9-prep-split.test.ts).
  */
 
-/* Buttons: three looks site-wide (H29) — primary (brand fill, white 600 label, one per section), secondary (white, control
-   border 3.8:1, ink 400) and quiet (brand text, no fill or border); plus the icon button and the chip. Pills (tokens v2).
+/* Buttons: six looks site-wide (H29, N12) — primary (brand fill, white 600 label, one per section), secondary (white, control
+   border 3.8:1, ink 400; the icon button is the same look in a circle) and quiet (brand text, no fill or border); plus the
+   chip and the segmented control (cards.css). Pills (tokens v2). A label that wraps keeps 8px above and below it (#60 live
+   check: 家人版 two-line pills had 2.4–3px): the padding is --sp-2 on top of the min-height, which still sets one-line pills.
    Hover only where a pointer can hover; every control answers a press at once (scale, which composes with any transform). */
-.ui-button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:var(--r-pill); font-size:var(--fs-body); line-height:1.25; font-weight:var(--fw-regular); text-decoration:none; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.ui-button { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:max(var(--control-height), 3rem); padding:var(--sp-2) 20px; border:1px solid transparent; border-radius:var(--r-pill); font-size:var(--fs-body); line-height:1.25; font-weight:var(--fw-regular); text-decoration:none; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ui-button[data-variant=primary] { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-weight:var(--fw-strong); }
-.ui-button[data-variant=secondary] { background:var(--color-surface); border-color:var(--color-line-control); color:var(--color-ink); }
+.ui-button[data-variant=secondary] { background:var(--color-surface); border:1px solid var(--color-line-control); color:var(--color-ink); }
 .ui-button[aria-pressed=true]>svg { color:var(--color-brand); fill:currentColor; }
-.ui-button[data-variant=quiet] { padding:0 8px; background:transparent; color:var(--color-brand); text-underline-offset:.2em; }
+.ui-button[data-variant=quiet] { padding:var(--sp-2) 8px; background:transparent; color:var(--color-brand); text-underline-offset:.2em; }
 @media (hover:hover) and (pointer:fine) {
   .ui-button[data-variant=primary]:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
   .ui-button[data-variant=secondary]:hover,.ui-icon-button:hover,.ui-chip:not([aria-pressed=true],[aria-checked=true],[aria-current]):hover { border-color:var(--color-ink-3); background:var(--color-surface-2); }
@@ -39,7 +41,8 @@
 .ui-icon-button>svg { width:1.25rem; height:1.25rem; }
 @media (min-width:1024px) { .ui-button { min-height:var(--control-height); } }
 
-/* Filter chip: the only selected style site-wide is ink background and white text (400: the fill carries the state). */
+/* Filter chip: the one selected look site-wide (N08) is ink background and white text (400: the fill carries the state); the
+   pressed icon button and the checked segment (cards.css) take it too. */
 .ui-chip { position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-meta); line-height:1.25; font-weight:var(--fw-regular); white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ui-chip::before { content:""; position:absolute; inset:-2px 0; }
 .ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:400; }
@@ -50,11 +53,14 @@
 /* H62 / GR-07: the chip itself is 44px (48 in 简洁显示) on every screen, not a 36–40px pill with a stretched hit area. */
 @media (min-width:1024px) { .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
 
-/* ♡ save: a separate button stacked above the card link, never nested inside it. */
-.ui-save { position:relative; display:inline-grid; place-items:center; width:2rem; height:2rem; padding:0; border:0; border-radius:var(--r-circle); background:rgb(255 255 255 / .9); color:var(--color-ink); cursor:pointer; }
-.ui-save::before { content:""; position:absolute; inset:-6px; border-radius:var(--r-circle); }
+/* ♡ save: a separate button stacked above the card link, never nested inside it. One ♡ on a picture site-wide (N13): this
+   44px white circle (48 in 简洁显示) with e1, the same as the cards' compact 收藏 (features/saves/saves.css); a row
+   thumbnail's ♡ is the same circle at 36px (cards.css .ui-row-card__save). The labelled 收藏 on a detail page is the other. */
+.ui-save { position:relative; display:inline-grid; place-items:center; width:var(--control-height); height:var(--control-height); padding:0; border:0; border-radius:var(--r-circle); background:var(--color-surface); color:var(--color-ink); cursor:pointer; }
+.ui-save::before { content:""; position:absolute; inset:-2px; border-radius:var(--r-circle); }
 .ui-save>svg { width:1.25rem; height:1.25rem; }
 .ui-save[aria-pressed=true] { color:var(--color-brand); }
+.ui-save:disabled { color:var(--color-ink-3); cursor:not-allowed; }
 .ui-save[aria-pressed=true]>svg { fill:currentColor; animation:ui-save-pulse var(--dur-4) var(--ease-out); }
 @keyframes ui-save-pulse { 50% { scale:1.2; } }
 .ui-save { box-shadow:var(--e1); transition:scale var(--dur-1) var(--ease-out); }
@@ -90,7 +96,8 @@
 @keyframes ui-sheet-left { from { transform:translateX(100%); } }
 
 /* Skeleton: same geometry as the card it stands in for (the card skeleton's frame is in cards.css). */
-.ui-skeleton { display:block; border-radius:var(--r-sm); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer 1.2s linear infinite; }
+/* The shimmer runs six --dur-3 steps (1.2s; N24: no motion literal); a constant sweep, so linear. */
+.ui-skeleton { display:block; border-radius:var(--r-sm); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer calc(var(--dur-3) * 6) linear infinite; }
 .ui-skeleton[data-shape=cover] { aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--r-lg); }
 .ui-skeleton[data-shape=thumb] { width:5.5rem; height:5.5rem; border-radius:var(--r-md); }
 .ui-skeleton[data-shape=line] { height:calc(.9375rem * var(--reading-scale)); }
@@ -104,6 +111,8 @@
 .ui-state__icon>svg { width:2rem; height:2rem; }
 .ui-state[data-kind=error] .ui-state__icon { background:var(--color-danger-tint); color:var(--color-danger); }
 .ui-state__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
+/* N02: a state inside a section (an h3 or h4 title) never outranks the section's h2: body size, still 600. */
+:is(h3,h4).ui-state__title { font-size:var(--text-body); line-height:1.5; }
 .ui-state__body { max-width:28em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; text-wrap:balance; }
 .ui-state__actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
 
@@ -120,7 +129,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 
 @media (prefers-reduced-motion:reduce) {
   .ui-skeleton { animation:none; }
-  .ui-sheet,.ui-sheet-backdrop { animation:ui-fade 120ms ease; }
+  .ui-sheet,.ui-sheet-backdrop { animation:ui-fade var(--dur-1) var(--ease-std); }
   .ui-button { transition:none; }
   .ui-button:active { transform:none; }
 }

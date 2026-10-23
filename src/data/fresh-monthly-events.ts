@@ -6,7 +6,7 @@ export const freshSeptemberEvents: MonthlyEvent[] = [
     "title": "Coastal Cleanup Day：一起照顾 Treasure Island 海岸",
     "startDate": "2026-09-19",
     "endDate": "2026-09-19",
-    "dateLabel": "9 月 19 日 · 10:00–12:00",
+    "dateLabel": "9/19 · 10:00–12:00",
     "region": "sf",
     "city": "San Francisco",
     "venue": "Treasure Island Museum · Cityside Park / Clipper Cove",

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
-import { ChevronRight, Heart, Search, X } from 'lucide-react';
+import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { ChevronDown, ChevronRight, Heart, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
@@ -79,7 +79,7 @@ function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; f
 
 /**
  * 指南 (T2, design.md §4.7.4; UI9-GUIDES content arrangement): H1 with ♡ 我的指南收藏 → search → one chip row (全部, the seven
- * topics, 地区 ▾ in a sheet) → the 长辈与家属先看 band (three rows, D22) → six topic sections of at most four guides each, current
+ * topics, 地区 in a sheet) → the 长辈与家属先看 band (three rows, D22) → six topic sections of at most four guides each, current
  * monthly editions first and past ones left out of the previews → the complete directory → how we check. Row cards on a phone
  * (C's mini cover, the full title, two meta lines); 3:2 covers four across on a desktop; 2-up photo cards when a section's
  * preview is mostly photos. 简洁显示 keeps the H1, the search, the band (its rows print a 48 px 拨打 <number> when the guide has
@@ -192,10 +192,11 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
   /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
    *  4-guide preview; three quarters of a longer list). */
-  // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell over the rest of the row
-  // (captain 10-21 18:30: no empty cells); guide-library.css draws it from 1024 px only.
+  // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell (captain 10-21 18:30); guide-library.css
+  // draws it from 1024 px only, one column wide and as tall as the pictures beside it (follow-up 10: a two-column white box
+  // read as an empty frame).
   const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
-    ? <li className="gl-all-cell" style={{ '--gl-rest': 4 - shown, '--gl-ratio': (4 - shown) * 1.5 } as CSSProperties}><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
+    ? <li className="gl-all-cell"><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
   const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
     ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
     : <>
@@ -212,7 +213,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p data-simple="hide">{summaryOf('elders')}</p></div>
     </div>
     {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows' })}
-    <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides for seniors and family`)}</Button>
+    <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides`)}</Button>
   </section>;
 
   const topicSections = sections.map(({ topic: item, total, preview }) => <section key={item.id} className="gl-section" data-simple="hide" aria-labelledby={`gl-topic-${item.id}`}>
@@ -239,9 +240,9 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
         <FilterChip selected={!topic && !category} onClick={() => update({ topic: null, category: null })}>{t('全部', 'All')}</FilterChip>
         {GUIDE_TOPICS.map(item => <FilterChip key={item.id} selected={topic === item.id} onClick={() => update({ topic: topic === item.id ? null : item.id })}>{pick(item)}</FilterChip>)}
         {category && <FilterChip selected onClick={() => update({ category: null })} aria-label={t(`取消筛选：${categoryLabel}`, `Clear filter: ${categoryLabel}`)}>{categoryLabel}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
-        {/* 地区 shows its current value, like the deals board's ("整个湾区 ▾" / "东湾 ▾"), and opens F's sheet. */}
+        {/* 地区 shows its current value with the shared chevron (Select's; J3 P26), like the deals board's, and opens F's sheet. */}
         <FilterChip selected={!!region} className="gl-region-chip" aria-haspopup="dialog" aria-label={t(`地区：${region ? regionLabel : '整个湾区'}`, `Region: ${region ? regionLabel : 'whole Bay Area'}`)}
-          onPointerDown={() => { void regionSheet.load().catch(() => undefined); }} onClick={() => { setRegionsUsed(true); setRegionsOpen(true); }}>{region ? regionLabel : t('整个湾区', 'Whole Bay Area')}<span className="gl-region-chip__caret" aria-hidden="true">▾</span></FilterChip>
+          onPointerDown={() => { void regionSheet.load().catch(() => undefined); }} onClick={() => { setRegionsUsed(true); setRegionsOpen(true); }}>{region ? regionLabel : t('整个湾区', 'Whole Bay Area')}<ChevronDown className="gl-region-chip__caret" aria-hidden="true" strokeWidth={1.75} /></FilterChip>
       </ChipRow>
     </nav>}
     {regionsUsed && <Suspense fallback={null}><GuideRegionSheet open={regionsOpen} region={region} onClose={() => setRegionsOpen(false)} onPick={next => { update({ region: next }); setRegionsOpen(false); }} /></Suspense>}
@@ -280,7 +281,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     {/* Every guide is linked in the prerendered page; closed, the list is hidden (F's Button toggles it, no Disclosure on this
         route: route JS ≤ base). */}
     {!savedOnly && <div className="gl-directory">
-      <Button variant="quiet" className="gl-directory__toggle" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}</Button>
+      <Button variant="quiet" className="gl-directory__toggle" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}<ChevronDown className="gl-directory__chevron" aria-hidden="true" strokeWidth={1.75} /></Button>
       <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
     </div>}
     <GuidesImageCredits covers={[...covers.values()]} />

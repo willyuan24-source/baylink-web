@@ -83,7 +83,8 @@ test('every new Chinese statement and planner note has English with numeric cond
     if (typeof value === 'string' && /[\u3400-\u9fff]/.test(value)) {
       assert.ok(dictionary[value], value);
       assert.doesNotMatch(translateText(value, 'en'), /[\u3400-\u9fff]/, value);
-      for (const number of value.match(/\d+(?:[:/.]\d+)*/g) || []) {
+      // A card date label's leading M/D ("10/17 · 10:00 开始") reads "October 17" in English; the numbers after it must match.
+      for (const number of value.replace(/^\d{1,2}\/\d{1,2}(?= · )/, '').match(/\d+(?:[:/.]\d+)*/g) || []) {
         // English conventional date order uses October 18 instead of 10 月 18 日.
         if (!/月/.test(value)) assert.ok(dictionary[value].includes(number), value);
       }

@@ -3,10 +3,10 @@
  * the saved list (RowCards with covers) and this week's events. Tokens and rem only; ≥44px targets (48 in 简洁显示).
  * Panels other lanes own (bookings, groups, imported events, preference memory) keep their own styles inside
  * `.my-week__legacy`, which restores the planner-page context they were built for without its page box.
- * The page ends 12px above the footer (UI9-R1 N15: the blank before the footer was 143 with 96 here; its last line is a
- * 44px link, so the blank reads 56–62).
+ * The page ends 32px above the footer (UI9-R1 N15: the blank before the footer was 143 with 96 here; its last line is a
+ * 44px link, so with the chrome's 12px footer step the blank reads 55–62).
  */
-.my-week { padding-block:24px var(--sp-3); color:var(--color-ink); }
+.my-week { padding-block:24px var(--sp-6); color:var(--color-ink); }
 .my-week .ui-page-header { margin-bottom:16px; }
 .my-week__legacy.planner-page { max-width:none; margin:0; padding:0; }
 .my-week__legacy .planner-account-compact { gap:8px 14px; padding:10px 14px; }
@@ -18,6 +18,12 @@
 .my-week__legacy .planner-section-head>a { color:var(--color-brand); }
 .my-week__legacy :is(.planner-account-compact,.planner-preference-footer) button { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:600; }
 .my-week__legacy :is(.planner-account-compact,.planner-preference-footer) button:disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); }
+/* 我导入的活动 with nothing upcoming (UI9-R1): the site's empty state (ui.css .ui-state, components/ui/States.tsx), not the
+   panel's own dashed box: no frame, the icon in a 64px brand-tint circle (a section's state, a step under the page
+   state's 72), the line centred in the body size under it. */
+.my-week__legacy .imported-event-empty { flex-direction:column; justify-content:center; gap:var(--sp-2); padding:var(--sp-5); border:0; border-radius:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; text-align:center; }
+.my-week__legacy .imported-event-empty>svg { box-sizing:content-box; width:2rem; height:2rem; margin-bottom:var(--sp-2); padding:var(--sp-4); border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); }
+.my-week__legacy .imported-event-empty>p { max-width:28em; margin:0; text-wrap:balance; }
 
 .my-week__offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .my-week__offline>svg { width:1.125rem; height:1.125rem; flex:none; margin-top:2px; }
@@ -29,6 +35,15 @@
 .my-week__count { margin-left:4px; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; font-variant-numeric:tabular-nums; }
 .my-week__note,.my-week__empty-line { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .my-week__empty-line { padding:16px; border-radius:var(--r-md); background:var(--color-surface-2); font-size:var(--text-body); line-height:1.625; }
+/* 行程 while the planner library loads (UI9-R1 polish: a desktop cold load measured CLS 0.0413 in 2 of 7 runs): the
+   empty line's box (one line of text on a desktop, two on a phone) instead of two 88px skeleton rows, so 收藏 below does
+   not jump 168px up when the library answers with no plans, a first visit's state. A timeline grows from it as it grew
+   from the rows. The rows and their hidden 正在加载 status stay in the DOM; the box carries the skeleton's shimmer (ui.css
+   ui-shimmer; none under reduced motion), so it reads as loading, not as an empty bar. */
+.my-week__head+[aria-busy=true] { box-sizing:content-box; min-height:calc(1.625 * var(--text-body)); margin:0 0 12px; padding:16px; border-radius:var(--r-md); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer calc(6 * var(--dur-3)) linear infinite; }
+@media (prefers-reduced-motion:reduce) { .my-week__head+[aria-busy=true] { animation:none; } }
+.my-week__head+[aria-busy=true]>.ui-row-card { display:none; }
+@media (max-width:767px) { .my-week__head+[aria-busy=true] { min-height:calc(2 * 1.625 * var(--text-body)); } }
 .my-week__filters { margin-bottom:8px; }
 
 /* Saved items and this week's events: RowCards; two columns on wide screens. */

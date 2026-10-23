@@ -33,7 +33,10 @@ test('the sections come in the arranged order: the week (去哪), the band, then
   assert.deepEqual([...top.children].map(node => node.className.split(' ')[0]), ['home-head', 'home-picks', 'home-moods', 'home-share']);
   const head = top.querySelector('.home-head')!;
   assert.deepEqual([...head.children].map(node => node.tagName.toLowerCase() + (node.className ? `.${node.className.split(' ').at(-1)}` : '')),
-    ['p.home-head__dateline', 'h1.home-head__title', 'p.home-head__identity', 'form.home-ask', 'button.home-ask-baybay']);
+    ['p.home-head__dateline', 'h1.home-head__title', 'p.home-head__identity', 'form.home-ask']);
+  // J3 P12 (UI9-R1): one BayBay entry in the hero — the ask box's otter button, no second 问 BayBay pill beside the box.
+  assert.equal(head.querySelectorAll('.home-ask-baybay').length, 0);
+  assert.equal(head.querySelector('form.home-ask>button.home-ask__otter')!.getAttribute('aria-label'), '问 BayBay（AI 助手）');
   const picks = top.querySelector('.home-picks')!;
   assert.deepEqual([...picks.children].map(node => node.className.split(' ').at(-1)), ['home-section-head', 'home-picks__list', 'home-picks__all', 'home-trust']);
   assert.deepEqual([...root.querySelector('.home-end')!.children].map(node => node.className.split(' ')[0]), ['home-elder', 'home-3d']);
@@ -47,9 +50,10 @@ test('简洁 is CSS only: the browse sections are tagged hide, the 3D strip and 
   for (const postcard of doc.querySelectorAll('.home-3d, .home-3d-strip')) {
     for (let node: Element | null = postcard; node; node = node.parentElement) assert.notEqual(node.getAttribute('data-simple'), 'hide', `${postcard.className} sits in a hidden block`);
   }
-  // The grandparent path keeps "免费": the identity line shows in 简洁 too; 问 BayBay · AI 助手 does not.
+  // The grandparent path keeps "免费": the identity line shows in 简洁 too; the hero's BayBay control (the ask box's otter,
+  // UI9-R1 J3 P12) does not — 简洁 reaches BayBay through the submit button's 问 BayBay switch.
   assert.equal(doc.querySelector('.home-head__identity')!.hasAttribute('data-simple'), false);
-  assert.equal(doc.querySelector('.home-ask-baybay')!.getAttribute('data-simple'), 'hide');
+  assert.equal(doc.querySelector('.home-ask__otter')!.getAttribute('data-simple'), 'hide');
   // The feed's cards, heading and button are hidden by a home rule that skips the strip's wide item.
   const rule = CSS.split('\n').find(line => line.includes('html[data-simple] .home-feed'))!;
   assert.match(rule, /\.ui-feed-grid>li:not\(\.ui-feed-grid__wide\)/);
@@ -120,8 +124,9 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 });
 
 // UI9-IMG-A1a: + one rule letting the strip's label wrap on a phone (「3D scene ill…」, UI9 live check 10-20); the art's own rules
-// (size, crop, place) are unchanged, and the postcard pixels with them.
-const POSTCARD_RULES_SHA = 'f391a71deb13491f';
+// (size, crop, place) are unchanged, and the postcard pixels with them. UI9-R1 (N23): the strip's and the tile's hover
+// underlines moved, unchanged, behind @media (hover:hover) and (pointer:fine); no other postcard line changed.
+const POSTCARD_RULES_SHA = 'b83103a112ddcc4b';
 
 test('no information card and no info-card note on the home: every card is a picture, credited once in the credits line (UI9-IMAGES DECISIONS 21)', () => {
   const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer', caption: '' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];

@@ -7,9 +7,15 @@
 /* Provenance: the AI 3D postcards keep this badge exactly (top-left, ink chip; captain decision 1). Every other cover's
    chip carries [data-chip] (Badges.tsx) and takes the look below it. */
 .ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
-/* The chip (N22): bottom-left, 13 px, wraps, never cut; with the card's ♡ the only overlay. */
+/* The chip (N22): bottom-left, 13 px, wraps, never cut; with the ♡ the only overlay. */
 .ui-provenance[data-chip] { top:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:normal; text-overflow:clip; }
 .ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
+/* Cover ≤ 120px: a tighter chip; a dated ①② chip shows only its edition (Badges.tsx) and still wraps, never cut. */
+.ui-cover { container-name:ui-cover; container-type:inline-size; }
+@container ui-cover (max-width:120px) {
+  .ui-provenance[data-chip] { bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); }
+  .ui-provenance[data-chip] .ui-provenance__lead { display:none; }
+}
 
 /* Stickers: facts printed on a member's photo (community posts only; listing covers carry none). */
 .ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
@@ -22,7 +28,8 @@
 .ui-status[data-tone=partial] { border-color:var(--color-brand); background:var(--color-surface); color:var(--color-brand-deep); }
 .ui-status[data-tone=soon] { border-color:var(--color-danger); background:var(--color-surface); color:var(--color-danger); }
 .ui-status[data-tone=urgent] { background:var(--color-danger); color:var(--color-surface); }
-.ui-status[data-tone=open] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
+/* 已开业: ✓ and deep-green words, no fill (N08). */
+.ui-status[data-tone=open] { padding-inline-start:0; background:transparent; color:var(--color-brand-deep); }
 .ui-status[data-tone=open]::before { content:"✓"; color:var(--color-brand); }
 .ui-status[data-tone=ended] { color:var(--color-ink-3); }
 

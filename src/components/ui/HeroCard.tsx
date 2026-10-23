@@ -6,6 +6,8 @@ import './covers.css';
 import './cards.css';
 import { cx } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
+// No card-press trigger here: HeroCard renders only beside Card.tsx's cards (EventCards.tsx), whose module starts it. A
+// module-level import here would keep HeroCard in every ui-barrel importer's first-load JS (home +0.6 KiB).
 
 export type HeroCardProps = {
   title: string;

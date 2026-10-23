@@ -40,7 +40,9 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
   const view = open('/guides');
   const topics = within(view.getByRole('group', { name: '指南主题' })).getAllByRole('button');
   // No counts on the chips (owner, 10-19); 地区 shows its current value and opens a sheet.
-  assert.deepEqual(topics.map(chip => chip.textContent), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh), '整个湾区▾']);
+  // UI9-R1 J3 P26: the region chip ends on the shared chevron icon (Select's ChevronDown), not a ▾ glyph.
+  assert.deepEqual(topics.map(chip => chip.textContent), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh), '整个湾区']);
+  assert.ok(topics.at(-1)!.querySelector('svg.gl-region-chip__caret'));
   assert.equal(topics[0].getAttribute('aria-pressed'), 'true');
   assert.equal(topics.at(-1)!.getAttribute('aria-haspopup'), 'dialog');
   fireEvent.click(topics.at(-1)!);

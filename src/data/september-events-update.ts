@@ -62,7 +62,7 @@ export const verifiedSeptemberEvents: MonthlyEvent[] = [
     "title": "San Rafael PorchFest：街坊门廊就是音乐舞台",
     "startDate": "2026-09-20",
     "endDate": "2026-09-20",
-    "dateLabel": "9 月 20 日 · 12:00 起",
+    "dateLabel": "9/20 · 12:00 起",
     "region": "north-bay",
     "city": "San Rafael",
     "venue": "Gerstle Park 街区 · 各门廊与社区演出点",

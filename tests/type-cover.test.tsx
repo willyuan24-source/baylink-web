@@ -139,8 +139,9 @@ test('cover and card text scales with Aa once: every size is a text token, a rem
     const rem = [...declaration.value.matchAll(/([\d.]+)rem/g)].map(match => Number(match[1]));
     if (rem.length) assert.ok(Math.min(...rem) >= .8125, `${(declaration.parent as postcss.Rule).selector}: never below 13px`);
   });
-  // The weight budget (N03): 400 and 600 only, written or as --fw-regular / --fw-strong.
-  postcss.parse(css).walkDecls('font-weight', declaration => assert.ok(['400', '600', 'var(--fw-regular)', 'var(--fw-strong)'].includes(declaration.value), declaration.value));
+  // The weight budget (N03): 400 and 600, written or as --fw-regular / --fw-strong, and --fw-medium (500) for feed and row
+  // card titles (D3, UI9-R1-AFTER-A1-CARD-SYSTEM).
+  postcss.parse(css).walkDecls('font-weight', declaration => assert.ok(['400', '600', 'var(--fw-regular)', 'var(--fw-medium)', 'var(--fw-strong)'].includes(declaration.value), declaration.value));
   const outsideTokens = css.replace(/:root\s*\{[^}]*\}/, '');
   assert.doesNotMatch(outsideTokens, /#[\da-f]{3,8}\b/i, 'colours outside the token block come from tokens');
 });

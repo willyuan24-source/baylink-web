@@ -127,7 +127,8 @@ export default function MyWeekPage() {
   const disabled = library.busy || !library.ready;
   const toggle = (field: 'regions' | 'interests', id: string) => void library.savePreferences({ ...preferences, [field]: preferences[field].includes(id) ? preferences[field].filter(value => value !== id) : [...preferences[field], id] });
   const interests = [{ id: 'family', zh: '亲子', en: 'Family' }, { id: 'culture', zh: '文化', en: 'Culture' }, { id: 'outdoors', zh: '户外', en: 'Outdoors' }, { id: 'food', zh: '美食', en: 'Food' }];
-  return <PageContainer size="content" className="my-week">
+  // N16 (UI9-R1): the account pages start on the site frame (x=112 at 1440, as /me), not the 960 content column (x=240).
+  return <PageContainer size="wide" className="my-week">
     {/* No header action: 这周可以去 below lists this week's events, and an empty saved list carries the page's one primary
         button (看本周末活动). That keeps the template inside the SYS bar of five button styles. */}
     <PageHeader title={t('我的这周', 'My Week')} lede={`${dayLabel(today, english)} – ${dayLabel(weekEnd, english)} · ${t('收藏和行程，都在这里', 'Your saved items and plans in one place')}`} />

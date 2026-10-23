@@ -3,26 +3,33 @@
  * line and the cover credit), row card, the segmented control, the card skeleton, carousel, hero card and the card-title
  * rules that must follow them. It loads last of the three (ui.css, covers.css, cards.css), so a card rule still follows
  * the base and cover rules it refines. The view row's segmented tabs live in features/events/events.css (only the events
- * column uses them). Card titles wrap and are never clamped (G18 / N25); only the hero card's photo overlay keeps two lines.
+ * column uses them). Card titles wrap and are never clamped or cut with "…" (G18 / N25 / D1), the hero's photo overlay too.
  * Colours, sizes and units follow ui.css's header (tokens only, rem text, nothing below --text-caption); spacing on --sp-*.
  */
 
-/* Press (N23): cards and rows scale to .985 (the whole card is one link); hover underlines the title and brightens the photo. */
-:is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:active) { scale:.985; }
+/* One hover and one press for every card and row (N23 / N24, J3 P25): the card's stretched link layer takes an ink tint
+   (4% on hover, 8% pressed) over the picture and the text, and the title underlines; a press also scales the card to .985.
+   The press shows at pointerdown: card-press.ts (loaded by Card.tsx) marks the card [data-press] from a
+   delegated pointerdown and clears it on
+   pointerup / cancel / scroll, so a touch is answered on its first frame instead of when :active arrives at release. */
 :is(.ui-feed-card,.ui-row-card,.ui-hero-card) { transition:scale var(--dur-1) var(--ease-out); }
+.ui-card-link::after { transition:background-color var(--dur-1) var(--ease-out); }
+:is(.ui-feed-card,.ui-row-card,.ui-hero-card):is([data-press],:has(.ui-card-link:active)) { scale:.985; }
+:is(.ui-feed-card,.ui-row-card,.ui-hero-card):is([data-press],:has(.ui-card-link:active)) .ui-card-link::after { background-color:rgb(var(--color-ink-rgb) / .08); }
 @media (hover:hover) and (pointer:fine) {
   :is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:hover) :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
-  :is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:hover) .ui-cover__img { filter:brightness(1.04); }
+  :is(.ui-feed-card,.ui-row-card,.ui-hero-card):not([data-press]):has(.ui-card-link:hover:not(:active)) .ui-card-link::after { background-color:rgb(var(--color-ink-rgb) / .04); }
 }
 
-/* Feed grid: CSS grid in DOM order; 2 / 3 / 4 columns; one column at 大/特大 text or in 简洁显示 on phones (≤767px, the
-   same breakpoint as tokens.css --feed-cols, WEB-TOKENS-A) or below 340px; 2 / 3 columns at 大/特大 on tablets / desktops. */
+/* Feed grid: CSS grid in DOM order; 2 / 3 / 4 columns (3 from 700px, D9: a tablet is not a stretched phone); one column at
+   大/特大 text or in 简洁显示 on phones (≤767px, the same breakpoint as tokens.css --feed-cols, WEB-TOKENS-A) or below
+   340px; 2 / 3 columns at 大/特大 on tablets / desktops. */
 .ui-feed { container-type:inline-size; container-name:ui-feed; }
 .ui-feed-grid { --ui-feed-cols:2; display:grid; grid-template-columns:repeat(var(--ui-feed-cols), minmax(0, 1fr)); gap:var(--sp-4) var(--sp-3); margin:0; padding:0; list-style:none; }
 .ui-feed-grid>li { min-width:0; }
 .ui-feed-grid>.ui-feed-grid__wide { grid-column:1 / -1; }
 .ui-feed[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
-@media (min-width:768px) { .ui-feed-grid { --ui-feed-cols:3; } }
+@media (min-width:700px) { .ui-feed-grid { --ui-feed-cols:3; } }
 @media (min-width:1024px) { .ui-feed-grid { --ui-feed-cols:4; gap:var(--sp-5); } }
 .ui-feed-grid[data-single] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
 @container ui-feed (max-width:339px) { .ui-feed-grid:not([data-layout=grid]) { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
@@ -36,9 +43,17 @@
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
 .ui-feed-card { position:relative; display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .ui-feed-card__media { position:relative; order:-1; margin-bottom:var(--sp-1); border-radius:var(--r-lg); }
-.ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
+/* D1: the whole title, never "…" (most titles take ≤ 3 lines on a phone's 2-up card and ≤ 2 on a desktop's;
+   long English guide and event titles run to 4–6 until they get short titles, see the lane PR); the covers above
+   have one ratio per feed, so a row of cards still lines up on its pictures. D3: feed and row titles are medium (500), so
+   600 stays for headings and a feed is not half bold (N03). */
+.ui-feed-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-medium); overflow-wrap:break-word; }
 .ui-card-link { color:inherit; text-decoration:none; }
+/* The stretched link layer reaches 4px past the card, so the hover / press tint has room around the text (grid gaps are 12px+). */
 .ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
+.ui-feed-card .ui-card-link::after { inset:calc(-1 * var(--sp-1)); }
+/* BayBay's sideways card row scrolls (overflow-x:auto, no inline padding): the layer stays inside the card there. */
+.bb-cards .ui-feed-card .ui-card-link::after { inset:0; }
 .ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .ui-feed-card__meta,.ui-feed-card__trust { margin:0; font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ui-feed-card__meta { color:var(--color-ink-2); }
@@ -49,13 +64,13 @@
 .ui-feed-card__trust { display:flex; align-items:center; gap:var(--sp-1); color:var(--color-ink-3); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
 .ui-feed-card__save { position:absolute; top:var(--sp-1); right:var(--sp-1); z-index:3; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { display:block; overflow:visible; font-size:var(--text-card); line-height:1.444; }
+:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 @container ui-feed (max-width:339px) {
   .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
 }
 @media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { display:block; overflow:visible; font-size:var(--text-card); line-height:1.444; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 }
 
@@ -66,9 +81,17 @@
 .ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
 .ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:400; font-variant-numeric:tabular-nums; }
-.ui-row-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:1.412; font-weight:600; }
+.ui-row-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:1.412; font-weight:var(--fw-medium); }
 .ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
+/* ♡ on a row (RowCard `save`): the cards' circle on the thumbnail's top-right corner (UI9-IMAGES: ♡ top-right of the
+   picture), 36px so it leaves most of an 88px picture in view (the captain's /events row size), its hit area still 44px. */
+.ui-row-card__save { grid-area:thumb; align-self:start; justify-self:end; position:relative; z-index:3; margin:var(--sp-1); line-height:0; }
+.ui-row-card__save .ui-save { width:2.25rem; height:2.25rem; min-height:0; }
+.ui-row-card__save .ui-save::before { inset:-4px; }
+.ui-row-card__save .ui-save>svg { width:1.125rem; height:1.125rem; }
+/* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved). */
+[data-simple] .ui-row-card__save:not(#saved *) { display:none; }
 /* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
 .ui-row-card__thumb .ui-stickers { display:none; }
 .ui-row-card__thumb .ui-provenance { top:auto; right:0; bottom:0; left:0; max-width:none; padding:2px var(--sp-1); border-radius:0; text-align:center; }
@@ -82,8 +105,9 @@
 .ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 var(--sp-3); border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.25; font-weight:400; cursor:pointer; }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-/* The checked segment keeps a cue that is not only colour: a control edge (3.26:1 on the sunken track, WCAG 1.4.11) and 600. */
-.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
+/* The checked segment takes the one selected look (N08: the chips' ink fill and white text, ui.css), so a page has one
+   "chosen" colour; the fill is the cue (16.5:1 against the sunken track). */
+.ui-segmented__item[aria-checked=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
 
 /* Card skeleton: same geometry as the card it stands in for (the shimmer is ui.css .ui-skeleton). */
 .ui-skeleton-card { display:flex; flex-direction:column; gap:var(--sp-2); }
@@ -127,7 +151,7 @@
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
 .ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }
-.ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
+.ui-hero-card__title { margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
 .ui-hero-card .ui-card-link::after { border-radius:var(--r-xl); }
 .ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
@@ -141,10 +165,10 @@
   .ui-hero-card__title { font-size:1.75rem; line-height:1.286; }
 }
 
-/* Card titles (after the card rules above, which they refine): no one-word last line, and room for the hero's clamped glyphs. */
+/* Card titles (after the card rules above, which they refine): no one-word last line. */
 :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
-/* P07: a clamped title clips at its padding box, which cut a first glyph's side bearing ("Berkeley" at 1440) and the top of
-   tall glyphs: 2px of room on every side, given back with a negative inline margin so the text stays on the grid. */
+/* P07: 2px of room on every side (a first glyph's side bearing, "Berkeley" at 1440), given back with a negative inline
+   margin so the text stays on the grid. */
 :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { padding:2px; margin-inline:-2px; }
 @media (max-width:359px) {
   /* RV-14: one long Latin word ("Petaluma" at 特大) breaks inside a narrow card instead of running past it. */

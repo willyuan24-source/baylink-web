@@ -107,7 +107,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 .site-detail-actions.detail-actions :is(.detail-actions__cell svg,.detail-actions__cell img) { flex:none; width:1.5rem; height:1.5rem; }
 .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active { scale:.94; background:var(--color-surface-2); }
 .site-detail-actions.detail-actions :is([data-label=desk],[data-label=tight],[data-label=short]) { display:none; }
-.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { width:100%; min-height:3rem; padding:0 var(--sp-4); border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-body); font-weight:600; white-space:nowrap; }
+.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { width:100%; min-height:3rem; padding:var(--sp-2) var(--sp-4); border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-body); font-weight:600; white-space:nowrap; }
 .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
 .site-detail-actions.detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
 .site-detail-actions.detail-actions .detail-actions__primary .saves-day__error { display:none; }
@@ -122,7 +122,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 /* The primary never wraps: where its cell is narrower than icon + label, the icon goes. em = the cell's --fs-body. */
 @container detail-primary (max-width:9.5em) {
   .site-detail-actions.detail-actions :is(.detail-action--primary,.saves-add-day)>svg { display:none; }
-  .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day { padding:0 var(--sp-2); }
+  .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day { padding-inline:var(--sp-2); }
 }
 @media (max-width:1023px) {
   .site-detail-actions.detail-actions { position:fixed; z-index:50; inset:auto 0 0; height:var(--site-mobile-nav-height); padding:var(--sp-1) var(--sp-3) calc(var(--sp-1) + env(safe-area-inset-bottom,0px)) var(--sp-2); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); box-shadow:var(--e1); }
@@ -134,8 +134,11 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
      tall) instead of a word being swapped. The wrapped lines are centred and keep the 8 px padding, so no glyph reaches
      the pill's round ends (the offer and opening primary is the shared Button <a>, which starts its text at the left;
      AddToDayPlan's <button> centres already). Detail pages only: a guide's bar keeps its own arrangement
-     (guide-article.css). */
+     (guide-article.css). Follow-up 2: two wrapped lines keep 8 px above and below too. The 特大 bar is 72 px (64 elsewhere),
+     so the two lines keep a 1.2 pitch with room to the bar's edges; 家人版's 76 px bar holds them at 1.1 (a 68.6 px pill). */
+  html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions) { --site-mobile-nav-height:calc(72px + env(safe-area-inset-bottom,0px)); }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
+  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { line-height:1.1; }
   html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions { padding-inline:0 var(--sp-1); }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
@@ -146,7 +149,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions [data-label=long] { display:none; }
   .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { font-size:var(--fs-badge); }
-  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.1; text-align:center; text-wrap:balance; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
   /* 家人版: the cells drop their side padding and the primary keeps 4 px, so 领取入口 / 加入计划 / "Add to day" stay on one line. */

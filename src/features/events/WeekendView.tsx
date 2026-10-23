@@ -31,6 +31,8 @@ import { useViewHold } from './view-hold';
 
 /** Cards per page: 12; in 简洁显示 6 and in 家人版 (简洁 + 特大) 4 (content arrangement §6). */
 const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4;
+/** The English date scopes' short names at 大 / 特大 and in 简洁显示 (the rail's scopes: 本周末 · 未来 7 天 · 全部日期). */
+const ROOMY_SCOPES_EN: Partial<Record<EventsWhen, string>> = { weekend: 'Weekend', next7: 'Next 7', all: 'All' };
 /** The editor's block shows the lead and up to three pick rows (two on a phone: one 2-up row). */
 const PICK_ROWS = 3;
 // The share-card strip shows only on a share card's landing (?from=card-…): its chunk (lazy-view `parts`) loads with the
@@ -221,8 +223,11 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // dropped) in their own .ev-days wrapper. A date the sheet chose (今天, a month) checks none: its removable chip says it.
   // 简洁显示 keeps 本周末 (the whole weekend) and the checked scope only.
   const scopes = SCOPES.filter(id => !simple || id === 'weekend' || id === filters.when);
+  // At 大 / 特大 and in 简洁显示 the English scopes take short names (Weekend · Next 7 · All; the range line names the dates),
+  // so they keep one row and the first event ends on screen 1 (N18: /en next7 and this-month at 特大 wrapped to 4 rows).
+  const scopeLabel = (id: EventsWhen) => (english && roomy && ROOMY_SCOPES_EN[id]) || pick(WHEN_OPTIONS.find(option => option.id === id)!.label);
   const dateItems = [
-    ...scopes.map(id => ({ id, label: pick(WHEN_OPTIONS.find(option => option.id === id)!.label) })),
+    ...scopes.map(id => ({ id, label: scopeLabel(id) })),
     ...(weekend ? [
       ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
       { id: 'sun', label: dayLabel(days[1]) },
@@ -239,7 +244,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       {/* 简洁显示 keeps 免费 only, and a tag that is on (home's 亲子 / 长辈友好 links), so it can be seen and cleared. */}
       {RAIL_TAGS.map(id => <FilterChip key={id} data-simple={filters.tag === id ? undefined : 'hide'} selected={filters.tag === id} onClick={() => update({ tag: filters.tag === id ? null : id, category: null })}>{pick(TAGS.find(tag => tag.id === id)!.label)}</FilterChip>)}
       {sheetChips.map(chip => <FilterChip key={chip.key} selected aria-label={t(`清除：${chip.label}`, `Clear ${chip.label}`)} onClick={() => update(chip.clear)}>{chip.label}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>)}
-      <FilterChip className="ev-region-chip" selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>{pick(regionLabel(filters.region))}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
+      {/* 简洁显示 (D6, filters on two rows at most): 整个湾区 ▾ steps aside until a region is chosen (筛选 holds the regions). */}
+      <FilterChip className="ev-region-chip" data-simple={filters.region === 'all' ? 'hide' : undefined} selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>{pick(regionLabel(filters.region))}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
       <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
         icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
     </div>
@@ -329,7 +335,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         </ChipRow>
       </div>
 
-      <div ref={listRef} className="ev-list" data-hold={hold.phase === 'idle' ? undefined : hold.phase} style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }} aria-busy={!events && !failed ? true : undefined}>
+      <div ref={listRef} className="ev-list" data-empty={events && !visible.length ? '' : undefined} data-hold={hold.phase === 'idle' ? undefined : hold.phase} style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }} aria-busy={!events && !failed ? true : undefined}>
         {hold.phase === 'skeleton' ? <SkeletonFeed count={4} />
         : !events ? failed ? <ChunkError onRetry={retry} />
           : hold.phase === 'dim' && held ? cards(held.events, t('活动', 'Events'), undefined, event => held.covers[held.events.indexOf(event)])
@@ -350,8 +356,9 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       </div>
     </section>
 
-    {/* CW-02: the alerts and the share card are keyed to the day, inside a 本周末 list that keeps all week (date-guard.ts). */}
-    {alerts.length > 0 && <div className="ev-alerts" {...dateScope('day')}>
+    {/* CW-02: the alerts and the share card are keyed to the day, inside a 本周末 list that keeps all week (date-guard.ts).
+        An empty result ends with its own state (J3 P27: the alerts no longer follow it), and 简洁显示 leaves them out (D6). */}
+    {alerts.length > 0 && (!events || visible.length > 0) && <div className="ev-alerts" data-simple="hide" {...dateScope('day')}>
       <Disclosure id="monthly-news" summary={t(`出行提醒 ${alerts.length} 条`, `Travel and local updates · ${alerts.length}`)}>
         <ul>{alerts.map(item => <li key={item.id}>
           <strong>{item.title}</strong>
