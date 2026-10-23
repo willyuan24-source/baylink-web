@@ -55,8 +55,13 @@
 /* BayBay's sideways card row scrolls (overflow-x:auto, no inline padding): the layer stays inside the card there. */
 .bb-cards .ui-feed-card .ui-card-link::after { inset:0; }
 .ui-card-link:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
-/* R2-11: at most 3 lines under a card's title — when; status · place on ONE line (the place gives way with "…", the status
-   chip before it never does); the ✓ line. */
+/* R2-11: at most 3 lines under a card's title — the when line, one line cut only between its pieces (Card.tsx WhenPieces;
+   text it cannot split ends in "…"; proportional figures, so "周六 10/24 · 10:30、11:30" fits 173 px); status · place on ONE
+   line (the place gives way with "…", the status chip before it never does); the ✓ line, its words ending in "…" when long. */
+.ui-feed-card>.ui-feed-card__when { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-variant-numeric:normal; }
+.ui-feed-card>.ui-feed-card__when:has(>.ui-when-piece) { display:flex; flex-wrap:wrap; max-height:calc(var(--lh-ui) * 1em); }
+.ui-when-piece { white-space:pre; }
+.ui-feed-card>.ui-feed-card__trust>span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .ui-feed-card__meta { margin:0; overflow:hidden; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); white-space:nowrap; text-overflow:ellipsis; }
 .ui-meta-price { white-space:nowrap; }
 .ui-meta-sep { white-space:pre; }

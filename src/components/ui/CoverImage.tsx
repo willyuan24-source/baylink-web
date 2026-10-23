@@ -55,6 +55,20 @@ export type CoverImageProps = {
 const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.complete && !img.naturalWidth && !!img.currentSrc;
 
 /**
+ * N21: a picture asks for the width it is drawn at, not its frame's. A cover crop of a wider file is drawn frame height ×
+ * the file's aspect wide (a 3:2 file in a 173 px square: 260 px), and a slot's own `sizes` can miss its frame (a row
+ * thumbnail's 88px in a 358 px 特大 card). Before the browser has picked a file the drawn width replaces `sizes`; after,
+ * only a file picked for a slot over 5% narrower than that (a w-descriptor picture's naturalWidth is the slot it was
+ * picked for). The browser still picks from the same srcset: no new file sizes.
+ */
+const fitSizes = (img: HTMLImageElement, contain: boolean, aspect: number) => {
+  const { width, height } = img.getBoundingClientRect();
+  if (!img.getAttribute('srcset') || !width || !(aspect > 0)) return;
+  const drawn = Math.ceil(contain ? Math.min(width, height * aspect) : Math.max(width, height * aspect));
+  if (!img.currentSrc || img.complete && drawn > img.naturalWidth * 1.05) img.setAttribute('sizes', `${drawn}px`);
+};
+
+/**
  * One picture cover: srcset/sizes, a dominant-colour ground (LQIP), the focal-point crop (photo) or the whole flyer centred
  * on a blurred copy of itself (poster, DECISIONS 32 OD1), and one label at its bottom-left (DECISIONS 23, R2-03) that fades in
  * once the picture has decoded (R2-18: never a label on a flat LQIP block). Render through `getCover()` and <Cover>; never
@@ -80,14 +94,16 @@ export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier:
   const focal = standIn ? [50, 50] as const : ownFocal;
   const loaded = failed < 2 && shownFile?.src === shown.src;
   const decoded = (img: HTMLImageElement) => { if (!loaded) setShownFile({ src: shown.src, url: img.currentSrc || img.src }); };
+  // The AI 3D postcards keep their own `sizes` (DECISIONS 1: frozen pixel for pixel).
+  const fitted = (img: HTMLImageElement) => { if (!image.scene3d) fitSizes(img, fit === 'contain', image.width / image.height); };
   const style = { '--ui-lqip': image.lqip, '--ui-backdrop': loaded && fit === 'contain' ? `url("${shownFile.url}")` : undefined } as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
   const listing = kind && !image.scene3d;
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}
     data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} data-loaded={loaded ? '' : undefined} style={style}>
     {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async"
-      style={fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : undefined} {...loading} onError={fail} onLoad={event => decoded(event.currentTarget)}
-      ref={img => { if (failedBeforeHydration(img)) fail(); else if (img?.complete && img.naturalWidth) decoded(img); }} />}
+      style={fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : undefined} {...loading} onError={fail} onLoad={event => { fitted(event.currentTarget); decoded(event.currentTarget); }}
+      ref={img => { if (failedBeforeHydration(img)) fail(); else if (img) { fitted(img); if (img.complete && img.naturalWidth) decoded(img); } }} />}
     {/* Every picture's label is the one chip at its bottom-left (DECISIONS 23, R2-03: listing covers, a guide's or a detail
         page's title picture, /explore's cards); only the 3D postcards keep their top-left ink badge (DECISIONS 1). */}
     {label && <ProvenanceBadge label={label} short={shortLabel} tier={tier} plain={!!image.scene3d} />}

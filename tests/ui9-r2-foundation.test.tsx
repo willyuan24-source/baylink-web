@@ -19,7 +19,7 @@ const { render, cleanup, fireEvent } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { CoverImage } = await import('../src/components/ui/CoverImage');
 const { ProvenanceBadge } = await import('../src/components/ui/Badges');
-const { RowCard } = await import('../src/components/ui/Card');
+const { FeedCard, RowCard, WhenPieces } = await import('../src/components/ui/Card');
 const { TIER_LABELS, keptLabel } = await import('../src/lib/cover-labels');
 const { eventPriceChip, eventTimeLabel, eventWhenLine } = await import('../src/lib/event-facts');
 afterEach(cleanup);
@@ -94,6 +94,45 @@ test('R2-11: ≤ 3 lines under a card title — when, one status · place line, 
   assert.equal(decls(CARDS, '.ui-feed-card__trust>svg').color, undefined, 'its ✓ in the same ink');
   assert.doesNotMatch(read(COVERS), /content:"✓"/, '已开业 has no ✓ of its own');
   for (const line of ['.ui-card-when', '.ui-hero-card__meta']) assert.equal(decls(COVERS, line)['line-height'], 'var(--lh-ui)', `${line}: the body ladder (N05)`);
+});
+
+test('R2-11: the when and ✓ lines hold one line on a feed card — the when line drops whole pieces, never "10:30am–1…"', () => {
+  const pieces = (text: string) => [...wrap(<WhenPieces text={text} />).container.querySelectorAll('.ui-when-piece')].map(piece => piece.textContent);
+  assert.deepEqual(pieces('Sun, Oct 25 · 10:30am–11am'), ['Sun, Oct 25', ' · 10:30am', '–11am']);
+  assert.deepEqual(pieces('周六 10/24 · 10:30、11:30'), ['周六 10/24', ' · 10:30', '、11:30']);
+  assert.deepEqual(pieces('Sat, Oct 24 · 10:30am, 11:30am'), ['Sat, Oct 24', ' · 10:30am', ', 11:30am']);
+  assert.deepEqual(pieces('Oct 17–18 · Sat–Sun'), ['Oct 17–18', ' · Sat–Sun'], 'a date range is never split');
+  assert.deepEqual(pieces('10/17–18 周六–周日'), ['10/17–18 周六–周日']);
+  cleanup();
+  const card = wrap(<FeedCard title="Storytime" to="/events/x" cover={null} when="Sun, Oct 25 · 10:30am–11am" trust="News report · checked Sep 28" />).container;
+  assert.equal(card.querySelector('.ui-feed-card__when')!.textContent, 'Sun, Oct 25 · 10:30am–11am', 'the whole line stays in the DOM');
+  assert.equal(card.querySelectorAll('.ui-feed-card__when>.ui-when-piece').length, 3);
+  assert.equal(card.querySelector('.ui-feed-card__trust>span')!.textContent, 'News report · checked Sep 28');
+  const when = decls(CARDS, '.ui-feed-card>.ui-feed-card__when');
+  assert.deepEqual([when['white-space'], when['text-overflow'], when.overflow, when['font-variant-numeric']], ['nowrap', 'ellipsis', 'hidden', 'normal']);
+  const cut = decls(CARDS, '.ui-feed-card>.ui-feed-card__when:has(>.ui-when-piece)');
+  assert.deepEqual([cut.display, cut['flex-wrap'], cut['max-height']], ['flex', 'wrap', 'calc(var(--lh-ui) * 1em)'], 'a piece that does not fit moves to a clipped second line');
+  assert.equal(decls(CARDS, '.ui-when-piece')['white-space'], 'pre');
+  const trust = decls(CARDS, '.ui-feed-card>.ui-feed-card__trust>span');
+  assert.deepEqual([trust['white-space'], trust['text-overflow'], trust['min-width']], ['nowrap', 'ellipsis', '0']);
+});
+
+test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in a 173 px square: 260px); 3D postcards keep theirs', () => {
+  const box = HTMLImageElement.prototype.getBoundingClientRect;
+  HTMLImageElement.prototype.getBoundingClientRect = function () { return { width: 173, height: 173, top: 0, left: 0, right: 173, bottom: 173, x: 0, y: 0, toJSON: () => ({}) } as DOMRect; };
+  try {
+    const srcSet = '/p-small.webp 480w, /p-800.webp 800w, /p.webp 1200w';
+    const img = (node: React.ReactNode) => wrap(node).container.querySelector('img')!;
+    assert.equal(img(<CoverImage image={{ ...photo, srcSet }} ratio="1:1" sizes="88px" />).getAttribute('sizes'), '260px', 'before the browser picks a file');
+    cleanup();
+    assert.equal(img(<CoverImage image={{ ...photo, width: 800, height: 1200, srcSet }} fit="contain" ratio="1:1" />).getAttribute('sizes'), '116px', 'a tall poster is drawn frame height × its aspect wide');
+    cleanup();
+    assert.equal(img(<CoverImage image={{ ...photo, srcSet, scene3d: true } as never} sizes="88px" />).getAttribute('sizes'), '88px', 'DECISIONS 1: frozen');
+    cleanup();
+    assert.equal(img(<CoverImage image={photo} sizes="88px" />).getAttribute('sizes'), '88px', 'no srcset: nothing to pick from');
+  } finally { HTMLImageElement.prototype.getBoundingClientRect = box; }
+  const code = read('src/components/ui/CoverImage.tsx');
+  assert.match(code, /img\.complete && drawn > img\.naturalWidth \* 1\.05/, 'after a file is picked, only a slot over 5% narrower than the drawn width is replaced');
 });
 
 test('N08: one 免费 look, 部分免费 in the same lime family, deadlines are ink words after a red dot (no solid red)', () => {
