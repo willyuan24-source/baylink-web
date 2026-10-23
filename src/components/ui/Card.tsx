@@ -61,9 +61,8 @@ export type FeedCardProps = CardLink & {
  * and the card's text still hold the whole line.
  */
 export function WhenPieces({ text }: { text: string }) {
-  const at = text.indexOf(' · ');
-  const pieces = at < 0 ? [text] : [text.slice(0, at), ...text.slice(at).split(/(?=[–、,] ?\d)/)];
-  return <>{pieces.map((piece, index) => <span key={index} className="ui-when-piece">{piece}</span>)}</>;
+  const at = text.indexOf(' · ') + 1 || text.length + 1;
+  return <>{[text.slice(0, at - 1), ...text.slice(at - 1).split(/(?=[–、,] ?\d)/)].map((piece, index) => piece && <span key={index} className="ui-when-piece">{piece}</span>)}</>;
 }
 
 /**
