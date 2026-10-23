@@ -162,8 +162,9 @@
 :where(.ui-provenance,.ui-cover-credit) { --text-caption:var(--fs-badge); }
 @media(max-width:1023px) { :where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus) { --text-caption:var(--fs-badge); } }
 /* Latin line heights and measure on English pages (N05). */
-/* --measure: 62ch keeps an English line at ≤ 75 characters (N05; 66ch ran to ~77 on the guides library). */
-:root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:62ch; }
+/* --measure: 50ch keeps an English line at ≤ 75 characters (N05). A ch is the width of "0", about 1.4 average Latin
+   letters in the system UI fonts: 62ch let the /guides lede run to 89 characters on one line; 50ch wraps it at ~71. */
+:root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:50ch; }
 /* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
    heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). No page writes them today; they
    stay as the design system's contract (tests/type-scale.test.ts). */

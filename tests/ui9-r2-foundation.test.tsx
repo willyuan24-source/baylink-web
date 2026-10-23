@@ -195,7 +195,7 @@ test('followup 14 / B P04 / N05: 14px captions (13 only for badges, credits and 
   assert.equal(decls(TOKENS, ':where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus)', '(max-width:1023px)')['--text-caption'], 'var(--fs-badge)', 'the 3D blocks keep their phone 13px');
   assert.equal(decls(CARDS, ':is(.ui-feed-card__title,.ui-row-card__title)', '(min-width:1024px)')['font-size'], 'var(--fs-card)');
   assert.equal(decls(CARDS, '.ui-card-when', '(min-width:1024px)')['font-size'], 'var(--fs-body)');
-  assert.equal(decls(TOKENS, ':root:lang(en)')['--measure'], '62ch');
+  assert.equal(decls(TOKENS, ':root:lang(en)')['--measure'], '50ch', '≤ 75 Latin characters a line (the /guides lede ran to 89 at 62ch)');
   assert.equal(decls(TOKENS, ':root')['text-wrap-style'], 'pretty');
   // The ladder (N05): no line-height literal left in the card and control sheets except the frozen 3D postcard badge.
   for (const file of [UI, CARDS, 'src/features/saves/saves.css']) assert.doesNotMatch(read(file), /line-height:1\.\d/, file);
