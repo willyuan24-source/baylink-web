@@ -131,7 +131,8 @@ test('cover and card text scales with Aa once: every size is a text token, a rem
     // steps (--fs-keep-<px>: the ladder step at 标准, the pre-v2 size in the elder modes).
     assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|h1|display)\)|var\(--fs-(?:badge|meta|body|reading|card|card-lg|section|title|display|keep-\d+|label-thumb|label-tiny)\)|[\d.]+rem|0|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
     if (declaration.value.startsWith('clamp(')) {
-      const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
+      // UI9-R2-FOUNDATION (N01): a bound may be a ladder token (var(--fs-keep-20), var(--text-h1)) instead of a rem literal.
+      const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)|var\(--(?:fs|text)-[a-z0-9-]+\)), (.*), (?:[\d.]+rem|var\(--(?:fs|text)-[a-z0-9-]+\))\)$/.exec(declaration.value);
       assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);
       assert.ok(!clamp[1] || Number(clamp[1]) >= 1, `${where}: a floor under 1rem keeps the 简洁显示 text floor, max(floor, var(--text-floor))`);
       assert.doesNotMatch(clamp[2].replace(/calc\([\d.]+(?:cqw|cqi|vw) \* var\(--fluid-scale\)\)/g, ''), /\d(?:cqw|cqi|vw)\b/, `${where}: a width term grows with Aa through --fluid-scale`);

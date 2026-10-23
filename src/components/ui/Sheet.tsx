@@ -1,12 +1,11 @@
 import { useId, type ReactNode, type Ref, type RefObject, type UIEventHandler } from 'react';
-import { X } from 'lucide-react';
 import './ui.css';
 import './covers.css';
 import './cards.css';
 import { ModalShell } from './Modal';
 import { useExit } from '../../lib/reading-preferences';
-import { IconButton } from './Button';
-import { cx, useUiCopy } from './ui-copy';
+import { CloseButton } from './CloseButton';
+import { cx } from './ui-copy';
 
 export type SheetProps = {
   open: boolean;
@@ -47,7 +46,6 @@ export type SheetProps = {
  */
 export function Sheet({ open, onClose, title, children, footer, status, initialFocusRef, closeOnBackdrop = true, restoreFocusRef, className, backdropClassName, header, labelledBy, bodyRef, onBodyScroll, bodyClassName }: SheetProps) {
   const titleId = useId();
-  const { t } = useUiCopy();
   // One overlay primitive with an enter and an exit: after open turns false the sheet stays for its exit animation
   // (useExit, lib/reading-preferences.ts).
   const shown = useExit(open);
@@ -58,7 +56,7 @@ export function Sheet({ open, onClose, title, children, footer, status, initialF
       <div className="ui-sheet__handle" aria-hidden="true" />
       {custom ? header : <div className="ui-sheet__header">
         <h2 id={titleId} className="ui-sheet__title">{title}</h2>
-        <IconButton label={t('关闭', 'Close')} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></IconButton>
+        <CloseButton onClick={onClose} />
       </div>}
       <div ref={bodyRef} className={cx('ui-sheet__body', bodyClassName)} onScroll={onBodyScroll}>{children}</div>
       {footer && <div className="ui-sheet__footer">{footer}</div>}

@@ -40,7 +40,8 @@ function BaseSheet({ open, onClose, title, children, footer, status, closeOnBack
       <div className="ui-sheet__handle" aria-hidden="true" />
       <div className="ui-sheet__header">
         <h2 id={titleId} className="ui-sheet__title">{title}</h2>
-        <IconButton label={t('关闭', 'Close')} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></IconButton>
+        {/* UI9-R2-FOUNDATION (N13): the shared CloseButton, the same icon button with its ui-close hook. */}
+        <IconButton label={t('关闭', 'Close')} className="ui-close" onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></IconButton>
       </div>
       <div className="ui-sheet__body">{children}</div>
       {footer && <div className="ui-sheet__footer">{footer}</div>}

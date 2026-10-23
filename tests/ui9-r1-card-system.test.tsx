@@ -99,18 +99,20 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
 
-test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumbnail at 36px', () => {
+test('N13 / N25 (UI9-R2-FOUNDATION): one ♡ circle (44px, white, e1) on a picture and at a row\'s right edge; no 36px ♡', () => {
   const save = decls(UI, '.ui-save');
   assert.equal(save.width, 'var(--control-height)');
   assert.equal(save.background, 'var(--color-surface)');
-  assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'thumb');
-  assert.equal(decls(CARDS, '.ui-row-card__save .ui-save').width, '2.25rem');
+  assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'trailing', 'the row\'s right edge, outside the picture');
+  assert.equal(decls(CARDS, '.ui-row-card:has(>.ui-row-card__save):has(>.ui-row-card__trailing)')['grid-template-areas'], '"thumb body save trailing"');
+  assert.doesNotMatch(read(CARDS), /\.ui-row-card__save \.ui-save \{/, 'no smaller row ♡');
+  assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]').width, 'var(--control-height)', 'the area sheets\' 36px give way (!important)');
   // the lift is scoped to the picture slots: the action bar's 收藏 cell and FreebieBoard's body pill are compact too, but flat
   const SAVES = read('src/features/saves/saves.css');
   assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');
   assert.doesNotMatch(SAVES, /^\.saves-control \.saves-toggle\[data-compact\] \{ box-shadow/m, 'no unscoped lift on every compact ♡');
   const card = read('src/components/PlannerCatalogCard.tsx');
-  assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is on the thumbnail');
+  assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is the row\'s save');
   assert.match(card, /trailing=\{<Button className="planner-add" aria-label=\{addLabel\}/, 'D7: 加入计划 is the row\'s compact trailing button');
 });
 
