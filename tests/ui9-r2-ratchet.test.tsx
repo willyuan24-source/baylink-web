@@ -134,9 +134,11 @@ test('N24: Tailwind animate-spin and animate-pulse compile to the token loop (no
 
 test('N05: the together footnotes keep a reading measure', () => {
   assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'max-width'), ['var(--measure)']);
-  // At the measure the closing note wraps; Chinese breaks between phrases only (measured: 各自处理。| 出发前请再次核对…).
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break'), ['keep-all']);
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'overflow-wrap'), ['break-word']);
+  // Where the measure binds (from 768) the closing note wraps between phrases only (measured: 各自处理。| 出发前请再次核对…);
+  // a phone keeps the normal CJK wrap.
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break', '@media (min-width:768px)'), ['keep-all']);
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'overflow-wrap', '@media (min-width:768px)'), ['break-word']);
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break'), []);
 });
 
 test('NAV PR B: the profile stamp has no tracking and no blur; .outing-eyebrow stays in sentence case without tracking', () => {
