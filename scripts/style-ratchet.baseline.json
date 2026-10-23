@@ -7,7 +7,7 @@
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 18,
     "radiusKinds": 27,
-    "shadowKinds": 17,
+    "shadowKinds": 16,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 13,
     "baylinkClasses": 273,
@@ -18,7 +18,7 @@
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 5,
-    "spacingOffScale": 640,
+    "spacingOffScale": 637,
     "englishUiUntranslated": 101,
     "lazyCssDuplicateSelectors": 0
   },
@@ -196,7 +196,6 @@
       "0 0 0 3px rgb(var(--color-brand-rgb) / .07)",
       "0 0 0 3px rgb(var(--color-line-control-rgb) / .09)",
       "0 0 0 3px var(--color-brand-tint)",
-      "0 0 0 4px var(--color-surface)",
       "inset 0 0 0 1px var(--color-brand)",
       "none",
       "tw:shadow-2xl",
@@ -534,7 +533,7 @@
       "arrowUpRight": 6
     },
     "src/styles/attractions.css": {
-      "spacingOffScale": 18
+      "spacingOffScale": 15
     },
     "src/styles/discovery-workflow.css": {
       "fontSizeLiteral": 1,
