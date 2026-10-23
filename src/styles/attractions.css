@@ -8,9 +8,8 @@
 /* The field's box is the input itself (the label only positions the icon), so the label is not a second control style. */
 .xp-search{position:relative;display:block;min-width:0;color:var(--color-ink-3)}
 .xp-search>svg{position:absolute;top:50%;left:12px;transform:translateY(-50%);pointer-events:none}
-.xp-search input{width:100%;min-height:var(--control-height);padding:0 12px 0 40px;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);outline:none}
+.xp-search input{width:100%;min-height:var(--control-height);padding:0 12px 0 40px;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body)}
 .xp-search input::placeholder{color:var(--color-ink-3)}
-.xp-search input:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 /* D5 (DECISIONS 31): the two filters are the site's styled select (ui/Select.tsx, select.css), as wide as their column. */
 .xp-select{display:block;min-width:0}
 .xp-select>.ui-select{display:flex;width:100%}
