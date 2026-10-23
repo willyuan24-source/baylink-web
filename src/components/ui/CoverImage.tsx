@@ -18,8 +18,8 @@ export type CoverImageProps = {
   image: Pick<CoverAsset, 'src' | 'alt' | 'width' | 'height'> & Partial<Pick<CoverAsset, 'srcSet' | 'lqip' | 'scene3d'>>;
   /** The badge words (DECISIONS 23: tierLabelOf through <Cover>; getImageProvenance for a 3D postcard); omit only where shown elsewhere. */
   label?: string;
-  /** The label's one-line short words for a picture ≤ 200 px wide (DECISIONS 23's 88 px words: 官方图, 2025 往届, Stock photo);
-   *  covers.css shows them instead of `label` there, so a label never wraps or covers a thumbnail. */
+  /** The label's one-line short words (DECISIONS 23's 88 px words: Official, 2025 往届, Stock photo, Venue 2021) for a
+   *  picture ≤ 120 px wide, or ≤ 200 px when `label` is long; covers.css shows them there, so a label never wraps or is cut. */
   shortLabel?: string;
   /** The tier the badge names (data-tier): a ③ 示意图 or ④ AI 示意图 badge stays on the picture in every size and mode. */
   tier?: Exclude<CoverTier, 'type'>;
@@ -41,8 +41,9 @@ export type CoverImageProps = {
   kind?: CoverListingKind;
   /** What the picture becomes when its file fails to load (UI9-IMAGES DECISIONS 21): a ③ stock picture of the same kind. */
   fallback?: Src;
-  /** The ③ badge words the fallback shows (示意图 / Stock photo): a stand-in never keeps the failed picture's ① or ② words. */
-  fallbackLabel?: string;
+  /** The ③ badge words the fallback shows, full and short (示意图 / Illustrative photo, Stock photo): a stand-in never keeps
+   *  the failed picture's ① or ② words. */
+  fallbackLabel?: readonly [string, string];
   /** Overlays other than the badge (none on listing covers since UI9-C: ♡ is the card's). */
   children?: ReactNode;
   className?: string;
@@ -57,19 +58,21 @@ const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.com
 /**
  * N21: a picture asks for the width it is drawn at, not its frame's. A cover crop of a wider file is drawn frame height ×
  * the file's aspect wide (a 3:2 file in a 173 px square: 260 px), and a slot's own `sizes` can miss its frame (a row
- * thumbnail's 88px in a 358 px 特大 card). Before the browser has picked a file the drawn width replaces `sizes`; after,
- * only a file picked for a slot over 5% narrower than that (a w-descriptor picture's naturalWidth is the slot it was
- * picked for). The browser still picks from the same srcset: no new file sizes.
+ * thumbnail's 88px in a 358 px 特大 card). Before the browser has picked a file (every lazy picture the page has not
+ * reached) the drawn width replaces `sizes`, so the first pick is the right one. A file already picked is replaced only
+ * when its slot was over 1.3× too narrow (a w-descriptor picture's naturalWidth is the slot it was picked for): a second
+ * download is worth it only for a visibly soft picture. The browser still picks from the same srcset: no new file sizes.
  */
 const fitSizes = (img: HTMLImageElement, contain: boolean, aspect: number) => {
-  const { width, height } = img.getBoundingClientRect(), drawn = Math.ceil((contain ? Math.min : Math.max)(width, height * aspect));
-  if (drawn > 0 && img.getAttribute('srcset') && (!img.currentSrc || img.complete && drawn > img.naturalWidth * 1.05)) img.setAttribute('sizes', `${drawn}px`);
+  const { width, height } = img.getBoundingClientRect(), drawn = Math.ceil((contain ? Math.min : Math.max)(width, height * aspect)), sizes = `${drawn}px`;
+  if (drawn > 0 && img.srcset && img.sizes !== sizes && (!img.currentSrc || img.complete && drawn > img.naturalWidth * 1.3)) img.sizes = sizes;
 };
 
 /**
  * One picture cover: srcset/sizes, a dominant-colour ground (LQIP), the focal-point crop (photo) or the whole flyer centred
- * on a blurred copy of itself (poster, DECISIONS 32 OD1), and one label at its bottom-left (DECISIONS 23, R2-03) that fades in
- * once the picture has decoded (R2-18: never a label on a flat LQIP block). Render through `getCover()` and <Cover>; never
+ * on a blurred copy of itself (poster, DECISIONS 32 OD1), and one label at its bottom-left (DECISIONS 23, R2-03). A picture the
+ * client finds still decoding is marked [data-pending] and its label fades in once it shows (R2-18: no label on a flat LQIP
+ * block); prerendered HTML carries no mark, so before the script runs, or without it, every label is on its picture. Render through `getCover()` and <Cover>; never
  * pick images here. A file that fails to load (onError, DECISIONS 21) becomes the cover's `fallback` (a same-category ③
  * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
  * (`image.scene3d`) keep their frame and top-left ink badge exactly (DECISIONS 1).
@@ -85,16 +88,20 @@ export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier:
   const standIn = failed === 1 && !!fallback;
   const shown: Src = standIn ? fallback : image;
   // The stand-in is a ③ stock photo: its own badge words and tier, cropped like any photo (never a poster's board).
-  const label = standIn ? fallbackLabel : ownLabel;
-  const shortLabel = standIn ? undefined : ownShort;
+  const [label, shortLabel] = standIn ? fallbackLabel ?? [] : [ownLabel, ownShort];
   const tier = standIn ? 'stock' : ownTier;
   const fit = standIn ? 'cover' : ownFit;
   const focal = standIn ? [50, 50] as const : ownFocal;
   const loaded = failed < 2 && shownFile?.src === shown.src;
-  // Laid out or loaded: fit `sizes` (the AI 3D postcards keep theirs, DECISIONS 1: frozen pixel for pixel); once decoded, the label shows.
+  // Laid out or loaded: fit `sizes`, and mark [data-pending] until the picture shows (on the DOM, never rendered, so prerendered
+  // HTML keeps its labels); the AI 3D postcards keep theirs as they are (DECISIONS 1: frozen pixel for pixel).
   const decoded = (img: HTMLImageElement, load?: boolean) => {
-    if (!image.scene3d) fitSizes(img, fit === 'contain', image.width / image.height);
-    if (!loaded && (load || img.complete && img.naturalWidth)) setShownFile({ src: shown.src, url: img.currentSrc || img.src });
+    const done = load || img.complete && !!img.naturalWidth;
+    if (!image.scene3d) {
+      fitSizes(img, fit === 'contain', image.width / image.height);
+      img.parentElement?.toggleAttribute('data-pending', !done && !loaded);
+    }
+    if (!loaded && done) setShownFile({ src: shown.src, url: img.currentSrc || img.src });
   };
   const style = { '--ui-lqip': image.lqip, '--ui-backdrop': loaded && fit === 'contain' ? `url("${shownFile.url}")` : undefined } as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
@@ -121,13 +128,13 @@ export type CoverSlot = {
   /** The card around the cover already reads the title and facts. */
   decorative?: boolean;
   /** Older callers' "this slot is a thumbnail" flag. The label now carries its full and short words and the picture's own
-   *  width picks one (covers.css, ≤ 200 px), so a slot that is a thumbnail on phones and a large card on desktops (the
+   *  width picks one (covers.css), so a slot that is a thumbnail on phones and a large card on desktops (the
    *  /guides band) needs no flag; it is accepted and ignored. */
   short?: boolean;
 };
 
 type LabelledCover = Parameters<typeof tierLabelOf>[0] & { label?: { zh: string; en: string } };
-/** The DECISIONS 23 label of a resolved picture in the page's language: [full words, short words for a picture ≤ 200 px]. */
+/** The DECISIONS 23 label of a resolved picture in the page's language: [full words, short words (CoverImage `shortLabel`)]. */
 function useTierWords() {
   const { locale, pick } = useUiCopy();
   return (cover: LabelledCover): readonly [string, string] => {
@@ -137,7 +144,7 @@ function useTierWords() {
   };
 }
 
-/** The DECISIONS 23 badge words for a resolved picture, in the page's language; `thumb`: its short words (≤ 200 px). */
+/** The DECISIONS 23 badge words for a resolved picture, in the page's language; `thumb`: its short words. */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useTierLabel() {
   const words = useTierWords();
@@ -158,7 +165,7 @@ export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.f
   const [label, short] = words(cover);
   return <CoverImage image={cover.image} label={label} shortLabel={short} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
     sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
-    fallbackLabel={cover.fallback && words({ tier: 'stock', image: cover.image })[0]}>{children}</CoverImage>;
+    fallbackLabel={cover.fallback && words({ tier: 'stock', image: cover.image })}>{children}</CoverImage>;
 }
 
 /** The empty picture frame (LQIP ground, same box): what a cover shows while it has no picture to show. */

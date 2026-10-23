@@ -104,7 +104,7 @@ test('N13 / N25 (UI9-R2-FOUNDATION): one ♡ circle (44px, white, e1) on a pictu
   assert.equal(save.width, 'var(--control-height)');
   assert.equal(save.background, 'var(--color-surface)');
   assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'trailing', 'the row\'s right edge, outside the picture');
-  assert.equal(decls(CARDS, '.ui-row-card:has(>.ui-row-card__save):has(>.ui-row-card__trailing)')['grid-template-areas'], '"thumb body save trailing"');
+  assert.equal(decls(CARDS, 'html:not([data-simple]) .ui-row-card:has(>.ui-row-card__save+.ui-row-card__trailing)')['grid-template-areas'], '"thumb body save" "thumb body trailing"', 'with 加入: stacked in one right-edge column');
   assert.doesNotMatch(read(CARDS), /\.ui-row-card__save \.ui-save \{/, 'no smaller row ♡');
   assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle').width, 'var(--control-height)', 'the area sheets\' 36px give way (!important)');
   // the lift is scoped to the picture slots: the action bar's 收藏 cell and FreebieBoard's body pill are compact too, but flat
@@ -128,13 +128,13 @@ test('N02: a state title inside a section is body size; N24: no motion literal i
   assert.doesNotMatch(ui, /(?:animation|transition)[^;{}]*\b\d*\.?\d+m?s\b/, 'durations are --dur-* tokens');
 });
 
-test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a picture ≤ 200 px, one line, its text the full words', () => {
+test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a thumbnail ≤ 120 px, one line, its text the full words', () => {
   const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />);
   assert.match(html, /data-short="2025 往届">官方图 · 2025 往届<\/span>/);
   assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" plain />), /data-short/, 'the 3D postcard badge stays as it was');
   assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="示意图" short="示意图" tier="stock" />), /data-short/, 'no copy when the words are the same');
-  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]::after', 'ui-cover (max-width:200px)').content, 'attr(data-short) / ""');
-  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]', 'ui-cover (max-width:200px)')['font-size'], '0');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:120px)').content, 'attr(data-short) / ""');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:120px)')['font-size'], '0');
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {

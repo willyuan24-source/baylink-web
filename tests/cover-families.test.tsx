@@ -143,7 +143,7 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   assert.equal(cover.querySelector('[data-chip]')?.textContent, '官方图');
   cleanup();
   const poster = wrap(<CoverImage image={photo} label="官方图" fit="contain" kind="event" />);
-  assert.equal(poster.container.querySelectorAll('img').length, 1, 'no blurred backdrop');
+  assert.equal(poster.container.querySelectorAll('img').length, 1, 'the backdrop is CSS, not a second img');
   assert.equal(poster.container.querySelector('[data-cover]')?.getAttribute('data-family'), 'poster');
   cleanup();
   // A picture outside the listing feeds (no kind: /explore's attraction cards, a guide's or a detail page's title picture)
@@ -174,7 +174,8 @@ test('review fixes: a poster sits whole on a blurred copy of itself in a full-bl
   assert.equal(postcssRule(sheet, '.ui-cover[data-fit=contain][data-loaded]::before'), 'opacity:1');
   const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
   const frame = flyer.container.querySelector<HTMLElement>('[data-cover="image"]')!;
-  assert.equal(frame.hasAttribute('data-loaded'), false, 'no label or backdrop before the picture decodes');
+  assert.equal(frame.hasAttribute('data-loaded'), false, 'no backdrop before the picture decodes');
+  assert.equal(frame.hasAttribute('data-pending'), true, 'and its label waits (a client-mounted cover)');
   assert.equal(frame.style.getPropertyValue('--ui-backdrop'), '');
   const flyerImg = frame.querySelector('img')!;
   assert.equal(flyerImg.getAttribute('style'), null, 'a poster has no crop position');

@@ -10,10 +10,10 @@ import { getImageProvenance } from './image-provenance';
  */
 
 /**
- * A label in both scripts: the full words for a picture wider than 200 px, and the one-line short words (…Short) for a
- * picture ≤ 200 px — a phone's 2-up card and an 88 px row thumbnail (R2-03; covers.css picks by the picture's own width).
- * The short words keep the tier word and a past edition's 往届 (DECISIONS 23; critic-r2 §3); a venue's year stays in the
- * full words and the page's image credits.
+ * A label in both scripts: the full words, and the one-line short words (…Short) a picture draws where the full ones cannot
+ * fit — ≤ 120 px (an 88 px row thumbnail, DECISIONS 23's 88 px words), or ≤ 200 px for words over 18 characters (Badges.tsx
+ * data-long; covers.css). A short form never drops a year, and keeps the tier word (Official, 官方产品图) or, for a past
+ * edition in Chinese, 往届 (critic-r2 §3, followup 8: 「官方图 · 25 往届」 is 98 px and an 88 px thumbnail has 80).
  */
 export type TierLabel = { zh: string; zhHant: string; en: string; zhShort: string; zhHantShort: string; enShort: string };
 /** 繁體 for the label words (the vocabulary is closed: 官方图 · 场馆照 · 示意图 · 往届 · 产品图 · 资料图 · 实拍 · 3D 场景插图). */
@@ -24,16 +24,17 @@ const label = (zh: string, en: string, enShort = en, zhShort = zh): TierLabel =>
 /** DECISIONS 23: the label per tier. The short words fit one line on an 88 px thumbnail (tests/cover-tier-labels.test.ts). */
 export const TIER_LABELS = {
   official: label('官方图', 'Official image', 'Official'),
-  officialEdition: (year: string) => label(`官方图 · ${year} 往届`, `Official image · ${year} edition`, `${year} edition`, `${year} 往届`),
-  officialProduct: label('官方图 · 产品图', 'Official product image', 'Product', '官方产品图'),
-  venue: (year?: number) => year ? label(`场馆照 · ${year}`, `Venue photo · ${year}`, 'Venue', '场馆照') : label('场馆照', 'Venue photo', 'Venue'),
+  officialEdition: (year: string) => label(`官方图 · ${year} 往届`, `Official image · ${year} edition`, `Official ${year}`, `${year} 往届`),
+  officialProduct: label('官方图 · 产品图', 'Official product image', 'Official', '官方产品图'),
+  venue: (year?: number) => year ? label(`场馆照 · ${year}`, `Venue photo · ${year}`, `Venue ${year}`) : label('场馆照', 'Venue photo', 'Venue'),
   stock: label('示意图', 'Illustrative photo', 'Stock photo'),
   ai: label('AI 示意图', 'AI illustration', 'AI image'),
   scene3d: label('3D 场景插图', '3D scene illustration', '3D scene'),
 } as const satisfies Record<string, TierLabel | ((...args: never[]) => TierLabel)>;
 
-/** A kept label's short words (照片 · 2019 → 照片, BAYLINK 实拍 · … → 实拍, Archive photo · 2019 → Archive): the date leaves. */
-const keptShort = (words: string) => words.split(' · ')[0].replace(/BAYLINK (?=[实實])| photo$/, '');
+/** A kept label's short words keep its date: Archive photo · 2019 → Archive 2019, BAYLINK photo · … → BAYLINK · …,
+ *  BAYLINK 实拍 · … → 实拍 · …; 照片 · 2019, 资料图 · 2019 and Photo · 2019 already fit. */
+const keptShort = (words: string) => words.replace(/BAYLINK (?=[实實])|(Archive) photo ·|(BAYLINK) photo/, '$1$2');
 /** A kept label in the page's language, with its short words. */
 export const keptLabel = (words: string): TierLabel => label(words, words, keptShort(words), keptShort(words));
 

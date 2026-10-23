@@ -19,7 +19,8 @@ const { render, cleanup, fireEvent } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { CoverImage } = await import('../src/components/ui/CoverImage');
 const { ProvenanceBadge } = await import('../src/components/ui/Badges');
-const { FeedCard, RowCard, WhenPieces } = await import('../src/components/ui/Card');
+const { FeedCard, RowCard } = await import('../src/components/ui/Card');
+const { HeroCard } = await import('../src/components/ui/HeroCard');
 const { TIER_LABELS, keptLabel } = await import('../src/lib/cover-labels');
 const { eventPriceChip, eventTimeLabel, eventWhenLine } = await import('../src/lib/event-facts');
 afterEach(cleanup);
@@ -57,22 +58,37 @@ test('R2-01 (OD1): one full-bleed frame — a poster sits whole on a blurred cop
   assert.equal(frame.hasAttribute('data-loaded'), true);
 });
 
-test('R2-18: the label fades in on decode; a photo keeps no backdrop', () => {
-  assert.equal(decls(COVERS, '.ui-cover:not([data-loaded])>.ui-provenance[data-chip]').opacity, '0');
+test('R2-18 / DECISIONS 23: a label the client finds decoding fades in; prerendered HTML and pages without JS keep every label', () => {
+  assert.equal(decls(COVERS, '.ui-cover[data-pending]>.ui-provenance[data-chip]').opacity, '0');
+  assert.doesNotMatch(read(COVERS), /:not\(\[data-loaded\]\)>\.ui-provenance/, 'never hidden for want of a client-only attribute');
+  const html = renderToStaticMarkup(<MemoryRouter><CoverImage image={photo} label="示意图" tier="stock" kind="event" /></MemoryRouter>);
+  assert.doesNotMatch(html, /data-pending/, 'the prerendered cover carries no mark: its label shows before (or without) the script');
   const view = wrap(<CoverImage image={photo} label="示意图" tier="stock" kind="event" />);
   const frame = view.container.querySelector<HTMLElement>('[data-cover="image"]')!;
-  assert.equal(frame.hasAttribute('data-loaded'), false);
+  assert.equal(frame.hasAttribute('data-pending'), true, 'mounted on the client before the picture decodes');
   fireEvent.load(frame.querySelector('img')!);
+  assert.equal(frame.hasAttribute('data-pending'), false);
   assert.equal(frame.hasAttribute('data-loaded'), true);
   assert.equal(frame.style.getPropertyValue('--ui-backdrop'), '', 'a cropped photo needs none');
+  cleanup();
+  // A stand-in (the cover's own file failed) carries the ③ words, full and short.
+  const stand = wrap(<CoverImage image={photo} label="官方图" shortLabel="官方图" tier="official" kind="event" fallback={{ src: '/stock.webp' }} fallbackLabel={['Illustrative photo', 'Stock photo']} />);
+  fireEvent.error(stand.container.querySelector('img')!);
+  const badge = stand.container.querySelector('[data-chip]')!;
+  assert.deepEqual([badge.textContent, badge.getAttribute('data-short'), badge.getAttribute('data-tier')], ['Illustrative photo', 'Stock photo', 'stock']);
 });
 
-test('R2-03: one label component, bottom-left inside the picture at every size, one line; short words ≤ 200 px', () => {
+test('R2-03: one label component, bottom-left inside the picture at every size, one line; short words only where the full ones cannot fit', () => {
   const chip = decls(COVERS, '.ui-cover>.ui-provenance[data-chip]');
   assert.deepEqual([chip.top, chip.bottom, chip.left, chip['max-width'], chip['white-space']], ['auto', 'var(--sp-2)', 'var(--sp-2)', '75%', 'nowrap']);
-  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]', 'ui-cover (max-width:200px)')['font-size'], '0');
-  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip][data-short]::after', 'ui-cover (max-width:200px)').content, 'attr(data-short) / ""');
+  // ≤ 120 px (DECISIONS 23's 88 px words): every label with short words draws them; ≤ 200 px only the long ones (data-long).
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:120px)')['font-size'], '0');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:120px)').content, 'attr(data-short) / ""');
+  assert.deepEqual(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:200px)'), {}, 'a 2-up card keeps the full words');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-long]::after', 'ui-cover (max-width:200px)').content, 'attr(data-short) / ""');
   assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]', 'ui-cover (max-width:120px)')['font-size'], 'var(--fs-label-tiny)');
+  assert.match(renderToStaticMarkup(<ProvenanceBadge label="Official image · 2025 edition" short="Official 2025" tier="official" />), /data-short="Official 2025" data-long="">/);
+  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />), /data-long/, '13 characters fit a 2-up card');
   assert.doesNotMatch(read(CARDS), /\.ui-row-card__thumb \.ui-provenance/, 'no strip variant');
   assert.doesNotMatch(read(COVERS), /:has\(\.ui-row-card__credit\)/, 'no rule trades the label for a text line');
   // Every picture but a 3D postcard takes the chip: a guide's or detail page's title picture too (no top-left badge).
@@ -82,13 +98,25 @@ test('R2-03: one label component, bottom-left inside the picture at every size, 
   assert.doesNotMatch(postcard, /data-chip|data-short/, 'the 3D postcards keep their badge (DECISIONS 1)');
   // The words: the full ones are the text, the short ones the drawn copy on a small picture.
   assert.match(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />), /data-short="2025 往届">官方图 · 2025 往届</);
-  assert.deepEqual([TIER_LABELS.officialEdition('2025').zhShort, TIER_LABELS.venue(2024).zhShort, TIER_LABELS.stock.enShort], ['2025 往届', '场馆照', 'Stock photo']);
-  assert.deepEqual([keptLabel('资料图 · 2019').zhShort, keptLabel('BAYLINK 实拍 · 10/12').zhShort, keptLabel('Archive photo · 2019').enShort], ['资料图', '实拍', 'Archive']);
+  assert.deepEqual([TIER_LABELS.officialEdition('2025').zhShort, TIER_LABELS.officialEdition('2025').enShort, TIER_LABELS.venue(2024).zhShort, TIER_LABELS.venue(2024).enShort, TIER_LABELS.stock.enShort],
+    ['2025 往届', 'Official 2025', '场馆照 · 2024', 'Venue 2024', 'Stock photo']);
+  assert.deepEqual([keptLabel('资料图 · 2019').zhShort, keptLabel('照片 · 2014').zhShort, keptLabel('BAYLINK 实拍 · 10/12').zhShort, keptLabel('Archive photo · 2019').enShort, keptLabel('BAYLINK photo · Oct 12').enShort],
+    ['资料图 · 2019', '照片 · 2014', '实拍 · 10/12', 'Archive 2019', 'BAYLINK · Oct 12']);
+});
+
+test('DECISIONS 23: a short label never loses the year, and keeps the tier word (往届 for a past edition in Chinese)', () => {
+  const labels = [TIER_LABELS.official, TIER_LABELS.officialEdition('2025'), TIER_LABELS.officialProduct, TIER_LABELS.venue(2021), TIER_LABELS.venue(), TIER_LABELS.stock, TIER_LABELS.ai,
+    keptLabel('照片 · 2019'), keptLabel('资料图 · 2017'), keptLabel('Archive photo · 2017'), keptLabel('Photo · 2014'), keptLabel('BAYLINK 实拍 · 10/03'), keptLabel('BAYLINK photo · Oct 3')];
+  for (const label of labels) for (const [full, short] of [[label.zh, label.zhShort], [label.zhHant, label.zhHantShort], [label.en, label.enShort]]) {
+    for (const date of full.match(/\d{4}|\d+\/\d+|[A-Z][a-z]{2} \d+/g) ?? []) assert.ok(short.includes(date), `${full} → ${short}: keeps ${date}`);
+    if (/^官方/.test(full)) assert.match(short, /官方|往[届屆]/, `${full} → ${short}`);
+    if (/^Official/.test(full)) assert.match(short, /^Official/, `${full} → ${short}`);
+  }
 });
 
 test('R2-11: ≤ 3 lines under a card title — when, one status · place line, the quiet ✓ line; only that line has a ✓', () => {
-  const meta = decls(CARDS, ':is(.ui-feed-card__when,.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span)');
-  assert.deepEqual([meta['white-space'], meta['text-overflow'], meta.overflow], ['nowrap', 'ellipsis', 'hidden'], 'the when, status · place and ✓ words: one line each');
+  const meta = decls(CARDS, ':is(.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span)');
+  assert.deepEqual([meta['white-space'], meta['text-overflow'], meta.overflow], ['nowrap', 'ellipsis', 'hidden'], 'the status · place and ✓ words: one line each');
   const trust = decls(CARDS, ':is(.ui-feed-card__trust,.ui-hero-card__trust)');
   assert.deepEqual([trust['font-size'], trust.color], ['var(--text-caption)', 'var(--color-ink-3)'], 'caption size, the lightest ink at ≥ 4.5:1');
   assert.equal(decls(CARDS, ':is(.ui-feed-card__trust,.ui-hero-card__trust)>svg').color, undefined, 'its ✓ in the same ink');
@@ -96,22 +124,21 @@ test('R2-11: ≤ 3 lines under a card title — when, one status · place line, 
   for (const line of ['.ui-card-when', '.ui-hero-card__meta']) assert.equal(decls(COVERS, line)['line-height'], 'var(--lh-ui)', `${line}: the body ladder (N05)`);
 });
 
-test('R2-11: the when and ✓ lines hold one line on a feed card — the when line drops whole pieces, never "10:30am–1…"', () => {
-  const pieces = (text: string) => [...wrap(<WhenPieces text={text} />).container.querySelectorAll('.ui-when-piece')].map(piece => piece.textContent);
-  assert.deepEqual(pieces('Sun, Oct 25 · 10:30am–11am'), ['Sun, Oct 25', ' · 10:30am', '–11am']);
-  assert.deepEqual(pieces('周六 10/24 · 10:30、11:30'), ['周六 10/24', ' · 10:30', '、11:30']);
-  assert.deepEqual(pieces('Sat, Oct 24 · 10:30am, 11:30am'), ['Sat, Oct 24', ' · 10:30am', ', 11:30am']);
-  assert.deepEqual(pieces('Oct 17–18 · Sat–Sun'), ['Oct 17–18', ' · Sat–Sun'], 'a date range is never split');
-  assert.deepEqual(pieces('10/17–18 周六–周日'), ['10/17–18 周六–周日']);
-  cleanup();
+test('R2-11: a feed card’s when line holds one line and ends in a visible "…" at a word break; rows and heroes wrap it whole', () => {
+  const when = decls(CARDS, '.ui-feed-card__when');
+  assert.deepEqual([when.display, when['-webkit-box-orient'], when['-webkit-line-clamp'], when.overflow, when['text-wrap']], ['-webkit-box', 'vertical', '1', 'hidden', 'wrap'],
+    '"周六 10/24 · 10:30、…" / "Sun, Oct 25 · 10:30am–…": the cut shows (pretty wrapping would move words down)');
+  assert.doesNotMatch(read(CARDS), /ui-when-piece|__when[^{]*\{[^}]*white-space:(?:pre|nowrap)/, 'no unbreakable when line anywhere: a row, a rail or a hero wraps it');
   const card = wrap(<FeedCard title="Storytime" to="/events/x" cover={null} when="Sun, Oct 25 · 10:30am–11am" trust="News report · checked Sep 28" />).container;
-  assert.equal(card.querySelector('.ui-feed-card__when')!.textContent, 'Sun, Oct 25 · 10:30am–11am', 'the whole line stays in the DOM');
-  assert.equal(card.querySelectorAll('.ui-feed-card__when>.ui-when-piece').length, 3);
+  assert.equal(card.querySelector('.ui-feed-card__when')!.innerHTML, 'Sun, Oct 25 · 10:30am–11am', 'plain text: the whole line stays in the DOM');
   assert.equal(card.querySelector('.ui-feed-card__trust>span')!.textContent, 'News report · checked Sep 28');
+  cleanup();
+  const row = wrap(<RowCard title="Storytime" to="/events/x" thumb={null} when="周六 10/24 · 10:30、11:30、13:00" />).container;
+  assert.equal(row.querySelector('.ui-row-card__date')!.innerHTML, '周六 10/24 · 10:30、11:30、13:00', 'a row prints the when line as words that wrap');
+  cleanup();
+  const hero = wrap(<HeroCard title="Storytime" to="/events/x" cover={null} when="Sat, Oct 24 · 10:30am, 11:30am" />).container;
+  assert.equal(hero.querySelector('.ui-card-when')!.innerHTML, 'Sat, Oct 24 · 10:30am, 11:30am', 'a hero too');
   assert.equal(decls(COVERS, '.ui-card-when')['font-variant-numeric'], undefined, 'proportional figures: 周六 10/24 · 10:30、11:30 fits 173 px');
-  const cut = decls(CARDS, '.ui-feed-card__when:has(>.ui-when-piece)');
-  assert.deepEqual([cut.display, cut['flex-wrap'], cut['max-height']], ['flex', 'wrap', 'calc(var(--lh-ui) * 1em)'], 'a piece that does not fit moves to a clipped second line');
-  assert.equal(decls(CARDS, '.ui-when-piece')['white-space'], 'pre');
 });
 
 test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in a 173 px square: 260px); 3D postcards keep theirs', () => {
@@ -129,7 +156,8 @@ test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in 
     assert.equal(img(<CoverImage image={photo} sizes="88px" />).getAttribute('sizes'), '88px', 'no srcset: nothing to pick from');
   } finally { HTMLImageElement.prototype.getBoundingClientRect = box; }
   const code = read('src/components/ui/CoverImage.tsx');
-  assert.match(code, /img\.complete && drawn > img\.naturalWidth \* 1\.05/, 'after a file is picked, only a slot over 5% narrower than the drawn width is replaced');
+  assert.match(code, /img\.complete && drawn > img\.naturalWidth \* 1\.3\)\) img\.sizes = sizes/, 'after a file is picked, only a slot over 1.3× too narrow is replaced (a second download)');
+  assert.match(code, /img\.sizes !== sizes/, 'set only when it changes: setting sizes re-runs the source pick');
 });
 
 test('N08: one 免费 look, 部分免费 in the same lime family, deadlines are ink words after a red dot (no solid red)', () => {
@@ -163,6 +191,13 @@ test('N13 / N25: two ♡ forms — the 44px circle on a picture or at a row\'s r
   assert.deepEqual([compact.width, compact.height, compact['min-height']], Array(3).fill('var(--control-height)!important'), 'the area sheets\' 36px give way');
   const row = renderToStaticMarkup(<MemoryRouter><RowCard title="T" to="/x" thumb={<span />} save={<button type="button">♡</button>} trailing={<button type="button">加入</button>} /></MemoryRouter>);
   assert.ok(row.indexOf('ui-row-card__save') > row.indexOf('ui-row-card__thumb'), 'the ♡ is a sibling after the picture, not on it');
+  // ♡ + 加入 (/plan): stacked in the one right-edge column, so the text keeps its width; 简洁 drops the ♡ and the row is a
+  // one-action row again.
+  const both = '.ui-row-card:has(>.ui-row-card__save+.ui-row-card__trailing)';
+  assert.equal(decls(CARDS, `html:not([data-simple]) ${both}`)['grid-template-areas'], '"thumb body save" "thumb body trailing"');
+  assert.equal(decls(CARDS, `html:not([data-simple]) ${both}`)['grid-template-columns'], undefined, 'three tracks, as a one-action row');
+  assert.equal(decls(CARDS, '.ui-row-card__save:has(+.ui-row-card__trailing)')['grid-area'], 'save');
+  assert.equal(decls(CARDS, '[data-simple] .ui-row-card__save:not(#saved *)').display, 'none', '简洁: the base one-action row');
   assert.match(read('src/components/ui/Sheet.tsx'), /<IconButton label=\{t\('关闭', 'Close'\)\} className="ui-close" onClick=\{onClose\}><X aria-hidden="true" strokeWidth=\{1\.75\} \/><\/IconButton>/, 'Sheet draws the shared close button\'s markup (ui-close)');
 });
 

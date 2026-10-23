@@ -118,7 +118,7 @@ test('follow-up 27: the short English badge is its own prop, so a wide slot can 
   const cover = getCover({ kind: 'event', id: 'g', imageKey: 'stock' }, { images: { stock: asset }, today: '2026-10-22' }) as ImageCover;
   assert.equal(cover.tier, 'stock');
   const BAND = '(max-width: 1023px) 88px, 365px';
-  // R2-03: the label carries both words and the picture's own width picks (covers.css ≤ 200 px draws data-short).
+  // R2-03: the label carries both words and the picture's own width picks (covers.css ≤ 120 px draws data-short).
   const shown = (node: React.ReactElement) => { const html = JSDOM.fragment(renderToStaticMarkup(node)); const badge = html.querySelector('.ui-provenance')!; return { sizes: html.querySelector('img')!.getAttribute('sizes'), badge: badge.textContent, short: badge.getAttribute('data-short') }; };
   assert.deepEqual(shown(<Cover cover={cover} sizes={BAND} short decorative />), { sizes: BAND, badge: 'Illustrative photo', short: 'Stock photo' });
   assert.deepEqual(shown(<Cover cover={cover} sizes={COVER_SIZES.thumb} decorative />), { sizes: '88px', badge: 'Illustrative photo', short: 'Stock photo' });

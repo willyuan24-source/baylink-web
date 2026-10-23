@@ -1,6 +1,5 @@
 import { Cover, type CoverSlot } from './CoverImage';
 import { useUiCopy } from './ui-copy';
-import { WhenPieces } from './Card';
 import { translateText, type Locale } from '../../i18n/locale';
 import { brandCase, eventDateChip, eventWhenLine, offerDeadline, type EventFactsInput, type OfferFactsInput } from '../../lib/event-facts';
 
@@ -30,7 +29,7 @@ export function OpeningCover({ cover, ratio, ratioLock, sizes, priority, decorat
 /** Line 1 of an event card (G18): "周六 10/17 · 11:00–16:00" / "Sat, Oct 17 · 11am–4pm" (eventWhenLine). */
 export function EventWhen({ event, today, days }: { event: Parameters<typeof eventWhenLine>[0]; today: string; days?: readonly string[] }) {
   const { pick } = useUiCopy();
-  return <WhenPieces text={pick(eventWhenLine(event, today, days))} />;
+  return <>{pick(eventWhenLine(event, today, days))}</>;
 }
 
 const HAN = /[㐀-鿿]/;

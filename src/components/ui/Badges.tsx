@@ -7,12 +7,14 @@ import { cx } from './ui-copy';
 /**
  * The picture's label: one per picture, bottom-left inside it, one line (UI9-IMAGES DECISIONS 23, R2-03). The words come from
  * tierLabelOf() (cover-labels.ts) or, for a 3D postcard, getImageProvenance(). `short` (data-short): the one-line words a
- * picture ≤ 200 px wide draws instead (covers.css), while the text — what assistive tech and the page's credits read — stays
- * the full words. `tier` (data-tier) names the tier. `plain`: the badge exactly as it was before UI9-C, without the
+ * picture ≤ 120 px wide draws instead, and one ≤ 200 px when the full words are over 18 characters (data-long: English
+ * "Official image · 2025 edition" is 179 px at 13 px, more than 75% of a 173 px card; covers.css), while the text — what
+ * assistive tech and the page's credits read — stays the full words. `tier` (data-tier) names the tier. `plain`: the badge exactly as it was before UI9-C, without the
  * attribute the chip look keys on (covers.css `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).
  */
 export function ProvenanceBadge({ label, short, className, plain, tier }: { label: string; short?: string; className?: string; plain?: boolean; tier?: string }) {
-  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier} data-short={!plain && short !== label ? short : undefined}>{label}</span>;
+  const own = plain || short === label ? undefined : short;
+  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier} data-short={own} data-long={own && label.length > 18 ? '' : undefined}>{label}</span>;
 }
 
 export type StickerTone = 'date' | 'free' | 'mixed' | 'price' | 'paid' | 'danger' | 'warning' | 'success' | 'neutral';

@@ -54,13 +54,12 @@
 /* BayBay's sideways card row scrolls (overflow-x:auto, no inline padding): the layer stays inside the card there. */
 .bb-cards .ui-feed-card .ui-card-link::after { inset:0; }
 .ui-card-link:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
-/* R2-11: at most 3 lines under a card's title. The when line is one line, cut only between its pieces (Card.tsx
-   WhenPieces; text it cannot split ends in "…"; covers.css draws it in proportional figures, so "周六 10/24 · 10:30、11:30"
-   fits 173 px); status · place is ONE line (the place gives way with "…", the status chip before it never does); the ✓
-   line's words end in "…" when long. */
-:is(.ui-feed-card__when,.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span) { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.ui-feed-card__when:has(>.ui-when-piece) { display:flex; flex-wrap:wrap; max-height:calc(var(--lh-ui) * 1em); }
-.ui-when-piece { white-space:pre; }
+/* R2-11: at most 3 lines under a card's title. The when line is one line, and what does not fit ends in a visible "…"
+   at a word break ("周六 10/24 · 10:30、…", "Sun, Oct 25 · 10:30am–…"), so a reader sees there is more; it is plain text,
+   so a row or a hero (which have the room) wraps it whole. status · place is ONE line (the place gives way with "…", the
+   status chip before it never does); the ✓ line's words end in "…" when long. */
+.ui-feed-card__when { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; text-wrap:wrap; }
+:is(.ui-feed-card__meta,.ui-feed-card>.ui-feed-card__trust>span) { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .ui-feed-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ui-meta-price { white-space:nowrap; }
 .ui-meta-sep { white-space:pre; }
@@ -90,11 +89,13 @@
 :is(.ui-row-card__meta,.ui-hero-card__reason) { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
 /* ♡ on a row (RowCard `save`; N13 / N25): the one 44px circle (48 in 简洁显示), on the row's right edge outside the picture,
-   so an 88px thumbnail stays whole; a row with a trailing action too (加入) puts the ♡ just before it. No 36px ♡ remains. */
+   so an 88px thumbnail stays whole. No 36px ♡ remains. A row with a trailing action too (加入, /plan) stacks the ♡ over it
+   in the one right-edge column, so the text keeps the width it has with one action. */
 .ui-row-card__save { grid-area:trailing; align-self:center; position:relative; z-index:3; line-height:0; }
-.ui-row-card:has(>.ui-row-card__save):has(>.ui-row-card__trailing) { grid-template-columns:5.5rem minmax(0, 1fr) auto auto; grid-template-areas:"thumb body save trailing"; }
-.ui-row-card:has(>.ui-row-card__trailing) .ui-row-card__save { grid-area:save; }
-/* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved). */
+html:not([data-simple]) .ui-row-card:has(>.ui-row-card__save+.ui-row-card__trailing) { grid-template-areas:"thumb body save" "thumb body trailing"; }
+.ui-row-card__save:has(+.ui-row-card__trailing) { grid-area:save; place-self:end; }
+/* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved, whose
+   rows have no 加入), so a row with 加入 is a one-action row again. */
 [data-simple] .ui-row-card__save:not(#saved *) { display:none; }
 /* An 88px thumbnail keeps its label as every picture does (covers.css: bottom-left, one line, its short words); the date
    and price are already in the row. */

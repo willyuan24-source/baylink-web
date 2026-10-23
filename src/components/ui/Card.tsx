@@ -55,17 +55,6 @@ export type FeedCardProps = CardLink & {
 };
 
 /**
- * R2-11 (at most 3 lines under a card's title): a card's when line holds one line and is cut only between its pieces — the
- * date; " · " and the first time; each further "–11am" / "、11:30" / ", 11:30am" — so a 173 px card reads
- * "Sun, Oct 25 · 10:30am", never "10:30am–1…" (cards.css). The pieces it has no room for stay in the DOM: a screen reader
- * and the card's text still hold the whole line.
- */
-export function WhenPieces({ text }: { text: string }) {
-  const at = text.indexOf(' · ') + 1 || text.length + 1;
-  return <>{[text.slice(0, at - 1), ...text.slice(at - 1).split(/(?=[–、,] ?\d)/)].map((piece, index) => piece && <span key={index} className="ui-when-piece">{piece}</span>)}</>;
-}
-
-/**
  * Two-column feed card (173px at 390): 3:4 cover with stickers, 2-line title, one meta line and a trust row.
  * The whole card is one link (a stretched ::after on the title link); ♡ is a separate button stacked above.
  */
@@ -74,7 +63,7 @@ export function FeedCard({ cover, when, meta, trust, save, className, heading = 
   return <article className={cx('ui-feed-card', className)} data-credited={trust ? '' : undefined}>
     <Title className="ui-feed-card__title"><CardTitleLink {...link} /></Title>
     <div className="ui-feed-card__media">{cover}</div>
-    {when && <p className="ui-card-when ui-feed-card__when">{typeof when === 'string' ? <WhenPieces text={when} /> : when}</p>}
+    {when && <p className="ui-card-when ui-feed-card__when">{when}</p>}
     {meta && <p className="ui-feed-card__meta">{meta}</p>}
     {trust && <p className="ui-feed-card__trust"><Check aria-hidden="true" strokeWidth={1.75} /><span>{trust}</span></p>}
     {save && <div className="ui-feed-card__save">{save}</div>}
