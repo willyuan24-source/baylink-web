@@ -10,7 +10,7 @@
 /* The label (N22, R2-03): one chip, bottom-left in the picture at every size, one line, ≤ 75% wide. Hidden only while the
    client decodes its picture ([data-pending], R2-18): prerendered or script-less pages keep it (DECISIONS 23). 13 px
    ≤ 200 px, 12 px ≤ 160 px. (.ui-cover> outranks the area sheets' older rules.) */
-.ui-cover>.ui-provenance[data-chip] { top:auto; right:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:75%; padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:nowrap; text-overflow:ellipsis; text-align:start; transition:opacity var(--dur-3) var(--ease-out); }
+.ui-cover>.ui-provenance[data-chip] { top:auto; right:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:75%; padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:nowrap; text-overflow:ellipsis; transition:opacity var(--dur-3) var(--ease-out); }
 .ui-cover[data-pending]>.ui-provenance[data-chip] { opacity:0; }
 .ui-cover { container-name:ui-cover; container-type:inline-size; }
 /* The short words (data-short; the text stays the full words) where those cannot fit: ≤ 160 px, and ≤ 200 px for long

@@ -74,45 +74,6 @@ html, body, #root {
   background: var(--color-warm-tint);
 }
 
-/* Hot recommend — mobile list row, desktop 3-col cards */
-.hot-recommend-grid {
-  @apply flex flex-col gap-1.5;
-}
-
-.hot-recommend-card {
-  @apply flex w-full min-w-0 max-w-none flex-row overflow-hidden rounded-2xl border border-baylink-border/55 bg-white shadow-sm;
-  @apply transition-all duration-200 active:scale-[0.995];
-}
-
-.hot-recommend-media {
-  @apply relative shrink-0 overflow-hidden;
-  width: 100px;
-  min-height: 88px;
-}
-
-.hot-recommend-body {
-  @apply flex min-w-0 flex-1 flex-col justify-center p-2 pl-2;
-}
-
-/* 服务 — 窗户清洁 */
-
-@media (min-width: 1024px) {
-  .hot-recommend-grid {
-    @apply grid grid-cols-3 gap-3;
-  }
-  .hot-recommend-card {
-    @apply flex-col hover:-translate-y-0.5 hover:border-baylink-green/20 hover:shadow-card-hover;
-  }
-  .hot-recommend-media {
-    width: 100%;
-    min-height: 0;
-    height: 108px;
-  }
-  .hot-recommend-body {
-    @apply p-3;
-  }
-}
-
 @layer components {
   .btn-primary {
     @apply bg-baylink-green text-white font-semibold rounded-xl shadow-soft hover:bg-baylink-green-hover active:scale-[0.98] transition-all duration-200;

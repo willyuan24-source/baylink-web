@@ -329,16 +329,8 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .planner-place h3 { font-size:var(--text-card); line-height:var(--lh-card); text-wrap:balance; }
 .bl-guide-checklist { font-size:var(--text-reading); line-height:var(--lh-read); color:var(--color-ink); }
 .bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:var(--lh-read); }
-/* Extend the same reading preferences to practical tools and publishing. */
-.site-app .life-tools p { font-size:var(--text-body); line-height:var(--lh-read); }
-.site-app .life-tools :is(small,label,summary) { font-size:var(--text-fact); line-height:var(--lh-ui); }
-.site-app .life-tools button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
-.site-app .life-tools :is(input,select,textarea) { font-size:var(--text-body); }
-.life-tools :is(.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
-.life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
-.life-tools .tool-swap { width:var(--control-height); height:var(--control-height); }
-.life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
-.life-tools .tool-converter-row { grid-template-columns:minmax(0,1fr) var(--control-height) minmax(0,1fr); }
+/* Extend the same reading preferences to publishing. (The /tools page is .tools-page: tools.css; no page carries
+   .life-tools any more.) */
 .member-compose-dialog :is(p,small,label) { font-size:var(--text-fact); line-height:var(--lh-read); }
 .member-compose-dialog button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
 .member-compose-dialog :is(input,select,textarea) { font-size:var(--text-body); }
@@ -348,9 +340,6 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .member-auth-dialog :is(p,small,label,[role=alert]) { font-size:var(--text-fact); line-height:var(--lh-read); }
 .member-auth-dialog :is(button,a,select) { min-height:var(--control-height); font-size:var(--text-fact); }
 .member-auth-dialog :is(input:not([type=checkbox]):not([type=radio]),select) { font-size:var(--text-body); }
-@media(max-width:639px) {
-  .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
-}
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
