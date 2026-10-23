@@ -12,9 +12,8 @@ import { Resvg } from '@resvg/resvg-js';
 const sharp = await import('sharp').then(module => module.default, () => undefined);
 
 /**
- * The IDAT's zlib level (HOTFIX-BUILD-TIME, 10-22). Level 9 spent ~40 ms of every card's ~185 ms on a fast Mac, for
- * ~2.5% fewer bytes than level 4; with 3,348 photo cards that pushed the Vercel build past its 45-minute limit. The
- * pixels do not depend on it.
+ * The IDAT's zlib level (HOTFIX-BUILD-TIME, 10-22). Level 9 spent ~40 ms of every card's ~175 ms on a fast Mac (level 4:
+ * ~7 ms) for 2.5% fewer bytes over all 3,348 cards; level 3 would cost 4.5%. The pixels do not depend on it.
  */
 export const DEFLATE_LEVEL = 4;
 
