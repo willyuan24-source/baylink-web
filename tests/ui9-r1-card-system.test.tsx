@@ -95,7 +95,7 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.2');
   assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
   // 特大 (not 家人版): the detail bar is 72 px, so the 1.2-pitch two-line pill (66 px) keeps room to the bar's edges
-  assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
+  assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
 

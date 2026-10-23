@@ -10,8 +10,7 @@
 /* The chip (N22): bottom-left, 13 px, wraps, never cut; with the ♡ the only overlay. */
 .ui-provenance[data-chip] { top:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:normal; text-overflow:clip; }
 .ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
-/* Cover ≤ 120px: a tighter chip; a dated ①② chip shows only its edition, 「2025 往届」 / "2025 edition" (Badges.tsx). It
-   still wraps where even that has no room (English 家人版: 20px words on a 112px cover), so a label is never cut. */
+/* Cover ≤ 120px: a tighter chip; a dated ①② chip shows only its edition (Badges.tsx) and still wraps, never cut. */
 .ui-cover { container-name:ui-cover; container-type:inline-size; }
 @container ui-cover (max-width:120px) {
   .ui-provenance[data-chip] { bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); }
