@@ -98,9 +98,10 @@ test('简洁显示 text floor: relative sizes below 1rem get max(size, var(--tex
   assert.equal(declarations(':root').get('--text-floor'), '0px');
   const simple = declarations('html[data-simple]');
   assert.equal(simple.get('--text-floor'), '1rem');
-  // --text-caption / --text-fact read the --fs-badge / --fs-meta steps, which 简洁显示 raises to 16px.
+  // --text-caption / --text-fact read the --fs-meta step (followup 14, UI9-R2-FOUNDATION: 13px is for badges and credits
+  // only, which read --fs-badge), and 简洁显示 raises both steps to 16px.
   for (const token of ['--fs-badge', '--fs-meta']) assert.equal(simple.get(token), '1rem', token);
-  for (const [alias, step] of [['--text-caption', '--fs-badge'], ['--text-fact', '--fs-meta']]) assert.equal(declarations(':root').get(alias), `var(${step})`, alias);
+  for (const [alias, step] of [['--text-caption', '--fs-meta'], ['--text-fact', '--fs-meta']]) assert.equal(declarations(':root').get(alias), `var(${step})`, alias);
   assert.equal(simple.get('--control-height'), '3rem', '48px targets');
   // The tab bar's height is NAV's (site-chrome.css html:root 64px, 76px in 简洁); tokens.css no longer sets it (UI9-INT).
   assert.equal(simple.get('--site-mobile-nav-height'), undefined);

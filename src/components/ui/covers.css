@@ -25,7 +25,7 @@
 }
 
 /* Stickers: facts printed on a member's photo (community posts only; listing covers carry none). */
-.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:var(--lh-ui); font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .ui-stickers { position:absolute; left:var(--sp-2); right:var(--sp-2); bottom:var(--sp-2); z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-2); pointer-events:none; }
 .ui-stickers>:only-child[data-slot=end] { margin-left:auto; }
 

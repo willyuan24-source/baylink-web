@@ -67,13 +67,13 @@
 .ui-feed-card__trust { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:var(--lh-ui); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; }
 .ui-feed-card__save { position:absolute; top:var(--sp-1); right:var(--sp-1); z-index:3; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
+:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { font-size:var(--text-card); line-height:var(--lh-snug); }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__meta { font-size:var(--fs-body); }
 @container ui-feed (max-width:339px) {
-  .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
+  .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { font-size:var(--text-card); line-height:var(--lh-snug); }
 }
 @media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { font-size:var(--text-card); line-height:var(--lh-snug); }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__meta { font-size:var(--fs-body); }
 }
 
@@ -83,9 +83,9 @@
 .ui-row-card__thumb>* { height:100%; }
 .ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
-.ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:400; font-variant-numeric:tabular-nums; }
-.ui-row-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:1.412; font-weight:var(--fw-medium); }
-.ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:var(--lh-ui); font-weight:400; font-variant-numeric:tabular-nums; }
+.ui-row-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-medium); }
+.ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
 /* ♡ on a row (RowCard `save`; N13 / N25): the one 44px circle (48 in 简洁显示), on the row's right edge outside the picture,
    so an 88px thumbnail stays whole; a row with a trailing action too (加入) puts the ♡ just before it. No 36px ♡ remains. */
@@ -103,7 +103,7 @@
 .ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:var(--r-pill); background:var(--color-surface-2); }
 /* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
    and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
-.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 var(--sp-3); border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.25; font-weight:400; cursor:pointer; }
+.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 var(--sp-3); border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:var(--lh-tight); font-weight:400; cursor:pointer; }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 /* The checked segment takes the one selected look (N08: the chips' ink fill and white text, ui.css), so a page has one
@@ -123,7 +123,7 @@
 .ui-carousel__dots { display:inline-flex; align-items:center; gap:6px; }
 .ui-carousel__dots>span { width:6px; height:6px; border-radius:var(--r-pill); background:var(--color-line-strong); }
 .ui-carousel__dots>span[data-active] { width:18px; background:var(--color-brand); }
-.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; }
+.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-ui); font-weight:400; font-variant-numeric:tabular-nums; }
 .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:none; }
 @media (min-width:1024px) {
   .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
@@ -150,7 +150,7 @@
 .ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
 /* The picture's label stays bottom-left on a hero too (R2-03): the text on the photo stands on it, not over it. */
 .ui-hero-card[data-overlay] .ui-hero-card__media:has(.ui-provenance[data-chip]) .ui-hero-card__text { margin-bottom:calc(var(--sp-4) + 1.75rem); }
-.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
+.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:var(--lh-ui); font-weight:400; }
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
 .ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }
@@ -158,14 +158,17 @@
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
 .ui-hero-card .ui-card-link::after { border-radius:var(--r-xl); }
 .ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
-.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:var(--r-pill); background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:1.429; font-variant-numeric:tabular-nums; }
+.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:var(--r-pill); background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:var(--lh-ui); font-variant-numeric:tabular-nums; }
 .ui-hero-card__save { position:absolute; top:8px; right:8px; z-index:3; }
-.ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }
 .ui-hero-card__trust { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:var(--lh-ui); }
 .ui-hero-card__trust>svg { flex:none; width:.875rem; height:.875rem; }
 @media (min-width:1024px) {
   .ui-hero-card__title { font-size:var(--fs-keep-28); }
+  /* B P04 / N04: the desktop card text one ladder step up — titles 17 → 18, the when line 14 → 16; meta and ✓ stay 14. */
+  :is(.ui-feed-card__title,.ui-row-card__title) { font-size:var(--fs-card); }
+  .ui-card-when { font-size:var(--fs-body); }
 }
 
 /* Card titles (after the card rules above, which they refine): no one-word last line. */
