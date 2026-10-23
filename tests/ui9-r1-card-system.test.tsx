@@ -152,10 +152,11 @@ test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balan
   assert.equal(decls('src/styles/plan-page.css', '.plan-weekend .ui-feed-grid', '(min-width:700px)')['--ui-feed-cols'], '4');
   assert.doesNotMatch(plan, /\(min-width:768px\) \{ \.plan-weekend \.ui-feed-grid \{/);
   assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)')['word-break'], 'keep-all');
-  // card-press is no longer a static import of the card modules (route JS budgets): it loads dynamically
-  for (const file of ['src/components/ui/Card.tsx', 'src/components/ui/HeroCard.tsx']) {
-    const source = read(file);
-    assert.doesNotMatch(source, /^import '\.\/card-press';/m);
-    assert.match(source, /void import\('\.\/card-press'\)/);
-  }
+  // card-press is no longer a static import of the card modules (route JS budgets): Card.tsx loads it dynamically, and
+  // HeroCard.tsx has no module-level effect, so the barrel can still drop it from routes that never render one.
+  const card = read('src/components/ui/Card.tsx'), hero = read('src/components/ui/HeroCard.tsx');
+  assert.doesNotMatch(card, /^import '\.\/card-press';/m);
+  assert.match(card, /void import\('\.\/card-press'\)/);
+  assert.doesNotMatch(hero, /import\(?'\.\/card-press'/);
+  assert.match(read('src/features/events/EventCards.tsx'), /import \{[^}]*\bFeedCard\b[^}]*\bHeroCard\b[^}]*\} from '\.\.\/\.\.\/components\/ui';/, 'HeroCard renders beside Card.tsx\'s cards');
 });

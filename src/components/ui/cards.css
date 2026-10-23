@@ -9,7 +9,7 @@
 
 /* One hover and one press for every card and row (N23 / N24, J3 P25): the card's stretched link layer takes an ink tint
    (4% on hover, 8% pressed) over the picture and the text, and the title underlines; a press also scales the card to .985.
-   The press shows at pointerdown: card-press.ts (loaded by Card.tsx / HeroCard.tsx) marks the card [data-press] from a
+   The press shows at pointerdown: card-press.ts (loaded by Card.tsx) marks the card [data-press] from a
    delegated pointerdown and clears it on
    pointerup / cancel / scroll, so a touch is answered on its first frame instead of when :active arrives at release. */
 :is(.ui-feed-card,.ui-row-card,.ui-hero-card) { transition:scale var(--dur-1) var(--ease-out); }
