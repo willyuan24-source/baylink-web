@@ -96,6 +96,10 @@ export type CoverSlot = {
   priority?: boolean;
   /** The card around the cover already reads the title and facts. */
   decorative?: boolean;
+  /** The short English badge ('Stock photo', DECISIONS 23's 88 px words) for a picture that is a small thumbnail somewhere;
+   *  default: when `sizes` is the 88 px thumbnail's. A slot that is a thumbnail on phones and a large card on desktops (the
+   *  /guides band) passes `short` with its own wider `sizes`, so the label no longer decides which file the browser picks. */
+  short?: boolean;
 };
 
 /** The DECISIONS 23 badge words for a resolved picture, in the page's language; the short English on an 88 px thumbnail. */
@@ -117,11 +121,11 @@ export function useTierLabel() {
  * in its LQIP colour. UI9-IMAGES DECISIONS 21: no date board, ticket, shop sign or title plate. The ♡ is the card's; the
  * date, price and deadline live in the caption (Card.tsx `when` and meta lines).
  */
-export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
+export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, short, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
   const label = useTierLabel();
   const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
   if (!cover) return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
-  const thumb = sizes === COVER_SIZES.thumb;
+  const thumb = short ?? sizes === COVER_SIZES.thumb;
   return <CoverImage image={cover.image} label={label(cover, thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
     sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
     fallbackLabel={cover.fallback ? label({ tier: 'stock', image: cover.image }, thumb) : undefined}>{children}</CoverImage>;

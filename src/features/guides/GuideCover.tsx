@@ -12,7 +12,7 @@ export type GuideCoverProps = {
   ratio?: CoverRatio;
   sizes?: string;
   priority?: boolean;
-  /** Row thumbnail (≤ 140 px). */
+  /** Row thumbnail (≤ 140 px somewhere): the short English badge, whatever `sizes` says (CoverSlot `short`). */
   mini?: boolean;
 };
 
@@ -20,6 +20,6 @@ export type GuideCoverProps = {
  * A guide's cover: its picture with its badge (UI9-IMAGES DECISIONS 21: never a title plate or number plate). The card's
  * caption prints the whole title.
  */
-export function GuideCover({ cover, ratio, sizes, priority }: GuideCoverProps) {
-  return <Cover cover={cover} kind="guide" ratio={ratio} sizes={sizes} priority={priority} decorative />;
+export function GuideCover({ cover, ratio, sizes, priority, mini }: GuideCoverProps) {
+  return <Cover cover={cover} kind="guide" ratio={ratio} sizes={sizes} priority={priority} short={mini} decorative />;
 }

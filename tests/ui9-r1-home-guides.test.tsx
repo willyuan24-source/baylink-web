@@ -62,12 +62,14 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   assert.doesNotMatch(LIBRARY_CSS, /html:not\(\[data-reading=extra-large\],\[data-simple\]\) \.gl-band(>[^{]*)? \{[^}]*grid-(template-columns:repeat\(4|area)/, '大 keeps the three columns of its topic sections');
   assert.match(LIBRARY_CSS, /\.gl-band \.gl-band__rows \{ display:grid; grid-template-columns:repeat\(3, minmax\(0, 1fr\)\); gap:var\(--grid-gutter\); \}/);
   // Review r1: in one column each band guide is a card (the 3:2 picture over the whole title), not a squeezed row, and its
-  // ③④ chip is one line. The pictures keep the thumbnail `sizes`, which carries the short English label ('Stock photo').
+  // ③④ chip is one line. The pictures keep the short English label ('Stock photo', `mini`); UI9-R1-BUTTONS (follow-up 27)
+  // gave them their own `sizes`, so the 365 px cards at 大 / 特大 no longer ask for the 88 px thumbnail's file.
   // Review r2: at 特大 too (rows a third of the page wide broke words in two), so in every desktop mode but 简洁.
   assert.match(LIBRARY_CSS, /html:not\(\[data-simple\]\) \.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{[^}]*white-space:nowrap; \}/);
-  assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{COVER_SIZES\.thumb\} \/>/);
+  assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{options\.sizes \?\? COVER_SIZES\.thumb\} \/>/);
+  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_SIZES = '\(max-width: 1023px\) 88px, 365px';/);
   // /my-week starts on the site frame (x=112), as /me.
   assert.match(read('src/pages/MyWeekPage.tsx'), /<PageContainer size="wide" className="my-week">/);
 });
