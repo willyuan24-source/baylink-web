@@ -56,9 +56,9 @@ const textWidth = (text: string, px: number) => [...text].reduce((sum, char) => 
 /** CJK glyphs are one em wide. */
 const glyphWidth = (text: string, px: number) => [...text].reduce((sum, char) => sum + (/[\u3400-\u9fff]/.test(char) ? px : textWidth(char, px)), 0);
 /** R2-03 (covers.css): on a picture ≤ 200 px (a phone's 2-up card, 173 px) the chip sits 4 px in with 4 px of padding a
- *  side, at most 75% of the picture wide at 13 px; on an 88 px thumbnail (≤ 120 px) at most 100% − 8 px wide with 2 px of
- *  padding a side at 12 px. */
-const THUMB_TEXT = 88 - 8 - 4;
+ *  side, at most 75% of the picture wide at 13 px; on an 88 px thumbnail (≤ 160 px) 4 px in, at most 100% − 4 px wide
+ *  (it may reach 4 px from the right edge) with 4 px of padding a side at 12 px. */
+const THUMB_TEXT = 88 - 4 - 8;
 /** The model runs 0–5% wider than Chrome ('Venue photo · 2023' at 13 px: 117.1 px measured, 122.6 modelled): 1 px of slack. */
 const CARD_TEXT = 173 * .75 - 8 + 1;
 
@@ -76,7 +76,7 @@ test('every label fits one line: its short words at 12 px on an 88 px thumbnail;
   const { readFileSync } = await import('node:fs');
   const covers = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.match(covers, /\.ui-cover>\.ui-provenance\[data-chip\] \{ top:auto; right:auto; bottom:var\(--sp-2\); left:var\(--sp-2\); max-width:75%;[^}]*white-space:nowrap;/);
-  assert.match(covers, /@container ui-cover \(max-width:120px\) \{\n {2}\.ui-cover>\.ui-provenance\[data-chip\] \{ max-width:calc\(100% - var\(--sp-2\)\); padding:0 2px; font-size:var\(--fs-label-tiny\); \}/);
+  assert.match(covers, /@container ui-cover \(max-width:160px\) \{\n {2}\.ui-cover>\.ui-provenance\[data-chip\] \{ max-width:calc\(100% - var\(--sp-1\)\); font-size:var\(--fs-label-tiny\); \}/);
   assert.doesNotMatch(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-row-card__thumb \.ui-provenance/, 'no strip variant on a row thumbnail');
   assert.doesNotMatch(covers, /\.ui-row-card__credit\) \.ui-row-card__thumb \.ui-provenance/, 'no rule hides a thumbnail label for a credit line');
 });

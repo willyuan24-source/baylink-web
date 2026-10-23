@@ -9,19 +9,19 @@
 .ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
 /* The label (N22, R2-03): one chip, bottom-left in the picture at every size, one line, ≤ 75% wide. Hidden only while the
    client decodes its picture ([data-pending], R2-18): prerendered or script-less pages keep it (DECISIONS 23). 13 px
-   ≤ 200 px, 12 px ≤ 120 px. (.ui-cover> outranks the area sheets' older rules.) */
+   ≤ 200 px, 12 px ≤ 160 px. (.ui-cover> outranks the area sheets' older rules.) */
 .ui-cover>.ui-provenance[data-chip] { top:auto; right:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:75%; padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:nowrap; text-overflow:ellipsis; text-align:start; transition:opacity var(--dur-3) var(--ease-out); }
 .ui-cover[data-pending]>.ui-provenance[data-chip] { opacity:0; }
 .ui-cover { container-name:ui-cover; container-type:inline-size; }
-/* The short words (data-short; the text stays the full words) where those cannot fit: ≤ 120 px, and ≤ 200 px for long
+/* The short words (data-short; the text stays the full words) where those cannot fit: ≤ 160 px, and ≤ 200 px for long
    words ([data-long]); cover-labels.ts. */
 @container ui-cover (max-width:200px) {
   .ui-cover>.ui-provenance[data-chip] { bottom:var(--sp-1); left:var(--sp-1); padding:0 var(--sp-1); font-size:var(--fs-label-thumb); }
   .ui-cover>[data-chip][data-long] { font-size:0; }
   .ui-cover>[data-chip][data-long]::after { content:attr(data-short); content:attr(data-short) / ""; font-size:var(--fs-label-thumb); }
 }
-@container ui-cover (max-width:120px) {
-  .ui-cover>.ui-provenance[data-chip] { max-width:calc(100% - var(--sp-2)); padding:0 2px; font-size:var(--fs-label-tiny); }
+@container ui-cover (max-width:160px) {
+  .ui-cover>.ui-provenance[data-chip] { max-width:calc(100% - var(--sp-1)); font-size:var(--fs-label-tiny); }
   .ui-cover>[data-chip][data-short] { font-size:0; }
   .ui-cover>[data-chip][data-short]::after { content:attr(data-short); content:attr(data-short) / ""; font-size:var(--fs-label-tiny); }
 }

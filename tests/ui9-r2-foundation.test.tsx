@@ -81,12 +81,12 @@ test('R2-18 / DECISIONS 23: a label the client finds decoding fades in; prerende
 test('R2-03: one label component, bottom-left inside the picture at every size, one line; short words only where the full ones cannot fit', () => {
   const chip = decls(COVERS, '.ui-cover>.ui-provenance[data-chip]');
   assert.deepEqual([chip.top, chip.bottom, chip.left, chip['max-width'], chip['white-space']], ['auto', 'var(--sp-2)', 'var(--sp-2)', '75%', 'nowrap']);
-  // ≤ 120 px (DECISIONS 23's 88 px words): every label with short words draws them; ≤ 200 px only the long ones (data-long).
-  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:120px)')['font-size'], '0');
-  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:120px)').content, 'attr(data-short) / ""');
+  // ≤ 160 px (DECISIONS 23's 88 px words): every label with short words draws them; ≤ 200 px only the long ones (data-long).
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:160px)')['font-size'], '0');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:160px)').content, 'attr(data-short) / ""');
   assert.deepEqual(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:200px)'), {}, 'a 2-up card keeps the full words');
   assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-long]::after', 'ui-cover (max-width:200px)').content, 'attr(data-short) / ""');
-  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]', 'ui-cover (max-width:120px)')['font-size'], 'var(--fs-label-tiny)');
+  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]', 'ui-cover (max-width:160px)')['font-size'], 'var(--fs-label-tiny)');
   assert.match(renderToStaticMarkup(<ProvenanceBadge label="Official image · 2025 edition" short="Official 2025" tier="official" />), /data-short="Official 2025" data-long="">/);
   assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />), /data-long/, '13 characters fit a 2-up card');
   assert.doesNotMatch(read(CARDS), /\.ui-row-card__thumb \.ui-provenance/, 'no strip variant');
@@ -144,6 +144,8 @@ test('R2-11: a feed card’s when line holds one line and ends in a visible "…
 test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in a 173 px square: 260px); 3D postcards keep theirs', () => {
   const box = HTMLImageElement.prototype.getBoundingClientRect;
   HTMLImageElement.prototype.getBoundingClientRect = function () { return { width: 173, height: 173, top: 0, left: 0, right: 173, bottom: 173, x: 0, y: 0, toJSON: () => ({}) } as DOMRect; };
+  // jsdom has no `loading` IDL attribute; browsers reflect the content attribute (default "eager").
+  if (!('loading' in HTMLImageElement.prototype)) Object.defineProperty(HTMLImageElement.prototype, 'loading', { configurable: true, get(this: HTMLImageElement) { return this.getAttribute('loading') || 'eager'; } });
   try {
     const srcSet = '/p-small.webp 480w, /p-800.webp 800w, /p.webp 1200w';
     const img = (node: React.ReactNode) => wrap(node).container.querySelector('img')!;
@@ -153,10 +155,16 @@ test('N21: a cover-fit picture asks for the width it is drawn at (a 3:2 file in 
     cleanup();
     assert.equal(img(<CoverImage image={{ ...photo, srcSet, scene3d: true } as never} sizes="88px" />).getAttribute('sizes'), '88px', 'DECISIONS 1: frozen');
     cleanup();
-    assert.equal(img(<CoverImage image={photo} sizes="88px" />).getAttribute('sizes'), '88px', 'no srcset: nothing to pick from');
+    assert.equal(img(<CoverImage image={{ ...photo, srcSet }} ratio="1:1" sizes="88px" priority />).getAttribute('sizes'), 'calc(88px * 1.50)', 'an eager picture is already being fetched: no second request while it loads');
+    cleanup();
+    // The prerendered sizes already include the crop (a picture that loads before the script runs is the right file).
+    const html = renderToStaticMarkup(<MemoryRouter><CoverImage image={{ ...photo, srcSet }} ratio="1:1" /></MemoryRouter>);
+    assert.match(html, /sizes="\(max-width: 767px\) calc\(calc\(50vw - 22px\) \* 1\.50\), \(max-width: 1023px\) calc\(calc\(33vw - 24px\) \* 1\.50\), calc\(286px \* 1\.50\)"/);
+    assert.match(renderToStaticMarkup(<MemoryRouter><CoverImage image={{ ...photo, srcSet }} /></MemoryRouter>), /sizes="\(max-width: 767px\) calc\(50vw - 22px\), \(max-width: 1023px\) calc\(33vw - 24px\), 286px"/, 'a 3:2 frame: as is');
+    cleanup();
   } finally { HTMLImageElement.prototype.getBoundingClientRect = box; }
   const code = read('src/components/ui/CoverImage.tsx');
-  assert.match(code, /img\.complete && drawn > img\.naturalWidth \* 1\.3\)\) img\.sizes = sizes/, 'after a file is picked, only a slot over 1.3× too narrow is replaced (a second download)');
+  assert.match(code, /img\.complete \? drawn > img\.naturalWidth \* 1\.3 : img\.loading == 'lazy'\)\) img\.sizes = sizes/, 'a lazy picture not yet loaded takes the drawn width; a loaded one only when its slot was over 1.3× too narrow (a second download)');
   assert.match(code, /img\.sizes !== sizes/, 'set only when it changes: setting sizes re-runs the source pick');
 });
 

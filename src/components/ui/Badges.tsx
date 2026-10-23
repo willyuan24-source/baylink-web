@@ -7,7 +7,7 @@ import { cx } from './ui-copy';
 /**
  * The picture's label: one per picture, bottom-left inside it, one line (UI9-IMAGES DECISIONS 23, R2-03). The words come from
  * tierLabelOf() (cover-labels.ts) or, for a 3D postcard, getImageProvenance(). `short` (data-short): the one-line words a
- * picture ≤ 120 px wide draws instead, and one ≤ 200 px when the full words are over 18 characters (data-long: English
+ * picture ≤ 160 px wide draws instead, and one ≤ 200 px when the full words are over 18 characters (data-long: English
  * "Official image · 2025 edition" is 179 px at 13 px, more than 75% of a 173 px card; covers.css), while the text — what
  * assistive tech and the page's credits read — stays the full words. `tier` (data-tier) names the tier. `plain`: the badge exactly as it was before UI9-C, without the
  * attribute the chip look keys on (covers.css `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).

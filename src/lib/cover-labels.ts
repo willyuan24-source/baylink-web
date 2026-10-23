@@ -11,7 +11,7 @@ import { getImageProvenance } from './image-provenance';
 
 /**
  * A label in both scripts: the full words, and the one-line short words (…Short) a picture draws where the full ones cannot
- * fit — ≤ 120 px (an 88 px row thumbnail, DECISIONS 23's 88 px words), or ≤ 200 px for words over 18 characters (Badges.tsx
+ * fit — ≤ 160 px (88–140 px thumbnails, DECISIONS 23's 88 px words), or ≤ 200 px for words over 18 characters (Badges.tsx
  * data-long; covers.css). A short form never drops a year, and keeps the tier word (Official, 官方产品图) or, for a past
  * edition in Chinese, 往届 (critic-r2 §3, followup 8: 「官方图 · 25 往届」 is 98 px and an 88 px thumbnail has 80).
  */

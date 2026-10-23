@@ -85,7 +85,7 @@
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
   /* A picture's label on a picture ≤ 200 px wide (R2-03, covers.css): its size follows the picture, not Aa — 13px, and 12px
-     on a picture ≤ 120 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (px on purpose: the
+     on a picture ≤ 160 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (px on purpose: the
      root's Aa growth must not reach it) and in 简洁显示 (badges are the exception to its 16px floor, followup 14).
      Larger pictures' labels read --fs-badge and grow with Aa. */
   --fs-label-thumb:13px; --fs-label-tiny:12px;

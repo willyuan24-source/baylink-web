@@ -19,7 +19,7 @@ export type CoverImageProps = {
   /** The badge words (DECISIONS 23: tierLabelOf through <Cover>; getImageProvenance for a 3D postcard); omit only where shown elsewhere. */
   label?: string;
   /** The label's one-line short words (DECISIONS 23's 88 px words: Official, 2025 往届, Stock photo, Venue 2021) for a
-   *  picture ≤ 120 px wide, or ≤ 200 px when `label` is long; covers.css shows them there, so a label never wraps or is cut. */
+   *  picture ≤ 160 px wide, or ≤ 200 px when `label` is long; covers.css shows them there, so a label never wraps or is cut. */
   shortLabel?: string;
   /** The tier the badge names (data-tier): a ③ 示意图 or ④ AI 示意图 badge stays on the picture in every size and mode. */
   tier?: Exclude<CoverTier, 'type'>;
@@ -53,19 +53,23 @@ export type CoverImageProps = {
  * Whether an image the browser already gave up on before React attached its handlers (a prerendered page) failed: complete,
  * no pixels, and a source it chose. A lazy image not yet fetched is not complete, and a test DOM never chooses a source.
  */
+/** The width ÷ height of the frames narrower than a 3:2 file (they crop it to their height). */
+const FRAME: Partial<Record<CoverRatio, number>> = { '1:1': 1, '4:5': .8, '3:4': .75 };
+
 const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.complete && !img.naturalWidth && !!img.currentSrc;
 
 /**
  * N21: a picture asks for the width it is drawn at, not its frame's. A cover crop of a wider file is drawn frame height ×
  * the file's aspect wide (a 3:2 file in a 173 px square: 260 px), and a slot's own `sizes` can miss its frame (a row
- * thumbnail's 88px in a 358 px 特大 card). Before the browser has picked a file (every lazy picture the page has not
- * reached) the drawn width replaces `sizes`, so the first pick is the right one. A file already picked is replaced only
- * when its slot was over 1.3× too narrow (a w-descriptor picture's naturalWidth is the slot it was picked for): a second
- * download is worth it only for a visibly soft picture. The browser still picks from the same srcset: no new file sizes.
+ * thumbnail's 88px in a 358 px 特大 card). A lazy picture not yet loaded (one the page has not reached: Chrome has chosen
+ * its file but not fetched it, so currentSrc alone cannot tell) takes the drawn width as `sizes`, so its one download is
+ * the right one. A file already loaded is replaced only when its slot was over 1.3× too narrow (a w-descriptor picture's
+ * naturalWidth is the slot it was picked for): a second download only for a visibly soft picture. Same srcset: no new
+ * file sizes.
  */
 const fitSizes = (img: HTMLImageElement, contain: boolean, aspect: number) => {
   const { width, height } = img.getBoundingClientRect(), drawn = Math.ceil((contain ? Math.min : Math.max)(width, height * aspect)), sizes = `${drawn}px`;
-  if (drawn > 0 && img.srcset && img.sizes !== sizes && (!img.currentSrc || img.complete && drawn > img.naturalWidth * 1.3)) img.sizes = sizes;
+  if (drawn > 0 && img.sizes !== sizes && (img.complete ? drawn > img.naturalWidth * 1.3 : img.loading == 'lazy')) img.sizes = sizes;
 };
 
 /**
@@ -105,10 +109,15 @@ export function CoverImage({ image, label: ownLabel, shortLabel: ownShort, tier:
   };
   const style = { '--ui-lqip': image.lqip, '--ui-backdrop': loaded && fit === 'contain' ? `url("${shownFile.url}")` : undefined } as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
+  // A square or tall frame crops a wider file to its height, so it is drawn file-aspect ÷ frame-aspect wider than the frame:
+  // the prerendered `sizes` asks for that (a 3:2 file in a 1:1 frame: 1.5×), so a picture that loads before the script runs
+  // is already the right file and never downloads twice (N21).
+  const frame = fit === 'cover' && !image.scene3d && ratio && FRAME[ratio], crop = frame ? image.width / image.height / frame : 1;
+  const pick = crop > 1.05 ? sizes.replace(/(calc\([^)]*\)|[\d.]+(?:px|vw))(?=,|$)/g, size => `calc(${size} * ${crop.toFixed(2)})`) : sizes;
   const listing = kind && !image.scene3d;
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}
     data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} data-loaded={loaded ? '' : undefined} style={style}>
-    {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async"
+    {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={pick} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async"
       style={fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : undefined} {...loading} onError={fail} onLoad={event => decoded(event.currentTarget, true)}
       ref={img => { if (failedBeforeHydration(img)) fail(); else if (img) decoded(img); }} />}
     {/* Every picture's label is the one chip at its bottom-left (DECISIONS 23, R2-03: listing covers, a guide's or a detail

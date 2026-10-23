@@ -128,13 +128,13 @@ test('N02: a state title inside a section is body size; N24: no motion literal i
   assert.doesNotMatch(ui, /(?:animation|transition)[^;{}]*\b\d*\.?\d+m?s\b/, 'durations are --dur-* tokens');
 });
 
-test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a thumbnail ≤ 120 px, one line, its text the full words', () => {
+test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a thumbnail ≤ 160 px, one line, its text the full words', () => {
   const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />);
   assert.match(html, /data-short="2025 往届">官方图 · 2025 往届<\/span>/);
   assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" plain />), /data-short/, 'the 3D postcard badge stays as it was');
   assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="示意图" short="示意图" tier="stock" />), /data-short/, 'no copy when the words are the same');
-  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:120px)').content, 'attr(data-short) / ""');
-  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:120px)')['font-size'], '0');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:160px)').content, 'attr(data-short) / ""');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:160px)')['font-size'], '0');
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
@@ -143,8 +143,8 @@ test('follow-up 3: /plan head copy and empty state balance their lines and keep 
   assert.equal(rule['word-break'], 'keep-all');
 });
 
-test('Follow-up 8 (R2-03): a label is one line at every size; on a cover ≤ 120px it is 12 px whatever Aa says, so 家人版 English fits', () => {
-  const small = read(COVERS).split('@container ui-cover (max-width:120px)')[1].split('\n}')[0];
+test('Follow-up 8 (R2-03): a label is one line at every size; on a cover ≤ 160px it is 12 px whatever Aa says, so 家人版 English fits', () => {
+  const small = read(COVERS).split('@container ui-cover (max-width:160px)')[1].split('\n}')[0];
   assert.match(small, /font-size:var\(--fs-label-tiny\)/);
   assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]')['white-space'], 'nowrap');
 });
