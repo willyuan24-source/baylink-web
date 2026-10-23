@@ -16,6 +16,11 @@ const radius = { none: '0', sm: 'var(--r-sm)', DEFAULT: 'var(--r-sm)', md: 'var(
 const shadow = { none: 'none', sm: 'var(--e1)', DEFAULT: 'var(--e1)', md: 'var(--e1)', lg: 'var(--e2)', xl: 'var(--e2)', '2xl': 'var(--e2)', soft: 'var(--e1)', card: 'var(--e1)', 'card-hover': 'var(--e2)', search: 'var(--e1)', nav: 'var(--e1)', rest: 'var(--e1)', elevated: 'var(--e2)' };
 const duration = { 0: '0ms', DEFAULT: 'var(--dur-2)', 75: 'var(--dur-1)', 100: 'var(--dur-1)', 150: 'var(--dur-2)', 200: 'var(--dur-3)', 300: 'var(--dur-5)' };
 const easing = { DEFAULT: 'var(--ease-std)', linear: 'linear', in: 'var(--ease-in)', out: 'var(--ease-out)', 'in-out': 'var(--ease-std)' };
+// UI9-R2-RATCHET (N24): the two looping utilities run on the one loop length the skeleton shimmers already use (6 × --dur-3
+// = 1.2s; reduced motion and 简洁显示 stop them with the other durations): animate-spin turns at a constant speed (linear is
+// a rotation, not an easing), animate-pulse breathes on --ease-std. Tailwind's defaults were 1s linear and 2s
+// cubic-bezier(.4,0,.6,1), a sixth and seventh duration and a fourth easing.
+const animation = { spin: 'spin calc(6 * var(--dur-3)) linear infinite', pulse: 'pulse calc(6 * var(--dur-3)) var(--ease-std) infinite' };
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -33,6 +38,7 @@ export default {
     transitionDuration: duration,
     transitionTimingFunction: easing,
     extend: {
+      animation,
       colors: {
         baylink: {
           bg: token('surface-2'),             // #F8F9F6 cream

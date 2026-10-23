@@ -182,9 +182,6 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
   ['src/components/ui/cards.css', [
     ['', '.ui-segmented__item', 15, 14],
   ]],
-  ['src/features/baybay-actions.css', [
-    ['@media (max-width:760px)', '.planner-hero h1', 30, 28],
-  ]],
   ['src/features/baybay/baybay-answer.css', [
     ['', '.baybay-conversation .bb-emergency__call', 22, 20],
   ]],
@@ -280,6 +277,7 @@ function fontSizes(file: string) {
 }
 
 test('elder modes: no component size the ladder codemod lowered is smaller than before tokens v2 (大 / 特大 / 简洁, phone to desktop)', () => {
+  // 63 since UI9-R2-RATCHET dropped baybay-actions.css's dead .planner-hero rules (no component renders .planner-hero).
   // 69 since UI9-INT dropped the .discovery-modal h2 pin with its dead rule (no markup since the sheets moved to F's Sheet);
   // 68 since UI9-R1-PLAN dropped the planner's own desktop button sizes (行程's buttons are the UI Button: 16px, not 15).
   // 65 since UI9-R1-TOGETHER folded outings.css into one layer: the unscoped .outing-card h2 and the two phone hero H1 rules
@@ -288,7 +286,7 @@ test('elder modes: no component size the ladder codemod lowered is smaller than 
   // (28px literal) reads --fs-keep-28 and is pinned.
   // 64 since UI9-R1-CATEGORY moved the post card's price off the photo (the .cm-card__price line reads --fs-body, 16px, larger
   // than the 14px sticker in every mode).
-  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 64);
+  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 63);
   const cases: Case[] = [];
   for (const width of [390, 768, 1023, 1024, 1440]) for (const reading of [undefined, 'large', 'extra-large'] as const) for (const simple of [false, true]) cases.push({ width, reading, simple });
   const resolvers = cases.map(c => ({ c, px: fsPx(c) }));

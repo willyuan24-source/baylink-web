@@ -52,8 +52,8 @@
 .together-page :is(.outing-tabs>button,.outing-cover-modes>button,.outing-cover-options>button):disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 :where(.together-page) button:disabled { cursor:not-allowed; }
 
-/* Small print: 14px (N04), ink-3. */
-.together-page .outing-footnote { font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); }
+/* Small print: 14px (N04), ink-3, at most a reading measure wide (N05, UI9-R2-RATCHET). */
+.together-page .outing-footnote { max-width:var(--measure); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); }
 .together-page .outing-eyebrow { font-size:var(--text-fact); font-weight:400; color:var(--color-brand); }
 
 /* Hub head: H1, lede and the one primary of the section (发起小队). */
@@ -226,18 +226,18 @@
 .together-page .outing-cover-caption>a{min-height:var(--control-height);font-size:var(--text-fact);color:var(--color-brand)}
 .together-page .outing-cover-caption>a>span{white-space:normal;overflow:visible;text-overflow:clip}
 .together-page .outing-cover-credit{font-size:var(--text-caption);line-height:1.8;color:var(--color-ink-3)}
-.together-page .outing-cover-credit summary{min-height:var(--control-height);padding-block:10px;line-height:1.7}
+.together-page .outing-cover-credit summary{min-height:var(--control-height);padding-block:var(--sp-3);line-height:1.7}
 .together-page .outing-cover-credit a{display:inline-flex;align-items:center;min-height:var(--control-height)}
 .together-page .outing-cover-kind{font-size:var(--text-caption);color:var(--color-ink);border-radius:var(--r-sm)}
 .together-page .outing-cover-designed{height:auto;min-height:190px;background:var(--color-brand-deep);color:var(--color-surface)}
 .together-page .outing-cover-designed::before,.together-page .outing-cover-designed::after{display:none}
 .together-page .outing-cover-frame:has(.outing-cover-designed){height:auto}
 .together-page .outing-cover-designed-top{font-size:var(--text-caption);letter-spacing:0;color:var(--color-on-brand-muted)}
-.together-page .outing-cover-designed strong{font-size:1.375rem;display:block;overflow:visible;max-width:100%;line-height:1.5}
+.together-page .outing-cover-designed strong{font-size:var(--text-section);display:block;overflow:visible;max-width:100%;line-height:1.5}
 .together-page .outing-cover-designed-meta{font-size:var(--text-fact);color:var(--color-on-brand-muted);line-height:1.7}
 .together-page .outing-cover--detail .outing-cover-designed{min-height:240px}
 .together-page .outing-cover--detail .outing-cover-designed strong{font-size:var(--text-section)}
-.together-page .outing-cover--card .outing-cover-calendar-date{font-size:2.875rem;line-height:1.2}
+.together-page .outing-cover--card .outing-cover-calendar-date{font-size:var(--fs-keep-32);line-height:1.2}
 .together-page .outing-cover-picker-heading h4{font-size:var(--text-card);line-height:1.5}
 .together-page .outing-cover-picker-heading p{font-size:var(--text-fact);color:var(--color-ink-2)}
 .together-page .outing-cover-picker-heading>span{font-size:var(--text-caption);color:var(--color-ink-3);background:transparent;border:1px solid var(--color-line-strong)}
@@ -248,4 +248,4 @@
 .together-page :is(.outing-cover-catalog>p,.outing-cover-picker-note,.outing-cover-preview-label>span){font-size:var(--text-caption);color:var(--color-ink-3)}
 .together-page .outing-cover-preview-label{font-size:var(--text-fact);color:var(--color-ink-2)}
 .site-app .together-page .outing-cover-frame:focus-visible{outline-offset:-4px}
-@media(max-width:720px){.together-page .outing-cover-picker-heading{flex-wrap:wrap}.together-page .outing-cover-designed{padding:22px}}
+@media(max-width:720px){.together-page .outing-cover-picker-heading{flex-wrap:wrap}.together-page .outing-cover-designed{padding:var(--sp-5)}}

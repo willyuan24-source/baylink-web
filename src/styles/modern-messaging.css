@@ -35,7 +35,7 @@
 .modern-chat-message-actions button{display:grid;place-items:center;width:30px;height:26px;border-radius:var(--r-sm);color:var(--color-ink-3);transition:background var(--dur-2) var(--ease-std),color var(--dur-2) var(--ease-std)}
 .modern-chat-message-actions button:is([aria-expanded=true]){color:var(--color-brand);background:var(--color-line)}
 @media (hover:hover) and (pointer:fine){.modern-chat-message-actions button:hover{color:var(--color-brand);background:var(--color-line)}}
-.modern-chat-quote{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-2) var(--sp-3);border-left:3px solid var(--color-line-control);border-radius:var(--r-sm) var(--r-sm) var(--r-sm) var(--r-sm);margin-bottom:var(--sp-2);background:var(--color-brand-tint);font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
+.modern-chat-quote{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-2) var(--sp-3);border-left:3px solid var(--color-line-control);border-radius:var(--r-sm);margin-bottom:var(--sp-2);background:var(--color-brand-tint);font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
 .modern-chat-quote strong{font-size:var(--text-caption);font-weight:600}
 .modern-chat-quote span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
 .is-mine .modern-chat-quote{background:rgb(var(--color-surface-rgb) / .09);border-color:var(--color-highlight);color:var(--color-brand-tint)}
@@ -51,11 +51,13 @@
 .modern-chat-delivery button{text-decoration:underline;text-underline-offset:var(--underline-offset);margin-right:var(--sp-3);margin-top:var(--sp-1)}
 .modern-chat-delivery.is-failed{padding-top:var(--sp-2);border-top:1px solid rgb(var(--color-surface-rgb) / .21);color:var(--color-warning-tint)}
 .modern-chat-composer{position:relative;padding:var(--sp-4) var(--sp-5) var(--sp-3);border-top:1px solid var(--color-line);background:var(--color-surface);flex-shrink:0}
-.modern-chat-compose-row{display:flex;align-items:flex-end;gap:var(--sp-2);padding:var(--sp-2);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
-.modern-chat-compose-row:focus-within{border-color:var(--color-line-control);box-shadow:0 0 0 3px var(--color-brand-tint)}
+/* The message box (UI9-R2-RATCHET, NAV PR B forms): the control edge (≥3:1), the site's one field corner (--r-md, as the
+   BayBay composer) and the one focus ring around the row while its text area has focus (the two icon buttons ring themselves) (N09 N10 N11). */
+.modern-chat-compose-row{display:flex;align-items:flex-end;gap:var(--sp-2);padding:var(--sp-2);border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface)}
+.modern-chat-compose-row:has(>.modern-chat-input:focus-visible){outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 .modern-chat-input{resize:none;background:transparent;outline:none;flex:1;min-width:0;min-height:40px;max-height:144px;padding:var(--sp-2) var(--sp-1);font-size:var(--text-fact);line-height:1.375rem;color:var(--color-brand-deep);overflow-y:auto;border:0;border-radius:0}
 .modern-chat-input::placeholder{color:var(--color-ink-3)}
-.modern-chat-send{display:grid;place-items:center;width:40px;height:40px;border-radius:var(--r-md);flex-shrink:0;color:var(--color-surface);background:var(--chat-accent);transition:filter var(--dur-2),transform var(--dur-2)}
+.modern-chat-send{display:grid;place-items:center;width:40px;height:40px;border-radius:var(--r-md);flex-shrink:0;color:var(--color-surface);background:var(--chat-accent);transition:filter var(--dur-2) var(--ease-std),transform var(--dur-2) var(--ease-std)}
 @media (hover:hover) and (pointer:fine){.modern-chat-send:hover{filter:brightness(1.12)}}
 .modern-chat-send:active{transform:scale(.94)}
 .modern-chat-send:disabled{background:var(--color-surface-2);color:var(--color-ink-3);filter:none}
@@ -82,7 +84,7 @@
 .modern-chat-welcome h2{font-size:var(--fs-keep-20);font-weight:600;color:var(--color-brand-hover);letter-spacing:0;margin:var(--sp-5) 0 var(--sp-3)}
 .modern-chat-welcome p{font-size:var(--text-caption);line-height:1.8}
 .modern-chat-welcome button{display:flex;align-items:center;gap:var(--sp-2);min-height:40px;padding:0 var(--sp-4);margin-top:var(--sp-5);border:1px solid var(--color-line-control);border-radius:var(--r-md);font-size:var(--text-caption);color:var(--color-ink);background:var(--color-surface)}
-.modern-chat button:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
+.modern-chat button:focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 @media(max-width:640px){
 .modern-chat-overlay{padding:0;background:var(--color-surface-2)}
 .modern-chat{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;box-shadow:none}
@@ -92,7 +94,7 @@
 .modern-chat-history{padding:var(--sp-2) var(--sp-3) var(--sp-4);scrollbar-gutter:auto}
 .modern-chat-message{gap:var(--sp-2)}.modern-chat-message-content{max-width:81%}.modern-chat-avatar{width:28px}.modern-chat-avatar>img,.modern-chat-avatar>div{width:28px!important;height:28px!important}
 .modern-chat-bubble{padding:var(--sp-3) var(--sp-3);font-size:var(--text-fact)}.modern-chat-message-actions button{width:33px;height:28px}.modern-chat-message-footer{height:29px}
-.modern-chat-composer{padding:var(--sp-3) var(--sp-3) calc(var(--sp-2) + env(safe-area-inset-bottom))}.modern-chat-compose-row{border-radius:var(--r-lg);padding:var(--sp-1);gap:var(--sp-1)}.modern-chat-key-hint{display:none}.modern-chat-compose-meta{font-size:var(--text-caption)}.modern-chat-input{font-size:var(--text-body);padding:var(--sp-2) var(--sp-1)}.modern-chat-draft-note{font-size:var(--text-caption)}
+.modern-chat-composer{padding:var(--sp-3) var(--sp-3) calc(var(--sp-2) + env(safe-area-inset-bottom))}.modern-chat-compose-row{padding:var(--sp-1);gap:var(--sp-1)}.modern-chat-key-hint{display:none}.modern-chat-compose-meta{font-size:var(--text-caption)}.modern-chat-input{font-size:var(--text-body);padding:var(--sp-2) var(--sp-1)}.modern-chat-draft-note{font-size:var(--text-caption)}
 .modern-chat-jump{right:20px;bottom:155px}.modern-chat-emoji-picker{left:12px}.modern-chat-welcome{margin:var(--sp-6) auto}.modern-chat-welcome h2{font-size:var(--fs-keep-18)}
 }
 @media(prefers-reduced-motion:reduce){.modern-chat *{scroll-behavior:auto!important;transition:none!important}}
