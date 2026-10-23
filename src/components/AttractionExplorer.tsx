@@ -13,9 +13,12 @@ import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
 import { CITY_EXPLORATION_SLUG } from '../data/city-exploration-types';
 import { OPUS_BAY_ATTRACTION_ENTRIES, opusBayAttractionEntry } from '../lib/opus-bay-attraction-entry';
+import { ProvenanceBadge } from './ui/Badges';
 import { Button } from './ui/Button';
 import { ChipRow, FilterChip } from './ui/Chip';
 import { Cover } from './ui/Cover';
+import { CoverImage, useTierLabel } from './ui/CoverImage';
+import { Disclosure } from './ui/Disclosure';
 import { EmptyState } from './ui/States';
 import { Select } from './ui/Select';
 import { PageContainer, PageHeader } from './ui/HeroCard';
@@ -39,11 +42,13 @@ const SCENE3D_RAIL = Object.keys(OPUS_BAY_ATTRACTION_ENTRIES).flatMap(id => {
 });
 /** After this many cards the 3D module takes one full row of the grid (design.md §4.4: one module every 6–8 cards). */
 const MODULE_AFTER = 6;
+const CARD_SIZES = '(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 380px';
 
 export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => void }) {
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
+  const tierLabel = useTierLabel();
   const [params, setParams] = useSearchParams();
   const [plan, setPlan] = useState(() => params.has('plan') ? parseSharedOuting(params.get('plan')) : loadOuting());
   const [shared, setShared] = useState(() => params.has('plan'));
@@ -123,8 +128,10 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       {fallback && <label className="xp-outing-fallback">手动复制<textarea value={fallback} readOnly rows={4} onFocus={event => event.currentTarget.select()} /></label>}
     </section>
   );
-  const planDisclosure = <details className="xp-plan" open={plan.length > 0 || shared}><summary>{'我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>;
   const planOnTop = plan.length > 0 || shared;
+  // The site's one expander (ui Disclosure: one chevron, no native ▶ marker, N13). Open at the top while the list has stops
+  // or shows a shared plan, closed at the bottom otherwise: two places are two mounts, so each opens as it is first drawn.
+  const planDisclosure = <Disclosure className="xp-plan" defaultOpen={planOnTop} summary={<>{'我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</>}>{outingPanel}</Disclosure>;
 
   // One page for the ③ pictures of places without their own (a stock picture is not repeated within ADJACENT_CARDS cards).
   const stockPage = createCoverPage();
@@ -137,13 +144,23 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     // UI9-IMAGES DECISIONS 21/22: a place with no usable picture of its own and no 3D postcard shows a ③ 示意图 of its
     // kind (never an information card); a postcard keeps its place exactly (DECISIONS 1).
     const cover = own.tier !== 'type' ? own : getCover({ kind: 'place', id: item.id, imageKeys: attractionStockKeys(guide) }, { images: GUIDE_IMAGES, today, page: stockPage });
+    // R2-17: the picture's badge sits bottom-left, on the caption just above the place name, in the chip look of every
+    // listing cover (DECISIONS 23; the words <Cover> prints, useTierLabel). A 3D postcard keeps <Cover> and its own top-left
+    // badge exactly (DECISIONS 1), and so does a frame with no picture. A file that fails shows its ③ stand-in with that
+    // picture's own badge on the cover (CoverImage), and the caption's then steps aside (attractions.css).
+    const shown = cover.tier === 'type' ? cover.repeat : cover;
+    const badge = shown && shown.tier !== 'scene3d' ? tierLabel(shown) : undefined;
     const added = plan.includes(item.id);
     const worldEntry = opusBayAttractionEntry(item.id, locale);
     const regionLabel = ATTRACTION_REGIONS.find(entry => entry.id === item.region)!.label;
     return <article key={item.id} className="attraction-card">
       <div className="xp-card__media">
-        <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 380px" />
-        <div className="xp-card__caption"><h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p><MapPin size={16} aria-hidden="true" /><span>{english && translateText(regionLabel, locale) === item.city ? item.city : `${item.city} · ${regionLabel}`}</span></p></div>
+        {shown && badge
+          ? <CoverImage image={shown.image} tier={shown.tier} fit={shown.fit} focal={shown.focal} ratio="3:2" ratioLock decorative sizes={CARD_SIZES}
+            fallback={shown.fallback} fallbackLabel={shown.fallback ? tierLabel({ tier: 'stock', image: shown.image }) : undefined} />
+          : <Cover cover={cover} ratio="3:2" ratioLock decorative sizes={CARD_SIZES} />}
+        {/* A photo overlay: its focus ring is the site's lime one (tokens.css [data-surface=deep]). */}
+        <div className="xp-card__caption" data-surface="deep">{shown && badge && <ProvenanceBadge label={badge} tier={shown.tier} />}<h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p><MapPin size={16} aria-hidden="true" /><span>{english && translateText(regionLabel, locale) === item.city ? item.city : `${item.city} · ${regionLabel}`}</span></p></div>
       </div>
       <div className="xp-card__body">
         <p className="xp-card__facts"><span><Clock3 size={16} aria-hidden="true" />{item.duration}</span><span><Ticket size={16} aria-hidden="true" />{ATTRACTION_COSTS.find(entry => entry.id === item.cost)!.label}</span></p>
@@ -153,7 +170,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
           <Link className="xp-text-link" to={`/guides/${item.slug}`}>读完整攻略</Link>
           {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument><Rotate3d size={18} aria-hidden="true" />{translateText(worldEntry.label, locale)}</Link>}
         </div>
-        {cover.tier !== 'type' && <details className="attraction-credit"><summary>{cover.tier === 'scene3d' ? t('图片说明', 'About this picture') : '照片来源'}</summary><p>{cover.image.caption}</p>{cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{cover.image.credit}</a> : <p>{cover.image.credit}</p>}{cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
+        {cover.tier !== 'type' && <Disclosure className="attraction-credit" summary={cover.tier === 'scene3d' ? t('图片说明', 'About this picture') : '照片来源'}><p>{cover.image.caption}</p>{cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{cover.image.credit}</a> : <p>{cover.image.credit}</p>}{cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</Disclosure>}
       </div>
     </article>;
   };
@@ -191,7 +208,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         <label className="xp-select"><span className="sr-only">选择兴趣</span><Select value={theme} onChange={event => updateFilter('theme', event.target.value)}>{ATTRACTION_THEMES.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</Select></label>
         <label className="xp-select"><span className="sr-only">门票条件</span><Select value={cost} onChange={event => updateFilter('cost', event.target.value)}>{ATTRACTION_COSTS.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</Select></label>
       </div>
-      <details className="xp-note"><summary>{t('费用与时长说明', 'About costs and visit times')}</summary><p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p></details>
+      <Disclosure className="xp-note" summary={t('费用与时长说明', 'About costs and visit times')}><p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p></Disclosure>
     </section>
     {planOnTop && planDisclosure}
     {regionIntro && <section className="attraction-region-intro" aria-labelledby="attraction-region-title">
@@ -206,15 +223,14 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         actions={<Button variant="primary" onClick={resetFilters}>{'重置景点筛选'}</Button>} />}
     {filtered.length > visibleCount && <div className="xp-more-row"><Button variant="tonal" onClick={() => setPage({ key: resultKey, count: visibleCount + 12 })}>{english ? `Show more places (${visibleCount}/${filtered.length})` : `继续发现更多（${visibleCount}/${filtered.length}）`}</Button></div>}
     {!planOnTop && planDisclosure}
-    <details className="xp-plan xp-more">
-      <summary>{t('更多安排：城市攻略、计划与搭子', 'More: city guides, plans and groups')}</summary>
+    <Disclosure className="xp-plan xp-more" summary={t('更多安排：城市攻略、计划与搭子', 'More: city guides, plans and groups')}>
       <nav className="xp-more-links" aria-label={t('继续安排出游', 'Continue planning your outing')}>
         <Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={18} aria-hidden="true" />{plan.length ? t('在地图里安排完整清单', 'Arrange all saved stops on the map') : '让 BayBay 帮我排一天'}</Link>
         <Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={18} aria-hidden="true" />{'按城市探索：九县 101 城景点与生活指南'}</Link>
         <Link to="/my-week">{'我的这周'}</Link>
         <Link to="/together">{t('找搭子，一起出门', 'Go together')}</Link>
       </nav>
-    </details>
+    </Disclosure>
     <nav className="xp-next" aria-label={t('顺路看看', 'Also worth a look')}><Link to="/events">{t('本周末活动', 'This weekend')}</Link><Link to="/guides">{'全部生活指南'}</Link><Link to="/tools?tool=split">{'出游费用分账'}</Link></nav>
   </PageContainer>;
 }
