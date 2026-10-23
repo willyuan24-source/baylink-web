@@ -63,7 +63,8 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   assert.match(LIBRARY_CSS, /\.gl-band \.gl-band__rows \{ display:grid; grid-template-columns:repeat\(3, minmax\(0, 1fr\)\); gap:var\(--grid-gutter\); \}/);
   // Review r1: in one column each band guide is a card (the 3:2 picture over the whole title), not a squeezed row, and its
   // ③④ chip is one line. The pictures keep the thumbnail `sizes`, which carries the short English label ('Stock photo').
-  assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
+  // Review r2: at 特大 too (rows a third of the page wide broke words in two), so in every desktop mode but 简洁.
+  assert.match(LIBRARY_CSS, /html:not\(\[data-simple\]\) \.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{[^}]*white-space:nowrap; \}/);
   assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{COVER_SIZES\.thumb\} \/>/);

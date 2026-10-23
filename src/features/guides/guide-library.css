@@ -157,19 +157,19 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
      --gl-band-bleed past the column edges, so the text and the cards inside it start on the grid:
      - 标准: the feeds' four columns — heading, line and 看全部 in column 1, the three guides in columns 2–4 (422 / 732 / 1042
        at 1440, as every card grid below);
-     - 大 and 特大: the three columns the topic sections use there (112 / 525.3 / 938.7 at 1440, 32 / 360 / 688 at 1024), under
+     - 大 and 特大: the three columns the card grids use there (112 / 525.3 / 938.7 at 1440, 32 / 360 / 688 at 1024), under
        the heading (review r2: four columns over three read as two grids). */
   html:not([data-simple]) .gl-band { --gl-band-bleed:var(--sp-4); margin-inline:calc(var(--gl-band-bleed) * -1); padding:var(--inset-panel) var(--gl-band-bleed); }
   html:not([data-reading$=large],[data-simple]) .gl-band { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); }
   html:not([data-reading$=large],[data-simple]) .gl-band>.gl-section__head { grid-area:1 / 1 / 2 / 2; margin:0; }
   html:not([data-reading$=large],[data-simple]) .gl-band>.gl-band__rows { grid-area:1 / 2 / 3 / -1; }
   html:not([data-reading$=large],[data-simple]) .gl-band>.gl-band__all { grid-area:2 / 1 / 3 / 2; align-self:end; justify-self:start; margin:var(--sp-3) 0 0; }
-  /* At 标准 and 大 a column is too narrow for a row (beside its picture a title ran 12 lines and past the card at 1024 en), so
-     each guide stands as a card: the 3:2 picture on top, the whole title under it (never clamped), as the topic grids below;
-     the ③④ chip is the cards' one-line chip. 特大 keeps its rows, as everywhere at 特大. The pictures keep the thumbnail's
-     `sizes` (Cover's short English label goes with it): its 480 w file covers the picture (≤ 262 px at 标准, ≤ 365 px at 大)
-     at 1x. */
-  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr); grid-template-areas:"thumb" "body"; align-content:start; }
-  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb { --ui-feed-ratio:3 / 2; width:auto; height:auto; }
-  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); white-space:nowrap; }
+  /* A column is too narrow for a row: beside its picture a title ran 12 lines and past the card (标准, 1024 en), and at 特大 it
+     broke words in two (1024 en 「Understan / ding」). So in every desktop mode but 简洁 each band guide stands as a card: the
+     3:2 picture on top, the whole title under it (never clamped), as the topic grids; the ③④ chip is the cards' one-line
+     chip. The pictures keep the thumbnail's `sizes` (Cover's short English label goes with it): its 480 w file covers the
+     picture (≤ 262 px at 标准, ≤ 365 px at 大 / 特大) at 1x. */
+  html:not([data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr); grid-template-areas:"thumb" "body"; align-content:start; }
+  html:not([data-simple]) .gl-band .ui-row-card__thumb { --ui-feed-ratio:3 / 2; width:auto; height:auto; }
+  html:not([data-simple]) .gl-band .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); white-space:nowrap; }
 }
