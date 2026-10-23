@@ -66,6 +66,243 @@
       ],
       "approvedAt": "2026-10-05",
       "approvalRecord": "src/data/verified-place-media-updates.ts (offer chm-museums-on-us-oct3-4: expanded-south-bay-computer-history)"
+    },
+    {
+      "id": "sf-main-library",
+      "name": "San Francisco Main Library (100 Larkin St)",
+      "match": [
+        "100 Larkin",
+        "SF Main Library",
+        "San Francisco Main Library"
+      ],
+      "imageKeys": [
+        "venue-sf-main-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "sap-center",
+      "name": "SAP Center (San Jose)",
+      "match": [
+        "SAP Center"
+      ],
+      "imageKeys": [
+        "venue-sap-center"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "exploratorium",
+      "name": "Exploratorium (Pier 15)",
+      "match": [
+        "Exploratorium"
+      ],
+      "imageKeys": [
+        "venue-exploratorium"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "ferry-building",
+      "name": "Ferry Building / Ferry Plaza",
+      "match": [
+        "Ferry Building",
+        "1 Ferry Building",
+        "Ferry Plaza"
+      ],
+      "imageKeys": [
+        "venue-ferry-building"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "opl-main-library",
+      "name": "Oakland Public Library Main Library (125 14th Street)",
+      "match": [
+        "125 14th Street",
+        "奥克兰公共图书馆总馆"
+      ],
+      "imageKeys": [
+        "venue-opl-main-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "omca",
+      "name": "Oakland Museum of California",
+      "match": [
+        "Oakland Museum of California",
+        "OMCA"
+      ],
+      "records": [
+        "event:oakland-omca-friday-finale-2026",
+        "offer:omca-free-nov1-2026"
+      ],
+      "imageKeys": [
+        "venue-omca"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "sf-botanical-garden",
+      "name": "San Francisco Botanical Garden",
+      "match": [
+        "San Francisco Botanical Garden"
+      ],
+      "records": [
+        "event:nov2026-botanical-one-day-choir",
+        "offer:botanical-free-nov10-2026",
+        "offer:botanical-thanksgiving-nov26-2026"
+      ],
+      "imageKeys": [
+        "venue-sf-botanical-garden"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "fort-mason-center",
+      "name": "Fort Mason Center",
+      "match": [
+        "Fort Mason Center"
+      ],
+      "imageKeys": [
+        "venue-fort-mason-center"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "smcl-millbrae-library",
+      "name": "Millbrae Library (SMCL)",
+      "match": [
+        "Millbrae 图书馆",
+        "Millbrae Library"
+      ],
+      "records": [
+        "event:smcl-millbrae-chinese-storytime-oct-2026",
+        "event:smcl-millbrae-chinese-culture-club-ai-nov7-2026"
+      ],
+      "imageKeys": [
+        "venue-smcl-millbrae-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "smcl-foster-city-library",
+      "name": "Foster City Library (SMCL)",
+      "match": [
+        "Foster City 图书馆",
+        "Foster City Library"
+      ],
+      "records": [
+        "event:smcl-foster-city-nidhi-chanani-2026",
+        "event:smcl-foster-city-maker-exploration-2026"
+      ],
+      "imageKeys": [
+        "venue-smcl-foster-city-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "smcl-brisbane-library",
+      "name": "Brisbane Library (SMCL)",
+      "match": [
+        "Brisbane 图书馆",
+        "Brisbane Library"
+      ],
+      "imageKeys": [
+        "venue-smcl-brisbane-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "smcl-atherton-library",
+      "name": "Atherton Library (SMCL, Dinkelspiel Station)",
+      "match": [
+        "Atherton 图书馆",
+        "Dinkelspiel Station"
+      ],
+      "records": [
+        "event:smcl-atherton-diwali-henna-2026",
+        "event:smcl-atherton-maker-families-2026"
+      ],
+      "imageKeys": [
+        "venue-smcl-atherton-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "sjpl-calabazas-library",
+      "name": "Calabazas Branch Library (SJPL)",
+      "match": [
+        "Calabazas 分馆",
+        "Calabazas Branch"
+      ],
+      "imageKeys": [
+        "venue-sjpl-calabazas-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "sccl-campbell-library",
+      "name": "Campbell Library (SCCLD)",
+      "match": [
+        "Campbell 图书馆",
+        "Campbell Library"
+      ],
+      "records": [
+        "event:sccl-campbell-scam-calls-workshop-2026",
+        "event:sccl-campbell-friends-book-sale-nov14-2026"
+      ],
+      "imageKeys": [
+        "venue-sccl-campbell-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "acl-castro-valley-library",
+      "name": "Castro Valley Library (ACL)",
+      "match": [
+        "Castro Valley 图书馆",
+        "Castro Valley Library"
+      ],
+      "records": [
+        "event:acl-castro-valley-military-records-2026"
+      ],
+      "imageKeys": [
+        "venue-acl-castro-valley-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
+    },
+    {
+      "id": "opl-dimond-library",
+      "name": "Dimond Branch Library (OPL)",
+      "match": [
+        "Dimond 分馆",
+        "Dimond Branch"
+      ],
+      "records": [
+        "event:opl-dimond-kids-arts-crafts-2026"
+      ],
+      "imageKeys": [
+        "venue-opl-dimond-library"
+      ],
+      "approvedAt": "2026-10-23",
+      "ownerQuote": "「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」 (DECISIONS 33, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23, lanes/UI9-IMG-B2/APPROVAL-B2-1023.md)"
     }
   ]
 }

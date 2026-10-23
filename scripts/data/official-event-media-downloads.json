@@ -418,5 +418,35 @@
     "originalUrl": "https://healdsburgfarmersmarket.org/wp-content/uploads/2026/04/pi-square.jpg",
     "retrievedAt": "2026-10-19T23:41:20-07:00",
     "sha256": "3f9dba88da6a6543c0e8a96064df160d9dd8e02ca48855f04e7d6a58c1206050"
+  },
+  "official-r2-petaluma-lumafest-20261024-altar": {
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://lumafest.santarosa.edu/sites/lumafest.santarosa.edu/files/inline-images/Altares%20Y%20Ofrendas%20LF%20Website_0.jpg",
+    "retrievedAt": "2026-10-23T13:48:45-07:00",
+    "sha256": "9d8aff306ae2955324d46e11d2e0515b08ebb02d25a9a87efb82a5299f08fcbb"
+  },
+  "official-san-jose-avenida-altares-2026-altar": {
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://images.squarespace-cdn.com/content/v1/5c70f584797f74142d45f7cf/4d8c5335-7418-46b1-8af3-23759a541788/2025-11-01+Avenida+de+Altares-SonyA7c-39.jpg",
+    "retrievedAt": "2026-10-23T13:48:49-07:00",
+    "sha256": "91782770f5f58ef4902cf4e8e9692dbdd9429333e30653a32798d6aad6429166"
+  },
+  "official-nov2026-fruitvale-dia-muertos": {
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://unitycouncil.org/wp-content/uploads/2026/09/la_catrina_installed_1600.jpg",
+    "retrievedAt": "2026-10-23T13:48:53-07:00",
+    "sha256": "d2360fde160feb4a9b2fa4423818d48cda90ca3a62c09d1936557f86cb09d07b"
+  },
+  "official-pleasanton-pumpkins-after-dark-2026-arch": {
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://pumpkinsafterdark.com/wp-content/uploads/pad-originals/89b913b039a8c6c6d710.jpg.webp",
+    "retrievedAt": "2026-10-23T13:48:58-07:00",
+    "sha256": "0a3f3e65033e23117b4d476e9406f1738d1d7e3ebdf5c830bf4414e01b98f241"
+  },
+  "official-danville-scarecrow-stroll-2026-scarecrow": {
+    "approval": "approved-b2-1023.json (owner DECISIONS 33 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」, chat 2026-10-23 ~01:10 PT; captain approval + independent skeptic recheck 2026-10-23)",
+    "originalUrl": "https://danville.ca.gov/ImageRepository/Document?documentID=13393",
+    "retrievedAt": "2026-10-23T13:49:03-07:00",
+    "sha256": "34ba2ddf6593cb628df7c03f36447d5c0e5b03646df428b0788c43458c0d1fe5"
   }
 }

@@ -1729,5 +1729,120 @@
       "evidenceUrl": "https://healdsburgfarmersmarket.org/",
       "scope": "same-event coverage only"
     }
+  },
+  {
+    "key": "official-r2-petaluma-lumafest-20261024-altar",
+    "eventId": "r2-petaluma-lumafest-20261024",
+    "src": "/guides/official-events/r2-petaluma-lumafest-20261024-altar.webp",
+    "width": 1280,
+    "height": 1393,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "alt": "LumaFest 往届的亡灵节祭坛，摆满花、骷髅糖和彩纸",
+    "caption": "LumaFest 官方活动页上的 2025 年往届祭坛照片；不是 2026 年现场。",
+    "credit": "LumaFest 官方活动图片",
+    "creditUrl": "https://lumafest.santarosa.edu/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://lumafest.santarosa.edu/",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "official-san-jose-avenida-altares-2026-altar",
+    "eventId": "san-jose-avenida-altares-2026",
+    "src": "/guides/official-events/san-jose-avenida-altares-2026-altar.webp",
+    "width": 1280,
+    "height": 1024,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      30
+    ],
+    "alt": "Avenida de los Altares 往届的橙色拱门祭坛",
+    "caption": "主办方 2026 活动页上的 2025 年往届祭坛照片；不是今年现场。",
+    "credit": "Mexican Heritage Plaza 官方活动图片",
+    "creditUrl": "https://mhplaza.org/allevents/avenida26",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://mhplaza.org/allevents/avenida26",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "official-nov2026-fruitvale-dia-muertos",
+    "eventId": "nov2026-fruitvale-dia-muertos",
+    "src": "/guides/official-events/nov2026-fruitvale-dia-muertos.webp",
+    "width": 1280,
+    "height": 754,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      30
+    ],
+    "alt": "Fruitvale 街头的大型 La Catrina 装置",
+    "caption": "Unity Council 官方页面上的 La Catrina 装置照片，2026 年 9 月布置时所拍；不是节日当天。",
+    "credit": "The Unity Council 官方活动图片",
+    "creditUrl": "https://unitycouncil.org/lacatrina/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://unitycouncil.org/lacatrina/",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "official-pleasanton-pumpkins-after-dark-2026-arch",
+    "eventId": "pleasanton-pumpkins-after-dark-2026",
+    "src": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "alt": "夜里亮满南瓜灯的拱形步道入口",
+    "caption": "Pumpkins After Dark 官方网站的入口照片，是另一处场地；不是 Pleasanton 场地。",
+    "credit": "Pumpkins After Dark 官方活动图片",
+    "creditUrl": "https://pumpkinsafterdark.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://pumpkinsafterdark.com/",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "official-danville-scarecrow-stroll-2026-scarecrow",
+    "eventId": "danville-scarecrow-stroll-2026",
+    "src": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow.webp",
+    "width": 1080,
+    "height": 1350,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      35
+    ],
+    "alt": "Danville 街边坐在南瓜和干草旁的稻草人",
+    "caption": "Danville 镇政府活动页上的稻草人照片；具体展出以当日为准。",
+    "credit": "Town of Danville 官方活动图片",
+    "creditUrl": "https://danville.ca.gov/851/Scarecrow-Stroll",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://danville.ca.gov/851/Scarecrow-Stroll",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
+    }
   }
 ]
