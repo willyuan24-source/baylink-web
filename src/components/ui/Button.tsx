@@ -13,9 +13,8 @@ import { cx } from './ui-copy';
 export type ButtonVariant = 'primary' | 'secondary' | 'quiet';
 /** @deprecated Use `secondary` (was `tonal`) or `quiet` (was `text`). */
 export type LegacyButtonVariant = 'tonal' | 'text';
-const VISUAL: Record<ButtonVariant | LegacyButtonVariant, ButtonVariant> = { primary: 'primary', secondary: 'secondary', quiet: 'quiet', tonal: 'secondary', text: 'quiet' };
 /** The look a variant name renders (the legacy names fold into the three). */
-const buttonVisual = (variant: ButtonVariant | LegacyButtonVariant = 'secondary'): ButtonVariant => VISUAL[variant] ?? 'secondary';
+const buttonVisual = (variant: ButtonVariant | LegacyButtonVariant): ButtonVariant => variant === 'tonal' ? 'secondary' : variant === 'text' ? 'quiet' : variant;
 
 type Common = { variant?: ButtonVariant | LegacyButtonVariant; block?: boolean; icon?: ReactNode; children: ReactNode; className?: string };
 type AsButton = Common & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'> & { to?: undefined; href?: undefined };
