@@ -172,6 +172,12 @@ export type WeekendRow = { date: string; title: string; city: string };
  * (scripts/share-card-data.ts hubPictures): the card then carries its label (示意图 for a ③ stock picture; UI9-R2 N20)
  * and draws the photo layout, whose one line under the title is `meta`.
  */
+/**
+ * The home page's og:image:alt (scripts/prerender.tsx): what its hub card shows, the title and the source line over the
+ * card's picture (UI9-R2 N20); the card lists no picks since it fronts a picture.
+ */
+export const HOME_CARD_ALT = { zh: '这个周末，湾区去哪？每条附官方来源 · BAYLINK', en: 'Where to go in the Bay Area this weekend: every listing links its official source · BAYLINK' } as const;
+
 export function hubCardModel(name: HubCardName, locale: CardLocale, tr: Translate, data: { weekend: WeekendRow[]; range: string; tools: string[]; guideCount: number }, picture?: GuideImage): HubCardModel {
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : tr(zh);

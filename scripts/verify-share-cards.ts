@@ -15,6 +15,7 @@ import type { GuideImage } from '../src/data/guide-media';
 import { simplifiedOnlyCharacters } from './i18n-html-check.mjs';
 import { hubCardData, hubPictures } from './share-card-data';
 import { hubCardPath } from '../src/lib/hub-cards';
+import { HUB_CARD_LIMIT } from './share-card-worker.mjs';
 import { SITE_URL } from '../src/lib/seo';
 import { languagePath, type SiteLanguage } from '../src/lib/language-path';
 
@@ -86,6 +87,13 @@ for (const card of cards) for (const locale of LOCALES) {
   assert.equal(decoded?.data, `${SITE_URL}${languagePath(card.path, locale)}?from=card`, `QR on ${file(card.image, locale)}`);
   checked++;
 }
+// UI9-R2 batch 2: the hub cards (the most-shared ones) stay under 290 KB, where some chat apps skip a preview's picture.
+const heavyHubs: string[] = [];
+for (const { name } of hubCards) for (const locale of LOCALES) {
+  const bytes = (await readFile(file(hubCardPath(name), locale))).length;
+  if (bytes > HUB_CARD_LIMIT) heavyHubs.push(`${file(hubCardPath(name), locale)}: ${bytes} bytes`);
+}
+assert.deepEqual(heavyHubs, [], `every hub share card is at most ${HUB_CARD_LIMIT} bytes`);
 const photoCards = listingCards.filter(card => card.photo).length;
 assert.deepEqual(wrongBand.slice(0, 20), [], `${wrongBand.length} cards with or without a photo against their rights`);
 assert.ok(photoCards >= MIN_PHOTO_CARDS, `${photoCards} listings carry a photo on their card; expected at least ${MIN_PHOTO_CARDS}`);

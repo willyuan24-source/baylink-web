@@ -16,6 +16,7 @@ import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../src/lib/seo';
 import { HUB_CARDS } from '../src/lib/hub-cards';
+import { HOME_CARD_ALT } from '../src/lib/share-card-model';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { TOOLS_METADATA } from '../src/data/tool-catalog';
@@ -158,7 +159,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
 };
 
 const homeDescription = '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。';
-await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', image: HUB_CARDS.home, imageAlt: '这个周末，湾区去哪？BAYLINK 本周末精选', english: { imageAlt: 'Where to go in the Bay Area this weekend: BAYLINK picks' }, structuredData: SITE_STRUCTURED_DATA }, (
+await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', image: HUB_CARDS.home, imageAlt: HOME_CARD_ALT.zh, english: { imageAlt: HOME_CARD_ALT.en }, structuredData: SITE_STRUCTURED_DATA }, (
   // The same wrapper as HomePage renders, so the app's first render replaces the prerendered <main> box for box: the hero
   // image keeps its size and place, and the browser records no second, later LCP for it (PROD-W3 perf: /en 7.8 s).
   <div className="bay-home bay-home-editorial">

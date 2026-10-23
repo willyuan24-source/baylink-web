@@ -15,6 +15,7 @@ import { getBayAreaToday } from '../src/lib/monthly';
 import { availableParallelism } from 'node:os';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
 import { hubCardData, hubPictures } from './share-card-data';
+import { HUB_CARD_BUDGET } from './share-card-worker.mjs';
 
 /**
  * Share cards v2 (I18N-SEO-05) and hub cards (I18N-SEO-03), 1200 × 630, one per language: zh-Hans at the original
@@ -75,8 +76,8 @@ const photoFor = (image: GuideImage | undefined) => {
 
 const tasks = new Set<Promise<number>>();
 let cards = 0, bytes = 0, photoCards = 0;
-const queue = async (svg: string, out: string) => {
-  const task = pool.run({ svg, out }).then(size => { bytes += size; cards++; return size; });
+const queue = async (svg: string, out: string, maxBytes?: number) => {
+  const task = pool.run({ svg, out, maxBytes }).then(size => { bytes += size; cards++; return size; });
   tasks.add(task);
   task.finally(() => tasks.delete(task)).catch(() => {});
   if (tasks.size >= pool.size * 3) await Promise.race(tasks);
@@ -121,7 +122,7 @@ for (const locale of LOCALES) {
     const model = hubCardModel(name, locale, t, data, photo ? hubImages[name] : undefined);
     const { draw, finish } = outline();
     const svg = renderHubCardSvg({ ...model, photo }, qrFor(`${SITE_URL}${languagePath(HUB_PATHS[name], locale)}?from=card`), logo, draw);
-    await queue(finish(svg), filePath(hubCardPath(name), locale));
+    await queue(finish(svg), filePath(hubCardPath(name), locale), HUB_CARD_BUDGET);
   }
 }
 await Promise.all(tasks);

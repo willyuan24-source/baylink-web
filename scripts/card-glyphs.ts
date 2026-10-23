@@ -37,7 +37,7 @@ export async function createGlyphOutliner() {
   };
 }
 
-type Job = { svg: string; out: string };
+type Job = { svg: string; out: string; maxBytes?: number };
 /** At most this many rasterizing workers (as before): a shared build machine keeps cores for the rest. */
 export const MAX_RASTER_WORKERS = 4;
 /**
