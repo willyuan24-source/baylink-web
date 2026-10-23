@@ -39,8 +39,9 @@ textarea.site-dialog-field { resize:vertical; min-height:6rem; }
 .ui-sheet .quick-explore--sheet .quick-explore-body { padding:0 0 var(--sp-1); overflow:visible; }
 .ui-sheet .quick-explore--sheet>footer { display:none; }
 @media(min-width:1024px) { .ui-sheet .quick-explore--sheet>footer { display:flex; margin:var(--sp-2) calc(-1 * var(--sp-5)) 0; } }
-/* The field draws one ring around the whole pill instead of a second box inside it. */
-.ui-sheet .quick-explore--sheet .quick-search-form:focus-within { border-color:var(--color-brand); box-shadow:inset 0 0 0 1px var(--color-brand); }
+/* The field draws one ring around the whole pill instead of a second box inside it: the site's focus ring (its width
+   token, brand) laid over the pill's own edge, so it follows the pill's corners and adds no shadow (N10). */
+.ui-sheet .quick-explore--sheet .quick-search-form:focus-within { border-color:var(--color-brand); outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:calc(-1 * var(--focus-ring-width)); }
 .ui-sheet .quick-explore--sheet .quick-search-form input:focus-visible { outline-color:transparent; }
 
 /* Search (QuickExplore, UI9-NAV; content arrangement §6), moved out of the global design.css: the D2 search field (a 52px

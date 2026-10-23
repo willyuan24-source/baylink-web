@@ -1,8 +1,9 @@
 /* WEB-FEEDBACK entry points: "这条信息有误？" (detail pages) and the 反馈与报错 link (footers, About, 404). Small on purpose; the
    sheet's own styles (feedback.css) load with the sheet. The BayBay 👎 reasons moved to src/features/baybay/baybay-panel.css (UI9-PREP). */
 .feedback-report-row{width:min(100%,1040px);margin:0 auto;padding:0 2.5rem 3rem}
-.feedback-report-link,.feedback-footer-link{display:inline-flex;align-items:center;gap:.5rem;min-height:var(--control-height);padding:.25rem 0;border:0;background:none;color:var(--color-ink-2);font-size:var(--text-fact);font-weight:400;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25rem;cursor:pointer}
+.feedback-report-link,.feedback-footer-link{display:inline-flex;align-items:center;gap:.5rem;min-height:var(--control-height);padding:.25rem 0;border:0;background:none;color:var(--color-ink-2);font-size:var(--text-fact);font-weight:400;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);cursor:pointer}
 .feedback-report-link svg,.feedback-footer-link svg{flex:none;color:var(--color-brand)}
-.feedback-report-link:hover,.feedback-footer-link:hover{color:var(--color-brand);text-decoration-color:currentColor}
+.feedback-report-link:active,.feedback-footer-link:active{color:var(--color-brand-hover)}
+@media (hover:hover) and (pointer:fine){.feedback-report-link:hover,.feedback-footer-link:hover{color:var(--color-brand);text-decoration-color:currentColor}}
 .feedback-report-link:focus-visible,.feedback-footer-link:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 @media(max-width:767px){.feedback-report-row{padding:0 1.125rem 2rem}}

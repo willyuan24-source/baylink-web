@@ -63,6 +63,11 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
    first screen above the composer at 390×844 (J2 P19 / J3 P15). The cards are the panel's one card look (the plan,
    outing and post cards: white, the 1px decorative line, --r-lg, --sp-3/--sp-4 inset), not a paper fill with a control
    edge of its own (N12); e1 lifts the two above the flat outlined chips, so they read first. */
+/* The AI cutoff notice (R2-16): one muted line on the sunken fill, 911 a brand link in the line (its target reaches 44px
+   tall through padding that does not move the line), so the starter cards lead the first screen. */
+.baybay-conversation .bb-pause-line { margin:0; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation .bb-pause-line>a { padding:var(--sp-3) var(--sp-2); margin:calc(-1 * var(--sp-3)) calc(-1 * var(--sp-2)); color:var(--color-brand); font-weight:600; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+.baybay-conversation .bb-pause-line>a:active { color:var(--color-brand-hover); }
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
 .baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
 /* The capsule's ✕ is the shared close (N12), ring and all, so the panel keeps one close look; --sp-2 around it gives the
@@ -90,13 +95,13 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation :is(.baybay-composer-note,.bb-safety-note,.baybay-degraded) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-degraded { padding:var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); }
 
-/* Composer (pinned): the members' scope chips, the quota line, the box (one input radius, a ≥3:1 edge, an ink-3 example)
-   and 问一下, F's primary, never disabled; 停止 is the secondary in the same place. */
+/* Composer (pinned): the members' scope chips, the quota line, the box (the site's one field radius --r-md, N11; a ≥3:1
+   edge, an ink-3 example) and 问一下, F's primary, never disabled; 停止 is the secondary in the same place. */
 .baybay-conversation .baybay-search-modes { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0 0 var(--sp-3); }
 .baybay-conversation .baybay-composer-footer .baybay-composer-note { margin-bottom:var(--sp-2); }
-.baybay-conversation .member-baybay-composer { display:flex; align-items:flex-end; gap:var(--sp-2); padding:var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); }
+.baybay-conversation .member-baybay-composer { display:flex; align-items:flex-end; gap:var(--sp-2); padding:var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); }
 .baybay-conversation .member-baybay-composer:focus-within { outline:2px solid var(--color-brand); outline-offset:2px; }
-.baybay-conversation textarea.member-baybay-question-input { display:block; flex:1; min-width:0; min-height:max(3rem, var(--control-height)); padding:var(--sp-3) var(--sp-2); border:0; border-radius:var(--r-lg); outline:none; resize:none; overflow-y:hidden; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation textarea.member-baybay-question-input { display:block; flex:1; min-width:0; min-height:max(3rem, var(--control-height)); padding:var(--sp-3) var(--sp-2); border:0; border-radius:var(--r-md); outline:none; resize:none; overflow-y:hidden; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
 .baybay-conversation .member-baybay-question-input::placeholder { color:var(--color-ink-3); opacity:1; }
 .baybay-conversation .bb-send { flex:none; }
 
@@ -136,7 +141,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-requirement-chips .ui-chip>strong { font-weight:600; }
 .baybay-conversation .baybay-requirement-editor { display:grid; gap:var(--sp-2); padding-top:var(--sp-3); }
 .baybay-conversation .baybay-requirement-editor label { color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation .baybay-requirement-editor input,.baybay-conversation .baybay-task-handoff textarea { width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); }
+.baybay-conversation .baybay-requirement-editor input,.baybay-conversation .baybay-task-handoff textarea { width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); }
 .baybay-conversation .baybay-requirement-editor>div { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); }
 
 /* The plan card: the only card in a turn. */

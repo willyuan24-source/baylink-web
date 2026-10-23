@@ -74,20 +74,41 @@ test('免费 · 不用登录 is printed only while a guest can browse, ♡ save 
   assert.ok(footer.getByRole('link', { name: '短信说明' }));
 });
 
-test('A4: the phone language trigger is a globe with 简 / EN (繁 / EN, EN / 中文), inside the data-lang-switch subtree', async () => {
-  for (const [locale, pair, short] of [['zh-Hans', '简 / EN', '简'], ['zh-Hant', '繁 / EN', '繁'], ['en', 'EN / 中文', 'EN']] as const) {
+test('UI9-R2 OD7: a phone keeps the lockup, search, Aa 字号 and •••; the language choices are the ••• sheet\'s first row', async () => {
+  // From 768px the header's own switch: a globe with the language's name, inside the data-lang-switch subtree.
+  for (const [locale, name] of [['zh-Hans', '简体中文'], ['zh-Hant', '繁體中文'], ['en', 'English']] as const) {
     await setLocale(locale, false);
     const view = render(<MemoryRouter><LanguageSwitcher /></MemoryRouter>);
     const trigger = view.container.querySelector('[data-lang-switch] summary')!;
     assert.ok(trigger.querySelector('svg'), `${locale}: the globe`);
-    assert.equal(trigger.querySelector('.site-language-pair')!.textContent, pair);
-    assert.equal(trigger.querySelector('.site-language-short')!.textContent, short);
+    assert.equal(trigger.querySelector('.site-language-name')!.textContent, name);
     view.unmount();
   }
+  await setLocale('zh-Hans', false);
+  const view = render(<MemoryRouter><SiteChrome pathname="/" user={null} messagesCount={0} onAsk={noop} onSearch={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
+  const header = view.container.querySelector('header')!;
+  assert.equal(header.querySelectorAll('[data-lang-switch]').length, 1, 'closed: the header holds one switch (the prerender too)');
+  const more = header.querySelector<HTMLDetailsElement>('details.site-navigation-more')!;
+  await act(async () => { more.open = true; more.dispatchEvent(new dom.window.Event('toggle')); });
+  const row = more.querySelector('.site-language-row')!;
+  assert.ok(row, 'open: the ••• sheet starts with the language row');
+  assert.equal(more.querySelector('.site-navigation-panel')!.firstElementChild, row);
+  assert.equal(row.getAttribute('data-lang-switch'), '');
+  assert.equal(row.getAttribute('translate'), 'no');
+  const choices = within(row as HTMLElement).getAllByRole('button');
+  assert.deepEqual(choices.map(button => [button.getAttribute('lang'), button.textContent, button.getAttribute('aria-pressed')]), [['zh-Hans', '简体中文', 'true'], ['zh-Hant', '繁體中文', 'false'], ['en', 'English', 'false']]);
+  await act(async () => { more.open = false; more.dispatchEvent(new dom.window.Event('toggle')); });
+  assert.equal(more.querySelector('.site-language-row'), null, 'closed again: gone');
   const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
-  // 特大 and 简洁显示 (and phones under 375px) show the globe and the current script; the globe never hides.
-  assert.match(css, /html:is\(\[data-reading=extra-large\],\[data-simple\]\) \.site-app \.site-language-short \{ display:inline; \}/);
-  assert.doesNotMatch(css, /site-language-trigger>svg \{ display:none/);
+  // Below 768px the header's switch steps out and the lockup grows (≥120px at 390); from 768px the sheet row hides.
+  assert.match(css, /@media\(max-width:767px\) \{[^@]*\.site-app \.site-header-utilities>\.site-language \{ display:none; \}/);
+  assert.match(css, /@media\(max-width:767px\) \{[^@]*\.site-app \.site-header-brand img \{ width:132px; \}/);
+  assert.match(css, /@media \(min-width:768px\) \{ \.site-app \.site-language-row \{ display:none; \} \}/);
+  assert.doesNotMatch(css, /site-language-(?:pair|short)/, 'the phone trigger\'s short labels are gone with it');
+  // C P21: the stylesheet paints the lockup in vector under its PNG (no request), so a slow load shows the logo.
+  assert.match(css, /\.site-app \.site-header-brand img \{ display:block; width:140px; height:auto; background:url\("data:image\/svg\+xml,%3Csvg [^"]+%3C\/svg%3E"\) 0 0 \/ 100% 100% no-repeat; \}/);
+  const img = header.querySelector('.site-header-brand img')!;
+  assert.equal(Number(img.getAttribute('width')) / Number(img.getAttribute('height')), 4, 'the box has the PNG\'s 4:1 ratio before it loads');
 });
 
 test('G21: a tapped tab looks current at once (data-pending) while aria-current stays the pathname’s, until the route changes', () => {
@@ -259,9 +280,12 @@ test('UI9-R1 chrome: footer targets, 简洁 footer, pre-footer step, inside ring
   // N08: the chrome's selected looks are FOUNDATION's two (ink line, ink fill); brand-tint is not one of them.
   assert.match(css, /background:var\(--selected-line\)/);
   // UI9-R1-BUTTONS: with the selected edge (the rows carry a transparent 1px edge at rest), as a checked chip.
-  assert.match(css, /\.site-app :is\(\.site-secondary-nav a\[aria-current=page\],\.site-language-menu>button\[aria-pressed=true\]\) \{ border-color:var\(--selected-line\); background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  assert.match(css, /\.site-app :is\(\.site-secondary-nav a\[aria-current=page\],:is\(\.site-language-menu,\.site-language-options\)>button\[aria-pressed=true\]\) \{ border-color:var\(--selected-line\); background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
   assert.match(css, /\.site-mobile-item:is\(\.is-active,\[data-pending\]\) \.site-mobile-icon \{ background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
-  assert.match(css, /\.site-navigation-more>summary\.is-active \{ border:1px solid var\(--selected-line\); background:var\(--selected-bg\); color:var\(--selected-fg\); \}/);
+  // C P18 (UI9-R2): the phone/tablet ••• of a 更多 page is the tab bar's 30px pill in cream with a brand dot, not an ink square.
+  assert.match(css, /\.site-app \.site-navigation-more>summary\.is-active::before \{ content:''; position:absolute; inset:7px 0; z-index:-1; border-radius:var\(--r-pill\); background:var\(--color-surface-2\); \}/);
+  assert.match(css, /\.site-app \.site-navigation-more>summary\.is-active::after \{ display:block;[^}]*border-radius:var\(--r-circle\); background:var\(--color-brand\);/);
+  assert.doesNotMatch(css, /\.site-navigation-more>summary\.is-active \{[^}]*selected-bg/);
   // D2: lime means 免费 only; the AI tag is outlined brand on white.
   const aiTag = css.match(/\.site-ai-tag \{[^}]*\}/)?.[0] ?? '';
   assert.match(aiTag, /border:1px solid;/);
