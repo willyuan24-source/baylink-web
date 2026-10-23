@@ -65,9 +65,9 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-card 
 .baybay-conversation .bb-resources__name>svg { flex:none; }
 .baybay-conversation .bb-resources .bb-call { border-color:var(--color-brand); color:var(--color-brand); }
 
-/* Pause, daily limit, reduced mode and the cutoff ahead: one calm neutral box (no amber, no indigo; DECISIONS 5); a provider
-   pause or a health floor leads with 911 / 211 (H37) */
-.baybay-conversation :is(.bb-notice,.bb-scheduled) { display:grid; gap:var(--sp-3); margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-meta); }
+/* Pause, daily limit and reduced mode: one calm neutral box (no amber, no indigo; DECISIONS 5); a provider pause or a
+   health floor leads with 911 / 211 (H37). The cutoff ahead is one muted line of its own (bb-pause-line, baybay-panel.css). */
+.baybay-conversation .bb-notice { display:grid; gap:var(--sp-3); margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-meta); }
 .baybay-conversation .bb-notice>p { margin:0; }
 .baybay-conversation .bb-notice .bb-call:not([data-primary]) { border-color:var(--color-brand); color:var(--color-brand); }
 .baybay-conversation .bb-notice__resume { display:block; color:var(--color-ink-2); }

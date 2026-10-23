@@ -21,7 +21,7 @@ const { ModalShell } = await import('../src/components/ui/Modal');
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="root"><button id="opener">Open</button><main id="scroll-container" tabindex="-1"></main></div>';
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 afterEach(() => cleanup());
 
@@ -55,7 +55,7 @@ test('the page is locked and focus is inside the dialog in the same commit that 
   const seen: { overflow?: string; inert?: boolean; focusInDialog?: boolean } = {};
   function AfterCommitProbe() {
     React.useLayoutEffect(() => {
-      seen.overflow = document.body.style.overflow;
+      seen.overflow = document.documentElement.style.overflow;
       seen.inert = document.getElementById('root')!.inert;
       seen.focusInDialog = !!document.activeElement?.closest('[role="dialog"]');
     }, []);
@@ -64,7 +64,7 @@ test('the page is locked and focus is inside the dialog in the same commit that 
   const view = render(<><ModalShell label="Lazy dialog"><button>Close</button></ModalShell><AfterCommitProbe /></>);
   assert.deepEqual(seen, { overflow: 'hidden', inert: true, focusInDialog: true });
   view.unmount();
-  assert.equal(document.body.style.overflow, '');
+  assert.equal(document.documentElement.style.overflow, '');
   assert.ok(document.activeElement === opener);
 });
 
@@ -99,10 +99,10 @@ test('StrictMode effect replay preserves initial input focus and the page opener
   }
   const view = render(<React.StrictMode><SearchDialog /></React.StrictMode>);
   assert.ok(document.activeElement === view.getByRole('textbox', { name: 'Query' }));
-  assert.equal(document.body.style.overflow, 'hidden');
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   view.unmount();
   assert.ok(document.activeElement === opener);
-  assert.equal(document.body.style.overflow, '');
+  assert.equal(document.documentElement.style.overflow, '');
 });
 
 test('StrictMode keeps an existing child autoFocus target after an earlier close button', () => {
@@ -130,9 +130,9 @@ test('nested dialogs keep only the top interactive and return focus to the paren
   view.rerender(<>{base}</>);
   assert.ok(document.activeElement === baseButton, "focus remains on the expected control");
   assert.equal(dialogs[0].inert, false);
-  assert.equal(document.body.style.overflow, 'hidden');
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   view.unmount();
-  assert.equal(document.body.style.overflow, '');
+  assert.equal(document.documentElement.style.overflow, '');
 });
 
 test('simultaneously mounted dialogs do not leave the top inert', () => {
@@ -151,7 +151,7 @@ test('removing a lower dialog first keeps the remaining dialog focused and page 
   const topButton = view.getByText('Top button');
   view.rerender(<>{top}</>);
   assert.ok(document.activeElement === topButton, "focus remains on the expected control");
-  assert.equal(document.body.style.overflow, 'hidden');
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   assert.equal(document.getElementById('root')!.inert, true);
   view.unmount();
   assert.ok(document.activeElement === document.getElementById('opener'), 'out-of-order cleanup returns to the original page opener');
@@ -172,12 +172,13 @@ test('removing the middle of three dialogs does not reactivate the bottom dialog
 test('closing the last dialog restores pre-existing overflow and inert settings', () => {
   const root = document.getElementById('root')!;
   const scroller = document.getElementById('scroll-container')!;
-  document.body.style.overflow = 'clip';
+  document.documentElement.style.overflow = 'clip';
   scroller.style.overflow = 'scroll';
   root.inert = true;
   const view = render(<ModalShell label="Temporary"><button>Done</button></ModalShell>);
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   view.unmount();
-  assert.equal(document.body.style.overflow, 'clip');
+  assert.equal(document.documentElement.style.overflow, 'clip');
   assert.equal(scroller.style.overflow, 'scroll');
   assert.equal(root.inert, true);
 });

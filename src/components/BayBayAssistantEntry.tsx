@@ -24,7 +24,7 @@ import { BAYBAY_STARTERS, BAYBAY_ENTITY_QUESTIONS, bayBayPageRef, type BayBaySta
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
 import { BAYBAY_QUOTA_ERRORS, bayBayAnswerView, bayBayFullNoticeTurns, bayBayReadableText, parseBayBayAnswerFields, parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
 import { getBayAreaToday } from '../lib/monthly';
-import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayQuotaLine, BayBayReadAloud, BayBayResourceCard, BayBayScheduledNotice } from '../features/baybay/BayBayAnswer';
+import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayQuotaLine, BayBayReadAloud, BayBayResourceCard } from '../features/baybay/BayBayAnswer';
 import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
 import { BayBayOtter, BayBayPending } from '../features/baybay/BayBayMarks';
 import { bayBayPageTitle } from '../features/baybay/page-title';
@@ -402,8 +402,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
         leads with 911 · 211; a used-up daily share is a calm line with the site's own pages (H37, bayBayNoticeCalls). */}
     {capabilities.pause ? fullNotice.pause === undefined && <BayBayNoticeBanner kind={capabilities.pause.kind} text={capabilities.pause.banner[locale]} resumesAt={capabilities.pause.resumesAt} actions={capabilities.pause.actions} onNavigate={navigate} />
       : capabilities.reduced && fullNotice.reduced === undefined && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
-    {/* The AI cutoff, in its last 7 days: a calm line, not an alarm (api #37 pauseScheduled / aiUntil). */}
-    {capabilities.scheduled && <BayBayScheduledNotice text={capabilities.scheduled.banner[locale]} />}
+    {/* The AI cutoff, in its last 7 days: one calm line, not an alarm (api #37 pauseScheduled / aiUntil; R2-16). */}
+    {capabilities.scheduled && <BayBayPauseLine at={capabilities.scheduled.at} />}
     {/* On a page in view the capsule and its page chips already invite a question, so the welcome line steps aside: about
         50px back for the welcome on detail pages (J2 P19). */}
     {turns.length === 0 && !showCapsule && <p className="bb-welcome__line">{copy('直接打字，或点一个问题。', 'Type a question, or pick one below.')}</p>}
@@ -460,6 +460,25 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     {turns.length > 0 && !loading && newInThread && <p className="bb-thread-new"><Button variant="quiet" onClick={newConversation} icon={<SquarePen aria-hidden="true" size={20} strokeWidth={1.75} />}>{copy('新对话', 'New chat')}</Button></p>}
   </Sheet>;
 };
+
+/**
+ * The AI cutoff in its last 7 days (capabilities `pauseScheduled` / `aiUntil`, api #37) as one muted line above the
+ * starters (R2-16: the panel opened on a two-line box and a 911 chip): the day and the time from `at`, in Bay Area time,
+ * (PT in English), and 911 tap-to-call inline. The server's own sentence (`scheduled.banner`) is no longer shown: it adds
+ * only 预计 and that site information stays, which the panel shows anyway; 预计 cost a second line at 360px 大 and 简洁显示
+ * and at 414px 特大 (UI9-R2 measured), and the time is the server's own `at`.
+ */
+function BayBayPauseLine({ at }: { at: string }) {
+  const locale = useLocale();
+  const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(new Date(at));
+  const day = part({ month: 'numeric', day: 'numeric' }), time = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const enDay = part({ month: 'short', day: 'numeric' }), enTime = part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '');
+  // Where the line must wrap (特大), it breaks only at its spaces (keep-all, baybay-panel.css): after the · where 起暂停 · fits,
+  // else before 起暂停 — a no-break space ties the dot to line 1, so line 2 never opens on a separator (N06) — and never
+  // inside 急事拨打 911.
+  return <p className="bb-pause-line" data-notice="ai_pause_scheduled" role="note" translate="no">{copy(`AI 助手 ${day} ${time} 起暂停`, `AI pauses ${enDay}, ${enTime} PT`)}{'\u00a0· '}<span>{copy('急事拨打', 'Emergencies:')} <a href="tel:911">911</a></span></p>;
+}
 
 type TurnAnswerProps = {
   turn: BayBayTurn; today: string; guest: boolean; ownerId?: string; sessionKey?: string; loading: boolean; lastCompleteId?: number; isLatest: boolean; fullNotice: boolean; question: string; schoolContext: boolean;

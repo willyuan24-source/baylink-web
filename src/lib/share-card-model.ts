@@ -53,6 +53,8 @@ export function cardPhoto(item: LocalDiscovery, image: GuideImage | undefined, t
 }
 /** A card prints no author or licence, so a CC BY-SA photo never fronts one (UI9-IMAGES §4 分享图). */
 const shareAlike = (image: GuideImage) => /by-sa/i.test(image.licenseUrl ?? '') || /cc by-sa/i.test(image.credit);
+/** A picture any card may front without a record of its own: promotion allows it (promoPhoto: never AI art) and it is not CC BY-SA. */
+export const shareable = (image: GuideImage | undefined): image is GuideImage => !!image && !!promoPhoto(image) && !shareAlike(image);
 /**
  * UI9-IMG-A1b (DECISIONS 21/22): every share card fronts a picture. The record's own image when the card may carry it
  * (`own`: cardPhoto / promoPhoto), else the first of its candidates in the owner's order (coverCandidates: its venue's
@@ -63,7 +65,7 @@ export function sharePicture(kind: CoverKind, record: CandidateRecord, own: Guid
   if (own && !shareAlike(own) && !used.has(own.src)) return own;
   for (const key of coverCandidates(kind, record)) {
     const image = Object.hasOwn(images, key) ? images[key] : undefined;
-    if (image && !used.has(image.src) && promoPhoto(image) && !shareAlike(image)) return image;
+    if (image && !used.has(image.src) && shareable(image)) return image;
   }
   return undefined;
 }
@@ -166,26 +168,42 @@ export const HUB_PATHS: Readonly<Record<HubCardName, string>> = { home: '/', eve
 export type WeekendRow = { date: string; title: string; city: string };
 /**
  * The hub cards' copy. `weekend` is the build's weekend picks (the same the home page and the weekly card show) and
- * `range` its dates; `tools` the tool titles; `guideCount` the published guides.
+ * `range` its dates; `tools` the tool titles; `guideCount` the published guides. `picture` is the hub's picture
+ * (scripts/share-card-data.ts hubPictures): the card then carries its label (示意图 for a ③ stock picture; UI9-R2 N20)
+ * and draws the photo layout, whose one line under the title is `meta`.
  */
-export function hubCardModel(name: HubCardName, locale: CardLocale, tr: Translate, data: { weekend: WeekendRow[]; range: string; tools: string[]; guideCount: number }): HubCardModel {
+/**
+ * The home page's og:image:alt (scripts/prerender.tsx): what its hub card shows, the title and the source line over the
+ * card's picture (UI9-R2 N20); the card lists no picks since it fronts a picture.
+ */
+export const HOME_CARD_ALT = { zh: '这个周末，湾区去哪？每条附官方来源 · BAYLINK', en: 'Where to go in the Bay Area this weekend: every listing links its official source · BAYLINK' } as const;
+
+export function hubCardModel(name: HubCardName, locale: CardLocale, tr: Translate, data: { weekend: WeekendRow[]; range: string; tools: string[]; guideCount: number }, picture?: GuideImage): HubCardModel {
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : tr(zh);
   const scan = t('扫码打开 BAYLINK', 'Scan to open BAYLINK');
-  const brandLine = { tagline: tagline(locale, tr, true) };
+  const brandLine = { tagline: tagline(locale, tr, true), ...picture ? { provenance: english ? getImageProvenance(picture, true) : tr(getImageProvenance(picture, false)) } : {} };
   const footnote = t('湾区去哪、怎么办 · 有来源的中文答案', 'Where to go and how to get things done in the Bay Area, with sources');
   const weekendRows = data.weekend.slice(0, 3).map(row => ({ badge: row.date, text: english ? `${row.title} · ${row.city}` : `${row.title} · ${row.city}` }));
+  const guideCount = t(`${data.guideCount} 篇办事指南`, `${data.guideCount} practical guides`);
   switch (name) {
-    case 'home': return { eyebrow: t('BAYLINK · 本周末', 'BAYLINK · This weekend'), title: t('这个周末，湾区去哪？', 'Where to go in the Bay Area this weekend'), subtitle: t(`${data.range} · 每条附官方来源`, `${data.range} · every listing links its official source`), rows: weekendRows, scan, footnote, ...brandLine };
-    case 'events': return { eyebrow: t('活动', 'Events'), title: t('本周末湾区活动', 'Bay Area events this weekend'), subtitle: t(`${data.range} · 日期、费用与主办方来源`, `${data.range} · dates, costs and organizer sources`), rows: weekendRows, scan, footnote, ...brandLine };
+    case 'home': return { eyebrow: t('本周末', 'This weekend'), title: t('这个周末，湾区去哪？', 'Where to go in the Bay Area this weekend'), subtitle: t(`${data.range} · 每条附官方来源`, `${data.range} · every listing links its official source`), rows: weekendRows,
+      meta: [data.range, t('每条附官方来源', 'every listing links its official source')], scan, footnote, ...brandLine };
+    case 'events': return { eyebrow: t('活动', 'Events'), title: t('本周末湾区活动', 'Bay Area events this weekend'), subtitle: t(`${data.range} · 日期、费用与主办方来源`, `${data.range} · dates, costs and organizer sources`), rows: weekendRows,
+      meta: [data.range, t('日期、费用与主办方来源', 'dates, costs and organizer sources')], scan, footnote, ...brandLine };
     case 'guides': return { eyebrow: t('办事指南', 'Guides'), title: t('湾区怎么办：有来源的中文指南', 'Getting things done in the Bay Area'), subtitle: t(`${data.guideCount} 篇指南，每篇附官方来源与核对日期`, `${data.guideCount} guides, each with official sources and a check date`),
-      rows: GUIDE_TOPICS.slice(0, 4).map(topic => ({ text: english ? topic.en : tr(topic.zh) })), scan, footnote, ...brandLine };
+      rows: GUIDE_TOPICS.slice(0, 4).map(topic => ({ text: english ? topic.en : tr(topic.zh) })), meta: [t(`${data.guideCount} 篇指南`, `${data.guideCount} guides`), t('每篇附官方来源与核对日期', 'each with official sources and a check date')], scan, footnote, ...brandLine };
     case 'explore': return { eyebrow: t('去哪玩', 'Places'), title: t('湾区好去处', 'Places to go in the Bay Area'), subtitle: t('旧金山、东湾、半岛、南湾与北湾，免费的去处和出游路线', 'San Francisco, the East Bay, the Peninsula, the South Bay and the North Bay: free places and day plans'),
-      rows: [t('旧金山 · 东湾 · 半岛', 'San Francisco · East Bay · Peninsula'), t('南湾 · 北湾', 'South Bay · North Bay'), t('收藏地点，排进你的一天', 'Save places and plan your day')].map(text => ({ text })), scan, footnote, ...brandLine };
+      rows: [t('旧金山 · 东湾 · 半岛', 'San Francisco · East Bay · Peninsula'), t('南湾 · 北湾', 'South Bay · North Bay'), t('收藏地点，排进你的一天', 'Save places and plan your day')].map(text => ({ text })),
+      meta: [t('旧金山', 'San Francisco'), t('东湾', 'East Bay'), t('半岛', 'Peninsula'), t('南湾', 'South Bay'), t('北湾', 'North Bay')], scan, footnote, ...brandLine };
     case 'plan': return { eyebrow: 'BayBay', title: t('一句话，排好湾区的一天', 'Plan a Bay Area day out in one sentence'), subtitle: t('活动、餐厅与景点，附来源、时间和预算', 'Events, restaurants and places, with sources, times and a budget'),
-      rows: [t('说出日期、地区和同行的人', 'Say the date, the area and who is coming'), t('BayBay 排出时间和路线', 'BayBay lays out the times and the route'), t('改一句、保存、分享给家人', 'Adjust it, save it, share it with family')].map(text => ({ text })), scan, footnote, ...brandLine };
-    case 'tools': return { eyebrow: t('工具箱', 'Tools'), title: t('湾区生活工具箱', 'Bay Area everyday tools'), subtitle: t('在浏览器里算清楚，不用登录', 'Work it out in your browser, no sign-in'), rows: data.tools.slice(0, 4).map(text => ({ text: tr(text) })), scan, footnote, ...brandLine };
-    default: return { eyebrow: 'BAYLINK', title: t('湾区去哪、怎么办', 'Where to go, and how to get things done, in the Bay Area'), subtitle: t('有来源的中文答案', 'Answers with sources, in Chinese and English'),
-      rows: [t('本周末活动 · 每条附官方来源', 'This weekend’s events, each with its official source'), t(`${data.guideCount} 篇办事指南`, `${data.guideCount} practical guides`), t('问 BayBay：有来源的答案', 'Ask BayBay: answers with sources')].map(text => ({ text })), scan, footnote, ...brandLine };
+      rows: [t('说出日期、地区和同行的人', 'Say the date, the area and who is coming'), t('BayBay 排出时间和路线', 'BayBay lays out the times and the route'), t('改一句、保存、分享给家人', 'Adjust it, save it, share it with family')].map(text => ({ text })),
+      meta: [t('活动、餐厅与景点', 'Events, restaurants and places'), t('附来源、时间和预算', 'with sources, times and a budget')], scan, footnote, ...brandLine };
+    case 'tools': return { eyebrow: t('工具箱', 'Tools'), title: t('湾区生活工具箱', 'Bay Area everyday tools'), subtitle: t('在浏览器里算清楚，不用登录', 'Work it out in your browser, no sign-in'), rows: data.tools.slice(0, 4).map(text => ({ text: tr(text) })),
+      meta: data.tools.slice(0, 4).map(text => tr(text)), scan, footnote, ...brandLine };
+    // the site's positioning line is the brand card's title, so its brand line carries the line's second half instead of repeating the first
+    default: return { eyebrow: t('关于 BAYLINK', 'About BAYLINK'), title: t('湾区去哪、怎么办', 'Where to go, and how to get things done, in the Bay Area'), subtitle: t('有来源的中文答案', 'Answers with sources, in Chinese and English'),
+      rows: [t('本周末活动 · 每条附官方来源', 'This weekend’s events, each with its official source'), guideCount, t('问 BayBay：有来源的答案', 'Ask BayBay: answers with sources')].map(text => ({ text })),
+      meta: [t('本周末活动', 'Events this weekend'), guideCount, t('问 BayBay', 'Ask BayBay')], scan, footnote, ...brandLine, ...english ? {} : { tagline: tr('有来源的中文答案') } };
   }
 }

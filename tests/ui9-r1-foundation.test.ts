@@ -236,7 +236,9 @@ test('Select: a native select in the chip look with the one chevron', () => {
   let guard: Rule | undefined;
   selectSheet.walkAtRules('media', media => { if (media.params === '(max-width:767px)') media.walkRules(rule => { guard = rule; }); });
   assert.equal(guard?.selector, '.ui-select>.ui-select__field', 'two classes (0,2,0) beat (0,1,1)');
-  assert.match(guard!.toString(), /font-size:max\(1rem, var\(--text-fact\)\)/);
+  assert.match(guard!.toString(), /font-size:max\(1rem, var\(--text-body\)\)/);
+  // followup 39: a select reads at the text fields' size (16px at 标准), not a step smaller.
+  assert.match(css, /\.ui-select>\.ui-select__field \{[^}]*font:inherit; font-size:var\(--text-body\);/);
   selectSheet.walkRules(rule => { if (/__field/.test(rule.selector)) assert.match(rule.selector, /^\.ui-select>\.ui-select__field/, rule.selector); });
   // The month sheet's day buttons are sized from their cell and kept square, so they stay circles at 特大 / 简洁.
   assert.match(css, /\.ui-date-grid__day \{[^}]*width:min\(var\(--control-height\),100%\); height:auto; aspect-ratio:1;/);

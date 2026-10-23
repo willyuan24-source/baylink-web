@@ -89,7 +89,9 @@ test('the /en first paint (header, footer and tab bar) has no Chinese outside th
   const choices = header.querySelector('[data-lang-switch]')!;
   assert.deepEqual([...choices.querySelectorAll('button')].map(button => button.getAttribute('lang')), ['zh-Hans', 'zh-Hant', 'en']);
   assert.equal(choices.getAttribute('translate'), 'no');
-  assert.equal(choices.querySelector('summary .site-language-short')!.textContent, 'EN');
+  assert.equal(choices.querySelector('summary .site-language-name')!.textContent, 'English');
+  // UI9-R2: the phone ••• sheet's language row renders only while the sheet is open, so the first paint has this one switch.
+  assert.equal(header.querySelectorAll('[data-lang-switch]').length, 1);
   choices.remove();
   const footer = [...doc.querySelectorAll('footer')].at(-1)!;
   const tabs = doc.querySelector('nav.site-mobile-nav')!;

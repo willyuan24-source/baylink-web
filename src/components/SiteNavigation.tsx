@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CalendarDays, ChevronDown, Compass, Ellipsis, MessageCircle, MessageSquareText, ShieldCheck, TramFront, UserRound, Users, Wrench } from 'lucide-react';
 import { BRAND } from '../brandAssets';
@@ -19,15 +20,23 @@ type Props = {
   onAsk: () => void; onAccount: () => void;
   /** The real URL. AppLayout passes it because /posts/:id and /users/:id render over a background page (useLocation sees that). */
   pathname?: string;
+  /** A phone's language choices (SiteChrome, UI9-R2 OD7): the first row of the ••• sheet, rendered only while it is open,
+      so the prerendered header keeps one language switch (verify-release reads that one). It gets the sheet's close: a
+      choice (the current language too) closes the sheet with focus on •••, never on a row that is about to unmount. */
+  language?: (close: () => void) => ReactNode;
 };
 
 /** The otter that stands for BayBay in the header and the tab bar (public/brand/otter.svg; decorative, the label names it). */
 export const OtterIcon = ({ size = 24 }: { size?: number }) => <img className="site-otter" src="/brand/otter.svg" alt="" width={size} height={size} aria-hidden="true" />;
 
+/** The lockup's vector placeholder (site-chrome.css) paints only until the PNG is in: `data-loaded` on load, or at mount
+    for a PNG that arrived before the app did (an image that fails keeps the placeholder). */
+const markLogoLoaded = (img: HTMLImageElement | null) => { if (img?.complete && img.naturalWidth) img.dataset.loaded = ''; };
+
 /** The small "AI" tag on every 问 BayBay entry in the chrome (A6: BayBay is named an AI helper wherever it is offered). */
 export const AiTag = () => <span className="site-ai-tag" aria-hidden="true" translate="no">AI</span>;
 
-export function SiteNavigation({ user, notification, notificationCount, onAsk, onAccount, pathname: realPathname }: Props) {
+export function SiteNavigation({ user, notification, notificationCount, onAsk, onAccount, pathname: realPathname, language }: Props) {
   const location = useLocation();
   const pathname = unprefixedPath(realPathname ?? location.pathname).replace(/\/$/, '') || '/';
   const current = primaryNavigationPath(pathname);
@@ -35,6 +44,7 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
   const moreCurrent = matchRoute(pathname)?.section === 'more';
   const english = useLocale() === 'en';
   const { details, summary, close, closeToSummary } = useDisclosure();
+  const [moreOpen, setMoreOpen] = useState(false);
   const press = usePendingLink(pathname);
 
   const activate = (action: () => void) => {
@@ -51,18 +61,19 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
   const here = (path: string) => pathname === path ? 'page' : undefined;
 
   return <div className="site-header-navigation">
-    <Link to="/" className="site-header-brand" aria-label={english ? 'BAYLINK home' : 'BAYLINK 首页'}><img src={BRAND.logoHorizontal} alt="BAYLINK" width="160" height="43" /></Link>
+    <Link to="/" className="site-header-brand" aria-label={english ? 'BAYLINK home' : 'BAYLINK 首页'}><img src={BRAND.logoHorizontal} alt="BAYLINK" width="160" height="40" ref={markLogoLoaded} onLoad={event => { event.currentTarget.dataset.loaded = ''; }} /></Link>
     <nav className="site-nav site-header-primary" aria-label={english ? 'Main navigation' : '主要导航'}>
       {links.map(({ href, label }) => <Link key={href} to={href} aria-current={current === href ? 'page' : undefined} className={`site-nav-link${current === href ? ' is-active' : ''}`} {...press(href, current === href)}>{label}</Link>)}
       <button type="button" className="site-nav-link site-nav-ask" onClick={onAsk} aria-label={english ? 'Ask BayBay (AI helper)' : '问 BayBay（AI 助手）'} {...bayBayWarmup}><OtterIcon size={22} /><span>{english ? 'Ask BayBay' : '问 BayBay'}</span><AiTag /></button>
     </nav>
     {/* RC-8(ii): the panel stays in the DOM while closed (the OPUS contract reads its 3D link from static markup). */}
-    <details className="site-navigation-more" ref={details}>
+    <details className="site-navigation-more" ref={details} onToggle={event => setMoreOpen(event.currentTarget.open)}>
       <summary ref={summary} aria-label={english ? 'More navigation' : '更多导航'} aria-current={moreCurrent ? 'true' : undefined} className={`site-tool${moreCurrent ? ' is-active' : ''}`}><span>{english ? 'More' : '更多'}</span><ChevronDown className="site-more-chevron" size={16} aria-hidden="true" strokeWidth={1.75} /><Ellipsis className="site-more-icon" size={22} aria-hidden="true" strokeWidth={1.75} />{notification && <i className="site-more-notification" aria-label={english ? 'Unread notifications' : '有未读通知'} />}</summary>
       <div className="site-navigation-panel" onClick={event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !(event.target as Element).closest('a')) return;
         closeToSummary();
       }}>
+        {moreOpen && language?.(closeToSummary)}
         {/* Content arrangement §4: places first, then about and feedback, then the account; the legal links are the footer's. */}
         <nav className="site-secondary-nav" aria-label={english ? 'More discoveries' : '更多探索'}>
           {/* G1: the inbox is two taps from any page (更多 → 消息) and carries the unread count. */}

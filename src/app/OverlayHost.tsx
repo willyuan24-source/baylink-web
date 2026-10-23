@@ -8,6 +8,8 @@ import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
 import { ConfirmHost } from '../components/ui/confirm';
 import { ModalShell } from '../components/ui/Modal';
+// A dialog's chunk wait is DialogWait (followup 41): the site's one scrim and spinner disc, holding the page as the dialog will.
+import { DialogWait } from '../components/ui/DialogWait';
 import { Toast, type ToastAction } from '../components/Toast';
 import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
@@ -42,16 +44,12 @@ const PostNotFoundView = lazyChunk(() => import('../components/PostNotFoundView'
 const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 
 /**
- * A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link): on the site's
- * one scrim (N10), the dialog's own, so the page does not flash white before the dialog arrives; the spinner is the sheet
- * fallback's (site-chunk-spinner: --dur-* motion, still under reduced motion and in 简洁显示).
- */
-const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[color:var(--scrim)]"><span className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /></span></div>;
-/**
  * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): F's Sheet frame (the .ui-sheet
  * classes of ui.css, without importing the Sheet into the shell) titled like the sheet that replaces it and at its size
  * (site-chrome.css), so it arrives in place. `drawer` is BayBay's 440px drawer with no desktop scrim (captain decision 7).
- * The close has F's CloseButton look and name (the component would bring Button.tsx and its card sheets into the shell).
+ * The close is CloseButton's markup written out (its classes, ✕ at 1.75 and name), as in Toast.tsx: this host is in the
+ * entry chunk, and importing CloseButton would make the entry load Button.tsx and its card sheets, which the pages that
+ * do not need them (opus-bay.html, play.html, verify-email.html) would then block on (UI9-R2 measured; ui9-r1-overlays pins it).
  */
 const SheetChunkFallback = ({ title, label, onClose, restoreFocusRef, drawer }: { title: string; label: string; onClose: () => void; restoreFocusRef?: RefObject<HTMLElement>; drawer?: boolean }) => {
   const close = copy(useLocale(), '关闭', 'Close');
@@ -114,7 +112,7 @@ export function OverlayHost(props: OverlayHostProps) {
   const locale = useLocale();
   const t = (zh: string, en: string) => copy(locale, zh, en);
   const unavailable = (close: () => void) => (lostChunk: boolean) => { close(); showUnavailable(showToast, lostChunk); };
-  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <OverlayChunkFallback />, options: { key?: string; onFail?: () => void } = {}) =>
+  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <DialogWait />, options: { key?: string; onFail?: () => void } = {}) =>
     <OverlayBoundary key={options.key} onFail={lostChunk => { options.onFail?.(); unavailable(close)(lostChunk); }}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
   const baybayAttempt = useReopenAfterFailure(baybay.open);
   const postClose = () => post.close(post.selected);
@@ -175,7 +173,7 @@ export function OverlayHost(props: OverlayHostProps) {
     />)}
 
     {post.id && post.loading && post.selected?.id !== post.id && (
-      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--scrim)] p-6"><div className="flex flex-col items-center gap-4 rounded-3xl bg-white p-6 shadow-lg"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></div></ModalShell>
+      <ModalShell onClose={postClose} label={t('正在加载信息', 'Loading')} className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--scrim)] p-6"><div className="site-chunk-card"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /><button type="button" className="ui-button" data-variant="secondary" onClick={postClose}>{t('返回', 'Back')}</button></div></ModalShell>
     )}
     {post.id && post.missing && lazyDialog(postClose, <PostNotFoundView onBack={postClose} />)}
     {post.id && post.error && !post.loading && <ModalShell onClose={postClose} label={t('暂时无法加载信息', 'This could not load')} className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{post.error}</p><button type="button" className="btn-primary px-6 py-3" onClick={post.retry}>{t('重试加载', 'Try again')}</button><button type="button" onClick={postClose}>{t('返回', 'Back')}</button></ModalShell>}

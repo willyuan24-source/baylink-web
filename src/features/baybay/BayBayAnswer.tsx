@@ -233,14 +233,6 @@ export function BayBayNoticeBanner({ kind, text, resumesAt, actions, healthFloor
   </div>;
 }
 
-/**
- * The calm notice of the last 7 days before the AI cutoff (capabilities `pauseScheduled`, api #37): when BayBay pauses
- * and that site information stays. No call buttons (nothing is wrong yet); its "拨打 911" is tap-to-call like any number.
- */
-export function BayBayScheduledNotice({ text }: { text: string }) {
-  return <p className="bb-scheduled" data-notice="ai_pause_scheduled" role="note" translate="no">{linkifyPhones(text)}</p>;
-}
-
 /** The panel shows the day's remaining AI queries in a visible line once this few are left (else only in 检索、额度与对话说明). */
 export const BAYBAY_QUOTA_VISIBLE = 5;
 

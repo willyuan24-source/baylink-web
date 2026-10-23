@@ -16,31 +16,31 @@ const syncModalStack = () => {
   });
 };
 
-// 滚动锁计数：body 和内部滚动容器（#scroll-container）一起锁，嵌套弹层全部关闭后才解锁
+// 页面锁（滚动 + inert）计数：嵌套弹层全部关闭后才解锁。
+// The viewport takes its overflow from <html>: design.css's `html { overflow-x:clip }` keeps body's value from reaching it,
+// so the old lock on body (and on #scroll-container, a <main> in the page flow, not a scroller) left the page scrolling
+// under an open dialog. The lock sets overflow:hidden on <html> and keeps a classic scrollbar's gutter (scrollbar-gutter:
+// stable), so nothing moves sideways. Body and <main> are left alone: overflow:hidden on them makes them the scroll container
+// of the sticky top bar and the guide rails, which then jump off the screen behind the dialog.
 let scrollLockCount = 0;
-let originalPageState: {
-  body: HTMLElement; bodyOverflow: string;
-  scroller: HTMLElement | null; scrollerOverflow: string;
-  appRoot: HTMLElement | null; appRootInert: boolean;
-  focusedElement: HTMLElement | null;
-} | null = null;
+let originalPageState: { style: CSSStyleDeclaration; overflow: string; gutter: string; appRoot: HTMLElement | null; appRootInert: boolean; focusedElement: HTMLElement | null } | null = null;
+
 const lockScroll = (focusedElement: HTMLElement | null) => {
   if (++scrollLockCount !== 1) return;
-  const body = document.body;
-  const scroller = document.getElementById('scroll-container');
+  const html = document.documentElement;
+  const { style } = html;
   const appRoot = document.getElementById('root');
-  originalPageState = { body, bodyOverflow: body.style.overflow, scroller,
-    scrollerOverflow: scroller?.style.overflow || '', appRoot, appRootInert: !!appRoot?.inert,
-    focusedElement };
-  body.style.overflow = 'hidden';
-  if (scroller) scroller.style.overflow = 'hidden';
+  originalPageState = { style, overflow: style.overflow, gutter: style.scrollbarGutter, appRoot, appRootInert: !!appRoot?.inert, focusedElement };
+  // A classic scrollbar (not the overlay kind of phones and macOS) is innerWidth - clientWidth wide.
+  if (window.innerWidth > html.clientWidth) style.scrollbarGutter = 'stable';
+  style.overflow = 'hidden';
   if (appRoot) appRoot.inert = true;
 };
 const unlockScroll = () => {
   if (--scrollLockCount !== 0 || !originalPageState) return;
-  const { body, bodyOverflow, scroller, scrollerOverflow, appRoot, appRootInert } = originalPageState;
-  body.style.overflow = bodyOverflow;
-  if (scroller) scroller.style.overflow = scrollerOverflow;
+  const { style, overflow, gutter, appRoot, appRootInert } = originalPageState;
+  style.overflow = overflow;
+  style.scrollbarGutter = gutter;
   if (appRoot) appRoot.inert = appRootInert;
   originalPageState = null;
 };
@@ -69,6 +69,28 @@ const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : us
 const getFocusable = (container: HTMLElement): HTMLElement[] =>
   Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
     .filter((el) => el.getClientRects().length > 0);
+
+/**
+ * DialogWait's hold on the page while a dialog's chunk loads: the dialogs' own lock (no scrolling, an inert #root), taken in
+ * the commit that shows the scrim. Focus is not moved (Chrome itself moves it off an opener that turns inert, to <body>); the
+ * opener is kept with the lock. The Suspense commit removes the wait before the dialog's layout effect runs, so the wait lets
+ * go a microtask later: the dialog's lock nests inside it and the page is locked once, and the opener the wait kept is the
+ * one focus returns to. A wait that ends without a dialog (the opener went away, the chunk failed) releases the page and gives
+ * focus back to the opener if the inert page dropped it.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useDialogWaitLock() {
+  useIsomorphicLayoutEffect(() => {
+    lockScroll(document.activeElement as HTMLElement | null);
+    return () => {
+      const opener = originalPageState!.focusedElement;
+      queueMicrotask(() => {
+        unlockScroll();
+        if (!scrollLockCount && document.activeElement === document.body) restoreFocus(opener);
+      });
+    };
+  }, []);
+}
 
 /** 弹层行为 hook：挂载期间锁滚动、陷住 Tab 焦点、Esc 触发 onClose、卸载时还原焦点。 */
 export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.RefObject<HTMLElement>, restoreFocusRef?: React.RefObject<HTMLElement>) {
@@ -146,7 +168,9 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
           if (!nextTop.contains(previouslyFocused) || !restoreFocus(previouslyFocused)) {
             (getFocusable(nextTop)[0] || nextTop).focus({ preventScroll: true });
           }
-        } else if (!restoreFocus(previouslyFocused) && !restoreFocus(originalPageFocus)) {
+        // The page's opener is the one the first lock kept: this dialog's own, or DialogWait's when this dialog replaced it
+        // (the wait's inert page can have moved focus to <body> before this dialog rendered).
+        } else if (!restoreFocus(originalPageFocus) && !restoreFocus(previouslyFocused)) {
           // A route change can remove the opener. Return to the app's main
           // content only after the final modal has released the background.
           restoreFocus(document.getElementById('scroll-container'));

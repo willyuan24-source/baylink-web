@@ -46,7 +46,7 @@ const articleImages = (slug: string) => {
   return page;
 };
 
-afterEach(() => { cleanup(); document.body.style.overflow = ''; });
+afterEach(() => { cleanup(); document.documentElement.style.overflow = ''; });
 
 const photo: GuideImage = {
   src: '/test/coast.webp', srcSet: '/test/coast-small.webp 480w, /test/coast.webp 1200w',
@@ -86,7 +86,8 @@ test('guide figures preserve image dimensions, responsive sources, provenance, a
 });
 
 test('zoom dialog traps focus, retains credit links, and restores focus and scrolling when closed', async () => {
-  document.body.style.overflow = 'auto';
+  // The page lock is on <html>, where the viewport's overflow lives (UI9-R2-MODAL-LOCK).
+  document.documentElement.style.overflow = 'auto';
   const view = render(<GuideFigure image={photo} />);
   const opener = view.getByRole('button', { name: `放大图片：${photo.alt}` });
   opener.focus();
@@ -94,7 +95,7 @@ test('zoom dialog traps focus, retains credit links, and restores focus and scro
   // The enlarged picture is a chunk of its own (GuideLightbox.tsx, UI9-R1-OVERLAYS): it arrives a moment after the tap.
   const dialog = await view.findByRole('dialog', { name: `图片放大：${photo.alt}` });
   assert.equal(dialog.getAttribute('aria-modal'), 'true');
-  assert.equal(document.body.style.overflow, 'hidden');
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   const close = within(dialog).getByRole('button', { name: '关闭放大图片' });
   assert.equal(document.activeElement, close);
   const license = within(dialog).getByRole('link', { name: /图片授权/ });
@@ -107,7 +108,7 @@ test('zoom dialog traps focus, retains credit links, and restores focus and scro
   fireEvent.keyDown(close, { key: 'Escape' });
   assert.equal(view.queryByRole('dialog'), null);
   assert.equal(document.activeElement, opener);
-  assert.equal(document.body.style.overflow, 'auto');
+  assert.equal(document.documentElement.style.overflow, 'auto');
 
   fireEvent.click(opener);
   fireEvent.click(view.getByRole('button', { name: '关闭放大图片' }));
@@ -123,7 +124,7 @@ test('changing an image closes its old dialog and releases the page scroll lock'
   assert.ok(await view.findByRole('dialog'));
   view.rerender(<GuideFigure image={{ ...photo, src: '/test/next.webp', alt: '另一张配图' }} />);
   assert.equal(view.queryByRole('dialog'), null);
-  assert.equal(document.body.style.overflow, '');
+  assert.equal(document.documentElement.style.overflow, '');
   assert.equal(view.getByRole('img').getAttribute('src'), '/test/next.webp');
 });
 
@@ -241,7 +242,7 @@ test('switching guide slugs resets route and checklist state and closes any enla
   assert.ok(await view.findByRole('dialog'));
   view.rerender(article(second));
   assert.equal(view.queryByRole('dialog'), null);
-  assert.equal(document.body.style.overflow, '');
+  assert.equal(document.documentElement.style.overflow, '');
   assert.equal(view.getAllByRole('tab')[0].getAttribute('aria-selected'), 'true');
   assert.ok(view.getAllByRole('checkbox').every(checkbox => !(checkbox as HTMLInputElement).checked));
   view.rerender(article(first));

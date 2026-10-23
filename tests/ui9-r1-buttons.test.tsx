@@ -79,13 +79,14 @@ test('follow-up 29: one selected look — the selected pair with its edge — on
   assert.deepEqual(pick(decls('src/components/ui/cards.css', '.ui-segmented__item[aria-checked=true]')), SELECTED);
   assert.deepEqual(pick(decls('src/features/events/events.css', '.ev-tabs .ui-tabs__item[aria-current]')), SELECTED);
   assert.deepEqual(pick(decls('src/features/events/events.css', ':is(.ev-week__day,.ev-month__day)[aria-pressed=true]')), SELECTED);
-  assert.deepEqual(pick(decls('src/components/site-chrome.css', '.site-app :is(.site-secondary-nav a[aria-current=page],.site-language-menu>button[aria-pressed=true])')), SELECTED);
+  assert.deepEqual(pick(decls('src/components/site-chrome.css', '.site-app :is(.site-secondary-nav a[aria-current=page],:is(.site-language-menu,.site-language-options)>button[aria-pressed=true])')), SELECTED);
   // The checked 列表 | 地图 segment is the segment primitive exactly (no transparent-edge override).
   assert.deepEqual(decls('src/features/events/events.css', '.ev-calendar__mode .ui-segmented__item[aria-checked=true]'), { 'font-weight': '400' });
   // Choosing moves nothing: tabs, menu rows and day cells carry the 1px edge at rest, in transparent.
   assert.equal(decls('src/features/events/events.css', '.ev-tabs .ui-tabs__item').border, '1px solid transparent');
   assert.equal(decls('src/features/events/events.css', '.ev-week__day,.ev-month__day').border, '1px solid transparent');
   assert.equal(decls('src/components/site-chrome.css', '.site-app .site-language-menu>button').border, '1px solid transparent');
+  assert.equal(decls('src/components/site-chrome.css', '.site-app .site-language-options>button').border, '1px solid transparent', 'the phone ••• language row too (UI9-R2)');
   assert.equal(decls('src/components/site-chrome.css', '.site-app .site-secondary-nav>:is(a,button),.site-app .site-navigation-account button').border, '1px solid transparent');
   // The chosen day's date circle no longer draws a second fill inside the cell; its words and dot turn white.
   assert.equal(decls('src/features/events/events.css', '.ev-week__day[aria-pressed=true] .ev-week__date,.ev-month__day[aria-pressed=true] .ev-month__num')['border-color'], 'transparent');

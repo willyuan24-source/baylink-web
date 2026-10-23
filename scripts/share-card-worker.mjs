@@ -85,7 +85,7 @@ function indexPixels(data, width, height, keep) {
  * colours do the rarest ones (never `keep`) join their nearest kept colour, the same way on every machine. (The
  * quantizer fills its 8-bit palette, so with the exact paper a card can come to 257: then the rarest colour joins its nearest.)
  */
-export function indexedPng(data, width, height, keep) {
+export function indexedPng(data, width, height, keep, level = DEFLATE_LEVEL) {
   const { palette, rows } = indexPixels(data, width, height, keep);
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width, 0); header.writeUInt32BE(height, 4); header[8] = 8; header[9] = 3; // 8-bit, indexed
@@ -95,7 +95,7 @@ export function indexedPng(data, width, height, keep) {
     chunk('IHDR', header),
     chunk('PLTE', Buffer.from(palette.flatMap(colour => channels(colour).slice(0, 3)))),
     ...translucent ? [chunk('tRNS', Buffer.from(alpha.slice(0, translucent)))] : [],
-    chunk('IDAT', deflateSync(rows, { level: DEFLATE_LEVEL })),
+    chunk('IDAT', deflateSync(rows, { level })),
     chunk('IEND', Buffer.alloc(0)),
   ]);
 }
@@ -116,21 +116,38 @@ const opaque = pixels => {
  * An opaque card (every card: each is drawn on its paper) goes to the quantizer as resvg's raw pixels — the very RGBA a
  * PNG round trip decodes to, without encoding and decoding 1200 × 630 pixels first (HOTFIX-BUILD-TIME).
  */
-export async function cardPng({ svg, paper }) {
+export async function cardPng({ svg, paper, maxBytes }) {
   const rendered = new Resvg(svg, { font: { loadSystemFonts: false } }).render();
   if (!sharp) return rendered.asPng();
   const { width, height, pixels: drawn } = rendered;
-  const input = opaque(drawn) ? sharp(drawn, { raw: { width, height, channels: 4 } }) : sharp(rendered.asPng());
-  const quantized = await input.png({ palette: true, colors: 192, effort: 4, compressionLevel: paper ? 0 : 9 }).toBuffer();
-  if (!paper) return quantized;
-  const { data, info } = await sharp(quantized).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const key = rgbaKey(paper);
-  for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === key) data.writeUInt32BE(key, at);
-  return indexedPng(data, info.width, info.height, key);
+  const raw = opaque(drawn);
+  const encode = async ({ dither = 1, quality = 100, level = DEFLATE_LEVEL } = {}) => {
+    const input = raw ? sharp(drawn, { raw: { width, height, channels: 4 } }) : sharp(rendered.asPng());
+    const quantized = await input.png({ palette: true, colors: 192, dither, quality, effort: 4, compressionLevel: paper ? 0 : 9 }).toBuffer();
+    if (!paper) return quantized;
+    const { data, info } = await sharp(quantized).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const key = rgbaKey(paper);
+    for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === key) data.writeUInt32BE(key, at);
+    return indexedPng(data, info.width, info.height, key, level);
+  };
+  if (!maxBytes) return encode();
+  // A card with a byte budget (the hub cards, HUB_CARD_BUDGET) steps down the dither, then the palette's quality, at zlib
+  // level 9, until it fits; the drawing (and its picture) stays the same.
+  let small;
+  for (const step of BUDGET_STEPS) if ((small = await encode({ ...step, level: 9 })).length <= maxBytes) break;
+  return small;
 }
 
-export async function rasterize({ svg, out, paper }) {
-  const small = await cardPng({ svg, paper });
+/**
+ * The hub share cards' byte budget (UI9-R2 batch 2): the most-shared cards stay under 290 KB (verify:share-cards checks
+ * HUB_CARD_LIMIT), the size past which some chat apps skip a link preview's picture. A photo band as busy as the explore
+ * hub's coast came to ~299 KB at the listing cards' settings; at dither 0 the 256-colour palette still holds its picture.
+ */
+export const HUB_CARD_BUDGET = 285_000, HUB_CARD_LIMIT = 290_000;
+const BUDGET_STEPS = [{ dither: 1 }, { dither: .5 }, { dither: .25 }, { dither: 0 }, { dither: 0, quality: 60 }, { dither: 0, quality: 50 }];
+
+export async function rasterize({ svg, out, paper, maxBytes }) {
+  const small = await cardPng({ svg, paper, maxBytes });
   await mkdir(dirname(out), { recursive: true });
   await writeFile(out, small);
   return small.length;

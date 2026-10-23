@@ -1,4 +1,5 @@
 import { escapeHtml } from './seo';
+import { COVER_TONES, type CoverTone } from './event-facts';
 
 /** Advance of one character at `fontSize`: CJK full width, Latin by a rough per-letter class. */
 const advanceOf = (letter: string, fontSize: number) => /[⺀-￿]/u.test(letter) ? fontSize : /[MW@]/.test(letter) ? fontSize * .86 : /[il .,:|]/.test(letter) ? fontSize * .32 : fontSize * .59;
@@ -38,23 +39,41 @@ export function partsLine(parts: readonly string[], width: number, fontSize: num
 export const fitSize = (text: string, width: number, max: number, min = 28) => Math.max(min, Math.min(max, Math.floor(width / Math.max(1, textWidth(text, 1)))));
 
 /**
- * The cards' colours are the token sheet's own channels (src/tokens.css --color-*-rgb, "R G B"): the renderer runs in Node
- * and cannot read CSS variables, so it carries the same channels, and tests/token-contrast.test.ts holds each one equal to
- * the sheet (a palette change there fails the test until the cards follow).
+ * The token sheet's first `:root` block (src/tokens.css), read where the cards are drawn. The renderer only runs in Node
+ * (scripts/generate-share-cards.ts, generate-weekly.ts and the tests; no page imports it), and resvg cannot resolve CSS
+ * variables, so it reads the sheet's own declarations rather than carrying copies of them (UI9-R2 N08).
  */
-export const CARD_CHANNELS = {
-  ink: '30 43 38', 'ink-2': '71 83 78', 'ink-3': '92 100 95', bg: '250 246 239',
-  brand: '9 107 84', 'brand-hover': '7 84 64', 'brand-deep': '18 60 49', 'brand-tint': '227 239 231',
-  warm: '140 58 32', 'warm-tint': '251 229 218', info: '59 79 142', 'info-tint': '228 231 244', moss: '74 106 42', 'moss-tint': '230 237 217',
-  warning: '126 68 8', 'warning-tint': '251 235 210', success: '39 107 68', 'success-tint': '232 243 236',
-} as const;
-const token = (name: keyof typeof CARD_CHANNELS) => `#${CARD_CHANNELS[name].split(' ').map(value => Number(value).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
-/** The category map (src/tokens.css --tc-*, tokens v2), so a card reads like the listing's own cover. */
-export type CardTone = 'family' | 'culture' | 'outdoors' | 'food' | 'seniors' | 'free';
-export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = {
-  family: { bg: token('warm-tint'), fg: token('warm') }, culture: { bg: token('info-tint'), fg: token('info') }, outdoors: { bg: token('moss-tint'), fg: token('moss') },
-  food: { bg: token('warning-tint'), fg: token('warning') }, seniors: { bg: token('brand-tint'), fg: token('brand-hover') }, free: { bg: token('success-tint'), fg: token('success') },
+function tokenSheetRoot(): string {
+  type Fs = { readFileSync(path: URL, encoding: 'utf8'): string };
+  const fs = (globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }).process?.getBuiltinModule?.('node:fs') as Fs | undefined;
+  if (!fs) throw new Error('share-card-svg.ts draws cards in Node only: it reads src/tokens.css');
+  const sheet = fs.readFileSync(new URL('../tokens.css', import.meta.url), 'utf8');
+  const start = sheet.indexOf(':root {');
+  return sheet.slice(start, sheet.indexOf('\n}', start));
+}
+const ROOT_TOKENS = tokenSheetRoot();
+/** The palette's "R G B" channels (--color-<name>-rgb); tests/token-contrast.test.ts holds the cards to the same sheet. */
+export const CARD_CHANNELS: Readonly<Record<string, string>> = Object.fromEntries(
+  [...ROOT_TOKENS.matchAll(/--color-([a-z0-9-]+)-rgb:\s*(\d+ \d+ \d+)\s*;/g)].map(([, name, channels]) => [name, channels]));
+const token = (name: string) => {
+  const channels = CARD_CHANNELS[name];
+  if (!channels) throw new Error(`src/tokens.css has no --color-${name}-rgb`);
+  return `#${channels.split(' ').map(value => Number(value).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
 };
+/** The cards' tones are the site's cover tones (event-facts.ts COVER_TONES). */
+export type CardTone = CoverTone;
+/**
+ * Each tone's ground and ink: the sheet's one category map (--tc-<tone>-bg / -fg, "one map for covers, chips and share
+ * cards"), read rather than declared again, so a card reads like the listing's own cover and follows the map when it changes.
+ */
+export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = Object.fromEntries(COVER_TONES.map(tone => {
+  const side = (part: 'bg' | 'fg') => {
+    const name = new RegExp(`--tc-${tone}-${part}:\\s*var\\(--color-([a-z0-9-]+)\\)`).exec(ROOT_TOKENS)?.[1];
+    if (!name) throw new Error(`src/tokens.css has no --tc-${tone}-${part}`);
+    return token(name);
+  };
+  return [tone, { bg: side('bg'), fg: side('fg') }];
+})) as Record<CardTone, { bg: string; fg: string }>;
 /** The inks, the brand and the paper of the token sheet (the share card and the weekly card). */
 export const CARD_INK = { ink: token('ink'), ink2: token('ink-2'), ink3: token('ink-3'), brand: token('brand'), brandDeep: token('brand-deep'), brandTint: token('brand-tint'), paper: token('bg') } as const;
 const { ink: INK, ink2: INK_2, ink3: INK_3, brand: BRAND, brandDeep: BRAND_DEEP, paper: PAPER } = CARD_INK;
@@ -73,7 +92,7 @@ const lines = (draw: TextDrawer, texts: string[], x: number, y: number, size: nu
   texts.map((text, index) => draw({ text, x, y: y + index * lineHeight, size, weight, fill })).join('');
 
 /**
- * Card v2 (I18N-SEO-05): the type layout (palette, category, the big date or value; hub cards and any card without a picture) on the left and on the right
+ * Card v2 (I18N-SEO-05): the type layout (palette, category, the big date or value; any card without a picture) on the left and on the right
  * the title, date and place, then the QR to the page in the card's own language; a card with a photo it may carry puts
  * the photo across the top instead (renderPhotoCardSvg, H45). One card per language (/share-cards/,
  * /share-cards/zh-Hant/, /share-cards/en/).
@@ -119,7 +138,9 @@ const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = 
  * title (two lines), the date and place and the footnote, with the QR in the bottom-right corner as on every card.
  */
 export const PHOTO_BAND = { width: 1200, height: 346 } as const;
-function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQr, logo: string, draw: TextDrawer): string {
+/** What the photo layout draws: listing cards (renderShareCardSvg) and hub cards (renderHubCardSvg) alike. */
+type PhotoCardModel = Pick<ShareCardModel, 'provenance' | 'kindLabel' | 'title' | 'meta' | 'footnote' | 'tagline' | 'sticker'> & { photo: string };
+function renderPhotoCardSvg(model: PhotoCardModel, qr: CardQr, logo: string, draw: TextDrawer): string {
   const band = PHOTO_BAND.height, left = 48, right = 940;
   const title = cardLines(model.title, right - left, 42, 2);
   const titleY = 446, metaY = titleY + (title.length - 1) * 52 + 50;
@@ -193,12 +214,25 @@ export function renderShareCardSvg(model: ShareCardModel, qr: CardQr, logo: stri
 }
 
 /**
- * A hub's share card (I18N-SEO-03): 1200 × 630, for the home page, 活动, 指南 and the other hubs, one per language. The
- * left panel names the hub on the brand colour; the right lists what the hub has this week (the weekend's picks with
- * their dates, guide topics, tools), then the QR to the hub.
+ * A hub's share card (I18N-SEO-03): 1200 × 630, for the home page, 活动, 指南 and the other hubs, one per language.
+ * UI9-R2 N20 (DECISIONS 21, OD12): a hub card fronts a picture like every listing card — the photo layout, with the
+ * picture's own label on it (示意图 for a ③ stock picture; never AI art), the hub's name, one line of what it has (`meta`)
+ * and the QR. Only without a picture (the file missing; verify:share-cards fails the build then) does it fall back to
+ * the brand panel: the hub's name on the brand colour, and on the right what the hub has this week (`rows`).
  */
-export type HubCardModel = { eyebrow: string; title: string; subtitle: string; rows: { badge?: string; text: string }[]; scan: string; footnote: string; tagline?: string };
+export type HubCardModel = {
+  eyebrow: string; title: string; subtitle: string; rows: { badge?: string; text: string }[]; scan: string; footnote: string; tagline?: string;
+  /** The photo layout's one line under the title: whole parts that fit (partsLine). */
+  meta: string[];
+  /** The picture's own label, and the picture as a data URI (the 1200 × 346 band). */
+  provenance?: string; photo?: string;
+};
 export function renderHubCardSvg(model: HubCardModel, qr: CardQr, logo: string, draw: TextDrawer = plainText): string {
+  if (model.photo) {
+    // DECISIONS 23: a picture is never drawn without its label
+    if (!model.provenance) throw new Error(`hub card "${model.title}": a picture needs its label`);
+    return renderPhotoCardSvg({ photo: model.photo, provenance: model.provenance, kindLabel: model.eyebrow, title: model.title, meta: model.meta, footnote: model.scan, tagline: model.tagline }, qr, logo, draw);
+  }
   const panel = 500, left = 548, right = 1150;
   const title = cardLines(model.title, panel - 96, 54, 3);
   const subtitle = cardLines(model.subtitle, panel - 96, 24, 3);
