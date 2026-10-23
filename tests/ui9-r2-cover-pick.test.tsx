@@ -67,8 +67,7 @@ test('the home lead (getBuildWeekend): the editor\'s first pick with a photograp
   assert.deepEqual(weekend.picks.map(pick => [pick.event.id, pick.editorial?.rank]), [[ids[3], 4], [ids[0], 1], [ids[1], 2]]);
   assert.ok(buildCanLead(weekend.picks[0].event, today));
   for (const pick of weekend.picks.slice(1)) assert.equal(buildCanLead(pick.event, today), false, `${pick.event.id}: a card, not a lead`);
-  // It heads the feed the home shows (its first card, or its second when it has no picture): /plan's fourth card.
-  assert.ok(weekend.feed.slice(0, 2).some(entry => entry.event.id === ids[2]), 'the third pick heads the feed');
+  assert.equal(weekend.feed[0]?.event.id, ids[2], 'the third pick heads the feed the home shows (/plan\'s fourth card)');
   assert.equal(new Set([...weekend.picks, ...weekend.feed].map(entry => entry.event.id)).size, weekend.picks.length + weekend.feed.length, 'each event once');
 });
 
