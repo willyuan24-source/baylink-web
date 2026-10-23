@@ -15,6 +15,7 @@ import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { listingImageKeys } from '../src/lib/cover-candidates';
 import { captionSignal } from './events-index-images';
+import { homeImageRungs } from '../src/lib/home-image-rungs';
 import homeTilePhotos from '../src/data/home-tile-photos.json';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
@@ -157,8 +158,15 @@ const IMAGE_FIELDS = ['src', 'srcSet', 'width', 'height', 'alt', 'kind', 'fullFr
 // card or /plan pick prints a caption, the badge and the year read only that, and the sentence (with its English in the
 // home's dictionary scope) was most of an image's bytes (UI9-IMG-A1a: the venue photos it adds cost the home nothing).
 const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), caption: captionSignal(image.caption), rights: { basis: rightsBasisOf(image as CoverAsset) } });
-const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
-  ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);
+// A card image's srcset travels as its ladder rungs (UI9-IMG-B2, lib/home-image-rungs.ts): src/lib/home-catalog.ts writes the
+// same string back, about 3 KiB gzip less home JS than the strings. A srcset the ladder cannot rebuild ships as it is.
+const cardImage = (image: GuideImage) => {
+  const { srcSet, ...slim } = slimImage(image) as ReturnType<typeof slimImage> & { srcSet?: string };
+  const rungs = homeImageRungs(image);
+  return rungs === undefined ? { ...slim, ...(srcSet ? { srcSet } : {}) } : { ...slim, rungs };
+};
+const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, cardImage(GUIDE_IMAGES[key])] as const),
+  ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, cardImage(image)] as const)]);
 const scene3d = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-golden-gate-fog']);
 // UI9-IMG-A1b (DECISIONS 27): the eight entry tiles' photos (src/data/home-tile-photos.json, owner-approved B1b2): navigation
 // images, never card covers. Each tile ships its 480 w file only (≤ 15 KB, verify:images) with what the tile and the credits

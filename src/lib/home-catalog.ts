@@ -5,6 +5,7 @@ import type { MonthlyEvent } from '../data/monthly-types';
 import type { Copy, CoverTone } from './event-facts';
 import type { HomeOffer } from './home-offers';
 import type { PlanningFacts } from './planner';
+import { homeImageSrcSet } from './home-image-rungs';
 
 /**
  * The home page's slim catalog (scripts/generate-home-catalog.ts): the weekend snapshots, the events they name, the
@@ -41,7 +42,9 @@ export const MONTHLY_EDITION = catalog.edition as { checkedAt: string; throughDa
 export const HOME_WEEKENDS = catalog.weekends;
 export const HOME_GENERATED_AT = catalog.generatedAt;
 export const HOME_OFFERS = catalog.offers as HomeOffer[];
-export const GUIDE_IMAGES = catalog.images as Record<string, GuideImage>;
+/** The catalog's images; a srcset written as its ladder rungs (lib/home-image-rungs.ts) is the full string again here. */
+export const GUIDE_IMAGES: Record<string, GuideImage> = Object.fromEntries(Object.entries(catalog.images as Record<string, GuideImage & { rungs?: number }>)
+  .map(([key, { rungs, ...image }]) => [key, rungs === undefined ? image : { ...image, srcSet: homeImageSrcSet(image, rungs) }]));
 /** The 3D tile's key art: a postcard of BAYLINK's own 3D San Francisco (scene3d-postcards.ts), labelled 3D 场景插图. */
 export const HOME_SCENE3D = catalog.scene3d as GuideImage;
 /** The weekend feed's 3D strip (H36): another postcard of the same world, so the page never shows one image twice. */
