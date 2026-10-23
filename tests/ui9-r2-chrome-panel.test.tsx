@@ -59,7 +59,8 @@ test('N10 / N11: the search pill rings with the focus tokens, BayBay\'s composer
 test('OverlayHost: the chunk fallbacks sit on token classes (no Tailwind shadow or corners) and keep CloseButton\'s markup', () => {
   const source = read('src/app/OverlayHost.tsx');
   for (const [, classes] of source.matchAll(/className="([^"]*)"/g)) assert.doesNotMatch(classes, /\b(?:shadow-(?:sm|md|lg|xl|2xl)|rounded-(?:full|lg|xl|2xl|3xl))\b/, classes);
-  assert.match(source, /<span className="site-chunk-disc">/);
+  // The dialogs' chunk wait is DialogWait (followup 41), on the same token disc.
+  assert.match(read('src/components/ui/DialogWait.tsx'), /<span className="site-chunk-disc">/);
   assert.match(source, /<div className="site-chunk-card">/);
   // The entry chunk holds this host: the close is CloseButton's markup written out, as in Toast.tsx (no Button.tsx in the entry).
   assert.match(source, /className="ui-icon-button ui-close" aria-label=\{close\} title=\{close\}/);

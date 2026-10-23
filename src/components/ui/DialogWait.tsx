@@ -1,5 +1,5 @@
-// While a dialog's chunk loads (lazy-dialog.ts): the site's one scrim and a spinner on a white disc, as OverlayHost's chunk
-// fallback, so a tap shows at once. The dialog that replaces it is told (`afterWait`) to keep this scrim instead of fading a
+// While a dialog's chunk loads (lazy-dialog.ts, and OverlayHost's dialogs): the site's one scrim and a spinner on the
+// surface disc with the dialog shadow e2 (site-chunk-disc in site-chrome.css: tokens, N10 / N11), so a tap shows at once. The dialog that replaces it is told (`afterWait`) to keep this scrim instead of fading a
 // new one in from 0 (no dip). The wait already holds the page as the dialog will (Modal.tsx useDialogWaitLock): no scrolling
 // behind the scrim, an inert page; the dialog's lock nests inside it, and a wait that ends without one releases it.
 import { Suspense, useState, type ComponentType } from 'react';
@@ -10,7 +10,7 @@ import { useDialogWaitLock } from './Modal';
 
 export const DialogWait = () => {
   useDialogWaitLock();
-  return createPortal(<div className="fixed inset-0 z-[110] flex items-center justify-center bg-[color:var(--scrim)]"><span className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /></span></div>, document.body);
+  return createPortal(<div className="fixed inset-0 z-[110] flex items-center justify-center bg-[color:var(--scrim)]"><span className="site-chunk-disc"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /></span></div>, document.body);
 };
 
 /**

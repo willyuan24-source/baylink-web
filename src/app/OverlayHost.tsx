@@ -8,6 +8,8 @@ import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
 import { ConfirmHost } from '../components/ui/confirm';
 import { ModalShell } from '../components/ui/Modal';
+// A dialog's chunk wait is DialogWait (followup 41): the site's one scrim and spinner disc, holding the page as the dialog will.
+import { DialogWait } from '../components/ui/DialogWait';
 import { Toast, type ToastAction } from '../components/Toast';
 import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
@@ -41,13 +43,6 @@ const PostNotFoundView = lazyChunk(() => import('../components/PostNotFoundView'
 
 const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 
-/**
- * A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link): on the site's
- * one scrim (N10), the dialog's own, so the page does not flash white before the dialog arrives; the spinner is the sheet
- * fallback's (site-chunk-spinner: --dur-* motion, still under reduced motion and in 简洁显示) on a white disc with the
- * dialog shadow e2 (site-chunk-disc: tokens, not Tailwind's shadow-lg and rounded-full; N10 / N11, UI9-R2).
- */
-const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[color:var(--scrim)]"><span className="site-chunk-disc"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /></span></div>;
 /**
  * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): F's Sheet frame (the .ui-sheet
  * classes of ui.css, without importing the Sheet into the shell) titled like the sheet that replaces it and at its size
@@ -117,7 +112,7 @@ export function OverlayHost(props: OverlayHostProps) {
   const locale = useLocale();
   const t = (zh: string, en: string) => copy(locale, zh, en);
   const unavailable = (close: () => void) => (lostChunk: boolean) => { close(); showUnavailable(showToast, lostChunk); };
-  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <OverlayChunkFallback />, options: { key?: string; onFail?: () => void } = {}) =>
+  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <DialogWait />, options: { key?: string; onFail?: () => void } = {}) =>
     <OverlayBoundary key={options.key} onFail={lostChunk => { options.onFail?.(); unavailable(close)(lostChunk); }}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
   const baybayAttempt = useReopenAfterFailure(baybay.open);
   const postClose = () => post.close(post.selected);
