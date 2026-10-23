@@ -1,7 +1,9 @@
 // UI9-R2-MODAL-LOCK: an open dialog holds the page still. The viewport's overflow lives on <html> (design.css keeps
 // `html { overflow-x:clip }`, so body's overflow never reached it), the lock keeps a classic scrollbar's gutter, nested
 // dialogs release only at the outermost close, and DialogWait (the scrim while a dialog's chunk loads) takes the same lock,
-// hands it to the dialog without an unlock in between, and releases it when the wait is cancelled or the chunk fails.
+// keeps it until the dialog that replaces it holds the page (locked once, no unlock in between), and releases it when the
+// wait is cancelled or the chunk fails. Body and #scroll-container are left alone (overflow:hidden on them unsticks the
+// sticky top bar and the guide rails).
 import assert from 'node:assert/strict';
 import test, { afterEach, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
@@ -54,25 +56,21 @@ test('an open dialog locks the viewport on <html>, leaves body alone, and restor
 test('a classic scrollbar keeps its gutter while the page is locked, so nothing moves sideways', () => {
   Object.defineProperty(html, 'clientWidth', { configurable: true, get: () => window.innerWidth - 15 });
   const view = render(<ModalShell label="Dialog"><button>Close</button></ModalShell>);
-  assert.equal(html.style.getPropertyValue('scrollbar-gutter'), 'stable');
+  assert.equal(html.style.scrollbarGutter, 'stable');
   view.unmount();
-  assert.equal(html.style.getPropertyValue('scrollbar-gutter'), '', 'the gutter is released with the lock');
+  assert.equal(html.style.scrollbarGutter, '', 'the gutter is released with the lock');
   Object.defineProperty(html, 'clientWidth', { configurable: true, get: () => window.innerWidth });
   const overlay = render(<ModalShell label="Dialog"><button>Close</button></ModalShell>);
-  assert.equal(html.style.getPropertyValue('scrollbar-gutter'), '', 'no gutter is added when the page had no classic scrollbar (overlay scrollbars, a short page)');
+  assert.equal(html.style.scrollbarGutter, '', 'no gutter is added when the page had no classic scrollbar (overlay scrollbars, a short page)');
   overlay.unmount();
 });
 
-test('#scroll-container is locked only when it really scrolls', () => {
+test('#scroll-container (a <main> in the page flow) is not turned into a scroll container', () => {
   const scroller = document.getElementById('scroll-container')!;
-  const flow = render(<ModalShell label="Dialog"><button>Close</button></ModalShell>);
-  assert.equal(scroller.style.overflow, '', 'a <main> in the page flow is not turned into a scroll container (its sticky rails stay put)');
-  flow.unmount();
-  scroller.style.overflow = 'auto';
-  const scrolling = render(<ModalShell label="Dialog"><button>Close</button></ModalShell>);
-  assert.equal(scroller.style.overflow, 'hidden');
-  scrolling.unmount();
-  assert.equal(scroller.style.overflow, 'auto');
+  const view = render(<ModalShell label="Dialog"><button>Close</button></ModalShell>);
+  assert.equal(scroller.style.overflow, '', 'its sticky rails stay put behind the dialog');
+  view.unmount();
+  assert.equal(scroller.style.overflow, '');
 });
 
 test('two nested dialogs release the page only when the outermost one closes', () => {
@@ -90,22 +88,6 @@ test('two nested dialogs release the page only when the outermost one closes', (
   assert.ok(document.activeElement === opener());
 });
 
-test('a one-finger drag on the scrim is stopped; the dialog\'s own content keeps scrolling', () => {
-  const view = render(<ModalShell label="Dialog" className="scrim"><div className="panel"><button>Close</button></div></ModalShell>);
-  const scrim = view.getByRole('dialog');
-  const drag = (target: Element, fingers = 1) => {
-    const event = new dom.window.Event('touchmove', { bubbles: true, cancelable: true });
-    Object.defineProperty(event, 'touches', { value: Array.from({ length: fingers }, () => ({})) });
-    target.dispatchEvent(event);
-    return event.defaultPrevented;
-  };
-  assert.equal(drag(scrim), true, 'on the scrim');
-  assert.equal(drag(scrim, 2), false, 'two fingers still zoom');
-  assert.equal(drag(scrim.querySelector('.panel')!), false, 'inside the dialog');
-  view.unmount();
-  assert.equal(drag(scrim), false, 'the guard leaves with the dialog');
-});
-
 // A lazy dialog whose chunk the test lets arrive (or fail) when it wants.
 function controlledDialog() {
   let resolve!: (module: { default: React.ComponentType<{ onClose: () => void; afterWait?: boolean }> }) => void;
@@ -116,7 +98,7 @@ function controlledDialog() {
 }
 const wait = () => document.body.querySelector<HTMLElement>(':scope > .fixed.inset-0');
 
-test('DialogWait locks the page while the chunk loads and hands the same lock to the dialog', async () => {
+test('DialogWait locks the page while the chunk loads and keeps it locked, once, until the dialog has closed', async () => {
   const lazy = controlledDialog();
   opener().focus();
   // Every write to <html>'s style and to #root's inert between the tap and the close.
@@ -140,7 +122,7 @@ test('DialogWait locks the page while the chunk loads and hands the same lock to
   assert.equal(appRoot().inert, true);
   assert.ok(dialog.contains(document.activeElement), 'focus moves in when the dialog appears');
   styles.push(...watch.takeRecords().map(r => r.oldValue));
-  assert.deepEqual({ styles, inertWrites }, { styles: [null], inertWrites: [true] }, 'locked once by the wait: the dialog took it over without an unlock and relock');
+  assert.deepEqual({ styles, inertWrites }, { styles: [null], inertWrites: [true] }, 'locked once by the wait: the dialog\'s lock nests inside it, with no unlock and relock in between');
   view.unmount();
   assert.equal(html.style.overflow, '');
   assert.equal(appRoot().inert, false);

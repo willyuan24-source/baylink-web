@@ -176,7 +176,7 @@ test('closing the last dialog restores pre-existing overflow and inert settings'
   scroller.style.overflow = 'scroll';
   root.inert = true;
   const view = render(<ModalShell label="Temporary"><button>Done</button></ModalShell>);
-  assert.equal(scroller.style.overflow, 'hidden', 'a scroll container is locked too');
+  assert.equal(document.documentElement.style.overflow, 'hidden');
   view.unmount();
   assert.equal(document.documentElement.style.overflow, 'clip');
   assert.equal(scroller.style.overflow, 'scroll');
