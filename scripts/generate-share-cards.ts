@@ -14,14 +14,15 @@ import { languagePath } from '../src/lib/language-path';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { availableParallelism } from 'node:os';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
-import { hubCardData } from './share-card-data';
+import { hubCardData, hubPictures } from './share-card-data';
 
 /**
  * Share cards v2 (I18N-SEO-05) and hub cards (I18N-SEO-03), 1200 × 630, one per language: zh-Hans at the original
  * /share-cards/<kind>-<id>.png (links already shared keep working), zh-Hant and English under /share-cards/zh-Hant/ and
  * /share-cards/en/. Each card's QR opens the page in the card's language. Every listing card fronts a picture the card
  * may carry (share-card-model.ts sharePicture: its own (cardPhoto / promoPhoto), else its venue's or a ③ stock picture that
- * promotion allows; never AI art), as a band across the top 55% (H45; UI9-IMAGES DECISIONS 21).
+ * promotion allows; never AI art), as a band across the top 55% (H45; UI9-IMAGES DECISIONS 21); so does every hub card
+ * (UI9-R2 N20: its ③ picture, share-card-data.ts hubPictures).
  */
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
 const started = performance.now();
@@ -48,7 +49,9 @@ const clamp = (value: number, max: number) => Math.min(Math.max(0, value), max);
  */
 const photoFor = (image: GuideImage | undefined) => {
   if (!image) return Promise.resolve(undefined);
-  if (!photoData.has(image.src)) photoData.set(image.src, import('sharp').then(async ({ default: sharp }) => {
+  // one band per picture and focal: a hub card may place a picture a listing card also carries (share-card-data.ts HUB_PICTURES)
+  const id = `${image.src}#${image.focal?.join(',') ?? ''}`;
+  if (!photoData.has(id)) photoData.set(id, import('sharp').then(async ({ default: sharp }) => {
     const file = `public${image.src}`, { width, height } = PHOTO_BAND, asset = image as CoverAsset;
     let band: Buffer;
     if (image.kind === 'poster' || image.fullFrame) {
@@ -67,7 +70,7 @@ const photoFor = (image: GuideImage | undefined) => {
     }
     return `data:image/jpeg;base64,${band.toString('base64')}`;
   }).catch(error => { console.warn(`Share card photo ${image.src} not drawn: ${String(error)}`); return undefined; }));
-  return photoData.get(image.src)!;
+  return photoData.get(id)!;
 };
 
 const tasks = new Set<Promise<number>>();
@@ -106,17 +109,22 @@ for (const guide of guides) {
   }
 }
 
-// Hub cards: this weekend's picks (the home page's and the weekly card's), the guide topics, the tools.
+// Hub cards: each fronts its picture (UI9-R2 N20: share-card-data.ts hubPictures, a ③ picture promotion allows, never AI
+// art) with its label, the hub's name and one line of what it has (this weekend's dates, the guide count, the tools).
+const hubImages = hubPictures();
+const hubPhotos = Object.fromEntries(await Promise.all(HUB_CARD_NAMES.map(async name => [name, await photoFor(hubImages[name])] as const)));
+const hubPhotoCards = Object.values(hubPhotos).filter(Boolean).length;
 for (const locale of LOCALES) {
   const t = tr(locale), data = hubCardData(locale, t, today);
   for (const name of HUB_CARD_NAMES) {
-    const model = hubCardModel(name, locale, t, data);
+    const photo = hubPhotos[name];
+    const model = hubCardModel(name, locale, t, data, photo ? hubImages[name] : undefined);
     const { draw, finish } = outline();
-    const svg = renderHubCardSvg(model, qrFor(`${SITE_URL}${languagePath(HUB_PATHS[name], locale)}?from=card`), logo, draw);
+    const svg = renderHubCardSvg({ ...model, photo }, qrFor(`${SITE_URL}${languagePath(HUB_PATHS[name], locale)}?from=card`), logo, draw);
     await queue(finish(svg), filePath(hubCardPath(name), locale));
   }
 }
 await Promise.all(tasks);
 await pool.close();
 // The time and the pool size go into the build log, so a slow build machine shows what it ran with (HOTFIX-BUILD-TIME).
-console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes; ${photoCards} listings carry a photo. ${((performance.now() - started) / 1000).toFixed(0)} s on ${pool.size} rasterizing workers (${availableParallelism()} cores).`);
+console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes; ${photoCards} listings and ${hubPhotoCards} of ${HUB_CARD_NAMES.length} hubs carry a photo. ${((performance.now() - started) / 1000).toFixed(0)} s on ${pool.size} rasterizing workers (${availableParallelism()} cores).`);

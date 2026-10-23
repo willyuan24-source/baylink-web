@@ -13,7 +13,7 @@ import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_N
 import { CARD_INK, DEFAULT_TAGLINE } from '../src/lib/share-card-svg';
 import type { GuideImage } from '../src/data/guide-media';
 import { simplifiedOnlyCharacters } from './i18n-html-check.mjs';
-import { hubCardData } from './share-card-data';
+import { hubCardData, hubPictures } from './share-card-data';
 import { hubCardPath } from '../src/lib/hub-cards';
 import { SITE_URL } from '../src/lib/seo';
 import { languagePath, type SiteLanguage } from '../src/lib/language-path';
@@ -24,8 +24,8 @@ import { languagePath, type SiteLanguage } from '../src/lib/language-path';
  * the English cards' text has no Chinese and the 繁體 cards' no Simplified-only character (the models the generator draws,
  * built again here with the same translation), and the Chinese cards carry the Chinese tagline (H45).
  * H45 / UI9-IMAGES DECISIONS 21: every listing card fronts a picture it may carry (sharePicture: own, else its venue's or a
- * ③ stock picture that promotion allows; never AI art) in the top band in all three languages, read from the pixels; only
- * the hub cards keep their brand panel.
+ * ③ stock picture that promotion allows; never AI art) in the top band in all three languages, read from the pixels; so
+ * does every hub card (UI9-R2 N20: share-card-data.ts hubPictures, its ③ picture with the 示意图 label).
  */
 const MIN_PHOTO_CARDS = OFFICIAL_IMAGE_ON_OWN_EVENT_CARD ? 10 : 0;
 const LOCALES: SiteLanguage[] = ['zh-Hans', 'zh-Hant', 'en'];
@@ -39,8 +39,13 @@ const listingCards = [
 ];
 // UI9-IMG-A1b (DECISIONS 21): no listing card is an information card — every one fronts a picture it may carry.
 assert.deepEqual(listingCards.filter(card => !card.photo).map(card => card.share.path), [], 'every listing share card fronts a picture');
+// UI9-R2 N20: nor is any hub card — each fronts its picture, and no two hubs share one.
+const hubImages = hubPictures();
+const hubCards = await Promise.all(HUB_CARD_NAMES.map(async name => ({ name, photo: await exists(hubImages[name]) })));
+assert.deepEqual(hubCards.filter(card => !card.photo).map(card => card.name), [], 'every hub share card fronts a picture');
+assert.equal(new Set(hubCards.map(card => card.photo!.src)).size, HUB_CARD_NAMES.length, 'no two hub cards share a picture');
 const cards = listingCards.map(({ share, photo }) => ({ image: shareCardPath(share), path: share.path, photo: Boolean(photo) }))
-  .concat(HUB_CARD_NAMES.map(name => ({ image: hubCardPath(name), path: HUB_PATHS[name], photo: false })));
+  .concat(hubCards.map(({ name, photo }) => ({ image: hubCardPath(name), path: HUB_PATHS[name], photo: Boolean(photo) })));
 /**
  * Read from the pixels: a photo card is paper from edge to edge just under its band (y 350–365), where a card without a picture (none since UI9-IMG-A1b) had its coloured panel beside the paper (at most ~61% paper; a hub card its
  * brand panel), and its band (y 90–260) is a picture, not a few flat colours: text cards measured at most 131 distinct
@@ -81,7 +86,7 @@ for (const card of cards) for (const locale of LOCALES) {
   assert.equal(decoded?.data, `${SITE_URL}${languagePath(card.path, locale)}?from=card`, `QR on ${file(card.image, locale)}`);
   checked++;
 }
-const photoCards = cards.filter(card => card.photo).length;
+const photoCards = listingCards.filter(card => card.photo).length;
 assert.deepEqual(wrongBand.slice(0, 20), [], `${wrongBand.length} cards with or without a photo against their rights`);
 assert.ok(photoCards >= MIN_PHOTO_CARDS, `${photoCards} listings carry a photo on their card; expected at least ${MIN_PHOTO_CARDS}`);
 await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
@@ -108,8 +113,8 @@ for (const locale of ['en', 'zh-Hant', 'zh-Hans'] as CardLocale[]) {
   for (const item of localDiscoveries) check(shareCardPath(discoveryShare(item)), discoveryCardModel(item, locale, today, tr, sharePicture(item.kind, recordOf(item), cardPhoto(item, GUIDE_IMAGES[recordOf(item).imageKey], today), GUIDE_IMAGES)));
   for (const guide of guides) check(shareCardPath(guideShare(guide)), guideCardModel(guide, locale, tr, sharePicture('guide', { id: guide.slug, title: guide.title, category: guide.category }, promoPhoto(getGuideMedia(guide).cover), GUIDE_IMAGES), today));
   const data = hubCardData(locale, tr, today);
-  for (const name of HUB_CARD_NAMES) check(`hub ${name}`, hubCardModel(name, locale, tr, data));
+  for (const name of HUB_CARD_NAMES) check(`hub ${name}`, hubCardModel(name, locale, tr, data, hubImages[name]));
 }
 assert.deepEqual(wrongLanguage.slice(0, 20), [], `${wrongLanguage.length} card texts in the wrong language`);
 assert.deepEqual(wrongTagline.slice(0, 20), [], `${wrongTagline.length} Chinese cards without the Chinese tagline`);
-console.log(`Verified ${checked} share and hub cards (${cards.length} × 3 languages): 1200 × 630, every QR independently decoded to the page in the card's language, ${photoCards} listings with their photo band in all three languages (no information card) and the hub cards with their brand panel, the text of all ${models} cards in their language and the Chinese tagline on the Chinese ones.`);
+console.log(`Verified ${checked} share and hub cards (${cards.length} × 3 languages): 1200 × 630, every QR independently decoded to the page in the card's language, ${photoCards} listings and all ${hubCards.length} hubs with their photo band in all three languages (no information card), the text of all ${models} cards in their language and the Chinese tagline on the Chinese ones.`);
