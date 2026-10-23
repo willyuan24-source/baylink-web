@@ -71,18 +71,19 @@ test('DECISIONS 26: every day, the home lead = homeLeads[day] = the weekly card\
   }
 });
 
-test('the lead rule refuses a close-up face, AI and an information card, and takes a venue photo', () => {
+test('the lead rule refuses a close-up face, a poster, AI and an information card, and takes a venue photo', () => {
   const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): none is left unreleased
-  // (CLOSE_UP_FACE_IMAGES is empty), and LumaFest's photo leads like any ①. Flagged and not released, it never would.
-  assert.equal(CLOSE_UP_FACE_IMAGES.size, 0);
+  // The owner released the six flagged close-ups on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b) for cards, rows and detail
+  // pages; DECISIONS 32 (round 2) keeps every one of them out of the lead slots, so the list holds all six.
+  assert.equal(CLOSE_UP_FACE_IMAGES.size, 6);
   const lumaFest = { id: 'x', imageKey: 'official-r2-petaluma-lumafest-20261024' };
-  assert.equal(leadsWithPicture(lumaFest, context, new Set([lumaFest.imageKey])), false, 'a flagged close-up the owner has not released never leads');
-  assert.equal(leadsWithPicture(lumaFest, context), true, 'a released close-up leads');
+  assert.equal(leadsWithPicture(lumaFest, context), false, 'a released close-up still never leads');
+  assert.equal(leadsWithPicture(lumaFest, context, new Set()), true, 'off the list, the photo would lead');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-mcm-halloween-spectacular-20261031' }, context), true);
+  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-mcm-halloween-spectacular-20261031' }, context), false, 'a poster never leads (DECISIONS 32)');
+  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-oakland-omca-dia-muertos-2026' }, context), true, 'an official photo leads');
 });
 
 test('/events: a lead from the ranking only when the picks block shows; a narrowed list has no lead', async () => {

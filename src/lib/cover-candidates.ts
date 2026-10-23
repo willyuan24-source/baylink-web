@@ -56,11 +56,54 @@ export function venuesFor(kind: CoverKind, record: CandidateRecord, venues: Cove
 /** Stock pictures over the image budgets' rungs (verify:images: 800 w ≤ 90 KB, 1200 w ≤ 150 KB): every other picture first. */
 export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
 
+/**
+ * Macro and texture stock (UI9-R2, round-2 judge B P15 and owner material #2): a pattern or a close-up detail with no scene
+ * (candy corn, chalk, hands in soil, a stack of old books, motion blur, bokeh). Fine on a thumbnail, weak as a big picture,
+ * so it is never a record's first ③ candidate while its category has a scene picture: the detail hero, a lead that falls
+ * back to ③ and every other hero-size slot take the first ③ (UI9-IMAGES DECISIONS 22 order). Checked by eye on 10-23 on
+ * all 233 pool pictures (lanes/UI9-R2-COVER-PICK/tools/stock-*.png); kept in code until the image registry carries a tag.
+ */
+export const MACRO_STOCK: ReadonlySet<string> = new Set([
+  'stock-halloween-4', // candy corn filling the frame
+  'stock-kids-craft-5', // chalk sticks
+  'stock-kids-craft-7', // a ring of coloured pencils
+  'stock-green-volunteer-1', // hands in soil
+  'stock-book-sale-3', // a stack of old books
+  'stock-book-sale-4', // a row of book spines
+  'stock-class-workshop-2', // metal type in a tray
+  'stock-classical-music-3', // a cello bow, close up
+  'stock-dia-de-muertos-5', // one marigold, close up
+  'stock-fun-run-3', // running legs in motion blur
+  'stock-transit-4', // a painted arrow on a bike lane
+  'stock-transit-6', // a passing train in motion blur
+  'stock-winter-holidays-4', // out-of-focus lights
+  'stock-winter-holidays-6', // a string of lights, close up
+  'stock-sports-football-2', // yard lines on turf
+  'stock-sports-basketball-4', // a court seen from straight above
+  'stock-sports-basketball-5', // an arena in motion blur
+  'stock-swap-meet-2', // a heap of puzzle pieces
+  'stock-kids-play-1', // puzzle pieces on a table
+  'stock-guide-documents-6', // a stack of tabbed papers
+  'stock-film-1', // popcorn tubs from above
+  'stock-farmers-market-4', // fruit crates from above
+  'stock-ice-skating-1', // one skate, close up
+]);
+
 /** A stable small number from the record id, so a record always starts its category's pictures at the same spot. */
 export function idSpot(id: string, size: number): number {
   let hash = 0;
   for (const char of id) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
   return size ? hash % size : 0;
+}
+
+/**
+ * A category's pictures with a scene picture first (MACRO_STOCK): the first scene picture moves ahead of the macro or
+ * texture pictures before it, and the rest keep their order, so the rotation keeps every picture in play for rows and
+ * thumbnails.
+ */
+export function sceneFirst(keys: readonly string[], macro: ReadonlySet<string> = MACRO_STOCK): string[] {
+  const scene = keys.findIndex(key => !macro.has(key));
+  return scene <= 0 ? [...keys] : [keys[scene], ...keys.slice(0, scene), ...keys.slice(scene + 1)];
 }
 
 /**
@@ -80,7 +123,7 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const start = (limits.start ?? idSpot(record.id, pool.length)) % (pool.length || 1);
   // A pool picture whose files miss the 800 w / 1200 w size targets goes after the others (B1b review: stock-halloween-5).
   const rotated = pool.map((_, i) => pool[(start + i) % pool.length]);
-  const ordered = [...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))];
+  const ordered = sceneFirst([...rotated.filter(key => !HEAVY_STOCK.has(key)), ...rotated.filter(key => HEAVY_STOCK.has(key))]);
   const shown = Math.min(pool.length, stock);
   for (let i = 0; i < shown; i++) add(ordered[i]);
   // A capped list (what a route ships) carries ④ only for a record whose category has no ③ picture.

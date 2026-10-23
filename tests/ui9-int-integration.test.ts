@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { CLOSE_UP_FACE_IMAGES, RELEASED_CLOSE_UPS, leadImageKey, leadImageKeyFor } = await import('../src/lib/close-up-faces');
+const { CLOSE_UP_FACE_IMAGES, NOT_FOR_LEAD, RELEASED_CLOSE_UPS, leadImageKey, leadImageKeyFor } = await import('../src/lib/close-up-faces');
 const weekendLead = await import('../src/features/events/weekend-lead');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { coverItemFor, getCover } = await import('../src/lib/cover');
@@ -23,69 +23,69 @@ const plan = JSON.parse(readFileSync('src/data/generated/plan-weekend.json', 'ut
 const home = (day: string) => new JSDOM(renderToStaticMarkup(React.createElement(StaticRouter, { location: '/' },
   React.createElement(HomeDiscovery, { today: day, onAskBayBay: () => {}, onBrowseCommunity: () => {} })))).window.document;
 /**
- * The owner released every flagged close-up on 2026-10-21, so the list of close-ups that never lead is empty; DECISIONS 15
- * and 26 still bind the next one flagged. To check the pages' path, flag `key` (a photo that leads today) as a close-up the
- * owner has not released, for `run` only: the pages read the shared list at render time.
+ * To check the pages' path, put `key` (a photo that leads today) on the list of pictures that never lead (close-ups and
+ * posed groups, DECISIONS 15/32), for `run` only: the pages read the shared list at render time.
  */
 const whileFlagged = <T>(key: string, run: () => T): T => {
-  const list = CLOSE_UP_FACE_IMAGES as Set<string>;
+  const list = NOT_FOR_LEAD as Set<string>;
   assert.equal(list.has(key), false, `${key} is not flagged already`);
   list.add(key);
   try { return run(); } finally { list.delete(key); }
 };
 
-test('DECISIONS 15: one list for every lead slot; a face photo never leads, it stays a card\'s photo', () => {
+test('DECISIONS 15/32: one list for every lead slot; a close-up never leads, released or not, and stays a card\'s photo', () => {
   assert.equal(weekendLead.CLOSE_UP_FACE_IMAGES, CLOSE_UP_FACE_IMAGES, '/events and /calendar use the shared list');
+  assert.equal(weekendLead.NOT_FOR_LEAD, NOT_FOR_LEAD);
   assert.equal(weekendLead.leadImageKey, leadImageKey);
-  // The owner released all six flagged close-ups in chat on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): they lead like any photo.
+  // The owner released all six flagged close-ups in chat on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): the release stands (they
+  // show on cards, rows and detail pages), and DECISIONS 32 (round 2) keeps every one of them out of the lead slots.
   assert.ok(RELEASED_CLOSE_UPS.has('official-r2-petaluma-lumafest-20261024'), 'LumaFest (four volunteers posing) was flagged and released');
-  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-r2-petaluma-lumafest-20261024'), false);
-  assert.equal(leadImageKey('official-r2-petaluma-lumafest-20261024'), 'official-r2-petaluma-lumafest-20261024');
-  // The list is flagged minus released: all six released, none left. A new close-up goes on the flagged list unreleased
-  // (close-up-faces.ts); this pin then changes, and so does what the checks below exercise.
-  assert.deepEqual([CLOSE_UP_FACE_IMAGES.size, RELEASED_CLOSE_UPS.size], [0, 6]);
-  for (const key of RELEASED_CLOSE_UPS) assert.equal(CLOSE_UP_FACE_IMAGES.has(key), false, `${key}: released`);
-  // The rule itself, on a close-up the owner has not released (LumaFest's photo, flagged as it was before 10-21): no picture
-  // in any lead slot (the slot draws the type cover), never `leadsWithPicture`; the card keeps the photo. Released, it leads.
+  assert.deepEqual([CLOSE_UP_FACE_IMAGES.size, RELEASED_CLOSE_UPS.size], [6, 6]);
+  for (const key of RELEASED_CLOSE_UPS) {
+    assert.ok(CLOSE_UP_FACE_IMAGES.has(key) && NOT_FOR_LEAD.has(key), `${key}: released, and still never a lead`);
+    assert.equal(leadImageKey(key), undefined, `${key}: the lead slot draws the next candidate`);
+  }
+  // The rule itself, on LumaFest's photo: no picture of its own in any lead slot (the slot draws the next candidate, here
+  // none: the type cover), never `leadsWithPicture`; the card keeps the photo. Off the list, it would lead.
   {
     const key = 'official-r2-petaluma-lumafest-20261024';
-    const flagged: ReadonlySet<string> = new Set([key]);
     const record = { id: 'x-close-up', imageKey: key };
     const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-    assert.equal(leadImageKeyFor(key, flagged), undefined, 'a flagged close-up never leads');
-    assert.equal(leadImageKeyFor(key, new Set()), key, 'released, it leads as itself');
-    assert.equal(getCover(leadItem(record, flagged), context).tier, 'type', 'the lead slot draws the type cover');
-    assert.equal(leadsWithPicture(record, context, flagged), false);
-    assert.equal(weekendLead.canLead(record, '2026-10-21', flagged), false, '/events and /calendar: it cannot lead');
+    assert.equal(leadImageKeyFor(key, NOT_FOR_LEAD), undefined, 'a close-up never leads');
+    assert.equal(leadImageKeyFor(key, new Set()), key, 'off the list, it would lead as itself');
+    assert.equal(getCover(leadItem(record), context).tier, 'type', 'the lead slot draws the type cover');
+    assert.equal(leadsWithPicture(record, context), false);
+    assert.equal(weekendLead.canLead(record, '2026-10-21'), false, '/events and /calendar: it cannot lead');
     assert.equal(getCover(coverItemFor('event', record), context).tier, 'official', 'a card keeps the photo');
     assert.equal(getCover(leadItem(record, new Set()), context).tier, 'official');
     assert.equal(leadsWithPicture(record, context, new Set()), true);
     assert.equal(weekendLead.canLead(record, '2026-10-21', new Set()), true);
   }
   // DECISIONS 24: an AI illustration the owner approved as a ④ cover shows on a card but never leads. The lead rule holds that
-  // (lib/lead-rule.ts: cover.ts refuses ④ on a lead), not this list, which keeps close-ups only.
+  // (lib/lead-rule.ts: cover.ts refuses ④ on a lead), not this list, which keeps close-ups and posed groups only.
   const approvals = JSON.parse(readFileSync('src/data/ai-cover-approvals.json', 'utf8')).approvals as { key: string }[];
   assert.ok(approvals.length > 0, 'the owner approved AI covers on 2026-10-21');
   for (const { key } of approvals) {
     const record = { id: `x-${key}`, imageKey: key };
     const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
-    assert.equal(CLOSE_UP_FACE_IMAGES.has(key), false, `${key}: not on the close-up list`);
+    assert.equal(NOT_FOR_LEAD.has(key), false, `${key}: not on the close-up list`);
     assert.equal(getCover(coverItemFor('event', record), context).tier, 'ai', `${key}: an approved AI cover shows on a card`);
     assert.notEqual(getCover(leadItem(record), context).tier, 'ai', `${key}: an approved AI cover never leads`);
     assert.equal(leadsWithPicture(record, context), false, `${key}: an approved AI cover never leads`);
   }
   assert.equal(leadImageKey(undefined), undefined);
   assert.equal(leadImageKey('official-mcm-halloween-spectacular-20261031'), 'official-mcm-halloween-spectacular-20261031');
+  // A poster is not on the list: cover.ts keeps it off a lead by its kind (DECISIONS 32), so it never leads either.
+  assert.equal(leadsWithPicture({ id: 'x-poster', imageKey: 'official-mcm-halloween-spectacular-20261031' }, { images: GUIDE_IMAGES, today: '2026-10-21' }), false);
   // The home catalog no longer drops the photo (the acceptance review: /plan's 本周末精选 lost it); only the lead skips it.
   assert.doesNotMatch(readFileSync('scripts/generate-home-catalog.ts', 'utf8'), /CLOSE_UP_FACE_IMAGES/);
 });
 
-test('DECISIONS 15/26: the home lead never shows an unreleased face photo (its next candidate instead), a released one shows its photo', () => {
+test('DECISIONS 15/26/32: the home lead never shows a close-up (its next candidate instead); /plan\'s first pick is a lead photo', () => {
   const byId = new Map(catalog.events.map(event => [event.id, event]));
-  // LumaFest led the home from 10/20 to 10/24 until Claude's 10-21 weekly review put Cherryland's storytimes first (UI9-IMAGES
-  // DECISIONS 26: a lead needs a ① or ② image that may lead). No home day leads with a released close-up now, and none is
-  // left unreleased (since 10-21), so the page's two paths are checked on the first day whose lead shows a photo: as it
-  // ships (a photo off the list leads with it, as a released close-up does), then with that photo flagged and unreleased.
+  // LumaFest led the home from 10/20 to 10/24 until Claude's 10-21 weekly review put Cherryland's storytimes first; DECISIONS
+  // 32 (round 2) then moved the storytimes poster off the lead too. The page's two paths are checked on the first day whose
+  // lead shows a photo: as it ships, then with that photo put on the list of pictures that never lead.
   const day = Object.keys(catalog.weekends).sort().find(date => {
     const lead = byId.get(catalog.weekends[date].ids[0] ?? '');
     return !!lead?.imageKey && lead.imageKey in catalog.images;
@@ -109,9 +109,9 @@ test('DECISIONS 15/26: the home lead never shows an unreleased face photo (its n
     // The catalog keeps the photo for the feed and /plan (only the lead skips it).
     assert.ok(lead.imageKey! in catalog.images, `${day}: the catalog keeps ${lead.imageKey}`);
   });
-  assert.ok(shows(leadCard()), 'unflagged again, the lead shows its photo');
-  for (const key of RELEASED_CLOSE_UPS) assert.equal(leadImageKey(key), key, `${key}: released, it leads with its photo`);
-  // /plan's 本周末精选 is no lead: its first pick ships its photo whatever the close-up list says (the generator never reads it).
+  assert.ok(shows(leadCard()), 'off the list again, the lead shows its photo');
+  for (const key of RELEASED_CLOSE_UPS) assert.equal(leadImageKey(key), undefined, `${key}: released, and still never a lead`);
+  // /plan's 本周末精选 opens with the home's lead (DECISIONS 32: a lead slot), so its first pick ships that photo.
   let planDays = 0;
   for (const [date, entry] of Object.entries(plan.days)) {
     const first = plan.events[entry.entries[0]?.id ?? ''];

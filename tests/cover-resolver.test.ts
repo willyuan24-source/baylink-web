@@ -177,7 +177,7 @@ test('the live catalog: no unapproved AI or theme photo on any event, offer or o
   }
 });
 
-test('a fresh page takes a ③ picture new to it before one shown ADJACENT_CARDS away; a board deals the pool round (UI9-IMG-A1b round 2)', () => {
+test('every page takes a ③ picture new to it before one it shows already, however far away (UI9-R2: no stock picture twice in one list)', () => {
   const stock = (n: number) => asset({ src: `/guides/test/stock-${n}.webp`, rights: { basis: 'stock' } as never, credit: 'Unsplash', caption: '示意图' });
   const pool: Record<string, CoverAsset> = { s1: stock(1), s2: stock(2), s3: stock(3) };
   const items: CoverItem[] = [
@@ -190,6 +190,6 @@ test('a fresh page takes a ③ picture new to it before one shown ADJACENT_CARDS
     const last = covers[covers.length - 1];
     return last.tier === 'stock' ? last.image.src : last.tier;
   };
-  assert.equal(srcOf(createCoverPage()), pool.s1.src, 'a board: s1 is ADJACENT_CARDS cards away, so it may show again');
-  assert.equal(srcOf(createCoverPage({ fresh: true })), pool.s2.src, 'a fresh page (the home, /events): the next picture new to the page');
+  assert.equal(srcOf(createCoverPage()), pool.s2.src, 'a board (/perks, /calendar): the next picture new to the page, though s1 is ADJACENT_CARDS cards away');
+  assert.equal(srcOf(createCoverPage({ fresh: true })), pool.s2.src, 'the home and /events: the same');
 });

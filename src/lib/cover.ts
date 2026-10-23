@@ -21,9 +21,10 @@ import type { Copy } from './event-facts';
  *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
  *   type       no picture at all: the page shows the empty frame in its LQIP colour (<Cover>). UI9-IMAGES DECISIONS 21: no
  *              listed record may end here — tests/report-cover-coverage.test.ts (report:covers --fail-on-info) keeps it at 0.
- * Never: an unapproved AI illustration or a theme photo; AI on a lead; a ①② file twice on one page, or a ③④ picture
- * twice within ADJACENT_CARDS cards (the item tries its next candidate, else the pool picture shown farthest away); a
- * cropped poster (`fit: 'contain'`). A picture carries `fallback`, its next ③ candidate, for <CoverImage>'s onError.
+ * Never: an unapproved AI illustration or a theme photo; on a lead, anything but a photograph (UI-9 DECISIONS 32: no poster,
+ * flyer, full-frame artwork or AI picture; lib/lead-rule.ts adds close-ups and posed groups); a ①② file twice on one page,
+ * or a ③④ picture twice on one page while the item has a candidate the page has not shown (else the pool picture shown
+ * farthest away); a cropped poster (`fit: 'contain'`). A picture carries `fallback`, its next ③ candidate, for <CoverImage>'s onError.
  * `label` is getImageProvenance's words (image credits); the pages print cover-labels.ts tierLabelOf(cover) (DECISIONS 23).
  */
 
@@ -51,7 +52,10 @@ export type CoverItem = {
    * by coverCandidates(); when present they replace `imageKey`. No catalog carries them before A1 (UI9-IMAGES).
    */
   imageKeys?: readonly string[];
-  /** A lead (home, /events, /calendar): never an AI picture (DECISIONS 24), so it moves on to its next candidate. */
+  /**
+   * A lead (home, /events, /calendar, /plan's first pick): a photograph only (DECISIONS 32: never a poster, flyer,
+   * full-frame artwork or AI picture, DECISIONS 24), so it moves on to its next candidate.
+   */
   lead?: boolean;
 };
 type ContextPhotos = Readonly<Record<string, { purpose: 'venue' | 'theme'; eventIds: readonly string[] }>>;
@@ -67,7 +71,7 @@ export type CoverContext = {
 };
 export type CoverTier = 'official' | 'photo' | 'venue' | 'stock' | 'ai' | 'scene3d' | 'type';
 export type TypeCoverReason = 'no-image' | 'missing-image' | 'ai-illustration' | 'theme-photo' | 'unapproved-reuse'
-  | 'too-old' | 'undated' | 'cover-not-ok' | 'not-allowed-for-kind' | 'duplicate';
+  | 'too-old' | 'undated' | 'cover-not-ok' | 'not-allowed-for-kind' | 'duplicate' | 'not-a-photo';
 export type ImageCover = {
   tier: Exclude<CoverTier, 'type'>;
   key: string;
@@ -91,27 +95,27 @@ export type ResolvedCover = ImageCover | TypeCoverResolution;
 
 /**
  * Which image src each item on the page has claimed (①②: once per page). A re-render of the same item keeps its claim.
- * `order` numbers the items in display order and `shared` records where each ③④ pool picture is shown, so the same stock
- * or AI picture can come back on the page, but never within ADJACENT_CARDS cards of itself.
+ * `order` numbers the items in display order and `shared` records where each ③④ pool picture is shown: an item takes a
+ * pool picture the page has not shown yet whenever it has one (UI9-R2: no stock picture twice in one list or page, the
+ * calendar day, the date lists, /perks and /openings as much as the home and /events); only when every candidate is on
+ * the page already does it repeat, with the one shown farthest away.
  */
 export type CoverPage = {
   claims: Map<string, string>;
   order?: Map<string, number>;
   shared?: Map<string, Map<string, number>>;
   /**
-   * Prefer a ③④ picture the page has not shown over one shown ADJACENT_CARDS or more cards away (UI9-IMG-A1b round 2): the
-   * home and /events, whose few dozen cards then show each pool picture once. A long board (/perks, /calendar's day) keeps
-   * the first candidate that may show, which deals each pool round in turn (taking new pictures first there leaves later
-   * cards of a crowded category nothing but near ones: /perks 27 → 76 repeats in 21 days).
+   * Kept for the pages that still pass it: every page prefers ③④ pictures it has not shown since UI9-R2 (the home and
+   * /events did before, UI9-IMG-A1b round 2; the boards now too, as their first screens are what a reader sees).
    */
   fresh?: boolean;
 };
 export const createCoverPage = ({ fresh = false }: { fresh?: boolean } = {}): CoverPage => ({ claims: new Map(), ...(fresh ? { fresh } : {}) });
 /**
- * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
- * not on one screen, which is at most 8 cards on desktop); on a `fresh` page only when the item has no candidate of that
- * tier the page has not shown yet. When every pool picture is nearer, the item still takes the one shown farthest away:
- * ③④ never fall back to an info card.
+ * How far apart a repeated ③④ pool picture should be when the page has shown every candidate an item has (UI9-IMAGES §4
+ * 同页去重: not within 6 adjacent cards, and not on one screen, which is at most 8 cards on desktop): a ③ shown this far
+ * away still beats a ④ after it, and a pool picture this far away beats a ①② candidate listed after it. When every pool
+ * picture is nearer, the item still takes the one shown farthest away: ③④ never fall back to an info card.
  */
 export const ADJACENT_CARDS = 8;
 
@@ -183,6 +187,9 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover: only the
   // owner's approval of that key does (④).
   if (isAiIllustration(image) || basis === 'ai') return isApprovedAiCover(image) && !item.lead ? make('ai') : { rejected: 'ai-illustration' };
+  // DECISIONS 32: a lead slot shows a photograph, never a poster, a flyer or full-frame artwork (it is still the item's
+  // own cover everywhere else); the lead moves on to the item's next candidate.
+  if (item.lead && (image.kind !== 'photo' || image.fullFrame)) return { rejected: 'not-a-photo' };
   if (basis === 'stock') return make('stock');
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
@@ -241,12 +248,11 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       let gap = Infinity;
       shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
       if (!pool || gap > pool.gap) pool = { cover, shown, gap };
-      // A picture not yet on the page ends the search, and so does one shown ADJACENT_CARDS or more cards away, except on a
-      // `fresh` page, which keeps looking for a picture of the same tier the page has not shown yet.
-      if (gap === Infinity || (!page.fresh && gap >= ADJACENT_CARDS)) break;
+      // A picture not yet on the page ends the search; one the page shows already keeps it looking (UI9-R2).
+      if (gap === Infinity) break;
       continue;
     }
-    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order; a `fresh` page's search).
+    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order).
     if (pool && pool.gap >= ADJACENT_CARDS) break;
     const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
