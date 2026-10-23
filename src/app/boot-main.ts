@@ -77,21 +77,15 @@ export function BootMainSettled(): null {
  * the footer's top (the 12px footer step), less 1px so rounding never lets the footer's top edge into the window.
  */
 function holdShellHeight(): void {
-  if (!shellHold) return;
-  const main = document.querySelector<HTMLElement>('#root main');
+  const main = shellHold && document.querySelector<HTMLElement>('#root main');
   if (!main) return;
-  if (routePathname(window.location.pathname) !== shellHold) {
-    main.style.removeProperty('min-height');
-    shellHold = null;
-    shellHoldHeight = null;
-    return;
-  }
+  const { style } = main;
+  if (routePathname(window.location.pathname) !== shellHold) { shellHold = null; style.minHeight = ''; return; }
   if (!shellHoldHeight) {
-    main.style.removeProperty('min-height');
-    const box = main.getBoundingClientRect();
-    const footer = document.querySelector<HTMLElement>('footer.site-footer');
-    const step = footer ? Math.max(0, footer.getBoundingClientRect().top - box.bottom) : 0;
-    shellHoldHeight = `calc(100vh - ${Math.max(0, Math.floor(box.top + window.scrollY + step) - 1)}px)`;
+    style.minHeight = '';
+    const { top, bottom } = main.getBoundingClientRect();
+    const footer = document.querySelector('footer.site-footer')?.getBoundingClientRect().top ?? bottom;
+    shellHoldHeight = `calc(100vh - ${Math.floor(top + window.scrollY + footer - bottom) - 1}px)`;
   }
-  main.style.setProperty('min-height', shellHoldHeight);
+  style.minHeight = shellHoldHeight;
 }
