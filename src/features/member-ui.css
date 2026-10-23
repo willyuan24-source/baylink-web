@@ -10,11 +10,11 @@
   font-weight: 600;
   transition: background-color var(--dur-2), border-color var(--dur-2), transform var(--dur-2);
 }
-.member-primary { min-height: 46px; padding: var(--sp-3) var(--sp-5); border: 1px solid var(--color-brand); border-radius: var(--r-lg); background: var(--color-brand); color: white; }
+.member-primary { min-height: 46px; padding: var(--sp-3) var(--sp-5); border: 1px solid; border-radius: var(--r-lg); background: var(--color-brand); color: var(--color-surface); border-color: var(--color-brand); }
 .member-primary:active { transform: translateY(1px); }
 /* N09: busy and disabled buttons take the token disabled look, not an opacity. */
 :is(.member-primary, .member-secondary):disabled { border-color: var(--color-line); background: var(--color-surface-2); color: var(--color-ink-3); }
-.member-secondary { min-height: 44px; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--color-line-control); border-radius: var(--r-lg); background: white; color: var(--color-brand-deep); }
+.member-secondary { min-height: 44px; padding: var(--sp-3) var(--sp-4); border: 1px solid var(--color-line-control); border-radius: var(--r-lg); background: var(--color-surface); color: var(--color-ink); }
 .member-text-action { color: var(--color-brand); }
 
 /* The 发布成功 badge in CreatePostModal (until WEB-COMMUNITY restyles that screen). */

@@ -21,7 +21,7 @@
 .outing-poll-counts span { display:flex; align-items:center; gap:var(--sp-1); }
 .outing-poll-votes { display:flex; gap:var(--sp-2); margin:0; padding:0; border:0; }
 .outing-poll-votes legend { margin-bottom:var(--sp-2); }
-.outing-time-poll .outing-poll-votes button { flex:1; min-width:0; min-height:var(--control-height); padding:var(--sp-2) var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; cursor:pointer; }
+.outing-time-poll .outing-poll-votes button { flex:1; min-width:0; min-height:var(--control-height); padding:var(--sp-2) var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; cursor:pointer; }
 .outing-time-poll .outing-poll-votes button[aria-pressed=true] { border-color:var(--color-line-control); background:var(--color-brand-tint); color:var(--color-brand-hover); font-weight:600; }
 .outing-time-poll .outing-poll-votes .is-maybe[aria-pressed=true] { background:var(--color-warning-tint); color:var(--color-warning); }
 .outing-time-poll .outing-poll-votes .is-no[aria-pressed=true] { background:var(--color-danger-tint); color:var(--color-warm); }

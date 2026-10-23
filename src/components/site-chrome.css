@@ -174,7 +174,7 @@ html[data-simple] .site-app .site-footer-about { display:none; }
 @keyframes site-toast-out { to { opacity:0; translate:0 8px; } }
 /* main.tsx: a boot step failed (page code or dictionary). 16px, above the tab bar, with a 44px 重试 that reloads. */
 .site-boot-retry { position:fixed; z-index:9999; left:12px; right:12px; bottom:calc(var(--site-mobile-nav-height) + 12px); display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:36rem; margin-inline:auto; padding:6px 6px 6px 16px; border-radius:var(--r-md); background:var(--color-ink); color:var(--color-surface); font-size:max(1rem,var(--text-body)); line-height:1.5; }
-.site-boot-retry button { min-width:var(--control-height); min-height:var(--control-height); padding:0 16px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:inherit; font-weight:600; }
+.site-boot-retry button { min-width:var(--control-height); min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:inherit; font-weight:600; }
 @media(min-width:1024px) { .site-boot-retry { bottom:24px; } }
 @media(prefers-reduced-motion:reduce) { .site-toast-box { animation:none; } }
 

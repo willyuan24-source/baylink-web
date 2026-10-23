@@ -12,7 +12,7 @@ body { background:var(--color-bg); overflow-x:clip; height:auto; min-height:100%
 button:disabled { cursor:not-allowed; }
 @media (hover:hover) and (pointer:fine) { .bay-button-dark:hover { background:var(--color-brand-hover); transform:translateY(-1px); } }
 .bay-home { max-width:1370px; padding:27px 32px 24px; margin:auto; }
-.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:12px; background:var(--color-brand-deep); color:var(--color-surface); border-radius:var(--r-md); padding:13px 16px; min-height:44px; font-size:.8125rem; font-weight:600; transition:background var(--dur-3) var(--ease-std),transform var(--dur-3) var(--ease-std); }
+.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:12px; border:1px solid; background:var(--color-brand); color:var(--color-surface); border-color:var(--color-brand); border-radius:var(--r-md); padding:13px 16px; min-height:44px; font-size:.8125rem; font-weight:600; transition:background var(--dur-3) var(--ease-std),transform var(--dur-3) var(--ease-std); }
 .bay-feed-empty { background:var(--color-surface); border:1px dashed var(--color-line); border-radius:var(--r-lg); text-align:center; padding:36px 14px; color:var(--color-ink-3); }
 .bay-feed-empty>svg { margin:0 auto 16px; }
 .bay-feed-empty h3 { font-size:1.0625rem; color:var(--color-ink-2); margin-bottom:8px; }

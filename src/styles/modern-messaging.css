@@ -33,7 +33,7 @@
 .is-mine .modern-chat-message-footer{justify-content:flex-end}
 .modern-chat-message-actions{display:flex;gap:var(--sp-1)}
 .modern-chat-message-actions button{display:grid;place-items:center;width:30px;height:26px;border-radius:var(--r-sm);color:var(--color-ink-3);transition:background var(--dur-2) var(--ease-std),color var(--dur-2) var(--ease-std)}
-.modern-chat-message-actions button[aria-expanded=true]{color:var(--color-brand);background:var(--color-line)}
+.modern-chat-message-actions button:is([aria-expanded=true]){color:var(--color-brand);background:var(--color-line)}
 @media (hover:hover) and (pointer:fine){.modern-chat-message-actions button:hover{color:var(--color-brand);background:var(--color-line)}}
 .modern-chat-quote{display:flex;flex-direction:column;gap:var(--sp-1);padding:var(--sp-2) var(--sp-3);border-left:3px solid var(--color-line-control);border-radius:var(--r-sm) var(--r-sm) var(--r-sm) var(--r-sm);margin-bottom:var(--sp-2);background:var(--color-brand-tint);font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
 .modern-chat-quote strong{font-size:var(--text-caption);font-weight:600}
@@ -41,9 +41,9 @@
 .is-mine .modern-chat-quote{background:rgb(var(--color-surface-rgb) / .09);border-color:var(--color-highlight);color:var(--color-brand-tint)}
 .modern-chat-reactions{display:flex;gap:var(--sp-1);flex-wrap:wrap;padding-bottom:var(--sp-1)}
 .is-mine .modern-chat-reactions{justify-content:flex-end}
-.modern-chat-reactions button{display:flex;align-items:center;gap:var(--sp-1);padding:var(--sp-1) var(--sp-2);min-height:30px;border:1px solid var(--color-line-control);background:var(--color-surface);border-radius:var(--r-md);font-size:var(--text-caption);color:var(--color-ink-3)}
+.modern-chat-reactions button{display:flex;align-items:center;gap:var(--sp-1);padding:var(--sp-1) var(--sp-2);min-height:30px;border:1px solid var(--color-line-control);background:var(--color-surface);border-radius:var(--r-md);font-size:var(--text-caption);color:var(--color-ink)}
 .modern-chat-reactions button span+span{font-size:var(--text-caption)}
-.modern-chat-reactions button[aria-pressed=true]{background:var(--color-brand-tint);border-color:var(--color-line-control);color:var(--color-brand-hover)}
+.modern-chat-reactions button[aria-pressed=true]{border-color:var(--selected-line);background:var(--selected-bg);color:var(--selected-fg)}
 .modern-chat-reaction-picker{display:flex;gap:var(--sp-1);flex-wrap:wrap;max-width:290px;padding:var(--sp-2);margin:var(--sp-1) 0 var(--sp-2);background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--r-lg);box-shadow:var(--e2)}
 .modern-chat-reaction-picker button{display:grid;place-items:center;min-width:32px;min-height:35px;border-radius:var(--r-md);font-size:var(--fs-keep-18)}
 @media (hover:hover) and (pointer:fine){.modern-chat-reaction-picker button:hover{background:var(--color-brand-tint)}}
@@ -81,7 +81,7 @@
 .modern-chat-welcome{display:flex;align-items:center;flex-direction:column;text-align:center;max-width:360px;margin:var(--sp-7) auto;padding:var(--sp-4);color:var(--color-ink-3)}
 .modern-chat-welcome h2{font-size:var(--fs-keep-20);font-weight:600;color:var(--color-brand-hover);letter-spacing:0;margin:var(--sp-5) 0 var(--sp-3)}
 .modern-chat-welcome p{font-size:var(--text-caption);line-height:1.8}
-.modern-chat-welcome button{display:flex;align-items:center;gap:var(--sp-2);min-height:40px;padding:0 var(--sp-4);margin-top:var(--sp-5);border:1px solid var(--color-line-control);border-radius:var(--r-md);font-size:var(--text-caption);color:var(--color-brand);background:var(--color-brand-tint)}
+.modern-chat-welcome button{display:flex;align-items:center;gap:var(--sp-2);min-height:40px;padding:0 var(--sp-4);margin-top:var(--sp-5);border:1px solid var(--color-line-control);border-radius:var(--r-md);font-size:var(--text-caption);color:var(--color-ink);background:var(--color-surface)}
 .modern-chat button:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(max-width:640px){
 .modern-chat-overlay{padding:0;background:var(--color-surface-2)}
