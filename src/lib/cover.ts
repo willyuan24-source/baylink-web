@@ -118,6 +118,11 @@ export const createCoverPage = ({ fresh = false }: { fresh?: boolean } = {}): Co
  * picture is nearer, the item still takes the one shown farthest away: ③④ never fall back to an info card.
  */
 export const ADJACENT_CARDS = 8;
+/**
+ * The cards a list shows before its first 再看 (/perks on a desktop: 8 + 4 + 4; a /calendar day 13): on a board they take
+ * a ③④ picture the page has not shown whenever they have one, so a list as it opens never repeats a stock picture (UI9-R2).
+ */
+export const FIRST_LIST_CARDS = 16;
 
 export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
@@ -248,8 +253,10 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       let gap = Infinity;
       shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
       if (!pool || gap > pool.gap) pool = { cover, shown, gap };
-      // A picture not yet on the page ends the search; one the page shows already keeps it looking (UI9-R2).
-      if (gap === Infinity) break;
+      // A picture not yet on the page ends the search. One the page shows already keeps it looking on a `fresh` page and
+      // within a list's first FIRST_LIST_CARDS cards (UI9-R2); further down a long board, one shown ADJACENT_CARDS or more
+      // cards away ends it too, which keeps the pictures the page has not shown for the cards after it.
+      if (gap === Infinity || (!page.fresh && at >= FIRST_LIST_CARDS && gap >= ADJACENT_CARDS)) break;
       continue;
     }
     // A pool picture that may show beats a ①② candidate listed after it (the candidates' order).

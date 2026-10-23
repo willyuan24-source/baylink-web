@@ -13,7 +13,7 @@ import type { WeekendPickEntry } from '../src/data/weekend-picks';
 import { coverItemFor, createCoverPage, getCover, resolveCovers, type CoverAsset, type CoverItem } from '../src/lib/cover';
 import { CLOSE_UP_FACE_IMAGES, NOT_FOR_LEAD, POSED_GROUP_IMAGES, RELEASED_CLOSE_UPS, leadImageKey } from '../src/lib/close-up-faces';
 import { isLeadPicture, leadItem, leadsWithPicture } from '../src/lib/lead-rule';
-import { COVER_TABLES, MACRO_STOCK, coverCandidates, sceneFirst } from '../src/lib/cover-candidates';
+import { BOARD_STOCK, COVER_TABLES, DENSE_STOCK, MACRO_STOCK, ROUTE_STOCK, coverCandidates, routeStock, sceneFirst } from '../src/lib/cover-candidates';
 import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 
 /**
@@ -114,6 +114,16 @@ test('R2-05: a ③ picture is not shown twice on one page while an item has a ca
   const five = [...items, { kind: 'event', id: 'five', imageKeys: ['a', 'd'] } as CoverItem];
   const last = resolveCovers(five, { images, today, page: createCoverPage() })[4];
   assert.equal(last.tier === 'stock' && last.image.src, images.a.src);
+});
+
+test('R2-05: the boards\' records carry their whole ③ pool; the route\'s events keep their caps (the near window)', () => {
+  const record = { id: 'x-offer', brand: 'Test', title: 'Birthday treat' };
+  assert.equal(routeStock('offer', record, new Set()).stock, BOARD_STOCK);
+  assert.equal(routeStock('opening', { id: 'x-shop', name: 'Test cafe' }, new Set()).stock, BOARD_STOCK);
+  assert.ok([ROUTE_STOCK, DENSE_STOCK].includes(routeStock('event', { id: 'x-event', title: 'Storytime' }, new Set()).stock!));
+  const boards = JSON.parse(readFileSync('src/data/generated/events-boards.json', 'utf8')) as { offers: { imageKeys?: string[] }[] };
+  const stockCounts = boards.offers.map(offer => (offer.imageKeys ?? []).filter(key => key.startsWith('stock-')).length);
+  assert.ok(Math.max(...stockCounts) > DENSE_STOCK, `an offer carries its whole pool (${Math.max(...stockCounts)} pictures)`);
 });
 
 test('R2-05: macro and texture stock is never a record\'s first ③ candidate while its category has a scene picture', () => {

@@ -183,11 +183,23 @@ export function categorySpots(kind: CoverKind, records: readonly CandidateRecord
   return spots;
 }
 
-/** The route cap for one record: DENSE_STOCK in a dense category, else ROUTE_STOCK; its start from categorySpots. */
+/**
+ * The boards' records (offers and new shops: events-boards.json, which the 免费与优惠 and 新店 views load with their own
+ * chunks, outside the route budgets) carry their category's whole ③ pool (UI9-R2): a board as it opens then shows no stock
+ * picture twice, and one grown with 再看 none within ADJACENT_CARDS cards (measured 10-23 over 17 days: 0, was 4–5 at
+ * one to four taps). A number, not Infinity, so the list stops before ④ as a capped one does.
+ */
+export const BOARD_STOCK = 99;
+
+/**
+ * The cap for one record: BOARD_STOCK on a board, else DENSE_STOCK in a dense category and ROUTE_STOCK otherwise (the
+ * route's events); its start from categorySpots.
+ */
 export const routeStock = (kind: CoverKind, record: CandidateRecord, dense: ReadonlySet<PhotoCategoryId>, spots?: ReadonlyMap<string, number>): CandidateLimits => {
   const category = photoCategoryOf(kind, record as Record<string, unknown>);
   const start = spots?.get(record.id);
-  return { stock: category && dense.has(category) ? DENSE_STOCK : ROUTE_STOCK, ...(start !== undefined ? { start } : {}) };
+  const stock = kind === 'offer' || kind === 'opening' ? BOARD_STOCK : category && dense.has(category) ? DENSE_STOCK : ROUTE_STOCK;
+  return { stock, ...(start !== undefined ? { start } : {}) };
 };
 
 /**
