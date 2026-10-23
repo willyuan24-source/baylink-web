@@ -82,7 +82,9 @@ test('the lead rule refuses a close-up face, a poster, AI and an information car
   assert.equal(leadsWithPicture(lumaFest, context, new Set()), true, 'off the list, the photo would lead');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');
+  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'venue-sap-center'] }, context), true, 'a venue photo leads');
+  // The Chase Center corner photo (half sky) is a weak lead scene (UI9-IMG-B2): fine on a card, never a lead.
+  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), false, 'a weak venue scene never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-mcm-halloween-spectacular-20261031' }, context), false, 'a poster never leads (DECISIONS 32)');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-oakland-omca-dia-muertos-2026' }, context), true, 'an official photo leads');
 });
@@ -99,8 +101,8 @@ test('/events arrangePicks (DECISIONS 26): the first pick that can lead; else th
   const { nextOccurrence } = await import('../src/lib/monthly');
   const today = '2026-10-21';
   const base = INDEX_EVENTS.find(event => nextOccurrence(event, today))!;
-  // Synthetic events on one real date: 'roundup-chase-center' is an approved venue photo (②), no key is an information card.
-  const leads = (id: string) => ({ ...base, id, imageKey: 'roundup-chase-center', imageKeys: undefined });
+  // Synthetic events on one real date: 'venue-sap-center' is an approved venue photo (②), no key is an information card.
+  const leads = (id: string) => ({ ...base, id, imageKey: 'venue-sap-center', imageKeys: undefined });
   const plain = (id: string) => ({ ...base, id, imageKey: undefined, imageKeys: undefined });
   const pick = (event: ReturnType<typeof plain>, reason = true) => ({ event, date: today, ...(reason ? { reason: { zh: '理由', en: 'Reason' } } : {}) });
   assert.equal(canLead(leads('fixture-lead'), today), true);

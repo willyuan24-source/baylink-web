@@ -94,5 +94,17 @@
  {
   "file": "/guides/september-2026/sep26-porchfest-1200.webp",
   "reason": "official poster with small lettering; stops at quality 52 so the type stays legible (169932 B; original 1000×1545, 289118 B)"
+ },
+ {
+  "file": "/guides/category-stock/stock-winter-holidays-8-1200.webp",
+  "reason": "string lights and a lit tree: fine detail that does not fit at the lowest quality step, q40 (165708 B; original 1280×964, 348156 B)"
+ },
+ {
+  "file": "/guides/category-stock/stock-winter-holidays-8-800.webp",
+  "reason": "string lights and a lit tree: fine detail that does not fit at the lowest quality step, q40 (94588 B; original 1280×964, 348156 B)"
+ },
+ {
+  "file": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow-1200.webp",
+  "reason": "straw and hay texture that does not fit at the lowest quality step, q40 (175166 B; original 1080×1350, 319446 B)"
  }
 ]

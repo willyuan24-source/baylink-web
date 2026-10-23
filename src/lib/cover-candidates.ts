@@ -59,7 +59,7 @@ export function venuesFor(kind: CoverKind, record: CandidateRecord, venues: Cove
 }
 
 /** Stock pictures over the image budgets' rungs (verify:images: 800 w ≤ 90 KB, 1200 w ≤ 150 KB): every other picture first. */
-export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
+export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5', 'stock-winter-holidays-8']);
 
 /**
  * Macro and texture stock (UI9-R2, round-2 judge B P15 and owner material #2): a pattern or a close-up detail with no scene

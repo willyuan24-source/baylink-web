@@ -59,7 +59,9 @@ test('every rung exists, is a resize of its original (never upscaled or reframed
     }
     for (const candidate of image.srcset) assert.ok(existsSync(new URL(`../public${candidate.split(' ')[0]}`, import.meta.url)), candidate);
   }
-  assert.ok(exceptions.length <= 25, 'budget exceptions stay a short, reviewed list');
+  // 27 since UI9-IMG-B2 (10-23): the string-lights stock picture (800 w and 1200 w) and the Danville scarecrow's 1200 w do not
+  // fit at q40; a lower master quality does not shrink them (measured q78/q70/q62), so they are listed with their reasons.
+  assert.ok(exceptions.length <= 27, 'budget exceptions stay a short, reviewed list');
 });
 
 test('rungs follow the bytes: pages that show an image get 800/1200 files only where the original is over budget', t => {
