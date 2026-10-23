@@ -38,11 +38,24 @@ export async function createGlyphOutliner() {
 }
 
 type Job = { svg: string; out: string };
+/** At most this many rasterizing workers on a big machine (each is about one core's work). */
+export const MAX_RASTER_WORKERS = 8;
 /**
- * A small pool of rasterizing workers (scripts/share-card-worker.mjs): the PNG work runs in parallel with the layout.
+ * How many rasterizing workers: SHARE_CARD_WORKERS when set (a whole number ≥ 1), else one per core, at most
+ * MAX_RASTER_WORKERS. The main thread only lays the cards out (~9 s for 3,348 cards on a Mac against minutes of
+ * rasterizing) and mostly waits, so the old "cores − 1" left half of a two-core Vercel build machine idle
+ * (HOTFIX-BUILD-TIME, 10-22: the build passed Vercel's 45-minute limit).
+ */
+export function rasterWorkerCount(env: Record<string, string | undefined> = process.env, cores = availableParallelism()) {
+  const forced = Number(env.SHARE_CARD_WORKERS);
+  if (Number.isInteger(forced) && forced >= 1) return forced;
+  return Math.max(1, Math.min(MAX_RASTER_WORKERS, cores));
+}
+/**
+ * A pool of rasterizing workers (scripts/share-card-worker.mjs): the PNG work runs in parallel with the layout.
  * Every card is drawn on the paper token, and the worker keeps that paper exact through the palette (cardPng).
  */
-export function createRasterPool(size = Math.max(1, Math.min(4, availableParallelism() - 1))) {
+export function createRasterPool(size = rasterWorkerCount()) {
   const workers = Array.from({ length: size }, () => new Worker(new URL('./share-card-worker.mjs', import.meta.url)));
   const idle = [...workers];
   const waiting: (() => void)[] = [];

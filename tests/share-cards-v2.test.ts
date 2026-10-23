@@ -136,10 +136,15 @@ test('UI9-IMG-A1b CI fix: the paper under a bright photo band stays exactly the 
   const model = { tone: 'family' as const, coverLabel: '住房', big: '辦事指南', provenance: '示意圖', kindLabel: '灣區生活攻略', title: '加州租客權益：押金扣款、維修和驅逐通知怎麼求助', meta: ['租客權益'], scan: '掃碼查看這條詳情', footnote: '日期、領取條件與開放狀態，請以詳情頁和官方入口為準。', tagline: '灣區去哪、怎麼辦 · 有來源的中文答案' };
   const { draw, finish } = (await createGlyphOutliner())();
   const svg = finish(renderShareCardSvg({ ...model, photo: `data:image/jpeg;base64,${band.toString('base64')}` }, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,', draw));
-  const drawn = new Resvg(svg, { font: { loadSystemFonts: false } }).render().pixels;
+  const rendered = new Resvg(svg, { font: { loadSystemFonts: false } }).render(), drawn = rendered.pixels;
   const file = await cardPng({ svg, paper: CARD_INK.paper });
   assert.equal(file[25], 3, 'still an 8-bit palette PNG');
   const png = PNG.sync.read(file), paper = rgbaKey(CARD_INK.paper);
+  // HOTFIX-BUILD-TIME: the quantizer now reads resvg's raw pixels; the card is the one the PNG round trip drew, pixel for pixel
+  const roundTrip = await sharp(rendered.asPng()).png({ palette: true, colors: 192, effort: 4, compressionLevel: 0 }).toBuffer();
+  const reference = await sharp(roundTrip).ensureAlpha().raw().toBuffer();
+  for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === paper) reference.writeUInt32BE(paper, at);
+  assert.ok(Buffer.from(png.data).equals(reference), 'the same pixels as quantizing the PNG resvg encodes');
   let painted = 0, kept = 0;
   for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === paper) { painted++; if (png.data.readUInt32BE(at) === paper) kept++; }
   assert.ok(painted > 200_000, `the card is mostly paper (${painted})`);
@@ -155,6 +160,33 @@ test('UI9-IMG-A1b CI fix: the paper under a bright photo band stays exactly the 
   const keep = colours.readUInt32BE(0), merged = PNG.sync.read(indexedPng(colours, 30, 10, keep));
   assert.equal(merged.data.readUInt32BE(0), keep, 'the kept colour (the paper) never merges');
   assert.ok(new Set(Array.from({ length: 300 }, (_, index) => merged.data.readUInt32BE(index * 4))).size <= 256);
+  // HOTFIX-BUILD-TIME: runs of one colour (the paper, flat panels) index as single pixels do, with and without merging
+  const runsOf = (count: number) => {
+    const runs = Buffer.alloc(60 * 40 * 4);
+    for (let index = 0; index < 60 * 40; index++) colours.copy(runs, index * 4, (Math.floor(index / 7) % count) * 4, (Math.floor(index / 7) % count) * 4 + 4);
+    return runs;
+  };
+  const under = runsOf(200);
+  assert.deepEqual(Buffer.from(PNG.sync.read(indexedPng(under, 60, 40, keep)).data), under, 'under 256 colours every run keeps its colour');
+  const over = runsOf(300), overPng = PNG.sync.read(indexedPng(over, 60, 40, keep)), drawnAs = new Map<number, number>();
+  for (let at = 0; at < over.length; at += 4) {
+    const source = over.readUInt32BE(at), out = overPng.data.readUInt32BE(at);
+    assert.equal(drawnAs.get(source) ?? out, out, 'one colour is drawn one way wherever it is');
+    drawnAs.set(source, out);
+    // colours 0–42 come round twice (14 pixels each), so they are never among the 44 rarest that merge
+    if (Math.floor(at / 4 / 7) % 300 < 43) assert.equal(out, source, 'a common colour keeps its colour');
+  }
+  assert.ok(new Set(drawnAs.values()).size <= 256);
+});
+
+test('HOTFIX-BUILD-TIME: one rasterizing worker per core (the layout thread mostly waits), or SHARE_CARD_WORKERS', async () => {
+  const { MAX_RASTER_WORKERS, rasterWorkerCount } = await import('../scripts/card-glyphs');
+  assert.equal(rasterWorkerCount({}, 2), 2, 'a two-core build machine rasterizes on both cores');
+  assert.equal(rasterWorkerCount({}, 1), 1);
+  assert.equal(rasterWorkerCount({}, 4), 4);
+  assert.equal(rasterWorkerCount({}, 64), MAX_RASTER_WORKERS, 'a big machine stays at the cap');
+  assert.equal(rasterWorkerCount({ SHARE_CARD_WORKERS: '1' }, 8), 1, 'the override wins');
+  for (const value of ['', '0', '-2', '1.5', 'all']) assert.equal(rasterWorkerCount({ SHARE_CARD_WORKERS: value }, 3), 3, `an unusable override (${JSON.stringify(value)}) is ignored`);
 });
 
 test('H45: which photo a listing card may carry', () => {

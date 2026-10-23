@@ -12,6 +12,7 @@ import { hubCardPath } from '../src/lib/hub-cards';
 import { SITE_URL } from '../src/lib/seo';
 import { languagePath } from '../src/lib/language-path';
 import { getBayAreaToday } from '../src/lib/monthly';
+import { availableParallelism } from 'node:os';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
 import { hubCardData } from './share-card-data';
 
@@ -23,6 +24,7 @@ import { hubCardData } from './share-card-data';
  * promotion allows; never AI art), as a band across the top 55% (H45; UI9-IMAGES DECISIONS 21).
  */
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
+const started = performance.now();
 // H41: English cards are the site's English, with US-style times and dates (as i18n/metadata.ts switches the site on)
 await enableUsEnglishTimes();
 await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
@@ -116,4 +118,5 @@ for (const locale of LOCALES) {
 }
 await Promise.all(tasks);
 await pool.close();
-console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes; ${photoCards} listings carry a photo.`);
+// The time and the pool size go into the build log, so a slow build machine shows what it ran with (HOTFIX-BUILD-TIME).
+console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes; ${photoCards} listings carry a photo. ${((performance.now() - started) / 1000).toFixed(0)} s on ${pool.size} rasterizing workers (${availableParallelism()} cores).`);
