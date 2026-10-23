@@ -203,7 +203,8 @@ test('the AI cutoff is announced calmly in its last 7 days, in three languages, 
   const soon = new Date(Date.now() + 4 * 86_400_000).toISOString();
   const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(new Date(soon));
   const md = part({ month: 'numeric', day: 'numeric' }), hm = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  const line = { 'zh-Hans': `AI 助手 ${md} ${hm} 起暂停 · 急事拨打 911`, 'zh-Hant': `AI 助手 ${md} ${hm} 起暫停 · 急事撥打 911`, en: `AI pauses ${part({ month: 'short', day: 'numeric' })}, ${part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '')} · Emergencies: 911` };
+  // The · is tied to the line before it by a no-break space: a wrap (特大) opens line 2 on 急事拨打 911, never on the dot (N06).
+  const line = { 'zh-Hans': `AI 助手预计 ${md} ${hm} 起暂停\u00a0· 急事拨打 911`, 'zh-Hant': `AI 助手預計 ${md} ${hm} 起暫停\u00a0· 急事撥打 911`, en: `AI pauses ${part({ month: 'short', day: 'numeric' })}, ${part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '')} PT\u00a0· Emergencies: 911` };
   const live = { kind: 'ai_pause_scheduled', at: soon, banner: { 'zh-Hans': `AI 助手预计 ${soon} 起暂停；紧急情况请直接拨打 911。`, 'zh-Hant': `AI 助手預計 ${soon} 起暫停；緊急情況請直接撥打 911。`, en: `The AI assistant is scheduled to pause from ${soon}. In an emergency, call 911.` } };
   mockWithCapabilities(t, { engine: 'v2', pause: null, reduced: null, aiUntil: soon, pauseScheduled: live });
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
@@ -212,6 +213,7 @@ test('the AI cutoff is announced calmly in its last 7 days, in three languages, 
     const note = await view.findByRole('note');
     assert.equal(note.getAttribute('data-notice'), 'ai_pause_scheduled');
     assert.equal(note.textContent, line[locale]);
+    assert.equal(note.querySelector('span')!.textContent, locale === 'en' ? 'Emergencies: 911' : locale === 'zh-Hant' ? '急事撥打 911' : '急事拨打 911', 'the unbreakable part');
     assert.equal(within(note).getByRole('link').getAttribute('href'), 'tel:911');
     assert.equal(note.querySelector('.bb-call'), null, 'inline, not the 911 chip');
     assert.ok(note.compareDocumentPosition(view.baseElement.querySelector('.bb-prompts')!) & 4, 'above the starter cards');

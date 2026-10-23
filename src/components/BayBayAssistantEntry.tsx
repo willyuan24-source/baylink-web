@@ -464,7 +464,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
 /**
  * The AI cutoff in its last 7 days (capabilities `pauseScheduled` / `aiUntil`, api #37) as one muted line above the
  * starters (R2-16: the panel opened on a two-line box and a 911 chip): the day and the time from `at`, in Bay Area time,
- * and 911 tap-to-call inline. The server's full sentence adds that site information stays, which the panel shows anyway.
+ * kept as the server words it (预计 / PT), and 911 tap-to-call inline. The server's own sentence (`scheduled.banner`) is
+ * no longer shown: it adds only that site information stays, which the panel shows anyway.
  */
 function BayBayPauseLine({ at }: { at: string }) {
   const locale = useLocale();
@@ -472,8 +473,9 @@ function BayBayPauseLine({ at }: { at: string }) {
   const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(new Date(at));
   const day = part({ month: 'numeric', day: 'numeric' }), time = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const enDay = part({ month: 'short', day: 'numeric' }), enTime = part({ hour: 'numeric', minute: '2-digit' }).replace(':00', '');
-  // Where the line must wrap (特大), it breaks before 急事拨打 911, never inside it.
-  return <p className="bb-pause-line" data-notice="ai_pause_scheduled" role="note" translate="no">{copy(`AI 助手 ${day} ${time} 起暂停`, `AI pauses ${enDay}, ${enTime}`)} · <span>{copy('急事拨打', 'Emergencies:')} <a href="tel:911">911</a></span></p>;
+  // Where the line must wrap (特大), it breaks after the ·, before 急事拨打 911 (a no-break space ties the dot to line 1, so
+  // line 2 never opens on a separator, N06), and never inside 急事拨打 911.
+  return <p className="bb-pause-line" data-notice="ai_pause_scheduled" role="note" translate="no">{copy(`AI 助手预计 ${day} ${time} 起暂停`, `AI pauses ${enDay}, ${enTime} PT`)}{'\u00a0· '}<span>{copy('急事拨打', 'Emergencies:')} <a href="tel:911">911</a></span></p>;
 }
 
 type TurnAnswerProps = {

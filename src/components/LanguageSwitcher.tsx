@@ -21,10 +21,10 @@ const TITLE = `${TITLES.en} · ${TITLES.zh}`;
  * Every choice is a <button> with its own `lang`, so screen readers say each name in its language, and the control is
  * `data-lang-switch` + translate="no": scripts/verify-release.mjs skips the header's switch when it checks that the /en
  * shell has no Chinese and that every link keeps its language (RC-7); the ••• row is rendered only while the sheet is open
- * (SiteNavigation), so the prerendered header holds that one switch. It has no links. The choice is remembered
- * (setLocale), and the URL keeps its path, filters and hash (E2E-07).
+ * (SiteNavigation), so the prerendered header holds that one switch; a choice there closes the sheet (onDone). It has
+ * no links. The choice is remembered (setLocale), and the URL keeps its path, filters and hash (E2E-07).
  */
-export function LanguageSwitcher({ realLocation, inline }: { realLocation?: Location; inline?: boolean } = {}) {
+export function LanguageSwitcher({ realLocation, inline, onDone }: { realLocation?: Location; inline?: boolean; onDone?: () => void } = {}) {
   const locale = useLocale();
   const routedLocation = useLocation();
   const location = realLocation || routedLocation;
@@ -32,15 +32,17 @@ export function LanguageSwitcher({ realLocation, inline }: { realLocation?: Loca
   const [error, setError] = useState(false);
   const { details, summary, close } = useDisclosure();
   const current = LANGUAGES.find(item => item.id === locale) || LANGUAGES[0];
+  // The ••• row closes the sheet it sits in (onDone, SiteNavigation's closeToSummary); the header's menu closes itself.
+  const done = onDone || close;
   const choose = async (selected: Locale) => {
     if (busy) return;
-    if (selected === locale) { close(); return; }
+    if (selected === locale) { done(); return; }
     setBusy(true); setError(false);
     try {
       if (await setLocale(selected, true, location.pathname)) {
         navigateSiteLanguage(localizedUrl(location.pathname + location.search + location.hash, selected));
       }
-      close();
+      done();
     } catch { setError(true); }
     finally { setBusy(false); }
   };

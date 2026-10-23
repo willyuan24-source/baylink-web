@@ -67,9 +67,9 @@ export function SiteChrome({ pathname, user, messagesCount, onAsk, onSearch, onA
     <div className="site-workspace">
       <header className="site-topbar">
         <div className="site-topbar-inner">
-          <SiteNavigation active={route?.section || ''} category="全部" homeActive={path === '/'} pathname={path} user={user} notification={unread} notificationCount={messagesCount} onCreate={onCreate} onAsk={onAsk} onAccount={onAccount} language={<LanguageSwitcher inline realLocation={realLocation} />} />
+          <SiteNavigation active={route?.section || ''} category="全部" homeActive={path === '/'} pathname={path} user={user} notification={unread} notificationCount={messagesCount} onCreate={onCreate} onAsk={onAsk} onAccount={onAccount} language={done => <LanguageSwitcher inline onDone={done} realLocation={realLocation} />} />
           <div className="site-header-utilities">
-            <button type="button" className="site-command-trigger site-tool" onClick={onSearch} aria-label={t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')} aria-keyshortcuts="Control+k Meta+k" title="Ctrl / ⌘ K">
+            <button type="button" className="site-command-trigger site-tool" onClick={onSearch} aria-label={t('搜活动、指南和景点', 'Search events, guides and places')} aria-keyshortcuts="Control+k Meta+k" title="Ctrl / ⌘ K">
               <Search size={20} aria-hidden="true" strokeWidth={1.75} /><span className="site-command-placeholder" aria-hidden="true">{t('搜活动、指南和景点', 'Search events, guides and places')}</span><kbd className="site-command-kbd" aria-hidden="true">⌘K</kbd>
             </button>
             <ReadingPreferencesButton onUnavailable={onUnavailable} />

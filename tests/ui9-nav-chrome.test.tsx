@@ -99,16 +99,36 @@ test('UI9-R2 OD7: a phone keeps the lockup, search, Aa 字号 and •••; the
   assert.deepEqual(choices.map(button => [button.getAttribute('lang'), button.textContent, button.getAttribute('aria-pressed')]), [['zh-Hans', '简体中文', 'true'], ['zh-Hant', '繁體中文', 'false'], ['en', 'English', 'false']]);
   await act(async () => { more.open = false; more.dispatchEvent(new dom.window.Event('toggle')); });
   assert.equal(more.querySelector('.site-language-row'), null, 'closed again: gone');
+  // A choice in the row closes the ••• sheet with focus on •••, before the row unmounts (focus never drops to <body>): the
+  // current language (nothing to load) and a switch, once the new language has loaded.
+  const summary = more.querySelector('summary')!;
+  for (const [name, after] of [['简体中文', '简体中文'], ['English', 'English']] as const) {
+    await act(async () => { more.open = true; more.dispatchEvent(new dom.window.Event('toggle')); });
+    const choice = within(more.querySelector('.site-language-row') as HTMLElement).getByRole('button', { name });
+    choice.focus();
+    await act(async () => { fireEvent.click(choice); });
+    await waitFor(() => assert.equal(more.open, false, `${name}: the sheet closes`));
+    assert.equal(dom.window.document.activeElement, summary, `${name}: focus on the ••• summary`);
+    await act(async () => { more.dispatchEvent(new dom.window.Event('toggle')); });
+    assert.equal(more.querySelector('.site-language-row'), null, `${name}: the row is gone`);
+    assert.equal(header.querySelector('.site-header-utilities [data-lang-switch] .site-language-name')!.textContent, after);
+  }
+  await act(async () => { await setLocale('zh-Hans', false); });
   const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   // Below 768px the header's switch steps out and the lockup grows (≥120px at 390); from 768px the sheet row hides.
   assert.match(css, /@media\(max-width:767px\) \{[^@]*\.site-app \.site-header-utilities>\.site-language \{ display:none; \}/);
   assert.match(css, /@media\(max-width:767px\) \{[^@]*\.site-app \.site-header-brand img \{ width:132px; \}/);
   assert.match(css, /@media \(min-width:768px\) \{ \.site-app \.site-language-row \{ display:none; \} \}/);
   assert.doesNotMatch(css, /site-language-(?:pair|short)/, 'the phone trigger\'s short labels are gone with it');
-  // C P21: the stylesheet paints the lockup in vector under its PNG (no request), so a slow load shows the logo.
-  assert.match(css, /\.site-app \.site-header-brand img \{ display:block; width:140px; height:auto; background:url\("data:image\/svg\+xml,%3Csvg [^"]+%3C\/svg%3E"\) 0 0 \/ 100% 100% no-repeat; \}/);
-  const img = header.querySelector('.site-header-brand img')!;
+  // C P21: until the PNG is in, the stylesheet paints the lockup in vector (no request), so a slow load shows the logo; the
+  // PNG is mostly transparent, so the vector steps out once it has loaded (it would thicken the soft edges).
+  assert.match(css, /\.site-app \.site-header-brand img \{ display:block; width:140px; height:auto; \}/);
+  assert.match(css, /\.site-app \.site-header-brand img:not\(\[data-loaded\]\) \{ background:url\("data:image\/svg\+xml,%3Csvg [^"]+%3C\/svg%3E"\) 0 0 \/ 100% 100% no-repeat; \}/);
+  const img = header.querySelector<HTMLImageElement>('.site-header-brand img')!;
   assert.equal(Number(img.getAttribute('width')) / Number(img.getAttribute('height')), 4, 'the box has the PNG\'s 4:1 ratio before it loads');
+  assert.equal(img.dataset.loaded, undefined, 'not loaded yet: the placeholder paints');
+  fireEvent.load(img);
+  assert.equal(img.dataset.loaded, '', 'loaded: the placeholder steps out');
 });
 
 test('G21: a tapped tab looks current at once (data-pending) while aria-current stays the pathname’s, until the route changes', () => {

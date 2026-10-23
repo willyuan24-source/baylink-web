@@ -30,11 +30,14 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app .site-topbar-inner { display:flex; align-items:center; gap:var(--sp-5); width:100%; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); height:calc(var(--chrome-header-height) - 1px); margin-inline:auto; padding:0 var(--page-gutter); }
 .site-app .site-header-navigation { display:flex; flex:1; gap:var(--sp-6); min-width:0; height:100%; }
 .site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:var(--tool-size); }
-/* The BAYLINK lockup (G1) is a fixed size: it never grows with Aa. Under its PNG the stylesheet paints the same lockup in
-   vector (C P21, UI9-R2), so a slow connection shows the logo with the header, before the image arrives (no request, no
-   script): the mark's shapes traced from the PNG's own edges (the face as three dots), the wordmark on its strokes. The
-   PNG covers it once it loads; 0.55 KiB brotli of the render-blocking sheets. The fills are the lockup's artwork colours (an image, not palette tokens). */
-.site-app .site-header-brand img { display:block; width:140px; height:auto; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 112'%3E%3Cpath fill='%230f8b8c' d='M53 10h35l10 3 6 5 4 6 1 4 1 10-3 8 5 2 6 4 5 4 3 6 1 8-1 6-4 8-5 6-5 3-6 2h-34l-8 3-10 6-2-2-1-2 2-6-5-1-4-4-3-3-1-6v-40-16l1-4 5-6z'/%3E%3Cpath fill='%2352b5b1' d='M121 80h3l-2 4-6 7-6 3-38 1-8 2-10 7-3-2 2-6-2-2 2-4 9-7 12-2v2h6l2 2 12 3v2h16l-1-2h4-1l6-4z'/%3E%3Cpath fill='%23f6f5f1' d='M66 24l8-1 6 2 16 15-6 12-5 6 1 6 7 10 3 2h7v-20h5l2 4-1 16h8l-7 1-2 4v-4l-3 1-1 3-2-4h-6l4 3-2 1-28-13-12-1-8 1-1-26-3-2-1-4 3-4h4l6-6zM57 76l13-1 28 10h12l10-3-12 7h-12l-30-10-12 1-8 4 2-4z'/%3E%3Cpath fill='%2312333a' d='M64.5 35.5h.1M84.5 37.5h.1M76 42h.1' stroke='%2312333a' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle fill='%23f2542d' cx='118' cy='15.5' r='6'/%3E%3Cpath fill='none' stroke='%23096b54' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' d='M152 58.5h17q7 0 7 7v4.5q0 7-7 7h-17v-36h15q7 0 7 7v3q0 7-7 7M191.5 77l16-36 16 36M197 69h21M232 41l14 20.5 14-20.5M246 61.5v15.5M279 41v36h20M316 41v36M337 77v-36l27.5 36v-36M386 41v36M412 41l-24 22M394 57l19 20'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
+/* The BAYLINK lockup (G1) is a fixed size: it never grows with Aa. Until its PNG is in, the stylesheet paints the same
+   lockup in vector (C P21, UI9-R2), so a slow connection shows the logo with the header (no request): the mark's shapes
+   traced from the PNG's own edges (the face as three dots), the wordmark on its strokes. The PNG is mostly transparent,
+   so the vector would show through its soft edges: it steps out once the PNG has loaded (data-loaded, SiteNavigation),
+   and stays for a PNG that never arrives. 0.55 KiB brotli of the render-blocking sheets; the fills are the lockup's
+   artwork colours (an image, not palette tokens). */
+.site-app .site-header-brand img { display:block; width:140px; height:auto; }
+.site-app .site-header-brand img:not([data-loaded]) { background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 112'%3E%3Cpath fill='%230f8b8c' d='M53 10h35l10 3 6 5 4 6 1 4 1 10-3 8 5 2 6 4 5 4 3 6 1 8-1 6-4 8-5 6-5 3-6 2h-34l-8 3-10 6-2-2-1-2 2-6-5-1-4-4-3-3-1-6v-40-16l1-4 5-6z'/%3E%3Cpath fill='%2352b5b1' d='M121 80h3l-2 4-6 7-6 3-38 1-8 2-10 7-3-2 2-6-2-2 2-4 9-7 12-2v2h6l2 2 12 3v2h16l-1-2h4-1l6-4z'/%3E%3Cpath fill='%23f6f5f1' d='M66 24l8-1 6 2 16 15-6 12-5 6 1 6 7 10 3 2h7v-20h5l2 4-1 16h8l-7 1-2 4v-4l-3 1-1 3-2-4h-6l4 3-2 1-28-13-12-1-8 1-1-26-3-2-1-4 3-4h4l6-6zM57 76l13-1 28 10h12l10-3-12 7h-12l-30-10-12 1-8 4 2-4z'/%3E%3Cpath fill='%2312333a' d='M64.5 35.5h.1M84.5 37.5h.1M76 42h.1' stroke='%2312333a' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle fill='%23f2542d' cx='118' cy='15.5' r='6'/%3E%3Cpath fill='none' stroke='%23096b54' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' d='M152 58.5h17q7 0 7 7v4.5q0 7-7 7h-17v-36h15q7 0 7 7v3q0 7-7 7M191.5 77l16-36 16 36M197 69h21M232 41l14 20.5 14-20.5M246 61.5v15.5M279 41v36h20M316 41v36M337 77v-36l27.5 36v-36M386 41v36M412 41l-24 22M394 57l19 20'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
 .site-app .site-otter { display:block; flex:none; }
 
 /* Desktop links: ink-2, the current one ink with the selected line (N08: ink, one of the two selected looks) grown from the
@@ -307,13 +310,17 @@ html[data-simple] .site-app .site-footer-about { display:none; }
   html:lang(en) .site-app .site-reading-label { display:none; }
   html:lang(en) .site-app .site-reading-label-short { display:inline; }
 }
-/* 特大 and 简洁显示 (and English 大) from 1024 to 1279px (followup 26: English 更多 ran under the search icon): the tools keep
-   their place but name themselves shorter — the globe alone (the language stays its accessible name), 我的 as its icon,
-   English "Aa Size". */
-@media(min-width:1024px) and (max-width:1279px) {
-  html:is([data-reading=extra-large],[data-simple],[data-reading=large]:lang(en)) .site-app :is(.site-language-name,.site-topbar-account>span) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Followup 26 (更多 ran under the search field): where the desktop header is tight, the tools keep their place but name
+   themselves shorter — the globe alone (the language stays its accessible name), 我的 as its icon, English "Aa Size": from
+   1024px at 特大 and in English at 大 and in 简洁显示; Chinese 简洁显示 only to 1279px (from 1280 it fits with its names).
+   Measured from 1024 to 1600px in the three languages and four modes (UI9-R2): 更多 ends ≥27px before the search. */
+@media(min-width:1024px) {
+  html:is([data-reading=extra-large],[data-simple]:lang(en),[data-reading=large]:lang(en)) .site-app :is(.site-language-name,.site-topbar-account>span) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
   html:is([data-reading=extra-large],[data-simple],[data-reading=large]):lang(en) .site-app .site-reading-label { display:none; }
   html:is([data-reading=extra-large],[data-simple],[data-reading=large]):lang(en) .site-app .site-reading-label-short { display:inline; }
+}
+@media(min-width:1024px) and (max-width:1279px) {
+  html[data-simple] .site-app :is(.site-language-name,.site-topbar-account>span) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 }
 @media(max-width:359px) {
   .site-app .site-header-brand img { width:104px; }

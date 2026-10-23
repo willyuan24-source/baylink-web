@@ -21,12 +21,17 @@ type Props = {
   /** The real URL. AppLayout passes it because /posts/:id and /users/:id render over a background page (useLocation sees that). */
   pathname?: string;
   /** A phone's language choices (SiteChrome, UI9-R2 OD7): the first row of the ••• sheet, rendered only while it is open,
-      so the prerendered header keeps one language switch (verify-release reads that one). */
-  language?: ReactNode;
+      so the prerendered header keeps one language switch (verify-release reads that one). It gets the sheet's close: a
+      choice (the current language too) closes the sheet with focus on •••, never on a row that is about to unmount. */
+  language?: (close: () => void) => ReactNode;
 };
 
 /** The otter that stands for BayBay in the header and the tab bar (public/brand/otter.svg; decorative, the label names it). */
 export const OtterIcon = ({ size = 24 }: { size?: number }) => <img className="site-otter" src="/brand/otter.svg" alt="" width={size} height={size} aria-hidden="true" />;
+
+/** The lockup's vector placeholder (site-chrome.css) paints only until the PNG is in: `data-loaded` on load, or at mount
+    for a PNG that arrived before the app did (an image that fails keeps the placeholder). */
+const markLogoLoaded = (img: HTMLImageElement | null) => { if (img?.complete && img.naturalWidth) img.dataset.loaded = ''; };
 
 /** The small "AI" tag on every 问 BayBay entry in the chrome (A6: BayBay is named an AI helper wherever it is offered). */
 export const AiTag = () => <span className="site-ai-tag" aria-hidden="true" translate="no">AI</span>;
@@ -56,7 +61,7 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
   const here = (path: string) => pathname === path ? 'page' : undefined;
 
   return <div className="site-header-navigation">
-    <Link to="/" className="site-header-brand" aria-label={english ? 'BAYLINK home' : 'BAYLINK 首页'}><img src={BRAND.logoHorizontal} alt="BAYLINK" width="160" height="40" /></Link>
+    <Link to="/" className="site-header-brand" aria-label={english ? 'BAYLINK home' : 'BAYLINK 首页'}><img src={BRAND.logoHorizontal} alt="BAYLINK" width="160" height="40" ref={markLogoLoaded} onLoad={event => { event.currentTarget.dataset.loaded = ''; }} /></Link>
     <nav className="site-nav site-header-primary" aria-label={english ? 'Main navigation' : '主要导航'}>
       {links.map(({ href, label }) => <Link key={href} to={href} aria-current={current === href ? 'page' : undefined} className={`site-nav-link${current === href ? ' is-active' : ''}`} {...press(href, current === href)}>{label}</Link>)}
       <button type="button" className="site-nav-link site-nav-ask" onClick={onAsk} aria-label={english ? 'Ask BayBay (AI helper)' : '问 BayBay（AI 助手）'} {...bayBayWarmup}><OtterIcon size={22} /><span>{english ? 'Ask BayBay' : '问 BayBay'}</span><AiTag /></button>
@@ -68,7 +73,7 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !(event.target as Element).closest('a')) return;
         closeToSummary();
       }}>
-        {moreOpen && language}
+        {moreOpen && language?.(closeToSummary)}
         {/* Content arrangement §4: places first, then about and feedback, then the account; the legal links are the footer's. */}
         <nav className="site-secondary-nav" aria-label={english ? 'More discoveries' : '更多探索'}>
           {/* G1: the inbox is two taps from any page (更多 → 消息) and carries the unread count. */}

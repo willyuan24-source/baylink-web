@@ -49,8 +49,10 @@ test('N10 / N11: the search pill rings with the focus tokens, BayBay\'s composer
   assert.equal(line['font-size'], 'var(--fs-meta)');
   const call = decls(panel, '.baybay-conversation .bb-pause-line a');
   assert.equal(decls(panel, '.baybay-conversation .bb-pause-line>span')['white-space'], 'nowrap', '特大 wraps before 急事拨打 911, never inside it');
-  assert.equal(call.padding, 'var(--sp-3) var(--sp-2)');
-  assert.equal(call.margin, 'calc(-1 * var(--sp-3)) calc(-1 * var(--sp-2))');
+  // The 911 target is a field tall: the inline's glyph box (≥1em) plus half the field height less half an em, above and
+  // below (block padding on an inline never moves the line; 41×45px at 标准 measured in Chrome, UI9-R2 fix-run).
+  assert.equal(call.padding, 'calc(var(--control-height) / 2 - .5em) var(--sp-2)');
+  assert.equal(call.margin, '0 calc(-1 * var(--sp-2))');
 });
 
 test('OverlayHost: the chunk fallbacks sit on token classes (no Tailwind shadow or corners) and keep CloseButton\'s markup', () => {
@@ -66,12 +68,15 @@ test('OverlayHost: the chunk fallbacks sit on token classes (no Tailwind shadow 
   assert.deepEqual([decls(css, '.site-chunk-card')['border-radius'], decls(css, '.site-chunk-card')['box-shadow']], ['var(--r-xl)', 'var(--e2)']);
 });
 
-test('followup 26: from 1024 to 1279px at 特大, in 简洁显示 and English 大 the header tools name themselves shorter', () => {
-  let rule = '';
+test('followup 26: from 1024px at 特大 and in English 大 / 简洁显示 (Chinese 简洁显示 to 1279px) the header tools name themselves shorter', () => {
+  const rules: Record<string, string> = {};
   postcss.parse(read('src/components/site-chrome.css')).walkAtRules('media', media => {
-    if (media.params.replace(/\s/g, '') !== '(min-width:1024px)and(max-width:1279px)') return;
-    media.walkRules(found => { if (/site-language-name/.test(found.selector)) rule = found.toString(); });
+    const params = media.params.replace(/\s/g, '');
+    if (params !== '(min-width:1024px)' && params !== '(min-width:1024px)and(max-width:1279px)') return;
+    media.walkRules(found => { if (/site-language-name/.test(found.selector)) rules[params] = found.toString(); });
   });
-  assert.match(rule, /html:is\(\[data-reading=extra-large\],\[data-simple\],\[data-reading=large\]:lang\(en\)\) \.site-app :is\(\.site-language-name,\.site-topbar-account>span\)/);
-  assert.match(rule, /clip-path:inset\(50%\)/, 'visually hidden, still the accessible name');
+  // From 1280 the English header at 大, 特大 and 简洁显示 still ran 更多 under the 280px search field (review, 15 widths × modes).
+  assert.match(rules['(min-width:1024px)'], /html:is\(\[data-reading=extra-large\],\[data-simple\]:lang\(en\),\[data-reading=large\]:lang\(en\)\) \.site-app :is\(\.site-language-name,\.site-topbar-account>span\)/);
+  assert.match(rules['(min-width:1024px)and(max-width:1279px)'], /html\[data-simple\] \.site-app :is\(\.site-language-name,\.site-topbar-account>span\)/);
+  for (const rule of Object.values(rules)) assert.match(rule, /clip-path:inset\(50%\)/, 'visually hidden, still the accessible name');
 });
