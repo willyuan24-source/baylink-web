@@ -372,10 +372,14 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
     cleanup();
     return result;
   };
-  const flagDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offset)).find(day => {
-    const { event } = leadOf(day);
-    return !!event?.imageKey && canLead(event, today);
-  });
+  // A day whose lead shows its own registered picture: a lead whose imageKey is a shared key (e.g. 'weekend') shows its venue
+  // photo instead, so flagging its key would test nothing (10-23: the Warriors game led with the Chase Center venue photo).
+  const ownPicture = (day: string) => {
+    const { event, html } = leadOf(day);
+    const src = event?.imageKey ? GUIDE_IMAGES[event.imageKey]?.src : undefined;
+    return !!event && !!src && canLead(event, today) && html.includes(src.replace(/\.webp$/, ''));
+  };
+  const flagDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offset)).find(ownPicture);
   assert.ok(flagDay, 'a day in the week leads with a photo');
   const before = leadOf(flagDay);
   const key = before.event!.imageKey!;
