@@ -10,8 +10,8 @@ import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { setPageMetadata } from '../lib/seo';
 import { HUB_CARDS } from '../lib/hub-cards';
 import { getListingImage } from '../lib/offer-media';
-import { coverItemFor, createCoverPage, getCover } from '../lib/cover';
-import { coverCandidates } from '../lib/cover-candidates';
+import { coverItemFor, createCoverPage, resolveCovers } from '../lib/cover';
+import { aiSessionCandidates } from '../lib/cover-candidates';
 import { Cover } from '../components/ui/CoverImage';
 import { ImageCredits } from '../features/events/ImageCredits';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
@@ -43,9 +43,10 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
   const events = selectAiLocalEvents({ today, goal, week, includeEnded });
   const endedCount = allEnded ? selectAiLocalEvents({ today, goal, week, includeEnded: true }).length : 0;
   // UI9-IMAGES DECISIONS 21 (UI9-R2): every session card shows a picture, chosen as every listing's is (cover.ts: ① its own →
-  // ② its venue's → ③ its category's, one page so a picture is not repeated), with the label on it and the page's credits.
-  const coverPage = createCoverPage();
-  const covers = events.map(event => getCover(coverItemFor('event', { id: event.id, imageKey: event.imageKey, imageKeys: coverCandidates('event', event) }), { images: getListingImage, today, page: coverPage }));
+  // ② its venue's → ③ its category's and AI_SESSION_STOCK, dealt over the list so a picture is not repeated nearby), with the
+  // label on it and the page's credits at the end.
+  const covers = resolveCovers(events.map(event => coverItemFor('event', { id: event.id, imageKey: event.imageKey, imageKeys: aiSessionCandidates(event) })), { images: getListingImage, today, page: createCoverPage() });
+  const listed = !(allEnded && !includeEnded) && events.length > 0;
   const latestCheck = events.reduce((date, event) => event.verifiedAt > date ? event.verifiedAt : date, '');
   const reset = () => { setGoal('all'); setWeek('all'); };
   // A filter with no past sessions folds to "none here" and offers the reset, never "往期 0 场已收起" with no way back.
@@ -112,7 +113,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
               : filtered && <Button key="reset" variant="text" onClick={reset}>{t('重置筛选')}</Button>]} />
         : events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
           actions={[<Button key="reset" variant="primary" onClick={reset}>{t('重置筛选')}</Button>, !includeEnded && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>]} />
-        : <><div className="bl-ai-event-grid">{events.map((event, index) => {
+        : <div className="bl-ai-event-grid">{events.map((event, index) => {
           const status = getEventStatus(event, today);
           return <article key={event.id} className={`bl-ai-event bl-ai-event--${status}`}>
             <div className="bl-ai-event-media"><Cover cover={covers[index]} kind="event" ended={status === 'ended'} sizes="(max-width: 600px) calc(100vw - 80px), 480px" decorative /></div>
@@ -128,7 +129,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
             <p className="bl-ai-source">{t('核对日期')} {event.verifiedAt} · {t(event.sourceLabel)}</p>
             {status !== 'ended' && <SourceFreshness contentId={event.id} item={{ kind: 'event', verifiedAt: event.verifiedAt, endDate: event.endDate, nextDate: nextConfirmedEventDate(event, today) }} today={suppliedToday} />}
           </article>;
-        })}</div><ImageCredits covers={covers} /></>}
+        })}</div>}
     </section>
 
     <section className="bl-ai-prep" aria-label={t('第一次参加？从这里开始')}>
@@ -139,5 +140,6 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
       ].map(([number, title, body]) => <div key={number}><span>{number}</span><h3>{t(title)}</h3><p>{t(body)}</p></div>)}
     </section>
     <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/events?when=all">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
+    {listed && <ImageCredits covers={covers} />}
   </PageContainer>;
 }

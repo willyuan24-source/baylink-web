@@ -89,6 +89,21 @@ export const MACRO_STOCK: ReadonlySet<string> = new Set([
   'stock-ice-skating-1', // one skate, close up
 ]);
 
+/**
+ * /ai-in-the-bay's sessions (UI9-R2): the past AI Week and Tech Week cards have no picture of their own, and the three
+ * tech-meetup pictures alone came back every third card. These ③ pictures follow them on that page: a laptop on a desk,
+ * an empty meeting room, a phone at a table (no faces, logos or screen text; checked by eye 10-23 on the pools' sheet).
+ */
+export const AI_SESSION_STOCK: readonly string[] = ['stock-tech-help-4', 'stock-talk-bookclub-3', 'stock-tech-help-2'];
+
+/** An /ai-in-the-bay session's candidates: its own, then AI_SESSION_STOCK after its category's ③ pictures (before any ④). */
+export function aiSessionCandidates(record: CandidateRecord, tables: CoverTables = COVER_TABLES): string[] {
+  const keys = coverCandidates('event', record, tables);
+  const extra = AI_SESSION_STOCK.filter(key => !keys.includes(key));
+  const at = keys.findIndex(key => key !== record.imageKey && tables.ai.some(approval => approval.key === key));
+  return at < 0 ? [...keys, ...extra] : [...keys.slice(0, at), ...extra, ...keys.slice(at)];
+}
+
 /** A stable small number from the record id, so a record always starts its category's pictures at the same spot. */
 export function idSpot(id: string, size: number): number {
   let hash = 0;

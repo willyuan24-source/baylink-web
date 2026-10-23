@@ -189,5 +189,10 @@ test('/ai-in-the-bay: every session card shows a picture, labelled on the pictur
   const cards = [...document.querySelectorAll('article.bl-ai-event')];
   assert.ok(cards.length > 0, 'sessions listed');
   for (const card of cards) assert.ok(card.querySelector('.bl-ai-event-media img'), `${card.querySelector('h3')?.textContent}: a picture`);
-  assert.ok(document.querySelector('#page-credits'), 'the page lists its pictures');
+  // Its category's three pictures and AI_SESSION_STOCK, dealt over the list: no picture twice within six cards.
+  const srcs = cards.map(card => card.querySelector('.bl-ai-event-media img')!.getAttribute('src'));
+  srcs.forEach((src, index) => assert.ok(!srcs.slice(Math.max(0, index - 5), index).includes(src), `card ${index + 1}: ${src} within six cards`));
+  const credits = document.querySelector('#page-credits');
+  assert.ok(credits, 'the page lists its pictures');
+  assert.ok(credits!.compareDocumentPosition(document.querySelector('.bl-ai-footnote')!) & 2, 'the credits end the page (data-credits-at-end)');
 });
