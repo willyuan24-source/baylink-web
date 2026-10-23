@@ -5,7 +5,8 @@
       "evidenceUrl": "https://www.dvidshub.net/about/copyright",
       "scope": "editorial event listings only, with the DoW non-endorsement notice; not ads or promotion",
       "promoAllowed": false
-    }
+    },
+    "focal": [35, 90]
   },
   "official-sjpl-almaden-sounds-of-south-asia-2026": {
     "coverOk": true
@@ -240,5 +241,608 @@
   },
   "official-sfpl-western-addition-open-house-oct24-2026": {
     "coverOk": false
+  },
+  "autumn-alviso": {
+    "focal": [50, 87]
+  },
+  "autumn-ardenwood": {
+    "focal": [61, 50]
+  },
+  "autumn-clipper": {
+    "focal": [61, 95]
+  },
+  "autumn-marin": {
+    "focal": [50, 20]
+  },
+  "autumn-martinez": {
+    "focal": [39, 50]
+  },
+  "autumn-napa": {
+    "focal": [50, 50]
+  },
+  "autumn-pleasanton": {
+    "focal": [50, 50]
+  },
+  "autumn-rosie": {
+    "focal": [68, 50]
+  },
+  "autumn-sanmateo": {
+    "focal": [50, 50]
+  },
+  "autumn-sonoma": {
+    "focal": [50, 65]
+  },
+  "autumn-sunset": {
+    "focal": [50, 45]
+  },
+  "bart": {
+    "focal": [20, 30]
+  },
+  "bay": {
+    "focal": [27, 5]
+  },
+  "baylands-gull": {
+    "focal": [65, 30]
+  },
+  "baylands-marsh": {
+    "focal": [50, 50]
+  },
+  "burlingame": {
+    "focal": [65, 50]
+  },
+  "coast": {
+    "focal": [30, 50]
+  },
+  "community-china-camp-village": {
+    "focal": [68, 50]
+  },
+  "community-history-park": {
+    "focal": [35, 50]
+  },
+  "community-tilden-little-farm": {
+    "focal": [50, 80]
+  },
+  "coverage-classic-car": {
+    "focal": [31, 81]
+  },
+  "coverage-laptop": {
+    "focal": [35, 50]
+  },
+  "coverage-petaluma-river": {
+    "focal": [30, 50]
+  },
+  "coverage-redwood-port": {
+    "focal": [50, 50]
+  },
+  "coverage-rio-vista": {
+    "focal": [90, 20]
+  },
+  "coverage-stage": {
+    "focal": [70, 65]
+  },
+  "coverage-wine": {
+    "focal": [66, 69]
+  },
+  "coverage-yerba-buena": {
+    "focal": [50, 50]
+  },
+  "daily-alerts": {
+    "focal": [50, 70]
+  },
+  "daily-bridge": {
+    "focal": [84, 5]
+  },
+  "daily-city-hall": {
+    "focal": [50, 21]
+  },
+  "daily-learning": {
+    "focal": [90, 35]
+  },
+  "daily-recycling": {
+    "focal": [35, 50]
+  },
+  "dog": {
+    "focal": [20, 0]
+  },
+  "dog-park": {
+    "focal": [30, 65]
+  },
+  "event-moon": {
+    "focal": [20, 70]
+  },
+  "event-muni": {
+    "focal": [10, 35]
+  },
+  "expanded-angel-island": {
+    "focal": [62, 50]
+  },
+  "expanded-coyote-hills": {
+    "focal": [50, 35]
+  },
+  "expanded-dolores-park": {
+    "focal": [50, 65]
+  },
+  "expanded-east-bay-alameda-beach": {
+    "focal": [20, 50]
+  },
+  "expanded-east-bay-hornet": {
+    "focal": [50, 50]
+  },
+  "expanded-lands-end": {
+    "focal": [30, 65]
+  },
+  "expanded-peninsula-coyote-point": {
+    "focal": [50, 50]
+  },
+  "expanded-peninsula-hiller": {
+    "focal": [50, 30]
+  },
+  "expanded-south-bay-computer-history": {
+    "focal": [50, 50]
+  },
+  "expanded-south-bay-rosicrucian": {
+    "focal": [65, 50]
+  },
+  "expanded-south-bay-shoreline": {
+    "focal": [35, 90]
+  },
+  "expanded-sutro": {
+    "focal": [35, 70]
+  },
+  "ferry-market": {
+    "focal": [70, 65]
+  },
+  "filoli": {
+    "focal": [50, 65]
+  },
+  "fresh-hmb-pumpkins": {
+    "focal": [50, 90]
+  },
+  "fresh-ocean-beach": {
+    "focal": [38, 50]
+  },
+  "fresh-pumpkin-parade": {
+    "focal": [86, 50]
+  },
+  "fresh-treasure-island": {
+    "focal": [65, 30]
+  },
+  "ggp-conservatory": {
+    "focal": [80, 30]
+  },
+  "guide-bart-update-context": {
+    "focal": [20, 30]
+  },
+  "lake": {
+    "focal": [50, 50]
+  },
+  "library": {
+    "focal": [50, 50]
+  },
+  "museum": {
+    "focal": [80, 30]
+  },
+  "neighborhood": {
+    "focal": [65, 50]
+  },
+  "octnov-ardenwood-context": {
+    "focal": [61, 50]
+  },
+  "octnov-bear-creek-context": {
+    "focal": [50, 50]
+  },
+  "octnov-big-break-context": {
+    "focal": [50, 50]
+  },
+  "octnov-coyote-hills-context": {
+    "focal": [50, 35]
+  },
+  "octnov-crab-cove-context": {
+    "focal": [20, 50]
+  },
+  "octnov-ferry-market-context": {
+    "focal": [70, 65]
+  },
+  "octnov-festival-pavilion-context": {
+    "focal": [50, 50]
+  },
+  "octnov-filoli-context": {
+    "focal": [64, 29]
+  },
+  "octnov-fort-mason-context": {
+    "focal": [50, 27]
+  },
+  "octnov-fort-point-context": {
+    "focal": [50, 50]
+  },
+  "octnov-healdsburg-market-context": {
+    "focal": [38, 0]
+  },
+  "octnov-hiller-context": {
+    "focal": [50, 30]
+  },
+  "octnov-jay-context": {
+    "focal": [65, 70]
+  },
+  "octnov-lexington-context": {
+    "focal": [50, 70]
+  },
+  "octnov-los-altos-context": {
+    "focal": [50, 73]
+  },
+  "octnov-monte-bello-context": {
+    "focal": [50, 65]
+  },
+  "octnov-mv-performing-arts-context": {
+    "focal": [65, 30]
+  },
+  "octnov-old-post-office": {
+    "focal": [0, 18]
+  },
+  "octnov-presidio-context": {
+    "focal": [50, 50]
+  },
+  "octnov-purisima-context": {
+    "focal": [50, 70]
+  },
+  "octnov-rancho-context": {
+    "focal": [50, 50]
+  },
+  "octnov-redwood-context": {
+    "focal": [30, 65]
+  },
+  "octnov-sf-botanical-context": {
+    "focal": [50, 50]
+  },
+  "octnov-sfmoma-context": {
+    "focal": [31, 35]
+  },
+  "octnov-sj-performing-arts-context": {
+    "focal": [50, 50]
+  },
+  "octnov-sonoma-plaza-context": {
+    "focal": [50, 31]
+  },
+  "octnov-tilden-farm-context": {
+    "focal": [50, 80]
+  },
+  "octnov-windy-hill-context": {
+    "focal": [70, 35]
+  },
+  "presidio": {
+    "focal": [50, 50]
+  },
+  "produce": {
+    "focal": [50, 50]
+  },
+  "redwoods": {
+    "focal": [30, 65]
+  },
+  "region-berkeley-campus": {
+    "focal": [64, 7]
+  },
+  "region-berkeley-garden": {
+    "focal": [95, 70]
+  },
+  "region-cantor": {
+    "focal": [30, 35]
+  },
+  "region-filoli-conservatory": {
+    "focal": [50, 30]
+  },
+  "region-filoli-house": {
+    "focal": [64, 29]
+  },
+  "region-hakone": {
+    "focal": [80, 50]
+  },
+  "region-hakone-bridge": {
+    "focal": [26, 17]
+  },
+  "region-japantown": {
+    "focal": [70, 50]
+  },
+  "region-lake-merritt": {
+    "focal": [50, 50]
+  },
+  "region-muir-boardwalk": {
+    "focal": [50, 70]
+  },
+  "region-muir-redwoods": {
+    "focal": [50, 50]
+  },
+  "region-omca": {
+    "focal": [50, 65]
+  },
+  "region-sausalito": {
+    "focal": [100, 50]
+  },
+  "region-sausalito-waterfront": {
+    "focal": [35, 70]
+  },
+  "region-stanford-quad": {
+    "focal": [20, 30]
+  },
+  "region-tech": {
+    "focal": [50, 30]
+  },
+  "repair": {
+    "focal": [50, 42]
+  },
+  "roundup-chase-center": {
+    "focal": [65, 10]
+  },
+  "roundup-east-albany": {
+    "focal": [50, 50]
+  },
+  "roundup-east-antioch": {
+    "focal": [50, 50]
+  },
+  "roundup-east-brentwood": {
+    "focal": [35, 30]
+  },
+  "roundup-east-concord": {
+    "focal": [35, 10]
+  },
+  "roundup-east-danville": {
+    "focal": [65, 30]
+  },
+  "roundup-east-dublin": {
+    "focal": [50, 50]
+  },
+  "roundup-east-el-cerrito": {
+    "focal": [24, 23]
+  },
+  "roundup-east-emeryville": {
+    "focal": [50, 92]
+  },
+  "roundup-east-hayward": {
+    "focal": [70, 35]
+  },
+  "roundup-east-hercules": {
+    "focal": [80, 50]
+  },
+  "roundup-east-livermore": {
+    "focal": [65, 50]
+  },
+  "roundup-east-newark": {
+    "focal": [50, 50]
+  },
+  "roundup-east-oakley": {
+    "focal": [50, 50]
+  },
+  "roundup-east-san-leandro": {
+    "focal": [98, 35]
+  },
+  "roundup-east-san-pablo": {
+    "focal": [50, 30]
+  },
+  "roundup-east-san-ramon": {
+    "focal": [30, 65]
+  },
+  "roundup-east-union-city": {
+    "focal": [86, 50]
+  },
+  "roundup-levis-stadium": {
+    "focal": [50, 35]
+  },
+  "roundup-north-benicia": {
+    "focal": [50, 65]
+  },
+  "roundup-north-calistoga": {
+    "focal": [50, 65]
+  },
+  "roundup-north-cloverdale": {
+    "focal": [50, 35]
+  },
+  "roundup-north-corte-madera": {
+    "focal": [0, 35]
+  },
+  "roundup-north-fairfield": {
+    "focal": [36, 0]
+  },
+  "roundup-north-larkspur": {
+    "focal": [50, 35]
+  },
+  "roundup-north-mill-valley": {
+    "focal": [50, 50]
+  },
+  "roundup-north-napa": {
+    "focal": [50, 50]
+  },
+  "roundup-north-novato": {
+    "focal": [70, 50]
+  },
+  "roundup-north-san-rafael": {
+    "focal": [0, 39]
+  },
+  "roundup-north-santa-rosa": {
+    "focal": [39, 50]
+  },
+  "roundup-north-sebastopol": {
+    "focal": [50, 50]
+  },
+  "roundup-north-st-helena": {
+    "focal": [50, 50]
+  },
+  "roundup-north-suisun-city": {
+    "focal": [50, 70]
+  },
+  "roundup-north-tiburon": {
+    "focal": [50, 50]
+  },
+  "roundup-oakland-arena": {
+    "focal": [50, 20]
+  },
+  "roundup-sap-center": {
+    "focal": [50, 16]
+  },
+  "roundup-south-atherton": {
+    "focal": [65, 30]
+  },
+  "roundup-south-campbell": {
+    "focal": [42, 20]
+  },
+  "roundup-south-colma": {
+    "focal": [70, 50]
+  },
+  "roundup-south-existing-belmont": {
+    "focal": [50, 65]
+  },
+  "roundup-south-existing-cupertino": {
+    "focal": [50, 50]
+  },
+  "roundup-south-existing-daly-city": {
+    "focal": [50, 70]
+  },
+  "roundup-south-existing-foster-city": {
+    "focal": [50, 50]
+  },
+  "roundup-south-existing-menlo-park": {
+    "focal": [30, 35]
+  },
+  "roundup-south-existing-millbrae": {
+    "focal": [50, 50]
+  },
+  "roundup-south-existing-milpitas": {
+    "focal": [50, 50]
+  },
+  "roundup-south-existing-san-bruno": {
+    "focal": [1, 20]
+  },
+  "roundup-south-existing-south-san-francisco": {
+    "focal": [50, 50]
+  },
+  "roundup-south-existing-sunnyvale": {
+    "focal": [50, 65]
+  },
+  "roundup-south-gilroy": {
+    "focal": [50, 50]
+  },
+  "roundup-south-los-gatos": {
+    "focal": [50, 70]
+  },
+  "roundup-south-morgan-hill": {
+    "focal": [10, 35]
+  },
+  "roundup-south-pacifica": {
+    "focal": [50, 95]
+  },
+  "roundup-south-portola-valley": {
+    "focal": [30, 50]
+  },
+  "roundup-south-san-carlos": {
+    "focal": [50, 50]
+  },
+  "roundup-south-woodside": {
+    "focal": [50, 42]
+  },
+  "sanjose": {
+    "focal": [50, 50]
+  },
+  "sanjose-city": {
+    "focal": [4, 5]
+  },
+  "sanmateo": {
+    "focal": [50, 50]
+  },
+  "sausalito": {
+    "focal": [100, 50]
+  },
+  "school-campus-sf-state": {
+    "focal": [50, 35]
+  },
+  "sep26-bundt-joy": {
+    "focal": [64, 50]
+  },
+  "sep26-chuseok": {
+    "focal": [80, 50]
+  },
+  "sep26-farm-trails": {
+    "focal": [35, 70]
+  },
+  "sep26-open-boulangerie-eria": {
+    "focal": [60, 50]
+  },
+  "sep26-open-florecita": {
+    "focal": [10, 50]
+  },
+  "sep26-open-handroll-hawker": {
+    "focal": [100, 36]
+  },
+  "sep26-open-sergeant-ma": {
+    "focal": [65, 70]
+  },
+  "sep26-open-woods-wharf": {
+    "focal": [5, 50]
+  },
+  "sep26-petaluma-antique": {
+    "focal": [50, 62]
+  },
+  "sep26-yogurtland-20": {
+    "focal": [50, 35]
+  },
+  "sf-alcatraz": {
+    "focal": [64, 0]
+  },
+  "sf-bridge": {
+    "focal": [55, 25]
+  },
+  "sf-cellhouse": {
+    "focal": [50, 50]
+  },
+  "sf-chinatown": {
+    "focal": [86, 30]
+  },
+  "sf-fort-point": {
+    "focal": [50, 50]
+  },
+  "sf-marina": {
+    "focal": [80, 100]
+  },
+  "sf-northbeach": {
+    "focal": [50, 65]
+  },
+  "sf-palace": {
+    "focal": [5, 30]
+  },
+  "sf-pier39": {
+    "focal": [50, 30]
+  },
+  "sfo": {
+    "focal": [30, 65]
+  },
+  "shopping-stonestown": {
+    "focal": [50, 50]
+  },
+  "train": {
+    "focal": [0, 50]
+  },
+  "verified-ardenwood-farm": {
+    "focal": [61, 50]
+  },
+  "verified-coyote-hills": {
+    "focal": [50, 35]
+  },
+  "verified-ferry-building": {
+    "focal": [70, 65]
+  },
+  "verified-hiller-museum": {
+    "focal": [50, 30]
+  },
+  "verified-napa-library": {
+    "focal": [50, 50]
+  },
+  "verified-sf-main-library": {
+    "focal": [50, 50]
+  },
+  "verified-sonoma-barracks": {
+    "focal": [50, 65]
+  },
+  "verified-yerba-buena-gardens": {
+    "focal": [50, 50]
+  },
+  "water-lantern-festival-promo": {
+    "focal": [50, 74]
   }
 }
