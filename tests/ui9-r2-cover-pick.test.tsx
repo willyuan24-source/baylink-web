@@ -116,6 +116,34 @@ test('R2-05: a ③ picture is not shown twice on one page while an item has a ca
   assert.equal(last.tier === 'stock' && last.image.src, images.a.src);
 });
 
+test('R2-05: a list deals its ③ pictures first, so a card taking its first new picture leaves no later card without one', () => {
+  const stock = (n: number): CoverAsset => ({ ...(GUIDE_IMAGES['stock-halloween-1'] as CoverAsset), src: `/guides/test/halloween-${n}.webp` });
+  const images = Object.fromEntries([1, 2, 3, 4, 6].map(n => [`h${n}`, stock(n)]));
+  // The 10/24 calendar's five Halloween cards and the candidates the route shipped them: one card after another, the
+  // Monster Mash found all three of its pictures on the page (a repeat) while h3 stayed unused.
+  const sets = [['h2', 'h3', 'h4'], ['h6', 'h1', 'h2'], ['h1', 'h2', 'h3'], ['h6', 'h1', 'h2'], ['h6', 'h4', 'h1']];
+  const items: CoverItem[] = sets.map((imageKeys, i) => ({ kind: 'event', id: `halloween-${i}`, imageKeys }));
+  const srcs = (covers: ReturnType<typeof resolveCovers>) => covers.map(cover => cover.tier === 'stock' ? cover.image.src : cover.tier);
+  const page = createCoverPage();
+  const greedy = items.map(item => getCover(item, { images, today, page }));
+  assert.equal(new Set(srcs(greedy)).size, 4, 'one card after another: a repeat');
+  const dealt = srcs(resolveCovers(items, { images, today, page: createCoverPage() }));
+  assert.equal(new Set(dealt).size, 5, `dealt: five cards, five pictures (${dealt.join(' ')})`);
+  // A lead keeps its first picture (the hero-size one); cards resolved by an earlier call on the page keep theirs.
+  const lead: CoverItem = { kind: 'event', id: 'lead', imageKeys: ['h6', 'h1'], lead: true };
+  const withLead = resolveCovers([lead, ...items], { images, today, page: createCoverPage() });
+  assert.equal(withLead[0].tier === 'stock' && withLead[0].image.src, images.h6.src);
+  const shared = createCoverPage();
+  const first = srcs(resolveCovers(items.slice(0, 2), { images, today, page: shared }));
+  const rest = srcs(resolveCovers(items.slice(2), { images, today, page: shared }));
+  assert.deepEqual(srcs(resolveCovers(items.slice(0, 2), { images, today, page: shared })), first, 'a card resolved before keeps its picture');
+  assert.equal(new Set([...first, ...rest]).size, 5, 'a later call deals what the page has left around the fixed two');
+  // More cards than pictures: the cards left over repeat the picture shown farthest away, never an empty frame.
+  const many = resolveCovers([...items, ...items.map(item => ({ ...item, id: `${item.id}-again` }))], { images, today, page: createCoverPage() });
+  assert.ok(many.every(cover => cover.tier === 'stock'));
+  assert.equal(new Set(srcs(many).slice(0, 5)).size, 5);
+});
+
 test('R2-05: the boards\' records carry their whole ③ pool; the route\'s events keep their caps (the near window)', () => {
   const record = { id: 'x-offer', brand: 'Test', title: 'Birthday treat' };
   assert.equal(routeStock('offer', record, new Set()).stock, BOARD_STOCK);
