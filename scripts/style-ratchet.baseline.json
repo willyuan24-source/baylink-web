@@ -18,7 +18,7 @@
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 1,
-    "spacingOffScale": 338,
+    "spacingOffScale": 270,
     "englishUiUntranslated": 101,
     "lazyCssDuplicateSelectors": 0
   },
@@ -482,10 +482,10 @@
     },
     "src/styles/plan-page.css": {
       "fontSizeLiteral": 1,
-      "spacingOffScale": 20
+      "spacingOffScale": 19
     },
     "src/styles/planner.css": {
-      "spacingOffScale": 69
+      "spacingOffScale": 2
     },
     "src/tokens.css": {
       "fontWeightBold": 1,
