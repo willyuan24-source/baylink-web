@@ -126,11 +126,11 @@ test('N18 / R2-06 A P3: the phone lead\'s place and ✓ share a line; a portrait
   assert.equal(decls(`${lead} .ui-feed-card__save`, tablet)['grid-area'], '1 / 1 / 2 / 2', 'the ♡ stays on the picture\'s corner');
 });
 
-test('A1 / DECISIONS 20, 32: at 大 / 特大 a home row\'s ♡ sits on its thumbnail\'s top-right corner, FOUNDATION\'s one 44 px circle', () => {
+test('A1 / DECISIONS 20, 32: at 大 / 特大 a home row\'s ♡ sits on its thumbnail\'s top-right corner, FOUNDATION\'s one circle', () => {
   const rows = 'html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)';
   assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { 'grid-area': '1 / 1 / 2 / 2', top: 'var(--sp-1)', right: 'var(--sp-1)' });
   assert.deepEqual(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media'), { 'grid-area': '1 / 1 / span 5', margin: '0' });
-  // No home size, ring or row height for it: the circle is saves.css's (44 px), the row as tall as its words or its picture.
+  // No home size, ring or row height for it: the circle is saves.css's (--control-height: 44 px, 55 at 特大), the row as tall as its words or its picture.
   assert.doesNotMatch(CSS, /saves-toggle|min-height:calc\(112px/);
   const saves = fs.readFileSync('src/features/saves/saves.css', 'utf8');
   assert.match(saves, /\.ui-feed-card__save,[^{]*\) \.saves-control \.saves-toggle \{[^}]*width:var\(--control-height\)!important; height:var\(--control-height\)!important;/);
