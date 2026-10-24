@@ -131,14 +131,13 @@ test('N18 / R2-06 A P3: the phone lead\'s place and ✓ share a line; a portrait
 
 test('DECISIONS 44: at 大 / 特大 a home row\'s ♡ leaves the 112 px thumbnail for the row\'s edge under it; standard keeps A1, 简洁 none', () => {
   const rows = 'html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)';
-  // Under the thumbnail: in the flow (not absolute over the picture), the picture's column, the row after the picture's five.
-  assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { position: 'static', 'grid-area': '6 / 1 / 7 / 2', 'justify-self': 'start', 'margin-top': 'var(--sp-1)' });
-  assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media')['grid-area'], '1 / 1 / span 5', 'the picture spans rows 1-5 only, so row 6 is clear of it (0% covered)');
+  // Right under the 112 px picture, at the row's start edge: the picture's grid area (its column, as tall as the words) holds
+  // the absolute ♡ 112 px + 8 px down, and a row whose words end above it grows to hold it (0% of the picture covered).
+  assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { 'grid-area': '1 / 1 / 6 / 2', top: 'calc(112px + var(--sp-2))', right: 'auto', left: '0' });
+  assert.deepEqual(decls(`${rows} .ui-feed-card:has(>.ui-feed-card__save)`), { 'min-height': 'calc(112px + var(--sp-2) + var(--control-height))' });
+  assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media')['grid-area'], '1 / 1 / span 5', 'the picture\'s column is rows 1-5, the ♡\'s containing block');
   assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card')['grid-template-columns'], '112px minmax(0, 1fr)', 'the ♡\'s column is the 112 px thumbnail\'s: the words keep the row\'s width');
-  // No top / right offsets left at 大 / 特大 (they would only apply to an absolute ♡ on the picture).
-  postcss.parse(CSS).walkRules(rule => {
-    if (/data-reading\$=large/.test(rule.selector) && /\.ui-feed-card__save/.test(rule.selector)) rule.walkDecls(d => assert.ok(!['top', 'right'].includes(d.prop), `${rule.selector} sets ${d.prop}`));
-  });
+  assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card')['--ui-feed-ratio'], '1 / 1', 'a square 112 px picture, so 112 px + 8 px clears it');
   // Standard size: the A1 corner of cards.css (absolute, top-right of the picture); 简洁: no ♡ on the home picks.
   const cards = fs.readFileSync('src/components/ui/cards.css', 'utf8');
   assert.match(cards, /\.ui-feed-card__save \{ position:absolute; top:var\(--sp-1\); right:var\(--sp-1\); z-index:3; \}/);
@@ -149,8 +148,8 @@ test('DECISIONS 44: at 大 / 特大 a home row\'s ♡ leaves the 112 px thumbnai
 
 test('A1 / DECISIONS 20, 32: the home rows\' ♡ is FOUNDATION\'s one circle (no home size)', () => {
   assert.deepEqual(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media'), { 'grid-area': '1 / 1 / span 5', margin: '0' });
-  // No home size, ring or row height for it: the circle is saves.css's (--control-height: 44 px, 55 at 特大), the row as tall as its words or its picture.
-  assert.doesNotMatch(CSS, /saves-toggle|min-height:calc\(112px/);
+  // No home size or ring for it: the circle is saves.css's (--control-height: 44 px, 55 at 特大).
+  assert.doesNotMatch(CSS, /saves-toggle/);
   const saves = fs.readFileSync('src/features/saves/saves.css', 'utf8');
   assert.match(saves, /\.ui-feed-card__save,[^{]*\) \.saves-control \.saves-toggle \{[^}]*width:var\(--control-height\)!important; height:var\(--control-height\)!important;/);
 });

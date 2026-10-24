@@ -228,12 +228,13 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 :is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
-/* 大 / 特大 rows (DECISIONS 44): the ♡ leaves the 112 px thumbnail and sits under it, at the row's start edge, so none of
-   the picture is covered and the words keep the row's width — as on the /events rows. Its size is UI9-R2-FOUNDATION's one
-   circle (saves.css: --control-height, 44 px; 55 px at 特大), so no home size is left here. The thumbnail spans the five
-   word rows, so the ♡ takes the sixth row of the picture's column (a grid item: in the flow, still above the card link). The
+/* 大 / 特大 rows (DECISIONS 44): the ♡ leaves the 112 px thumbnail and sits right under it, at the row's start edge, so none
+   of the picture is covered and the words keep the row's width — as on the /events rows. Its size is UI9-R2-FOUNDATION's
+   one circle (saves.css: --control-height, 44 px; 55 px at 特大), so no home size is left here. The thumbnail's grid area
+   (its column, as tall as the words) is the ♡'s containing block; a row whose words end above the ♡ grows to hold it. The
    standard size keeps it on the picture's top-right corner (A1); 简洁 has none (decision 16). */
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { position:static; grid-area:6 / 1 / 7 / 2; justify-self:start; margin-top:var(--sp-1); }
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 6 / 2; top:calc(112px + var(--sp-2)); right:auto; left:0; }
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card:has(>.ui-feed-card__save) { min-height:calc(112px + var(--sp-2) + var(--control-height)); }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
 html[data-simple] .home-picks .ui-feed-card__save { display:none; }
