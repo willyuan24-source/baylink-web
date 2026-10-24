@@ -25,6 +25,7 @@
 .outing-filter-sheet .outing-filter-form label { display:flex; flex-direction:column; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); }
 .outing-filter-sheet .outing-city-field input { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:max(1rem, var(--text-body)); line-height:var(--lh-ui); }
 .outing-filter-sheet .outing-city-field input::placeholder { color:var(--color-ink-3); font-weight:400; }
+.outing-filter-sheet .outing-city-field { display:grid; gap:var(--sp-2); }
 .outing-filter-sheet .outing-footnote { margin:0; color:var(--color-ink-3); font-size:var(--text-fact); line-height:var(--lh-read); }
 .outing-filter-sheet .outing-date-field { display:grid; gap:var(--sp-2); }
 .outing-filter-sheet .outing-field-label { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }

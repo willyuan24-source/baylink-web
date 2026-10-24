@@ -12,29 +12,46 @@ import { setLocale } from '../src/i18n/locale';
 const { StaticRouter } = await import('react-router-dom');
 const { AnonymousSiteChrome } = await import('../src/components/SiteChrome');
 const { AccountShell } = await import('../src/components/AccountShell');
-const { ACCOUNT_SHELL_FILE, withoutPageAddress } = await import('../src/app/account-shell');
+const { ACCOUNT_SHELL_FILE, ACCOUNT_SHELLS, withoutPageAddress } = await import('../src/app/account-shell');
 const { renderHtmlDocument } = await import('../src/lib/seo');
 after(async () => { await setLocale('zh-Hans', false); });
 
-const shell = (prefix = '') => new JSDOM(renderToStaticMarkup(<StaticRouter basename={prefix || undefined} location={`${prefix}/me`}><AnonymousSiteChrome pathname="/me"><AccountShell /></AnonymousSiteChrome></StaticRouter>)).window.document;
+type ShellPage = (typeof ACCOUNT_SHELLS)[number]['page'];
+const shell = (prefix = '', page?: ShellPage) => new JSDOM(renderToStaticMarkup(<StaticRouter basename={prefix || undefined} location={`${prefix}/me`}><AnonymousSiteChrome pathname="/me"><AccountShell page={page} /></AnonymousSiteChrome></StaticRouter>)).window.document;
 
 test('the account shell is the chrome around a fixed-height skeleton: no heading, no homepage content, one loading line', async () => {
   for (const [locale, prefix, loading] of [['zh-Hans', '', '正在加载'], ['en', '/en', 'Loading']] as const) {
     await setLocale(locale, false);
-    const document = shell(prefix);
-    const main = document.querySelector('main')!;
-    assert.equal(main.querySelector('h1'), null, 'each signed-in page brings its own H1');
-    assert.equal(main.querySelector('[aria-busy="true"] [role="status"]')?.textContent, loading);
-    assert.equal(main.querySelectorAll('.ui-row-card').length, 4, 'fixed-height rows, so nothing jumps when the page arrives');
-    assert.doesNotMatch(main.textContent || '', /这个周末|湾区去哪|This weekend/);
-    assert.ok(document.querySelector('header.site-topbar') && document.querySelector('footer.site-footer') && document.querySelector('nav.site-mobile-nav'));
+    for (const { page } of ACCOUNT_SHELLS) {
+      const document = shell(prefix, page);
+      const main = document.querySelector('main')!;
+      assert.equal(main.querySelector('h1'), null, 'each signed-in page brings its own H1');
+      assert.equal(main.querySelector('[aria-busy="true"] [role="status"]')?.textContent, loading);
+      assert.equal(main.querySelector(`.account-shell__page[data-page="${page}"]`)?.getAttribute('aria-busy'), 'true');
+      assert.ok(main.querySelector('.ui-container.account-shell[data-size="wide"]'), 'on the pages\' wide frame (x = 112 at 1440)');
+      assert.doesNotMatch(main.textContent || '', /这个周末|湾区去哪|This weekend/);
+      assert.ok(document.querySelector('header.site-topbar') && document.querySelector('footer.site-footer') && document.querySelector('nav.site-mobile-nav'));
+    }
   }
+});
+
+test('DECISIONS 41: each shell is shaped like its page, not four generic rows', async () => {
+  await setLocale('zh-Hans', false);
+  const blocks = (page: ShellPage) => [...shell('', page).querySelectorAll('main [data-block]')].map(block => block.getAttribute('data-block'));
+  assert.deepEqual(blocks('me'), ['band', 'avatar', 'title', 'line', 'tile', 'tile', 'tile', 'tile', 'section', 'list'], '/me: band, head, 2 x 2 tiles, settings');
+  const week = shell('', 'week');
+  assert.deepEqual(blocks('week'), ['title', 'line', 'notice', 'section', 'empty', 'section'], '/my-week: its sections');
+  assert.equal(week.querySelectorAll('main .ui-skeleton-card').length, 4, '/my-week: the picture strip under 行程');
+  assert.equal(week.querySelectorAll('main .ui-row-card').length, 2);
+  assert.deepEqual(blocks('together'), ['band', 'title', 'lede', 'field', 'chip', 'state'], '/together: band, head, the search field and 筛选');
+  assert.equal(shell('', 'list').querySelectorAll('main .ui-row-card').length, 4, 'the list pages keep their rows');
+  assert.deepEqual(ACCOUNT_SHELLS.map(entry => [entry.page, entry.file]), [['me', ACCOUNT_SHELL_FILE], ['week', 'account-shell-week.html'], ['together', 'account-shell-together.html'], ['list', 'account-shell-list.html']]);
 });
 
 test('the prerender writes the shell in three languages as noindex, naming no page: no canonical, og:url or hreflang', () => {
   const script = readFileSync('scripts/prerender.tsx', 'utf8');
-  assert.ok(script.includes(`renderPage({ title: 'BAYLINK', description: homeDescription, path: '/me', noindex: true }, <AccountShell />, ACCOUNT_SHELL_FILE)`));
-  assert.ok(script.includes('writeFile(file, withoutPageAddress(await readFile(file, \'utf8\')))'), 'each language\'s file goes through withoutPageAddress');
+  assert.ok(script.includes(`renderPage({ title: 'BAYLINK', description: homeDescription, path: '/me', noindex: true }, <AccountShell page={shell.page} />, shell.file)`));
+  assert.ok(script.includes('const file = join(outputDir, locale, shell.file);') && script.includes('writeFile(file, withoutPageAddress(await readFile(file, \'utf8\')))'), 'each shape\'s file in each language goes through withoutPageAddress');
   // The head renderHtmlDocument writes for the shell (it serves /messages, /my-week and /together too, not only /me).
   const template = '<html><head><!--baylink-meta-start--><!--baylink-meta-end--></head><body><!--baylink-app-start--><!--baylink-app-end--></body></html>';
   const html = withoutPageAddress(renderHtmlDocument(template, { title: 'BAYLINK', description: '湾区活动', path: '/me', noindex: true }, '<main></main>'));
