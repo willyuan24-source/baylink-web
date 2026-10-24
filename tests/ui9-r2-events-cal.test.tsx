@@ -89,7 +89,7 @@ test('a card\'s place and its separator are one element that steps aside before 
   const view = render(<MemoryRouter initialEntries={['/events?when=next7']}><EventsView today={today} /></MemoryRouter>);
   const places = [...view.container.querySelectorAll('.ui-feed-card__meta .ui-meta-place')];
   assert.ok(places.length > 0);
-  for (const place of places) if (place.previousSibling) assert.match(place.textContent!, /^ · /, 'the separator is inside the place piece');
+  for (const place of places) if (place.previousSibling) assert.match(place.textContent!, /^\u00a0· /, 'the separator is inside the place piece');
   assert.match(css, /\.ev-page \.ui-feed-card__meta \{ display:flex; flex-wrap:wrap; align-items:baseline; max-height:calc\(var\(--lh-ui\) \* 1em\); \}/);
   assert.match(css, /\.ev-page \.ui-feed-card__meta>\.ui-meta-place \{ flex:1 1 4\.5em; min-width:4\.5em;/);
 });
