@@ -15,10 +15,11 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 
 /* Hero: full-bleed on a phone, square corners; FOUNDATION's one frame and bottom-left label (a brand image whole on its blurred
    copy). C P08 / N25: the credit is quiet text on the picture's bottom-right, white on the badge ink (≥6.25:1 over any
-   pixel), half the width at most and wrapping, never cut; not a link (the links are in 本页图片来源). */
+   pixel), one quiet line on most pictures (60% of the width at most, then it wraps, never cut); not a link (the links are
+   in 本页图片来源). */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero .ui-cover { width:100%; border-radius:0; }
-.local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:calc(50% - var(--sp-3)); padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-badge); line-height:var(--lh-snug); text-align:end; overflow-wrap:anywhere; pointer-events:none; }
+.local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:60%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-badge); line-height:var(--lh-snug); overflow-wrap:anywhere; pointer-events:none; }
 .local-discovery-detail :is(.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
 /* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
