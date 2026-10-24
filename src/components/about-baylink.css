@@ -50,16 +50,13 @@ html[data-simple] .about-more{display:none}
   .about-main>.about-section>:is(.about-list,.about-labels,.about-images-more){grid-column:4 / -1;grid-row:1 / span 4}
   .about-main>.about-section>p{max-width:none}
   .about-main>.about-section>p:first-of-type{margin-top:var(--sp-2)}
-  /* Columns of rows: each row keeps its top rule (an editorial column head), none under the last row. */
-  .about-list[data-columns]{display:grid;grid-template-columns:repeat(var(--about-cols),minmax(0,1fr));column-gap:var(--grid-gutter)}
-  .about-list[data-columns="2"]{--about-cols:2}
-  .about-list[data-columns="3"]{--about-cols:3}
-  .about-list[data-columns]>li:last-child{border-bottom:0}
-  .about-list[data-columns]>li{padding-block:var(--sp-4)}
-  /* Three columns in nine: the icon above its title, so each column keeps its width for the words. */
-  .about-list[data-columns="3"]>li{grid-template-columns:minmax(0,1fr);row-gap:var(--sp-2)}
-  /* The label rows in two columns, each label over its words. */
-  .about-labels{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--grid-gutter);row-gap:var(--sp-5);max-width:none;margin-top:0}
+  /* The rows as cards on the frame (the /me tiles' and the 404 places' look: white, the line edge, the large corner, the
+     panel inset), two columns; an odd last card spans both, its words still at the measure. The image labels sit in one
+     such panel, two columns of a label over its words. */
+  .about-list[data-columns]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--grid-gutter)}
+  .about-list[data-columns]>li,.about-list[data-columns]>li:last-child{padding:var(--inset-panel);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
+  .about-list[data-columns]>li:last-child:nth-child(odd){grid-column:1 / -1}
+  .about-labels{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--grid-gutter);row-gap:var(--sp-5);max-width:none;margin-top:0;padding:var(--inset-panel);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
   .about-labels>div{grid-template-columns:minmax(0,1fr);gap:var(--sp-2)}
   /* Level with the H1: the breadcrumb line above it is the aside's top margin. */
   .about-aside{grid-column:9 / span 4;grid-row:1;margin-top:calc(var(--fs-badge) * 1.385 + var(--sp-2));padding:var(--inset-panel);border-radius:var(--r-lg);background:var(--color-surface-2)}

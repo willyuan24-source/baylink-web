@@ -35,8 +35,9 @@ const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }
  * Public introduction shared by the interactive route and static HTML (HOMEIA-03: one positioning line on every surface).
  * UI9-NAV (content arrangement §8): the 1216 frame at x = 112; the H1 block in columns 1-8 with 联系与反馈 beside it in
  * columns 9-12 on a desktop (the last section on a phone). UI9-R2-ACCOUNT-UTILITY (R2-15, N16 short rows 72.9%): the three
- * sections below span the frame on a desktop — 我们怎么核对 (the only target of /about#about-method-title) in two columns,
- * 能帮你做什么 in three, 图片怎么标's labels in two — each line still within the CJK / Latin measure. 简洁显示 folds 图片怎么标
+ * sections below span the frame on a desktop with side headings (the H2 and its notes in columns 1-3) and their rows as
+ * cards in 4-12 — 我们怎么核对 (the only target of /about#about-method-title) and 能帮你做什么 two by two, 图片怎么标's labels
+ * in one two-column panel — each line still within the CJK / Latin measure. 简洁显示 folds 图片怎么标
  * and hides the 还有 row. The wording and the image-label rows are unchanged.
  */
 export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () => void; onWarmBayBay?: () => void }) {
@@ -93,7 +94,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
 
     <section className="about-section" aria-labelledby="about-uses-title">
       <h2 id="about-uses-title">{t('BAYLINK 能帮你做什么', 'What BAYLINK helps with')}</h2>
-      <ul className="about-list" data-columns="3">
+      <ul className="about-list" data-columns="2">
         {uses.map(({ icon: Icon, to, title, text, action }) => <li key={to}>
           <span className="about-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
           <div><h3>{title}</h3><p>{text}</p><Link className="about-link" to={to}>{action}</Link></div>

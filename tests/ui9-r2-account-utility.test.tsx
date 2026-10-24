@@ -125,7 +125,7 @@ test('/my-week: picture strip on an empty 行程, the 24px gutter, meta separato
 test('/about spans the frame below the head on a desktop; the 404 has its side card', () => {
   const about = read('src/components/AboutContent.tsx');
   assert.match(about, /<ol className="about-list" data-columns="2">/);
-  assert.match(about, /<ul className="about-list" data-columns="3">/);
+  assert.match(about, /<ul className="about-list" data-columns="2">/);
   assert.ok(about.includes('id="about-method-title"'), 'the one 我们怎么核对 anchor stays (DECISIONS 10)');
   const desktop = '(min-width:1024px)';
   assert.equal(rule('src/components/about-baylink.css', '.about-main', desktop)['grid-column'], '1 / -1');
