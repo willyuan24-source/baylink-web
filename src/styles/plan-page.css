@@ -38,7 +38,7 @@
      (not a flex row), so each is a block of its own once the dot is hidden ("Main Street部分免费" never happens). */
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-price { display:block; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-place { display:block; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-place { display:block; overflow:hidden; text-overflow:ellipsis; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-sep { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
