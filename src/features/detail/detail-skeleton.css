@@ -6,4 +6,7 @@
 .detail-skeleton .detail-skeleton__title[data-width=short] { width:60%; }
 .detail-skeleton .detail-skeleton__fact { display:block; height:2.75rem; }
 .detail-skeleton .detail-skeleton__fact + .detail-skeleton__fact { margin-top:var(--sp-3); }
-@media (min-width:1024px) { .detail-skeleton .detail-skeleton__hero { border-radius:var(--r-lg); } }
+@media (min-width:1024px) {
+  .detail-skeleton .detail-skeleton__hero { border-radius:var(--r-lg); }
+  .detail-skeleton .detail-skeleton__title { height:calc(var(--text-display) * var(--lh-display)); }
+}

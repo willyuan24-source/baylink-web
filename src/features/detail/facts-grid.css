@@ -1,8 +1,9 @@
 /* 一眼看懂 (UI9-DETAIL; UI9-R1-DETAIL, J1 P14): a white card, one fact per row (何时 · 在哪 · 多少钱 · 适合; an opening's
    类型); an offer's two short values, 福利 | 要不要消费, share a row, and so do an event's 多少钱 | 适合 on a phone in 标准
    when 适合 is short (FactsGrid marks a long list `for-wide`, which keeps its own full row, J1 P14; H58: the card ends
-   sooner above the bar). Line 1 of a fact is its key at 600 (适合 is a list,
-   so it stays at 400), the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. Loaded with FactsGrid
+   sooner above the bar). Line 1 of a fact is its key: ink at the reading step, 400 (N03: the bold share of a detail stays
+   ≤ 20%; the site keeps 400 / 600 / 700, tests/codemods.test.ts, so not 500), over the 14 px ink-2 label; the rest is the
+   note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. Loaded with FactsGrid
    (the detail route and its skeleton), not on every page; the page frame is local-discovery-detail.css. */
 .local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .local-discovery-detail .detail-facts { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--sp-3) var(--sp-4); margin:0; }
@@ -14,8 +15,7 @@
 .local-discovery-detail .detail-fact__aside { position:absolute; top:50%; right:0; translate:0 -50%; }
 .local-discovery-detail .detail-fact dd { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 .local-discovery-detail :is(.detail-fact__key,.detail-fact__line,.detail-fact dd small) { display:block; }
-.local-discovery-detail .detail-fact__key { color:var(--color-ink); font-size:var(--fs-reading); font-weight:600; line-height:var(--lh-snug); }
-.local-discovery-detail .detail-fact[data-fact^=for] .detail-fact__key { font-weight:400; }
+.local-discovery-detail .detail-fact__key { color:var(--color-ink); font-size:var(--fs-reading); font-weight:400; line-height:var(--lh-snug); }
 .local-discovery-detail .detail-fact dd small { margin-top:2px; font-size:inherit; line-height:var(--lh-ui); }
 .local-discovery-detail .detail-fact .phone-chip { font-weight:400; }
 .local-discovery-detail .detail-facts-check { display:flex; align-items:center; gap:var(--sp-1); margin:var(--sp-3) 0 0; padding-top:var(--sp-3); border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--fs-meta); }

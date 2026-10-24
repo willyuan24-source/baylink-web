@@ -5,7 +5,7 @@ import { translateText, type Locale } from '../../i18n/locale';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { MonthlyEvent } from '../../data/monthly-types';
 import type { SeptemberOpening } from '../../data/september-openings';
-import { displayUnits, eventPriceChip, eventWhenLine, offerKindLabel, offerValue, openingChip } from '../../lib/event-facts';
+import { displayUnits, eventPriceChip, eventWhenLine, offerKindLabel, offerValue, openingChip, readerMonthDay } from '../../lib/event-facts';
 import { openingStatusNote } from '../../lib/opening-status';
 import { ReaderText } from './ReaderText';
 import { readerCost, readerProse } from './reader-text';
@@ -163,16 +163,28 @@ export function OfferFacts({ offer, official }: { offer: FreebieOffer; official?
 }
 
 /**
- * The 开业 key is openingChip's own text (10/11 已开业 / 预计 11/20 开业), the string the opening boards print on line 1; the
- * listing's date line (hours, soft-open notes) and the status note follow at 400 (简洁显示 keeps the hours, the key already
- * says whether it is open). Presentation only, no data edit.
+ * C P16: the shop's status is said once, by the status chip above the H1 (openingChip: 10/11 已开业 / 预计 11/20 开业). So
+ * the 开业 key is the day itself (10/11, Oct 11; 预计 11/20 / Expected Nov 20 before it), and the status note under it keeps
+ * its advice without its status word ("当天营业与订位请查商家入口。", not "已开业 · …"). A shop with no recorded day keeps
+ * the chip's words as the key (即将开业, 试营业: nothing else says it). The listing's date line (hours, soft-open notes)
+ * follows at 400 unless it only restates the day and the status ("9 月 9 日已开业"); 简洁显示 keeps the hours. Presentation
+ * only, no data edit.
  */
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+/** A date line that is only "9 月 9 日已开业" / "9/9 已开业": the key and the chip say it already. */
+const ONLY_OPENED = /^\s*(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已开业\s*$/;
+/** "已开业 · 当天营业…" → "当天营业…" (after translation: "Open · Check …" → "Check …"). */
+const withoutStatusWord = (note: string) => { const at = note.indexOf(' · '); return at > 0 && at <= 12 ? note.slice(at + 3) : note; };
+
 export function OpeningFacts({ shop, today, official }: { shop: SeptemberOpening; today: string; official?: FactsLink }) {
-  const { t, pick, locale } = useUiCopy();
-  const dateLine = readerNode(shop.dateLabel, locale);
+  const { t, pick, locale, english } = useUiCopy();
+  const dateLine = ONLY_OPENED.test(shop.dateLabel ?? '') ? undefined : readerNode(shop.dateLabel, locale);
+  const day = shop.openedOn && DAY.test(shop.openedOn) ? shop.openedOn : undefined;
+  const shown = day && readerMonthDay(day, english);
+  const key = !day || !shown ? pick(openingChip(shop, today)) : day > today || shop.status === 'announced' ? t(`预计 ${shown}`, `Expected ${shown}`) : shown;
   const cells: Cell[] = [
-    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: pick(openingChip(shop, today)), aside: official && outLink(official),
-      note: <>{dateLine && <span className="detail-fact__line">{dateLine}</span>}<span className="detail-fact__line" data-simple="hide">{translateText(openingStatusNote(shop.status), locale)}</span></> },
+    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: key, aside: official && outLink(official),
+      note: <>{dateLine && <span className="detail-fact__line">{dateLine}</span>}<span className="detail-fact__line" data-simple="hide">{withoutStatusWord(translateText(openingStatusNote(shop.status), locale))}</span></> },
     { key: 'where', icon: <MapPin aria-hidden="true" />, label: t('在哪', 'Where'), value: shop.address || translateText(shop.city, locale),
       aside: outLink({ href: mapLink(`${shop.name}, ${shop.address || shop.city}`), label: t('地图', 'Map') }, true) },
     { key: 'what', icon: <Store aria-hidden="true" />, label: t('类型', 'Type'), value: translateText(shop.category, locale) },

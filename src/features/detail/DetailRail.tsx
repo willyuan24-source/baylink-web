@@ -27,21 +27,23 @@ function RailMeta({ event }: { event: RailEvent }) {
  * At 特大 and in 简洁显示 the same cards are a vertical list of row cards (CSS picks the list; both are in the markup so the
  * prerendered page is right in every reading mode), at most three, then 看全部活动 →. `hideInSimple`: 简洁显示 leaves the rail out
  * (the related rail; the ended page's 接下来可以去 is that page's content and stays). Renders nothing when no card is left.
+ * `side` (B P04 / C P17): the desktop column's 附近还有, row cards only (at most three), under the sticky actions; a phone,
+ * which reads the page's photo row instead, does not show it (local-discovery-detail.css).
  */
-export function DetailRail({ id, title, note, cards, covers, today, hideInSimple }: { id: string; title: string; note?: string; cards: readonly RailCard[]; covers: readonly ResolvedCover[]; today: string; hideInSimple?: boolean }) {
+export function DetailRail({ id, title, note, cards, covers, today, hideInSimple, side }: { id: string; title: string; note?: string; cards: readonly RailCard[]; covers: readonly ResolvedCover[]; today: string; hideInSimple?: boolean; side?: boolean }) {
   const { t, locale } = useUiCopy();
   if (!cards.length) return null;
-  return <section className="detail-rail" aria-labelledby={id} data-count={cards.length} data-simple={hideInSimple ? 'hide' : undefined}>
+  return <section className={side ? 'detail-rail detail-rail--side' : 'detail-rail'} aria-labelledby={id} data-count={cards.length} data-simple={hideInSimple ? 'hide' : undefined}>
     <h2 id={id}>{title}</h2>
     {note && <p className="detail-rail__note">{note}</p>}
-    <div className="detail-rail__track">
+    {!side && <div className="detail-rail__track">
       {cards.map(({ event, date }, index) => {
         const facts = event as unknown as EventFactsInput;
         return <FeedCard key={event.id} title={event.title} to={`/events/${event.id}?date=${date}`} trust={checkedText(event.verifiedAt, pressSource(event.sourceLabel), locale, today)}
           cover={<EventCover event={facts} cover={covers[index]} today={today} days={[date]} sizes={RAIL_SIZES} ratio="3:2" ratioLock decorative />}
           when={<EventWhen event={facts} today={today} days={[date]} />} meta={<RailMeta event={event} />} />;
       })}
-    </div>
+    </div>}
     <div className="detail-rail__rows">
       {cards.slice(0, ROWS).map(({ event, date }, index) => {
         const facts = event as unknown as EventFactsInput;

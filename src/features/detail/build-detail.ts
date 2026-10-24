@@ -6,7 +6,7 @@ import { GUIDE_IMAGES } from '../../data/guide-media';
 import { getDiscoveryMetadata } from '../../lib/discovery-metadata';
 import { placeFor } from '../../lib/planner';
 import { coverItemFor, getCover, type CoverAsset, type CoverKind } from '../../lib/cover';
-import { coverCandidates, type CandidateRecord } from '../../lib/cover-candidates';
+import { COVER_TABLES, coverCandidates, type CandidateRecord, type CoverTables } from '../../lib/cover-candidates';
 import { slimListingImage } from '../../lib/listing-image';
 import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent } from './detail-record';
 
@@ -18,7 +18,11 @@ import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent
 
 /** Listings whose date is unknown to the build keep every candidate the edition still lists. */
 const cutoff = MONTHLY_EDITION.checkedAt;
-/** Candidates kept per record: three same-category cards (live page) or four "接下来可以去" cards (ended page), with spares. */
+/**
+ * Candidates kept per record: three same-category cards (live page) or four "接下来可以去" cards (ended page), and the desktop
+ * column's three "附近还有" rows, with spares. An offer or an opening keeps its own eight: the page's closing photo row
+ * (four) and the column's rows (three; R2 B P21 / C P17).
+ */
 const RAIL_SIZE = 8;
 const RAIL_SAME = 5;
 
@@ -32,18 +36,33 @@ const listingImage = (key: string): CoverAsset | undefined => {
 };
 
 /**
+ * DECISIONS 43(b) (captain 10-23): venue photos the B2 approval cleared for "cards and rows only" (items 31–33: small or
+ * lettering-led) never become a detail page's hero; the hero falls to the next candidate. Rail cards may still show them.
+ * The same keys are close-up-faces.ts WEAK_LEAD_SCENES on main (UI9-IMG-B2-REGISTER); R2-INT may read that set instead.
+ */
+export const CARDS_ONLY_PHOTOS: ReadonlySet<string> = new Set([
+  'venue-smcl-brisbane-library', // Brisbane Library: 1250 × 598, too small for a hero
+  'venue-smcl-atherton-library', // Atherton Library: the entrance lettering is the subject
+  'venue-sjpl-calabazas-library', // Calabazas Branch: a wall of cast names fills a third of it
+]);
+
+/** The registry and candidate tables the picker reads (tests pass their own). */
+export type CandidateSources = { images?: Readonly<Record<string, CoverAsset>>; tables?: CoverTables };
+
+/**
  * UI9-IMG-A1b (DECISIONS 21/22): the picture a detail hero or rail card shows when its own image cannot be its cover: the
  * first of its candidates (② venue → ③ stock → ④ approved AI) the ladder accepts whose file the page does not show yet
- * (`claimed`), else the first it accepts. Undefined when its own image is the cover.
+ * (`claimed`), else the first it accepts. Undefined when its own image is the cover. `hero`: the detail page's hero, which
+ * never takes a cards-only photo (CARDS_ONLY_PHOTOS).
  */
-function nextCandidate(kind: CoverKind, record: CandidateRecord, claimed: Set<string>): { key: string; image: CoverAsset } | undefined {
-  const own = getCover({ kind, id: record.id, imageKey: record.imageKey }, { images: GUIDE_IMAGES, today: cutoff });
+export function nextCandidate(kind: CoverKind, record: CandidateRecord, claimed: Set<string>, { hero = false, images = GUIDE_IMAGES as Readonly<Record<string, CoverAsset>>, tables = COVER_TABLES }: CandidateSources & { hero?: boolean } = {}): { key: string; image: CoverAsset } | undefined {
+  const own = getCover({ kind, id: record.id, imageKey: record.imageKey }, { images, today: cutoff });
   // An own AI illustration is ④: the pages' listing image leaves it out (listingImage), so a stock picture comes first.
   // An own ①② picture another card on the page already shows (①② once per page) also moves on to the next candidate.
-  if (own.tier !== 'type' && own.tier !== 'ai' && !claimed.has(own.image.src)) { claimed.add(own.image.src); return undefined; }
+  if (own.tier !== 'type' && own.tier !== 'ai' && !claimed.has(own.image.src) && !(hero && CARDS_ONLY_PHOTOS.has(record.imageKey ?? ''))) { claimed.add(own.image.src); return undefined; }
   // An own AI illustration stays in the list: after the stock pictures (coverCandidates), the last resort before none.
-  const accepted = coverCandidates(kind, record).filter(key => key !== record.imageKey || own.tier === 'ai')
-    .map(key => ({ key, cover: getCover(coverItemFor(kind, { id: record.id, imageKey: key }), { images: GUIDE_IMAGES, today: cutoff }) }))
+  const accepted = coverCandidates(kind, record, tables).filter(key => (key !== record.imageKey || own.tier === 'ai') && !(hero && CARDS_ONLY_PHOTOS.has(key)))
+    .map(key => ({ key, cover: getCover(coverItemFor(kind, { id: record.id, imageKey: key }), { images, today: cutoff }) }))
     .filter(({ cover }) => cover.tier !== 'type');
   const pick = accepted.find(({ cover }) => cover.tier !== 'type' && !claimed.has(cover.image.src)) ?? accepted[0];
   if (!pick || pick.cover.tier === 'type') return undefined;
@@ -53,10 +72,15 @@ function nextCandidate(kind: CoverKind, record: CandidateRecord, claimed: Set<st
 
 const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') === b.trim().toLocaleLowerCase('en-US');
 
-function railFor(event: MonthlyEvent, region: string, city: string, events: readonly MonthlyEvent[], claimed: Set<string> = new Set()): RailEvent[] {
+/**
+ * Upcoming events near a page: its region or its city (an offer valid Bay-wide has neither, so every upcoming event is near
+ * it), same category first when the page is an event (`category`), then same city, then the nearest day.
+ */
+function railFor(event: { id: string; category?: MonthlyEvent['category'] }, region: string | undefined, city: string, events: readonly MonthlyEvent[], claimed: Set<string> = new Set()): RailEvent[] {
+  const anywhere = !region && !city;
   const candidates = [...new Map(events.map(candidate => [candidate.id, withOverrides(candidate)])).values()]
     .filter(candidate => candidate.id !== event.id && candidate.endDate >= cutoff && candidate.occurrenceDates?.length !== 0
-      && (candidate.region === region || sameText(candidate.city, city)));
+      && (anywhere || (!!region && candidate.region === region) || sameText(candidate.city, city)));
   const rank = (candidate: MonthlyEvent) => (candidate.category === event.category ? 0 : 2) + (sameText(candidate.city, city) ? 0 : 1);
   // Same-category candidates for the live page's rail, then other nearby events for the ended page's "接下来可以去".
   const next = (candidate: MonthlyEvent) => nextEventDay(candidate, cutoff) ?? candidate.startDate;
@@ -98,8 +122,10 @@ export function buildDetailRecord(item: LocalDiscovery, events: readonly Monthly
   const placeId = resolved.kind === 'opening' ? placeFor(`opening-${resolved.shop.id}`)?.id : undefined;
   const claimed = new Set<string>();
   const record: CandidateRecord = resolved.kind === 'event' ? resolved.event : resolved.kind === 'offer' ? resolved.offer : resolved.shop;
-  const hero = nextCandidate(resolved.kind, record, claimed);
-  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events, claimed) : [];
+  const hero = nextCandidate(resolved.kind, record, claimed, { hero: true });
+  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events, claimed)
+    : resolved.kind === 'opening' ? railFor({ id: resolved.shop.id }, resolved.shop.region, resolved.shop.city, events, claimed)
+    : railFor({ id: resolved.offer.id }, resolved.offer.region, '', events, claimed);
   return { item: resolved, ...(image ? { image } : {}), ...(hero ? { hero } : {}), ...(placeId ? { placeId } : {}), rail, metadata: getDiscoveryMetadata(item) };
 }
 

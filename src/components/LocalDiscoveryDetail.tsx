@@ -17,6 +17,7 @@ import { useUiCopy } from './ui/ui-copy';
 import { translateText } from '../i18n/locale';
 import { discoveryContentReviewRecord } from '../lib/content-review';
 import { createCoverPage, type ImageCover } from '../lib/cover';
+import type { MonthlyEvent } from '../data/monthly-types';
 import { eventTone, isPublicBenefit, offerDeadline, offerKindLabel, offerTone, openingChip, readerMonthDay, toneLabel, type Copy } from '../lib/event-facts';
 import { DETAIL_BACK, detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
 import { DetailHero, DetailPlacePhoto } from '../features/detail/DetailHero';
@@ -66,6 +67,9 @@ const withoutCityTail = (name: string, city: string) => {
   const at = name.lastIndexOf(' · ');
   return at > 0 && name.slice(at + 3).trim().toLocaleLowerCase('en-US') === city.trim().toLocaleLowerCase('en-US') ? name.slice(0, at) : name;
 };
+/** What "nearby" means for an offer's or an opening's rows (railEvents): the shop's city; an offer has none (its region's
+ *  events came with the record, build-detail.ts). */
+const nearPage = (item: DetailRecord['item']) => ({ category: '' as MonthlyEvent['category'], city: item.kind === 'opening' ? item.shop.city : '' });
 
 function DiscoveryArticle({ record, today }: { record: DetailRecord; today: string }) {
   const { t, pick, locale, english } = useUiCopy();
@@ -118,8 +122,11 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const visitTip = item.kind === 'opening' ? readerProse(item.shop.editorTip, locale) : '';
   const sub = item.kind === 'offer' ? offerBrand(item.offer.brand, locale) : item.kind === 'opening' ? translateText(item.shop.city, locale) : '';
 
-  // The category chip (F's one category map: the cover's hue), then at most two status chips (C's one status map).
-  const category = event ? { tone: eventTone(event), text: pick(toneLabel(eventTone(event))) } : item.kind === 'offer' ? { tone: offerTone(item.offer), text: pick(offerKindLabel(item.offer)) } : null;
+  // The category chip (F's one category map: the cover's hue), then at most two status chips (C's one status map). N08: a
+  // shop's own offer (商家活动) is not one of the map's categories, so it takes its own look instead of 亲子's coral
+  // (offerTone gives it 'family' for the share cards); a public benefit keeps the free tone.
+  const category = event ? { tone: eventTone(event), text: pick(toneLabel(eventTone(event))) }
+    : item.kind === 'offer' ? { tone: isPublicBenefit(item.offer) ? offerTone(item.offer) : 'merchant', text: pick(offerKindLabel(item.offer)) } : null;
   const chips: { key: string; tone: StatusTone; text: string }[] = [];
   if (event) {
     if (event.status) chips.push({ key: 'status', tone: STATUS[event.status].tone, text: pick(STATUS[event.status].text) });
@@ -161,15 +168,24 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   </EditorialShareActions></div>;
   const planLines = event ? readerPlanLines(event).filter(line => readerProse(line, locale)) : [];
   const nextCards = event && eventOver ? railEvents(event, record.rail, today, { sameCategory: false, limit: 4 }) : [];
-  const relatedCards = event && !eventOver ? railEvents(event, record.rail, today, { sameCategory: true, limit: 3 }) : [];
+  // B P21: every detail ends with a photo row. An event's is 附近同类活动的下一场 (three); an offer's or an opening's, the
+  // upcoming events near it (four; Bay-wide for an offer valid everywhere).
+  const relatedCards = event ? eventOver ? [] : railEvents(event, record.rail, today, { sameCategory: true, limit: 3 })
+    : railEvents(nearPage(item), record.rail, today, { sameCategory: false, limit: 4 });
+  // B P04 / C P17: the desktop column under the action card ends beside the body with up to three more nearby rows (none the
+  // page shows already), then 本页图片来源.
+  const shown = new Set([...nextCards, ...relatedCards].map(card => card.event.id));
+  const sideCards = railEvents(event ?? nearPage(item), record.rail, today, { sameCategory: false, limit: 8 }).filter(card => !shown.has(card.event.id)).slice(0, 3);
   const nextCovers = railCovers(nextCards, today, coverPage);
   const relatedCovers = railCovers(relatedCards, today, coverPage);
+  const sideCovers = railCovers(sideCards, today, coverPage);
   const endedOn = eventOver ? event.endDate : item.kind === 'offer' && offerOver ? item.offer.endDate : undefined;
   // 本页图片来源: the hero, the venue photo and the rail covers, in page order.
   const photos: { title: string; cover: ImageCover }[] = [
     ...(cover.tier !== 'type' ? [{ title: t('题图', 'Main photo'), cover }] : []),
     ...(venuePhoto ? [{ title: t('场地照片', 'Venue photo'), cover: venuePhoto }] : []),
-    ...[...nextCards.map((card, index) => ({ card, cover: nextCovers[index] })), ...relatedCards.map((card, index) => ({ card, cover: relatedCovers[index] }))]
+    ...[...nextCards.map((card, index) => ({ card, cover: nextCovers[index] })), ...relatedCards.map((card, index) => ({ card, cover: relatedCovers[index] })),
+      ...sideCards.map((card, index) => ({ card, cover: sideCovers[index] }))]
       .flatMap(({ card, cover: railCover }) => railCover.tier !== 'type' ? [{ title: translateText(card.event.title, locale), cover: railCover }] : []),
   ];
 
@@ -222,7 +238,6 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             {event?.relatedGuideSlug && <MoreLink className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}</MoreLink>}
             <LazyReportErrorLink entity={{ kind: item.kind, id: share.id }} title={share.title} />
             {!together && shareRow}
-            <PageCredits photos={photos} />
           </section>
 
           {/* 想约人一起去？: one shell on every page with 一起去; the share row (分享 · 分享卡片 · 存入日历) under its rule. No
@@ -241,7 +256,15 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           {event && !eventOver && <DetailRail id="detail-related-title" hideInSimple title={english ? 'More upcoming events nearby' : translateText('附近同类活动的下一场', locale)}
             note={english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : translateText('先看同城，再看同区域的已确认场次；出发前请核对主办方安排。', locale)}
             cards={relatedCards} covers={relatedCovers} today={today} />}
+          {!event && <DetailRail id="detail-related-title" hideInSimple title={nearPage(item).city || (item.kind === 'offer' && item.offer.region) ? t('附近接下来的活动', 'Coming up nearby') : t('湾区接下来的活动', 'Coming up around the Bay')}
+            cards={relatedCards} covers={relatedCovers} today={today} />}
         </div>
+      </div>
+      {/* The column's end (desktop: beside the body's last screen, under the sticky actions) and the page's photo credits,
+          last on a phone like every other page's (#page-credits). */}
+      <div className="detail-aside-end">
+        <DetailRail id="detail-side-title" side hideInSimple title={t('附近还有', 'Also nearby')} cards={sideCards} covers={sideCovers} today={today} />
+        <PageCredits photos={photos} />
       </div>
     </div>
     <footer className="discovery-return" data-simple="hide">
