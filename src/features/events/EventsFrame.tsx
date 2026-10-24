@@ -1,4 +1,4 @@
-import { Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Suspense, useDeferredValue, useEffect, useRef, useState, type ReactNode } from 'react';
 import { carryHeight, takeCarriedHeight, useViewHold } from './view-hold';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { PageContainer, SegmentedTabs, SkeletonFeed } from '../../components/ui';
@@ -18,7 +18,6 @@ import type { EventsFilters } from './events-model';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 
-const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 // The two other boards load on demand with their records (events-boards.ts, UI9-IMG-A1b): /events itself stays small
 // (RC-33), and their skeleton and retry states are real.
 const withBoards = <M,>(load: () => Promise<M>) => async () => (await Promise.all([load(), loadBoards(getLocale())]))[0];
@@ -110,11 +109,10 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   useEffect(() => { setPending(undefined); }, [column, locationKey]);
   const bodyRef = useRef<HTMLDivElement>(null);
   const hold = useViewHold(shown !== column || (pending !== undefined && pending !== column), bodyRef);
-  // N24 across the two routes (/calendar ↔ /events): the column's last body height, when it unmounted a moment ago, holds
-  // the new page's place while its board loads (the Suspense fallback below), so the page does not drop to a skeleton.
+  // N24 across the two routes (/calendar ↔ /events): a click in the column records its body's height (before a link
+  // navigates: the next page renders before this one unmounts), and a frame that mounts a moment later holds that height
+  // under its loading skeleton while its board loads (the Suspense fallback below), so the page does not drop to 550 px.
   const [carried] = useState(takeCarriedHeight);
-  // (a layout effect: its cleanup runs while the body is still in the page, so its height is still there to read)
-  useIsoLayoutEffect(() => { const body = bodyRef.current; return () => carryHeight(body); }, []);
   let body: ReactNode;
   if (shown === 'list') body = list?.({ today, filters, defaultWhen }) ?? null;
   else if (shown === 'calendar') body = calendar!(today);
@@ -124,7 +122,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
     return <View today={today} region={filters.region} />;
   }}</ChunkBoundary>;
 
-  return <div className="ev-page" data-view={column}>
+  return <div className="ev-page" data-view={column} onClickCapture={() => carryHeight(bodyRef.current)}>
     <PageContainer>
       <header className="ui-page-header ev-header" data-size="display">
         <div className="ev-head">

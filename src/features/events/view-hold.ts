@@ -31,9 +31,10 @@ export function useViewHold(stale: boolean, body: { current: HTMLElement | null 
 
 /**
  * N24 between the column's routes (UI9-R2): /calendar and /events are two route components, so a switch between them
- * mounts a new EventsFrame with no previous body to hold. The frame that unmounts records its body's height here, and
- * the next one, if it mounts within CARRY_MS (an in-app switch), keeps that height under its loading skeleton until its
- * view paints. A later visit (or a full load) starts fresh.
+ * mounts a new EventsFrame with no previous body to hold. A click in the column records its body's height here (the
+ * click that navigates comes first: the next page renders before the old one unmounts), and a frame that mounts within
+ * CARRY_MS (an in-app switch) keeps that height under its loading skeleton until its view paints. A later visit (or a
+ * full load) starts fresh.
  */
 const CARRY_MS = 1500;
 let carried = { height: 0, at: 0 };
