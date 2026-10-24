@@ -38,6 +38,7 @@ html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:calc(
 .ev-tabs .ui-tabs__item:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .ev-tabs .ui-tabs__item:not([aria-current]):hover { background:var(--color-surface); color:var(--color-ink); } }
 @media (max-width:767px) {
+  .ev-tabs-bar { margin-bottom:var(--sp-3); }
   .ev-tabs { width:100%; }
   .ev-tabs .ui-tabs__item { flex:1 1 auto; padding:0 var(--sp-2); font-size:var(--fs-keep-14); }
 }
@@ -72,6 +73,8 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
 @media (max-width:1023px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__rows>:nth-child(-n+2) { display:none; }
   .ev-picks__cards+.ev-picks__rows:has(>:nth-child(3)) { margin-top:var(--sp-2); }
+  /* N18: the lead and the 2-up picks 8 px apart, so a second whole card ends on a standard phone's first screen. */
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__grid { row-gap:var(--sp-2); }
 }
 @media (min-width:1024px) {
   .ev-picks__grid { grid-template-columns:repeat(12, minmax(0, 1fr)); align-items:stretch; }
@@ -334,6 +337,9 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
 .ev-calendar__cards .ui-feed-card__save { position:static; align-self:flex-start; margin-top:var(--sp-1); }
 @media (max-width:767px) {
   .ev-calendar__cards { margin:0 0 var(--sp-2); }
+  /* Two up on every phone, 360 px too (the feed grid's one-column rule below a 340 px container would leave no whole card
+     on a 360 × 780 first screen). */
+  .ev-calendar__cards .ui-feed-grid:not([data-single]) { --ui-feed-cols:2; --ui-feed-ratio:4 / 3; }
   .ev-calendar__cards .ui-feed-grid[data-single] { --ui-feed-ratio:2 / 1; }
 }
 @media (min-width:768px) {
