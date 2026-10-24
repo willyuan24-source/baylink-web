@@ -54,6 +54,8 @@ test('the detail route imports no content catalog: its data is one generated buc
   assert.ok(!graph.some(file => file.startsWith('src/data/generated/details/')), 'buckets load dynamically, one per page');
   assert.ok(graph.includes('src/data/generated/detail-loaders.ts'));
   assert.ok(graph.includes('src/components/LocalDiscoveryDetail.tsx'));
+  // R2-INT12: an offer's and an opening's own parts load with their record (shop-parts.ts), never with an event page.
+  for (const module of ['src/features/detail/ShopFacts.tsx', 'src/features/detail/BenefitSteps.tsx']) assert.ok(!graph.includes(module), `${module} is in the detail route's static graph`);
 });
 
 test('every published detail and every old event link resolves from the bucket its URL hashes to', () => {

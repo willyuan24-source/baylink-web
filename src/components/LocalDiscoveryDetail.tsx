@@ -23,11 +23,11 @@ import { DETAIL_BACK, detailShare, nextEventDay, railEvents, unconfirmedEvent, t
 import { DetailHero, DetailPlacePhoto } from '../features/detail/DetailHero';
 import { HeroCaption, PageCredits } from '../features/detail/PageCredits';
 import { heroCover, placePhoto, railCovers } from '../features/detail/hero-cover';
-import { EventFacts, OfferFacts, OpeningFacts } from '../features/detail/FactsGrid';
+import { EventFacts } from '../features/detail/FactsGrid';
+import { shopParts } from '../features/detail/shop-parts';
 import { AskCell, DetailActionBar, FamilyCell, PrimaryAction, SaveCell, type DetailPrimary } from '../features/detail/DetailActionBar';
 import { DetailRail } from '../features/detail/DetailRail';
 import { DetailBack } from '../features/detail/DetailSkeleton';
-import { BenefitSteps } from '../features/detail/BenefitSteps';
 import { SquadTeaser } from '../features/detail/SquadTeaser';
 import { ReaderText } from '../features/detail/ReaderText';
 import { offerBrand, readerPlanLines, readerProse } from '../features/detail/reader-text';
@@ -159,8 +159,10 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
     {!eventOver && !offerOver && <FamilyCell path={share.path} title={translateText(heading, locale)} />}
     <AskCell />
   </>;
+  // An offer's or an opening's facts come from its own chunk (shop-parts.ts: in by the time the record is, load-detail.ts).
+  const shop = shopParts();
   const facts = item.kind === 'event' ? <EventFacts event={item.event} today={today} official={factsLink} />
-    : item.kind === 'offer' ? <OfferFacts offer={item.offer} official={factsLink} /> : <OpeningFacts shop={item.shop} today={today} official={factsLink} />;
+    : shop && (item.kind === 'offer' ? <shop.OfferFacts offer={item.offer} official={factsLink} /> : <shop.OpeningFacts shop={item.shop} today={today} official={factsLink} />);
   // The share row: under 想约人一起去's rule, or the source section's last line where there is no 一起去 (an ended page).
   // 简洁显示 hides it either way.
   const shareRow = <div className="detail-share" data-simple="hide"><EditorialShareActions item={share} card={!eventOver && !offerOver}>
@@ -228,7 +230,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             <h2 id="detail-plan-title">{t('出发前，做好这些安排', 'Before you go')}</h2>
             <ul className="detail-plan">{planLines.map(line => <li key={line}><Check aria-hidden="true" strokeWidth={1.75} /><p><ReaderText text={line} /></p></li>)}</ul>
           </section>}
-          {item.kind === 'offer' && <BenefitSteps offer={item.offer} />}
+          {item.kind === 'offer' && shop && <shop.BenefitSteps offer={item.offer} />}
           {visitTip && item.kind === 'opening' && <section aria-labelledby="detail-visit-title"><h2 id="detail-visit-title">{t('这一趟怎么安排', 'Planning the visit')}</h2><p className="detail-prose"><ReaderText text={item.shop.editorTip} name={item.shop.name} /></p></section>}
 
           <section className="detail-source" aria-labelledby="detail-source-title">

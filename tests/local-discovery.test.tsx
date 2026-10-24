@@ -27,6 +27,8 @@ const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLan
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { brandCase } = await import('../src/lib/event-facts');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { nextEventDay, unconfirmedEvent } = await import('../src/features/detail/detail-record');
 const { heroCover } = await import('../src/features/detail/hero-cover');

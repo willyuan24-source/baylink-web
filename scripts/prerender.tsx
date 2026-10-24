@@ -53,6 +53,8 @@ const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// R2-INT12: an offer's and an opening's facts are a chunk the page loads with their record (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 // WEB-DATA-SPLIT: the deals board and the city directory are chunks the article loads with its record; load them before rendering.
 const { preloadAllGuideBlocks } = await import('../src/features/guides/guide-blocks');
 await preloadAllGuideBlocks();

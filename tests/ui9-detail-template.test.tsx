@@ -20,6 +20,8 @@ const { render, cleanup, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter, Routes, Route } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { detailLoaders } = await import('../src/data/generated/detail-loaders');
 const { detailBucket } = await import('../src/lib/english-loading');

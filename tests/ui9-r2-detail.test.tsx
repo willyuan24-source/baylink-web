@@ -22,6 +22,8 @@ for (const [key, value] of Object.entries(globals)) Object.defineProperty(global
 const { StaticRouter } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 const { buildDetailRecord, nextCandidate, CARDS_ONLY_PHOTOS } = await import('../src/features/detail/build-detail');
 const { heroCover } = await import('../src/features/detail/hero-cover');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');

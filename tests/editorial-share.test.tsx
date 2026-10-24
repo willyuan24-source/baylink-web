@@ -25,6 +25,8 @@ const { localDiscoveries, getLocalDiscovery, discoveryShare } = await import('..
 const { getGuideBySlug } = await import('../src/data/guides');
 const { EditorialShareActions } = await import('../src/components/EditorialShareActions');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 
 const event = localDiscoveries.find(item => item.kind === 'event')!.event;

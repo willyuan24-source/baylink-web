@@ -7,6 +7,8 @@ import { StaticRouter } from 'react-router-dom';
 import '../src/i18n/router';
 import { localDiscoveries, type LocalDiscovery } from '../src/data/local-discoveries';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+import '../src/features/detail/ShopFacts';
 import { buildDetailRecord } from '../src/features/detail/build-detail';
 import { setLocale } from '../src/i18n/locale';
 import { getListingImage } from '../src/lib/offer-media';
