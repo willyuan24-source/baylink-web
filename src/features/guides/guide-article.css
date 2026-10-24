@@ -92,12 +92,14 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
    height and their labels one line; at 大 / 特大 / 简洁 the cells grow past 56 px to hold the otter and the label, and the
    bar's height token holds the otter (1.5rem), one line of --fs-meta and the cells' and the bar's 4 px paddings. */
 html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell [data-label] { white-space:nowrap; }
-/* At 特大 (and 家人版) a 1-800 number (data-long) needs the row's last ~30 px: there the ask cell reads BayBay beside the
-   otter, its short name (DECISIONS 18: 问 BayBay wherever there is room; its accessible name stays 问 BayBay 这一页), so the
-   number keeps one line inside its button. */
+/* At 特大 (and 家人版) a 1-800 number (data-long), and in English 家人版 any number, needs the row's last ~30 px: there the ask
+   cell reads BayBay beside the otter, its short name (DECISIONS 18: 问 BayBay wherever there is room; its accessible name
+   stays 问 BayBay 这一页 / Ask BayBay about this page), so the number keeps one line inside its button. */
 @media (max-width:1023px) {
-  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
-  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=long],
+  html[data-reading=extra-large][data-simple]:lang(en) .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call) .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=tight],
+  html[data-reading=extra-large][data-simple]:lang(en) .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call) .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
 }
 @media (min-width:390px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding-block:var(--sp-1); line-height:var(--lh-tight); }
