@@ -20,7 +20,6 @@ import { OutingInspirationLink } from './OutingInspirationLink';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './GuideEditionNotice';
 import { translateText } from '../i18n/locale';
-import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { GuidePhoneText as PhoneText } from '../features/guides/plain-phones';
@@ -50,7 +49,7 @@ import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features
 import { editionState, guideCallOf, guideCardLines, guideEnglishDate, guidePageCovers, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
 import type { GuideCard, GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
-import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
+import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock, UtilityContactDirectoryBlock, UtilityDirectoryBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import '../features/guides/guide-article.css';
 
@@ -449,9 +448,9 @@ const BlockRenderer = ({
     case 'shopping-directory':
       return <ShoppingDirectory places={block.places} title={block.title} text={block.text} />;
     case 'utility-directory':
-      return <UtilityDirectory cities={block.cities} title={block.title} text={block.text} />;
+      return <UtilityDirectoryBlock cities={block.cities} title={block.title} text={block.text} />;
     case 'contact-directory':
-      return <UtilityContactDirectory contacts={block.contacts} title={block.title} text={block.text} anchor={block.anchor} />;
+      return <UtilityContactDirectoryBlock contacts={block.contacts} title={block.title} text={block.text} anchor={block.anchor} />;
     case "freebies":
       return null;
     case "heading":
