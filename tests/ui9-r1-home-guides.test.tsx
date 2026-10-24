@@ -71,11 +71,11 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   // Review r2: at 特大 too (rows a third of the page wide broke words in two), so in every desktop mode but 简洁.
   assert.match(LIBRARY_CSS, /html:not\(\[data-simple\]\) \.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
-  // UI9-R2-GUIDE: the chip is FOUNDATION's one label (covers.css), with no rule of this page's own; the pictures ask for
-  // their laid-out width (sizes=auto first).
+  // UI9-R2-GUIDE: the chip is FOUNDATION's one label (covers.css), with no rule of this page's own; a row asks for its
+  // 112 px thumbnail.
   assert.doesNotMatch(LIBRARY_CSS, /ui-provenance/);
   assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{options\.sizes \?\? ROW_SIZES\} \/>/);
-  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_SIZES = laidOut\('\(max-width: 1023px\) 112px, 365px'\);/);
+  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_SIZES = '\(max-width: 1023px\) 112px, 365px';/);
   // /my-week starts on the site frame (x=112), as /me.
   assert.match(read('src/pages/MyWeekPage.tsx'), /<PageContainer size="wide" className="my-week">/);
 });

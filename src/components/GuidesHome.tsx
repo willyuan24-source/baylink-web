@@ -9,6 +9,7 @@ import { GUIDE_BAND_SIZE as BAND_SIZE, telOf, type GuideIndexCard, type GuidesIn
 import { expandGuidesIndex } from '../features/guides/guides-index';
 import { createCoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
+import { useReadingSize, useSimpleDisplay } from '../lib/reading-preferences';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
 import { PageHeader } from './ui/PageHeader';
@@ -45,19 +46,17 @@ type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; 
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const PREVIEW_SIZE = 4;
-/**
- * `sizes` for the page's lazy pictures (FOUNDATION handover, UI9-R2-GUIDE): `auto` first, so a browser that supports it asks
- * for the width the picture is laid out at — at 大 / 特大 / 简洁 a phone's topic cards are one 358 px column, not the 173 px
- * the feed guess says, and the band's rows are cards up to 365 px wide on a desktop. Chrome fetched those twice (a 480 w
- * file at parse time, then the full file once CoverImage fitted the slot: 20 doubles at 特大); with `auto` the one download
- * is the right one. Browsers without `sizes=auto` (and eager pictures, where it does not apply) read the guess after it.
- */
-const laidOut = (guess: string) => `auto, ${guess}`;
 /** The 长辈与家属先看 band's pictures: 112 px row thumbnails below 1024 px (72 px at 特大 / 简洁), then column cards up to
  * 365 px wide (大 / 特大 at 1280+). */
-const BAND_SIZES = laidOut('(max-width: 1023px) 112px, 365px');
-const FEED_SIZES = laidOut(COVER_SIZES.feed);
-const ROW_SIZES = laidOut('112px');
+const BAND_SIZES = '(max-width: 1023px) 112px, 365px';
+const ROW_SIZES = '112px';
+/**
+ * The topic cards' `sizes` (FOUNDATION handover, UI9-R2-GUIDE): at 大 / 特大 / 简洁 a phone's cards are one 358 px column (two
+ * on a tablet, three on a desktop), not the feed's 173 px guess, so a picture fetched with the guess was fetched again at its
+ * drawn width (20 doubles at 特大). The reading size is the reader's, known once the page runs (the prerendered page is
+ * 标准): the cards ask for the column they are laid out in from then on, before most of them load.
+ */
+const LARGE_FEED_SIZES = '(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 390px';
 // The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
 const INDEX = expandGuidesIndex(guidesIndex as GuidesIndexFile);
 const guides = INDEX.guides;
@@ -102,6 +101,9 @@ function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; f
 export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) => {
   const { t, pick, english, locale } = useUiCopy();
   const today = useBayAreaToday();
+  // 大 / 特大 / 简洁: the topic cards stand one to a phone's column (cards.css), so their pictures ask for that width.
+  const readingSize = useReadingSize(), simple = useSimpleDisplay();
+  const largeCards = readingSize !== 'standard' || simple;
   const [params, setParams] = useSearchParams();
   const topicParam = params.get('topic');
   const regionParam = params.get('region');
@@ -200,7 +202,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={priority ? COVER_SIZES.feed : FEED_SIZES} /> : null} when={when} meta={meta} />;
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={largeCards ? LARGE_FEED_SIZES : COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string; sizes?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call, sizes: options.sizes })}</li>)}</ul>;
@@ -223,7 +225,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p data-simple="hide">{summaryOf('elders')}</p></div>
     </div>
     {/* From 1024 px the band's rows are cards with the 3:2 picture on top (guide-library.css), up to 365 px wide at 大 / 特大:
-        their `sizes` is the laid-out width (BAND_SIZES); the badge keeps its short words (`mini`). */}
+        their own `sizes` asks for a file that covers that on a 2x screen; the badge keeps its short words (`mini`). */}
     {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows', sizes: BAND_SIZES })}
     <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides`)}</Button>
   </section>;
