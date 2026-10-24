@@ -22,7 +22,7 @@ export function GuidePageImageCredits({ images }: { images: readonly GuideImage[
     <Disclosure summary={t(`本页图片来源（${shown.length}）`, `Image credits (${shown.length})`)}>
       <ul>{shown.map(image => <li key={image.src}>
         <span className="gd-credits__kind">{getImageProvenance(image, english)}</span>
-        <span className="gd-credits__caption">{image.caption}</span>
+        <span className="gd-credits__caption"><span>{image.caption}</span></span>
         {isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}
         {isWebLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'License')}</a>}
       </li>)}</ul>
