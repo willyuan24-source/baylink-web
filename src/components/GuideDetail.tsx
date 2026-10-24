@@ -73,6 +73,12 @@ type GuideDetailProps = {
 
 export const GuideDetail = (props: GuideDetailProps) => <GuideDetailSession key={props.slug} {...props} />;
 
+/** The title picture's drawn width (guide-article.css): the column on a phone, the frame's full width (1216 px at most) from
+ * 768 px, so the prerendered page asks for the file it keeps (CoverImage re-measures after layout). */
+const GUIDE_HERO_SIZES = '(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 48px), (max-width: 1279px) calc(100vw - 64px), 1216px';
+/** A 3D postcard keeps its 3:2 beside the summary, half the frame from 768 px (DECISIONS 1). */
+const GUIDE_POSTCARD_SIZES = '(max-width: 767px) calc(100vw - 32px), (max-width: 1279px) calc(50vw - 44px), 596px';
+
 const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | undefined> = {
   'bay-area-birthday-perks': 'birthday', 'bay-area-everyday-free-perks': 'everyday', 'bay-area-retail-freebies-family-deals': 'retail', 'bay-area-freebies-deals-2026-10': undefined,
 };
@@ -221,7 +227,13 @@ const GuideDetailSession = ({
       </StepSection>;
     })}
   </>;
-  // 目录: 联系电话 · the boards · each step · 官方来源 (UI9-GUIDES content arrangement).
+  // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
+  const call = guideCallOf(editorial);
+  const official = guide.sources[0];
+  const sources = guideSourceCount(guide);
+  const archivedEdition = editionState(guide, today) === 'past';
+  // 目录: 联系电话 · the boards · each step · 官方来源 N 个 (UI9-GUIDES content arrangement). A phone folds it under 30 秒看懂; a
+  // desktop lists it in the sticky rail under the action card (UI9-R2-GUIDE: the 8/4 frame from the 目录 down).
   const contents = (
     <ol className="gd-toc__list">
       {editorial?.contacts && <li><a href="#gd-contacts-title"><span aria-hidden="true">☎</span>{t('联系电话', 'Who to call')}</a></li>}
@@ -239,30 +251,25 @@ const GuideDetailSession = ({
           <span aria-hidden="true">
             <ChevronRight aria-hidden="true" strokeWidth={1.75} />
           </span>
-          {t('官方来源', 'Official sources')}
+          {sources > 0 ? t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`) : t('官方来源', 'Official sources')}
         </a>
       </li>
     </ol>
   );
-  // Every guide opens on its title picture (① / ② / ③, else its category's ③: DECISIONS 21, captain 10-22 02:50); an editorial
-  // guide's coded slides follow under it (simple mode hides the slides, whose facts are in 30 秒看懂).
+  // Every guide opens on its title picture (① / ② / ③, else its category's ③: DECISIONS 21, captain 10-22 02:50): 3:2 on a
+  // phone, the frame's full width at 16:7 from 768 px (UI9-R2-GUIDE, R2-07). An editorial guide's coded slides come after
+  // 30 秒看懂 (the answer first), one fixed-height carousel; simple mode hides the slides, whose facts are in 30 秒看懂.
   const badge = cover.tier === 'type' ? '' : cover.image.scene3d ? english ? cover.label.en : translateText(cover.label.zh) : tierLabel(cover);
-  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={badge} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority />
+  const figure = cover.tier !== 'type' ? <figure className="gd-cover-figure"><CoverImage className="gd-cover" image={cover.image} label={badge} tier={cover.image.scene3d ? undefined : cover.tier} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={cover.image.scene3d ? GUIDE_POSTCARD_SIZES : GUIDE_HERO_SIZES} priority />
       {!cover.image.scene3d && <GuideCoverCredit image={cover.image} label={badge} />}</figure> : null;
-  const visual = editorial ? <>{figure}<GuideCarousel guide={guide} editorial={editorial} /></> : figure;
-  // The bar's primary: 拨打 the guide's number, else its first official source (官方入口 ↗).
-  const call = guideCallOf(editorial);
-  const official = guide.sources[0];
-  const sources = guideSourceCount(guide);
-  const archivedEdition = editionState(guide, today) === 'past';
 
   return (
     <PlainPhonesProvider value={plainPhones}>
     <div className="bl-guide-detail gd-page" data-pilot={editorial ? '' : undefined} data-board={board ? '' : undefined}>
       <article className="bl-guide-article gd-article">
         <GuideHeader guide={guide} returnTo={returnTo} today={today} />
-        <div className="gd-lead" data-visual={visual ? '' : undefined}>
-          {visual && <div className="gd-lead__visual">{visual}</div>}
+        <div className="gd-lead" data-visual={figure ? '' : undefined} data-scene3d={figure && cover.tier !== 'type' && cover.image.scene3d ? '' : undefined}>
+          {figure && <div className="gd-lead__visual">{figure}</div>}
           <div className="gd-lead__side">
             {board && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
             {/* A current edition says so in the head's meta line; a past one keeps its full notice above the body. */}
@@ -272,13 +279,18 @@ const GuideDetailSession = ({
             {editorial ? <KeyFactsCard guide={guide} facts={editorial.keyFacts} />
               : <div className="gd-summary"><p>{guide.summary}</p>{guide.audience.length > 0 && <p className="gd-summary__audience"><span>{t('适合：', 'For: ')}</span>{guide.audience.map((audience, index) => <Fragment key={audience}>{index > 0 && '、'}<span>{audience}</span></Fragment>)}</p>}</div>}
           </div>
+          {editorial && <div className="gd-lead__story"><GuideCarousel guide={guide} editorial={editorial} /></div>}
         </div>
-        {/* The rail (desktop columns 10–12, sticky to the end of the sources): the bar's card and the 官方来源 link. On a phone
-            the bar is fixed at the bottom and the link stays in the head's meta line. */}
+        {/* The rail (desktop columns 9–12, from the 目录 down to the end of the sources; UI9-R2-GUIDE 8/4 frame): the bar's card
+            and, under it, the 目录 (its last line is 官方来源 N 个), one sticky stack. On a phone the bar is fixed at the bottom
+            and the 目录 folds here, after 30 秒看懂. */}
         <aside className="gd-rail" aria-label={t('侧栏', 'Page tools')}>
           <div className="gd-rail__inner">
             <GuideActions guide={guide} call={call} official={official} onAsk={onAsk} />
-            {sources > 0 && <a className="gd-rail__sources" href="#guide-sources">{t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`)}<ArrowDownRight aria-hidden="true" strokeWidth={1.75} /></a>}
+            <nav className="bl-guide-toc gd-toc" aria-label={t('文章目录', 'Contents')}>
+              <Disclosure className="gd-toc__phone" summary={<>{t('目录', 'Contents')}<span className="gd-toc__count">{t(`${headings.length} 个章节`, `${headings.length} section${headings.length === 1 ? '' : 's'}`)}</span></>}>{contents}</Disclosure>
+              <div className="gd-toc__desk">{/* N02: a label, not an H2 — the nav is named 文章目录. */}<p className="gd-toc__label">{t('目录', 'Contents')}</p>{contents}</div>
+            </nav>
           </div>
         </aside>
         {record?.opus && <GuideOpusBlock entry={record.opus} showArt={page.opusArt} />}
@@ -287,10 +299,6 @@ const GuideDetailSession = ({
           {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
           {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
         </div>}
-        <nav className="bl-guide-toc gd-toc" aria-label={t('文章目录', 'Contents')}>
-          <Disclosure className="gd-toc__phone" summary={<>{t('目录', 'Contents')}<span className="gd-toc__count">{t(`${headings.length} 个章节`, `${headings.length} section${headings.length === 1 ? '' : 's'}`)}</span></>}>{contents}</Disclosure>
-          <div className="gd-toc__desk">{/* N02: a label, not an H2 — the nav is named 文章目录 and a 14 px H2 sat under the 24 px slide titles. */}<p className="gd-toc__label">{t('目录', 'Contents')}</p>{contents}</div>
-        </nav>
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {leadDiagrams && <div className="gd-lead-diagrams">{leadDiagrams}</div>}
         <div className="bl-guide-reading-main gd-main">

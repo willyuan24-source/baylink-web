@@ -71,9 +71,11 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   // Review r2: at 特大 too (rows a third of the page wide broke words in two), so in every desktop mode but 简洁.
   assert.match(LIBRARY_CSS, /html:not\(\[data-simple\]\) \.gl-band \.ui-row-card \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"thumb" "body";/);
   assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \{ --ui-feed-ratio:3 \/ 2; width:auto; height:auto; \}/);
-  assert.match(LIBRARY_CSS, /\.gl-band \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{[^}]*white-space:nowrap; \}/);
-  assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{options\.sizes \?\? COVER_SIZES\.thumb\} \/>/);
-  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_SIZES = '\(max-width: 1023px\) 88px, 365px';/);
+  // UI9-R2-GUIDE: the chip is FOUNDATION's one label (covers.css), with no rule of this page's own; the pictures ask for
+  // their laid-out width (sizes=auto first).
+  assert.doesNotMatch(LIBRARY_CSS, /ui-provenance/);
+  assert.match(read('src/components/GuidesHome.tsx'), /<GuideCover guide=\{guide\} cover=\{cover\} ratio="1:1" mini sizes=\{options\.sizes \?\? ROW_SIZES\} \/>/);
+  assert.match(read('src/components/GuidesHome.tsx'), /const BAND_SIZES = laidOut\('\(max-width: 1023px\) 112px, 365px'\);/);
   // /my-week starts on the site frame (x=112), as /me.
   assert.match(read('src/pages/MyWeekPage.tsx'), /<PageContainer size="wide" className="my-week">/);
 });
@@ -103,10 +105,10 @@ test('follow-ups 1, 4, 7, 10: guide bar cells, the desktop cover, row labels on 
   // 1: at 大 / 特大 / 简洁 the bar stretches its cells and stacks them from the top (one height, one icon line).
   assert.match(ARTICLE_CSS, /html:is\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \.site-detail-actions\.detail-actions\.gd-bar \{ align-items:stretch; \}/);
   assert.match(ARTICLE_CSS, /\.gd-bar :is\(\.detail-actions__cell:is\(button,a\),\.detail-actions__cell \.saves-toggle\) \{ justify-content:flex-start; \}/);
-  // 4: the stretched desktop cover reads top-down; the spare height goes above the source line.
-  assert.match(ARTICLE_CSS, /\.gd-page\[data-pilot\] \.gd-slide--cover \.gd-slide__question \{ margin-top:var\(--sp-6\); \}/);
-  // 7: a row thumbnail's label is the chip on the picture (bottom-left), not a full-width strip.
-  assert.match(LIBRARY_CSS, /\.gl-page \.ui-row-card__thumb \.ui-provenance\[data-chip\]:is\(\[data-tier=stock\],\[data-tier=ai\]\) \{ right:auto; bottom:var\(--sp-1\); left:var\(--sp-1\);[^}]*border-radius:var\(--r-sm\);/);
+  // 4: the desktop cover reads top-down; the spare height goes above the source line.
+  assert.match(ARTICLE_CSS, /\.gd-lead__story \.gd-slide--cover \.gd-slide__question \{ margin-top:var\(--sp-5\); \}/);
+  // 7: a row thumbnail's label is FOUNDATION's chip on the picture (bottom-left, covers.css); no local label rule here.
+  assert.doesNotMatch(LIBRARY_CSS, /\.ui-provenance/);
   // 10: no --gl-rest span: the cell is one column.
   assert.doesNotMatch(read('src/components/GuidesHome.tsx'), /--gl-rest|--gl-ratio/);
   assert.doesNotMatch(LIBRARY_CSS, /--gl-rest|--gl-ratio/);

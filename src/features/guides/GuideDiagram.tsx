@@ -8,8 +8,9 @@ import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 
 /**
  * H22: one coded diagram in a pilot guide (data: guide-diagrams.ts). Real text, so it translates, reads aloud and grows with
- * Aa; numbers are tap-to-call. Labelled 示意图 and "内容摘自本文" with the guide's source mark; `data-cover="diagram"` lets
- * the image-rhythm probes count it as a picture slot, never as a photo (RC-31).
+ * Aa; numbers are tap-to-call. Its eyebrow says what kind of box it is — 对照表 for a comparison, 图解 for a flow, a timeline or a
+ * map (A P16, UI9-R2-GUIDE: never the picture tier word 示意图) — and "内容摘自本文" carries the guide's source mark;
+ * `data-cover="diagram"` lets the image-rhythm probes count it as a picture slot, never as a photo (RC-31).
  */
 export function GuideDiagramFigure({ guide, diagram }: { guide: Guide; diagram: GuideDiagram }) {
   const { t, pick } = useUiCopy();
@@ -21,7 +22,7 @@ export function GuideDiagramFigure({ guide, diagram }: { guide: Guide; diagram: 
   const text = (item: DiagramItem) => item.text && <span className="gd-diagram__text">{pick(item.text)}</span>;
   const footer = diagram.kind === 'timeline' ? diagram.total : diagram.kind === 'flow' ? undefined : diagram.footer;
   return <figure className="gd-diagram" data-diagram={diagram.kind} data-cover="diagram" aria-labelledby={titleId}>
-    <figcaption className="gd-diagram__head"><span className="gd-diagram__tag">{t('示意图', 'Diagram')}</span><strong id={titleId}>{pick(diagram.title)}</strong></figcaption>
+    <figcaption className="gd-diagram__head"><span className="gd-diagram__tag">{diagram.kind === 'compare' ? t('对照表', 'Comparison') : t('图解', 'Diagram')}</span><strong id={titleId}>{pick(diagram.title)}</strong></figcaption>
     {diagram.kind === 'flow' && <ol className="gd-diagram__flow">{diagram.steps.map((step, index) => <li key={index}>
       <span className="gd-diagram__step" aria-hidden="true">{index + 1}</span>
       <span className="gd-diagram__body"><strong>{pick(step.title)}</strong>{tel(step)}{text(step)}</span>

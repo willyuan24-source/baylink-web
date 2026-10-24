@@ -124,9 +124,11 @@ test('follow-up 27: the short English badge is its own prop, so a wide slot can 
   assert.deepEqual(shown(<Cover cover={cover} sizes={COVER_SIZES.thumb} decorative />), { sizes: '88px', badge: 'Illustrative photo', short: 'Stock photo' });
   assert.deepEqual(shown(<Cover cover={cover} sizes={COVER_SIZES.feed} decorative />), { sizes: COVER_SIZES.feed, badge: 'Illustrative photo', short: 'Stock photo' });
   await setLocale('zh-Hans', false);
-  // The /guides band passes its own sizes: 365 px cards at 大 / 特大 ask for ≥ 730 w on a 2x screen (the 800 w file).
+  // The /guides band passes its own sizes: the laid-out width first (sizes=auto, UI9-R2-GUIDE), then 112 px rows and the
+  // 365 px cards at 大 / 特大 (≥ 730 w on a 2x screen, the 800 w file).
   const home = read('src/components/GuidesHome.tsx');
-  assert.match(home, /const BAND_SIZES = '\(max-width: 1023px\) 88px, 365px';/);
+  assert.match(home, /const BAND_SIZES = laidOut\('\(max-width: 1023px\) 112px, 365px'\);/);
+  assert.match(home, /const laidOut = \(guess: string\) => `auto, \$\{guess\}`;/);
   assert.match(home, /className: 'gl-band__rows', sizes: BAND_SIZES \}/);
   assert.match(read('src/features/guides/GuideCover.tsx'), /short=\{mini\}/);
 });

@@ -50,21 +50,22 @@ test('every figure, phone number, amount and date in a diagram is printed in tha
   }
 });
 
-test('each pilot guide shows its diagrams labelled 示意图 (Diagram on /en), never a photo or AI picture', async () => {
+test('each pilot guide shows its diagrams under a 图解 / 对照表 eyebrow (Diagram / Comparison on /en), never 示意图, a photo or AI picture', async () => {
   await setLocale('zh-Hans', false);
   for (const slug of PILOTS) {
     const figures = [...render(slug).querySelectorAll('figure.gd-diagram')];
     assert.ok(figures.length >= 2, `${slug}: ${figures.length} diagrams`);
     for (const figure of figures) {
       assert.equal(figure.getAttribute('data-cover'), 'diagram');
-      assert.equal(figure.querySelector('.gd-diagram__tag')!.textContent, '示意图');
+      // A P16 (UI9-R2-GUIDE): the tier word 示意图 belongs to pictures; a coded box says what kind of box it is.
+      assert.equal(figure.querySelector('.gd-diagram__tag')!.textContent, figure.getAttribute('data-diagram') === 'compare' ? '对照表' : '图解');
       assert.equal(figure.querySelector('img'), null, 'coded, not a picture');
     }
   }
   await setLocale('en', false, `/guides/${PILOTS[0]}`);
   const english = render(PILOTS[0], '/en');
   for (const figure of english.querySelectorAll('figure.gd-diagram')) {
-    assert.equal(figure.querySelector('.gd-diagram__tag')!.textContent, 'Diagram');
+    assert.equal(figure.querySelector('.gd-diagram__tag')!.textContent, figure.getAttribute('data-diagram') === 'compare' ? 'Comparison' : 'Diagram');
     assert.doesNotMatch(figure.textContent!, /[㐀-鿿]/u, 'the /en diagram has no Chinese');
   }
   await setLocale('zh-Hans', false);

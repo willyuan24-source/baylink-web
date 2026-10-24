@@ -45,8 +45,19 @@ type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; 
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const PREVIEW_SIZE = 4;
-/** The 长辈与家属先看 band's pictures: 88 px row thumbnails below 1024 px, then column cards up to 365 px wide (大 / 特大 at 1280+). */
-const BAND_SIZES = '(max-width: 1023px) 88px, 365px';
+/**
+ * `sizes` for the page's lazy pictures (FOUNDATION handover, UI9-R2-GUIDE): `auto` first, so a browser that supports it asks
+ * for the width the picture is laid out at — at 大 / 特大 / 简洁 a phone's topic cards are one 358 px column, not the 173 px
+ * the feed guess says, and the band's rows are cards up to 365 px wide on a desktop. Chrome fetched those twice (a 480 w
+ * file at parse time, then the full file once CoverImage fitted the slot: 20 doubles at 特大); with `auto` the one download
+ * is the right one. Browsers without `sizes=auto` (and eager pictures, where it does not apply) read the guess after it.
+ */
+const laidOut = (guess: string) => `auto, ${guess}`;
+/** The 长辈与家属先看 band's pictures: 112 px row thumbnails below 1024 px (72 px at 特大 / 简洁), then column cards up to
+ * 365 px wide (大 / 特大 at 1280+). */
+const BAND_SIZES = laidOut('(max-width: 1023px) 112px, 365px');
+const FEED_SIZES = laidOut(COVER_SIZES.feed);
+const ROW_SIZES = laidOut('112px');
 // The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
 const INDEX = expandGuidesIndex(guidesIndex as GuidesIndexFile);
 const guides = INDEX.guides;
@@ -176,7 +187,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={options.sizes ?? COVER_SIZES.thumb} /> : null}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={options.sizes ?? ROW_SIZES} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
@@ -189,22 +200,18 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={priority ? COVER_SIZES.feed : FEED_SIZES} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string; sizes?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call, sizes: options.sizes })}</li>)}</ul>;
   /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
-   *  4-guide preview; three quarters of a longer list). */
-  // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell (captain 10-21 18:30); guide-library.css
-  // draws it from 1024 px only, one column wide and as tall as the pictures beside it (follow-up 10: a two-column white box
-  // read as an empty frame).
-  const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
-    ? <li className="gl-all-cell"><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
-  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
-    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
+   *  4-guide preview; three quarters of a longer list). A preview shorter than the desktop row (医疗保险 shows two) just ends:
+   *  its 看全部 N 篇 is the section head's link (C P19 / follow-up 10, UI9-R2-GUIDE: no ghost card after the pictures). */
+  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
+    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}</FeedGrid>
     : <>
       <div className="gl-view" data-view="phone">{rows(items, label)}</div>
-      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid></div>
+      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}</FeedGrid></div>
     </>;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
@@ -216,7 +223,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p data-simple="hide">{summaryOf('elders')}</p></div>
     </div>
     {/* From 1024 px the band's rows are cards with the 3:2 picture on top (guide-library.css), up to 365 px wide at 大 / 特大:
-        their own `sizes` asks for a file that covers that on a 2x screen; the badge keeps its short 88 px words (`mini`). */}
+        their `sizes` is the laid-out width (BAND_SIZES); the badge keeps its short words (`mini`). */}
     {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows', sizes: BAND_SIZES })}
     <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides`)}</Button>
   </section>;
@@ -226,7 +233,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id={`gl-topic-${item.id}`}>{pick(item)}</h2><p>{pick(item.summary)}</p></div>
       <Button variant="quiet" onClick={() => update({ topic: item.id })}>{t(`看全部 ${total} 篇`, `All ${total}`)}</Button>
     </div>
-    {list(preview, pick(item), false, { total, open: () => update({ topic: item.id }) })}
+    {list(preview, pick(item))}
   </section>);
 
   return <div className="gl-page" data-testid="guides-home">

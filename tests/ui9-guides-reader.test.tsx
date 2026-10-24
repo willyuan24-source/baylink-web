@@ -170,7 +170,7 @@ test('the lane\'s sheets are token-only: sizes, line heights, radii and shadows;
 test('简洁显示 hooks: the lane-scoped hide / show rules, no carousel in 简洁, 特大 shows the cover slide only', () => {
   const article = readFileSync('src/features/guides/guide-article.css', 'utf8');
   assert.match(article, /html\[data-simple\] \.gd-page \[data-simple=hide\] \{ display:none; \}/);
-  assert.match(article, /html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__visual>\.gd-carousel \{ display:none; \}/);
+  assert.match(article, /html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__story \{ display:none; \}/);
   assert.match(article, /html\[data-reading=extra-large\]:not\(\[data-simple\]\) \.gd-carousel:not\(\[data-all\]\) \.ui-carousel__slide:not\(:first-child\) \{ display:none; \}/);
   const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
   assert.match(library, /html\[data-simple\] \.gl-page \[data-simple=hide\]/);

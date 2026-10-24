@@ -202,6 +202,8 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
   for (const file of ['src/components/OfficialVerificationModal.tsx', 'src/components/EventScreenshotImport.tsx', 'src/components/ui/DialogWait.tsx', 'src/app/OverlayHost.tsx', 'src/components/GuideVisuals.tsx', 'src/components/GuideLightbox.tsx', 'src/components/ui/ConfirmDialog.tsx', 'src/features/feedback/FeedbackSheet.tsx', 'src/components/Toast.tsx', 'src/components/ImageViewer.tsx']) {
     assert.doesNotMatch(read(file), /\banimate-spin\b/, `${file}: spinners on --dur-* tokens`);
   }
-  // The toast (shell) and the guide lightbox (article) write CloseButton's markup out instead of loading Button.tsx.
-  for (const file of ['src/components/Toast.tsx', 'src/components/GuideLightbox.tsx']) assert.match(read(file), /className="ui-icon-button ui-close[ "]/, file);
+  // The toast (shell) writes CloseButton's markup out instead of loading Button.tsx; the guide lightbox uses CloseButton
+  // (UI9-R2-GUIDE: the article already loads Button.tsx).
+  assert.match(read('src/components/Toast.tsx'), /className="ui-icon-button ui-close[ "]/);
+  assert.match(read('src/components/GuideLightbox.tsx'), /<CloseButton className="guide-image-close" label=\{label\} onClick=\{close\} \/>/);
 });

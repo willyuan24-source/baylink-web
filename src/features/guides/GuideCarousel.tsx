@@ -15,8 +15,8 @@ const keepNumbers = (text: string) => text.split(/(\d[\d-]{5,}\d)/).map((part, i
 const TOPIC_MARKS: Record<GuideTopicId, LucideIcon> = { elders: HeartHandshake, health: Stethoscope, documents: Landmark, housing: House, transport: TrainFront, savings: Gift, outings: Trees };
 
 /**
- * 看 (1007 §5.5, design.md §4.10): the pilot guide's 3:4 slides — a family C cover with the first answer, then one point per
- * slide with its source pinned at the bottom. Real text, so it translates, reads aloud and grows with Aa; phone numbers
+ * 看 (1007 §5.5, design.md §4.10): the pilot guide's slides — a white cover with the first answer on a cream band, then one
+ * point per slide with its source pinned at the bottom, each led by its green number badge (UI9-R2-GUIDE). Real text, so it translates, reads aloud and grows with Aa; phone numbers
  * are tel: buttons. Facts come only from the article (src/data/guide-editorial).
  */
 export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: GuideEditorial }) {
@@ -33,7 +33,9 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
     const title = sourceTitle(index);
     return <p className="gd-slide__source">{title ? <>{t('来源：', 'Source: ')}<span>{title}</span></> : t('出自本文整理', 'From this guide')}</p>;
   };
-  const counter = (position: number) => <span className="gd-slide__count" aria-hidden="true">{position}/{total}</span>;
+  // Each slide opens on its green number badge (UI9-R2-GUIDE); the carousel's own counter says "2/9" (the slide groups are
+  // named "2 / 9"), so the badge is decoration for the eye.
+  const number = (position: number) => <span className="gd-slide__number" aria-hidden="true">{position}</span>;
   const phone = (entry: EditorialPhone, big = false) => <a className="gd-slide__phone" data-size={big ? 'big' : undefined} href={`tel:${entry.tel}`}
     aria-label={t(`拨打 ${pick(entry.label)} ${entry.number}`, `Call ${pick(entry.label)} ${entry.number}`)}>
     <span className="gd-slide__phone-label">{pick(entry.label)}</span><span className="gd-slide__phone-number">{entry.number}</span>
@@ -56,7 +58,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
           data-cover="diagram"; not a listing cover, so the render probe of information cards skips it. */}
       <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="slide" aria-labelledby={`${id}-slide-1`}>
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
-        <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
+        <div className="gd-slide__top">{number(1)}<span className="gd-slide__kicker">{kicker}</span></div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
         {/* A styled line, not a heading: nothing on the page outranks the H1 (P12). */}
         <p className="gd-slide__cover-title" id={`${id}-slide-1`}>{headline(cover.title)}</p>
@@ -65,7 +67,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         <p className="gd-slide__source" data-template-note="">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
       {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="slide" aria-labelledby={`${id}-slide-${index + 2}`}>
-        <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
+        <div className="gd-slide__top">{number(index + 2)}<span className="gd-slide__kicker">{pick(slide.kicker)}</span></div>
         {/* N02: a styled line like the cover's, not an H3: a 24 px slide title outranked the article's 20 px step H2s. */}
         <p className="gd-slide__title" id={`${id}-slide-${index + 2}`}>{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></p>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}

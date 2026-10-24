@@ -32,8 +32,7 @@
 
 /* Sections: H2, one line, 看全部 N 篇, at most four guides. 40 px apart on a phone, 64 on a desktop (--section-gap). */
 .gl-section,.gl-band { margin-top:var(--section-gap); }
-/* The band follows the chips directly: the first block keeps the smaller step, so two whole rows fit a 390 × 844 phone. */
-.gl-filters+.gl-band { margin-top:var(--sp-5); }
+/* N15 (UI9-R2-GUIDE): the band after the chips is a section like the others, on --section-gap (40 / 64). */
 .gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--stack-head); }
 .gl-section__head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; }
 .gl-section__head p { margin:var(--sp-1) 0 0; max-width:var(--measure); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); text-wrap:pretty; }
@@ -50,15 +49,10 @@
 .gl-page .ui-row-card__thumb { width:7rem; height:7rem; }
 .gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); overflow-wrap:anywhere; }
 .gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
-/* Follow-up 7 (DECISIONS 23): a row thumbnail's ③④ label is the shared chip ON the picture, bottom-left, as on the cards —
-   not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. The 3D postcards'
-   badge is left as it is (DECISIONS 1). */
-.gl-page .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); border-radius:var(--r-sm); text-align:start; }
+/* Follow-up 7 (DECISIONS 23): a row thumbnail's label is FOUNDATION's one chip on the picture, bottom-left (covers.css); this
+   page keeps no label rule of its own (UI9-R2-GUIDE). */
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
-/* A short topic row ends on its 看全部 cell from 1024 px: one column, the size of the pictures beside it (follow-up 10). A row of
-   two guides (医疗保险) leaves its fourth column empty by design: a cell over the rest of the row read as an empty frame. */
-.gl-all-cell { display:none; }
 
 /* 长辈与家属先看: D2's band — three rows on a sunken panel, three across on a desktop; then 看全部 N 篇. */
 .gl-band { padding:var(--inset-card); border-radius:var(--r-xl); background:var(--color-surface-2); }
@@ -148,11 +142,6 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   .gl-page .gl-band .ui-row-card { height:100%; box-sizing:border-box; }
 }
 @media (min-width:1024px) {
-  /* Follow-up 10: one column (not the rest of the row), as tall as the 3:2 pictures beside it — a link tile the size of a
-     picture in the secondary button look, not a two-column white frame. */
-  html:not([data-reading$=large]) .gl-all-cell { display:flex; }
-  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border-radius:var(--r-lg); }
-  .gl-all-cell svg { width:1.125rem; height:1.125rem; }
   /* N16 (UI9-R1): the 长辈与家属先看 band's guides start on the columns of the topic sections under it. The sunken panel reaches
      --gl-band-bleed past the column edges, so the text and the cards inside it start on the grid:
      - 标准: the feeds' four columns — heading, line and 看全部 in column 1, the three guides in columns 2–4 (422 / 732 / 1042
@@ -167,9 +156,7 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   /* A column is too narrow for a row: beside its picture a title ran 12 lines and past the card (标准, 1024 en), and at 特大 it
      broke words in two (1024 en 「Understan / ding」). So in every desktop mode but 简洁 each band guide stands as a card: the
      3:2 picture on top, the whole title under it (never clamped), as the topic grids; the ③④ chip is the cards' one-line
-     chip. The pictures keep the thumbnail's `sizes` (Cover's short English label goes with it): its 480 w file covers the
-     picture (≤ 262 px at 标准, ≤ 365 px at 大 / 特大) at 1x. */
+     chip (covers.css). Their `sizes` is the laid-out width (GuidesHome BAND_SIZES: ≤ 262 px at 标准, ≤ 365 px at 大 / 特大). */
   html:not([data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr); grid-template-areas:"thumb" "body"; align-content:start; }
   html:not([data-simple]) .gl-band .ui-row-card__thumb { --ui-feed-ratio:3 / 2; width:auto; height:auto; }
-  html:not([data-simple]) .gl-band .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); white-space:nowrap; }
 }

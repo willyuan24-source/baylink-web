@@ -87,14 +87,14 @@ test('the eight home entry tiles: a lazy 480 w photo each, its name and one line
   assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /className="[^"]*ui-chip/, 'the tiles are .home-mood, not the shared chip');
 });
 
-test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a row\'s ♡ sits on its thumbnail\'s top-right corner', async () => {
+test('C P19 / follow-up 10: a short /guides topic row just ends (看全部 is the section head\'s link), and a row\'s ♡ sits on its thumbnail\'s top-right corner (under it at 大 / 特大)', async () => {
   const { readFileSync } = await import('node:fs');
   const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
-  assert.match(library, /\.gl-all-cell \{ display:none; \}/);
-  // UI9-R1 follow-up 10: the cell is one column wide (a link tile as tall as the 3:2 pictures), not a white box over the rest of the row.
-  assert.match(library, /html:not\(\[data-reading\$=large\]\) \.gl-all-cell \{ display:flex; \}/);
-  assert.match(library, /\.gl-all-cell>\.ui-button \{[^}]*aspect-ratio:3 \/ 2;[^}]*border-radius:var\(--r-lg\); \}/);
-  assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /<li className="gl-all-cell"><Button variant="secondary" block/);
+  // UI9-R2-GUIDE: no ghost 看全部 N 篇 card after the pictures (the captain's 10-21 cell read as an empty frame twice).
+  assert.doesNotMatch(library, /gl-all-cell/);
+  const guides = readFileSync('src/components/GuidesHome.tsx', 'utf8');
+  assert.doesNotMatch(guides, /gl-all-cell/);
+  assert.match(guides, /<Button variant="quiet" onClick=\{\(\) => update\(\{ topic: item\.id \}\)\}>\{t\(`看全部 \$\{total\} 篇`, `All \$\{total\}`\)\}<\/Button>/);
   const home = readFileSync('src/components/home-discovery.css', 'utf8');
   // The A1 contract (DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), as on the /events rows. Its size is
   // UI9-R2-FOUNDATION's one circle (saves.css, --control-height): UI9-R2-HOME dropped the home's 36 px circle and its 44 px ring.
