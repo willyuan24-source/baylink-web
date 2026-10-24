@@ -1,6 +1,5 @@
 import type { Guide, GuideCategory } from '../../data/guides';
 import type { GuideImage } from '../../data/guide-media';
-import { homeImageSrcSet } from '../../lib/home-image-rungs';
 import type { GuideEditorial } from '../../data/guide-editorial';
 import type { PlacedDiagram } from './guide-diagrams';
 import type { PageMetadata } from '../../lib/seo';
@@ -85,7 +84,7 @@ export type GuideIndexFileCard = Omit<GuideIndexCard, 'covers'> & {
  * A card's pictures as the file ships them: a ladder srcset as its rungs (one digit, lib/home-image-rungs.ts) where that
  * rebuilds it exactly; expandGuidesIndex writes the srcset back.
  */
-type GuideIndexFileImage = GuideImage & { rungs?: number };
+export type GuideIndexFileImage = GuideImage & { rungs?: number };
 export type GuideIndexFileCovers = { 'zh-Hans': GuideIndexFileImage; 'zh-Hant'?: GuideIndexFileImage; en?: GuideIndexFileImage };
 
 /** guides-index.json: the cards, and the pictures more than one card shows, once each by file (3 languages per entry). */
@@ -128,26 +127,4 @@ export const coverFor = (covers: GuideCovers, locale: 'zh-Hans' | 'zh-Hant' | 'e
 export function relatedForToday(related: readonly GuideCard[], today: string, count = 4): GuideCard[] {
   const month = today.slice(0, 7);
   return related.filter(card => !card.editionMonth || card.editionMonth >= month).slice(0, count);
-}
-
-/** The index's cards with their pictures back on `covers` (own) and `covers.stock` (second): the file ships each shared one once. */
-export function expandGuidesIndex(file: GuidesIndexFile): GuidesIndex {
-  const { images, guides, ...rest } = file;
-  const expanded = new Map<GuideIndexFileCovers, Omit<GuideCovers, 'stock'>>();
-  const full = (covers: GuideIndexFileCovers) => {
-    if (!expanded.has(covers)) expanded.set(covers, Object.fromEntries(Object.entries(covers).map(([key, image]) => {
-      const { rungs, ...picture } = image as GuideIndexFileImage;
-      return [key, rungs === undefined ? picture : { ...picture, srcSet: homeImageSrcSet(picture, rungs) }];
-    })) as Omit<GuideCovers, 'stock'>);
-    return expanded.get(covers)!;
-  };
-  const picture = (slug: string, src: string) => {
-    const covers = images[src];
-    if (!covers) throw new Error(`guides-index.json: ${slug} names ${src}, which its images do not ship`);
-    return full(covers);
-  };
-  return { ...rest, guides: guides.map(({ covers, coverSrc, stockSrc, ...card }) => {
-    const own = covers ? full(covers) : picture(card.slug, coverSrc ?? '');
-    return { ...card, covers: stockSrc ? { ...own, stock: picture(card.slug, stockSrc) } : own };
-  }) };
 }

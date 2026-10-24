@@ -220,7 +220,7 @@ test('the slim home catalog carries the same ladder srcset and placeholder colou
 });
 
 test('the /guides index ships each ladder srcset as its rungs and expandGuidesIndex writes back the registry srcset', async () => {
-  const { expandGuidesIndex } = await import('../src/features/guides/guide-records');
+  const { expandGuidesIndex } = await import('../src/features/guides/guides-index');
   const raw = readFileSync(new URL('../src/data/generated/guides-index.json', import.meta.url), 'utf8');
   assert.equal(raw.includes('"srcSet":'), false, 'no srcset string left in the index file (lib/home-image-rungs.ts rebuilds each one)');
   const bySrc = new Map(Object.values(GUIDE_IMAGES).map(image => [image.src, image]));

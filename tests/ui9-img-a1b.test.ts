@@ -155,7 +155,7 @@ test('item 9 checks: a heavy stock picture comes last; city-sights only on city 
 // every picture more than one card shows once, by file.
 test('a /guides card ships its second ③ only when its own picture is not unique on the page; a shared picture ships once', async () => {
   const { readFileSync } = await import('node:fs');
-  const { expandGuidesIndex } = await import('../src/features/guides/guide-records');
+  const { expandGuidesIndex } = await import('../src/features/guides/guides-index');
   const { guideCover } = await import('../src/features/guides/guide-facts');
   const { GUIDE_TOPICS, guideTopicOf } = await import('../src/data/guide-topics');
   const file = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'utf8'));

@@ -27,7 +27,8 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { offerSections, openingSections } from '../src/features/events/board-status';
 import { guideCover, inSeason, editionState } from '../src/features/guides/guide-facts';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf } from '../src/data/guide-topics';
-import { GUIDE_BAND_SIZE, expandGuidesIndex, type GuideIndexCard, type GuidesIndexFile } from '../src/features/guides/guide-records';
+import { GUIDE_BAND_SIZE, type GuideIndexCard, type GuidesIndexFile } from '../src/features/guides/guide-records';
+import { expandGuidesIndex } from '../src/features/guides/guides-index';
 import { addCalendarDays } from '../src/lib/calendar-days';
 
 const arg = (name: string) => { const at = process.argv.indexOf(`--${name}`); return at > 0 ? process.argv[at + 1] : undefined; };

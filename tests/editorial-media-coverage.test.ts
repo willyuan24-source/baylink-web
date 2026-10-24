@@ -42,7 +42,7 @@ test('context-photo approvals do not permit different venues, real event photos 
   assert.equal(isApprovedEventContextPhoto('toString', 'sf-ybg-dance-day-2026'), false);
 });
 
-test('UI9-IMG-B2: ③ stock credits read in English by pattern (en-patterns.json), not one dictionary entry per photographer', async () => {
+test('UI9-IMG-B2: ③ stock credits read in English by one pattern (en-patterns.json), not one dictionary entry per photographer', async () => {
   const { default: stock } = await import('../src/data/category-stock-photos.json');
   const { default: stockEnglish } = await import('../src/data/category-stock-photos-en.json');
   await loadLocale('en');
