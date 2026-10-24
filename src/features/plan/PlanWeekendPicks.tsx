@@ -79,7 +79,7 @@ export function PlanWeekendPicks({ coverPage, onCovers }: { coverPage?: CoverPag
         return <FeedItem key={event.id}>
           <FeedCard title={facts.shortTitle || facts.title} to={`/events/${event.id}?date=${date}`}
             cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === eager} decorative />}
-            when={<EventWhen event={facts} today={today} days={[date]} />} meta={<>{price && <span className={STATUS_TONE[price.tone] ? 'ui-status' : 'ui-meta-price'} data-tone={STATUS_TONE[price.tone]}>{pick(price.text)}</span>}{price && <span className="ui-meta-sep">{'\u00a0· '}</span>}<span className="ui-meta-place">{translateText(eventPlace(facts), locale)}</span></>} />
+            when={<EventWhen event={facts} today={today} days={[date]} />} meta={<>{price && <span className={STATUS_TONE[price.tone] ? 'ui-status' : 'ui-meta-price'} data-tone={STATUS_TONE[price.tone]}>{pick(price.text)}</span>}<span className="ui-meta-place">{price && <span className="ui-meta-sep">{'\u00a0· '}</span>}{translateText(eventPlace(facts), locale)}</span></>} />
         </FeedItem>;
       })}
     </FeedGrid>

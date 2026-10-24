@@ -40,7 +40,7 @@ import { bootCarry, clearBootCarry } from './boot-carry';
 import { scrollBehavior } from '../../lib/motion';
 
 /** The example questions under the box. */
-const PLAN_EXAMPLES = ['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'];
+const PLAN_EXAMPLES = ['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带 5 岁和 12 岁的孩子，不开车'];
 /** The list's first page (J3 P08): the next four events, then places, so it shows both kinds in about two phone screens;
  *  继续看更多 adds twelve at a time, in the same order (the other events, then the other places). */
 const CATALOG_PAGE = 8, CATALOG_MORE = 12, FIRST_EVENTS = 4;
