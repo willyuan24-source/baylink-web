@@ -224,14 +224,17 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 }
 
 /* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
-   guides — a 112 px thumbnail, the text beside it, ♡ on the thumbnail (not in 简洁, decision 16). */
-:is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
+   guides — a square 7rem thumbnail (the /events rows' width: 112 px, 126 at 大, 140 at 特大, so it grows with the ♡ and the
+   words), the text beside it, ♡ on the thumbnail (not in 简洁, decision 16). */
+:is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:7rem minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
-/* 大 / 特大 rows: the ♡ sits on the 112 px thumbnail's top-right corner, as on every card and on the /events rows (the A1
+/* 大 / 特大 rows (N22): the ♡ sits on the thumbnail's top-right corner, as on every card and on the /events rows (the A1
    contract, DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), never over the title, which keeps the
-   row's width. Its size is UI9-R2-FOUNDATION's one 44 px circle (saves.css), so no home size is left here. The row is a
-   grid, so the ♡ takes the picture's grid area as its containing block. */
+   row's width. Its size is UI9-R2-FOUNDATION's one circle (saves.css: --control-height, 55 px at 特大), so no home size
+   is left here; with the 7rem thumbnail it covers the same share of the picture at every reading size (about 12%; on
+   the fixed 112 px thumbnail it was 19% at 特大). The row is a grid, so the ♡ takes the picture's grid area as its
+   containing block. */
 html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 2 / 2; top:var(--sp-1); right:var(--sp-1); }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }

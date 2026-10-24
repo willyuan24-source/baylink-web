@@ -130,6 +130,11 @@ test('A1 / DECISIONS 20, 32: at 大 / 特大 a home row\'s ♡ sits on its thumb
   const rows = 'html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)';
   assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { 'grid-area': '1 / 1 / 2 / 2', top: 'var(--sp-1)', right: 'var(--sp-1)' });
   assert.deepEqual(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media'), { 'grid-area': '1 / 1 / span 5', margin: '0' });
+  // The thumbnail is 7rem (the /events rows' width), so the rem-sized ♡ covers the same share of it at 标准, 大 and 特大.
+  const row = decls(':is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card');
+  assert.equal(row['grid-template-columns'], '7rem minmax(0, 1fr)');
+  assert.equal(row['--ui-feed-ratio'], '1 / 1');
+  assert.match(fs.readFileSync('src/features/events/events.css', 'utf8'), /grid-template-columns:7rem minmax\(0, 1fr\); grid-template-areas:"thumb body";/);
   // No home size, ring or row height for it: the circle is saves.css's (44 px), the row as tall as its words or its picture.
   assert.doesNotMatch(CSS, /saves-toggle|min-height:calc\(112px/);
   const saves = fs.readFileSync('src/features/saves/saves.css', 'utf8');
