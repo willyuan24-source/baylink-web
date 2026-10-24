@@ -136,11 +136,11 @@ test('N05: the together footnotes keep a reading measure; only the closing note 
   const sheet = 'src/features/outings/outings.css';
   assert.deepEqual(find(sheet, '.together-page .outing-footnote', 'max-width'), ['var(--measure)']);
   // Where the measure binds (from 768) the hub's closing note wraps between phrases (measured: 各自处理。| 出发前请再次核对…),
-  // and overflow-wrap:anywhere lets an unbroken run still shrink; English avoids a one-word last line.
+  // overflow-wrap:anywhere lets an unbroken run still shrink, and balanced lines keep English off a two-word last line.
   const note = '.together-page .outing-footnote.outing-toolbar';
   assert.deepEqual(find(sheet, note, 'word-break', '@media (min-width:768px)'), ['keep-all']);
   assert.deepEqual(find(sheet, note, 'overflow-wrap', '@media (min-width:768px)'), ['anywhere']);
-  assert.deepEqual(find(sheet, note, 'text-wrap', '@media (min-width:768px)'), ['pretty']);
+  assert.deepEqual(find(sheet, note, 'text-wrap', '@media (min-width:768px)'), ['balance']);
   // No other footnote keeps CJK words whole: the hub card footer's 发起人 · {nickname} (30 characters allowed) is a flex item,
   // and keep-all there made a long Chinese nickname push the footer wider than the card (review, 10-23: 400px in a 320 card).
   const keepAll = decls.filter(d => d.prop === 'word-break' && d.value === 'keep-all' && /outing-footnote|outing-card-footer/.test(d.selector));
