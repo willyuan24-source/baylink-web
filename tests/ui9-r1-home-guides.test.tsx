@@ -105,8 +105,8 @@ test('follow-ups 1, 4, 7, 10: guide bar cells, the desktop cover, row labels on 
   // 1: at 大 / 特大 / 简洁 the bar stretches its cells and stacks them from the top (one height, one icon line).
   assert.match(ARTICLE_CSS, /html:is\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \.site-detail-actions\.detail-actions\.gd-bar \{ align-items:stretch; \}/);
   assert.match(ARTICLE_CSS, /\.gd-bar :is\(\.detail-actions__cell:is\(button,a\),\.detail-actions__cell \.saves-toggle\) \{ justify-content:flex-start; \}/);
-  // 4: the desktop cover reads top-down; the spare height goes above the source line.
-  assert.match(ARTICLE_CSS, /\.gd-lead__story \.gd-slide--cover \.gd-slide__question \{ margin-top:var\(--sp-5\); \}/);
+  // 4: in the one-height slide row the spare height is shared above the content and above the source line (no empty top).
+  assert.match(ARTICLE_CSS, /\.gd-lead__story \.gd-slide>\.gd-slide__top\+\* \{ margin-top:auto; \}/);
   // 7: a row thumbnail's label is FOUNDATION's chip on the picture (bottom-left, covers.css); no local label rule here.
   assert.doesNotMatch(LIBRARY_CSS, /\.ui-provenance/);
   // 10: no --gl-rest span: the cell is one column.

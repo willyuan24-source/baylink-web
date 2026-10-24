@@ -599,10 +599,10 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   .gd-lead__story .ui-carousel__track { gap:var(--grid-gutter); margin:0; padding:0; scroll-padding-inline:0; }
   .gd-lead__story .ui-carousel__slide { flex:0 0 calc((100% - var(--grid-gutter)) / 2); }
   .gd-lead__story .gd-slide { min-height:22.5rem; }
-  /* Follow-up 4 (UI9-R1): the cover reads top-down — question and title a fixed step under the kicker — and the spare height
-     sits above the source line at the foot, by the corner mark (stretched, its auto margins had left the top empty). The
-     phone's 3:4 poster keeps its layout. */
-  .gd-lead__story .gd-slide--cover .gd-slide__question { margin-top:var(--sp-5); }
+  /* In the one-height row a slide shorter than the tallest shares its spare height in two: above its content (under the
+     kicker) and above the source line, so no slide is half empty at its foot or, as the stretched cover was (follow-up 4),
+     at its top. The phone's 3:4 poster keeps its layout. */
+  .gd-lead__story .gd-slide>.gd-slide__top+* { margin-top:auto; }
 }
 @media (max-width:1023px) {
   .gd-to-top { bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); }
