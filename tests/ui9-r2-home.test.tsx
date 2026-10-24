@@ -56,7 +56,10 @@ test('R2-06: on a desktop the share strip sits under the lead at its own height;
   // buttons stay under the words, the 768 layout).
   const wide = '(min-width:1280px)';
   assert.equal(decls('.home-share[data-card]', wide)['grid-template-columns'], '3.5rem minmax(0, 1fr) auto');
-  assert.equal(decls('.home-share[data-card] p', wide)['text-wrap'], 'balance', 'no lone 「转发。」 under the line');
+  // Its Chinese line breaks only at the comma: 「存成一张图， / 微信里长按就能转发。」, never 「微信 / 里」 or a lone 「转发。」.
+  const card = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><ShareStrip count={3} cardHref="/weekly/all-2026-10-24.png" total={79} /></StaticRouter>)).window.document;
+  assert.deepEqual([...card.querySelectorAll('.home-share p>.home-share__keep')].map(span => span.textContent), ['存成一张图，', '微信里长按就能转发。']);
+  assert.equal(decls('.home-head__keep,.home-share__keep')['white-space'], 'nowrap');
   assert.equal(decls('.home-share[data-card]:not(:lang(en))>.home-share__actions', wide)['grid-area'], '1 / 3 / 3 / 4');
   assert.equal(decls('.home-share[data-card]>:not(.home-share__card)', '(min-width:768px)')['grid-column'], '2');
   assert.doesNotMatch(CSS, /:lang\(en\)>/, 'English has no overrides of its own');
@@ -109,7 +112,7 @@ test('N07 / N08: the BayBay band\'s words are white, its AI 助手 tag an outlin
 test('A P11: 「免费 · 不用登录」 wraps as one piece', () => {
   const doc = home();
   assert.equal(doc.querySelector('.home-head__identity .home-head__keep')!.textContent, '免费 · 不用登录');
-  assert.equal(decls('.home-head__keep')['white-space'], 'nowrap');
+  assert.equal(decls('.home-head__keep,.home-share__keep')['white-space'], 'nowrap');
 });
 
 test('N18 / R2-06 A P3: the phone lead\'s place and ✓ share a line; a portrait tablet\'s lead is picture left, words right', () => {

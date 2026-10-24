@@ -5,6 +5,13 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { dateScope } from '../../lib/date-guard';
 
+/** A Chinese sentence as its two halves around the first full-width comma, each kept on one line; any other text as is. */
+function splitAtComma(text: string) {
+  const cut = text.indexOf('，') + 1;
+  if (!cut || cut === text.length) return text;
+  return <><span className="home-share__keep">{text.slice(0, cut)}</span><span className="home-share__keep">{text.slice(cut)}</span></>;
+}
+
 /**
  * 发到家庭群 (1007 §4.2 ⑧, HOME-09; UI9-HOME): one compact card under the lead on a desktop (as tall as its content; UI9-R2-
  * HOME) and after the entry tiles on a phone — a small preview of the weekend's share image (UI9-IMG-A1b: the photo tiles of
@@ -32,7 +39,8 @@ export function ShareStrip({ count, cardHref, total }: { count: number; cardHref
     {preview && <img className="home-share__card" src={cardHref.replace(/\.png$/, '-thumb.webp')} alt={t('本周末分享图预览', 'Preview of this weekend’s share image')} width={240} height={320} loading="lazy" decoding="async"
       onError={() => setPreview(false)} ref={img => { if (img?.complete && !img.naturalWidth && img.currentSrc) setPreview(false); }} />}
     <h3 id="home-share-title">{t(`这周末 ${count} 件事，发到家庭群`, `This weekend’s ${count} picks, for the family chat`)}</h3>
-    <p>{t('存成一张图，微信里长按就能转发。', 'Save it as one image to send in any chat app.')}</p>
+    {/* A Chinese line breaks only at its comma (「存成一张图， / 微信里长按就能转发。」), never 「微信 / 里」 or a lone 「转发。」. */}
+    <p>{splitAtComma(t('存成一张图，微信里长按就能转发。', 'Save it as one image to send in any chat app.'))}</p>
     <div className="home-share__actions">
       <Button variant="secondary" href={cardHref} download onClick={() => recordProductEvent('share_card_download')} icon={<Download aria-hidden="true" strokeWidth={1.75} />}>{t('保存图片', 'Save image')}</Button>
       {calendar}
