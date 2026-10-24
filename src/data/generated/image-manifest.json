@@ -2,7 +2,7 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "f30ec6d7",
+ "registryHash": "2b7f3886",
  "registryCount": 720,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
@@ -13806,27 +13806,27 @@
     "/guides/home-tiles/tile-free-2.webp 1280w"
    ]
   },
-  "/guides/home-tiles/tile-free-3.webp": {
+  "/guides/home-tiles/tile-free-4.webp": {
    "width": 1280,
-   "height": 853,
-   "bytes": 80884,
-   "sha1": "f18871e9f0ab70a1",
-   "lqip": "#775",
+   "height": 960,
+   "bytes": 161892,
+   "sha1": "806dcc927e13a78e",
+   "lqip": "#887",
    "scope": "registry",
    "published": false,
    "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/home-tiles/tile-free-3-small.webp",
+     "file": "/guides/home-tiles/tile-free-4-small.webp",
      "width": 480,
-     "height": 320,
-     "bytes": 13910
+     "height": 360,
+     "bytes": 14842
     }
    ],
    "srcset": [
-    "/guides/home-tiles/tile-free-3-small.webp 480w",
-    "/guides/home-tiles/tile-free-3.webp 1280w"
+    "/guides/home-tiles/tile-free-4-small.webp 480w",
+    "/guides/home-tiles/tile-free-4.webp 1280w"
    ]
   },
   "/guides/home-tiles/tile-kids-1.webp": {
@@ -13852,29 +13852,6 @@
     "/guides/home-tiles/tile-kids-1.webp 1280w"
    ]
   },
-  "/guides/home-tiles/tile-kids-2.webp": {
-   "width": 1280,
-   "height": 853,
-   "bytes": 59334,
-   "sha1": "5d04db547dd693c7",
-   "lqip": "#889",
-   "scope": "registry",
-   "published": false,
-   "artwork": "photo",
-   "variants": [
-    {
-     "rung": 480,
-     "file": "/guides/home-tiles/tile-kids-2-small.webp",
-     "width": 480,
-     "height": 320,
-     "bytes": 12746
-    }
-   ],
-   "srcset": [
-    "/guides/home-tiles/tile-kids-2-small.webp 480w",
-    "/guides/home-tiles/tile-kids-2.webp 1280w"
-   ]
-  },
   "/guides/home-tiles/tile-kids-3.webp": {
    "width": 1280,
    "height": 959,
@@ -13896,6 +13873,29 @@
    "srcset": [
     "/guides/home-tiles/tile-kids-3-small.webp 480w",
     "/guides/home-tiles/tile-kids-3.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-kids-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 81450,
+   "sha1": "2452ca88c00e6db4",
+   "lqip": "#aa9",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-kids-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13406
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-kids-4-small.webp 480w",
+    "/guides/home-tiles/tile-kids-4.webp 1280w"
    ]
   },
   "/guides/home-tiles/tile-new-shops-1.webp": {
@@ -14013,27 +14013,27 @@
     "/guides/home-tiles/tile-rainy-day-1.webp 1280w"
    ]
   },
-  "/guides/home-tiles/tile-rainy-day-2.webp": {
+  "/guides/home-tiles/tile-rainy-day-3.webp": {
    "width": 1280,
-   "height": 720,
-   "bytes": 87530,
-   "sha1": "a050b20018c429a9",
-   "lqip": "#343",
+   "height": 853,
+   "bytes": 78298,
+   "sha1": "c842e65e0526208f",
+   "lqip": "#887",
    "scope": "registry",
    "published": false,
    "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/home-tiles/tile-rainy-day-2-small.webp",
+     "file": "/guides/home-tiles/tile-rainy-day-3-small.webp",
      "width": 480,
-     "height": 270,
-     "bytes": 14150
+     "height": 320,
+     "bytes": 11832
     }
    ],
    "srcset": [
-    "/guides/home-tiles/tile-rainy-day-2-small.webp 480w",
-    "/guides/home-tiles/tile-rainy-day-2.webp 1280w"
+    "/guides/home-tiles/tile-rainy-day-3-small.webp 480w",
+    "/guides/home-tiles/tile-rainy-day-3.webp 1280w"
    ]
   },
   "/guides/home-tiles/tile-seniors-1.webp": {
@@ -14059,27 +14059,27 @@
     "/guides/home-tiles/tile-seniors-1.webp 1280w"
    ]
   },
-  "/guides/home-tiles/tile-seniors-2.webp": {
+  "/guides/home-tiles/tile-seniors-3.webp": {
    "width": 1280,
-   "height": 853,
-   "bytes": 84320,
-   "sha1": "8d0a9bb8f3e9229a",
-   "lqip": "#863",
+   "height": 1043,
+   "bytes": 82186,
+   "sha1": "a8f556fa7391370e",
+   "lqip": "#a86",
    "scope": "registry",
    "published": false,
    "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/home-tiles/tile-seniors-2-small.webp",
+     "file": "/guides/home-tiles/tile-seniors-3-small.webp",
      "width": 480,
-     "height": 320,
-     "bytes": 13498
+     "height": 391,
+     "bytes": 13958
     }
    ],
    "srcset": [
-    "/guides/home-tiles/tile-seniors-2-small.webp 480w",
-    "/guides/home-tiles/tile-seniors-2.webp 1280w"
+    "/guides/home-tiles/tile-seniors-3-small.webp 480w",
+    "/guides/home-tiles/tile-seniors-3.webp 1280w"
    ]
   },
   "/guides/home-tiles/tile-today-1.webp": {
