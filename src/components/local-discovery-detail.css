@@ -16,10 +16,13 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 /* Hero: full-bleed on a phone, square corners; FOUNDATION's one frame and bottom-left label (a brand image whole on its blurred
    copy). C P08 / N25: the credit is quiet text on the picture's bottom-right, white on the badge ink (≥6.25:1 over any
    pixel), one quiet line on most pictures (60% of the width at most, then it wraps, never cut); not a link (the links are
-   in 本页图片来源). */
+   in 本页图片来源). It keeps the base 13 px in every reading size (the label beside it grows), and at 特大, where the label
+   takes most of the bottom edge, it moves to the top-right corner, so the two never meet; 简洁显示 leaves it out, like the
+   long caption (the credit stays in 本页图片来源). */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero .ui-cover { width:100%; border-radius:0; }
-.local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:60%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-badge); line-height:var(--lh-snug); overflow-wrap:anywhere; pointer-events:none; }
+.local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:60%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-label-thumb); line-height:var(--lh-snug); overflow-wrap:anywhere; pointer-events:none; }
+html[data-reading=extra-large] .local-discovery-detail .detail-photo-credit { top:var(--sp-2); bottom:auto; }
 .local-discovery-detail :is(.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
 /* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
@@ -100,9 +103,15 @@ html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detai
 /* The column's end (.detail-aside-end): on a phone only 本页图片来源, the page's last line before 继续发现湾区 (the 附近还有
    rows are the desktop column's: a phone has the photo row). */
 .local-discovery-detail .detail-aside-end { margin-top:var(--sp-5); }
+/* The facts and the actions' wrapper is no box (the bar stays the aside's child for its sticky and fixed rules) except
+   where the two stick together on a desktop (below). */
+.local-discovery-detail .detail-aside__stick { display:contents; }
 .local-discovery-detail .detail-aside-end>.detail-rail--side { display:none; }
 .local-discovery-detail .detail-aside-end>.detail-rail--side h2 { margin:0 0 var(--stack-head); font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .local-discovery-detail .detail-rail--side .detail-rail__rows { display:grid; gap:var(--sp-3); }
+/* The column's row pictures are 104 px, so an archive label keeps its year (场馆照 · 2024, DECISIONS 23). */
+.local-discovery-detail .detail-rail--side .ui-row-card { grid-template-columns:6.5rem minmax(0,1fr) auto; }
+.local-discovery-detail .detail-rail--side .ui-row-card__thumb { width:6.5rem; height:6.5rem; }
 
 /* Page end: one H2 and three → links over a 1 px rule that splits the section gap like 来源与核对's. */
 .local-discovery-detail .discovery-return { margin-top:calc(var(--section-gap) * .625); padding:calc(var(--section-gap) * .375) 0 0; border:0; border-top:1px solid var(--color-line); border-radius:0; background:none; }
@@ -149,7 +158,12 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
      4 px each side). Detail pages only: a guide's bar keeps its own arrangement (guide-article.css). The 特大 bar stays
      72 px (64 elsewhere): a larger target for the larger words. */
   html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions) { --site-mobile-nav-height:calc(72px + env(safe-area-inset-bottom,0px)); }
-  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:nowrap; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus)) { white-space:nowrap; }
+  /* Once added (its ✓) AddToDayPlan reads 已加入 10/24 / "In your Oct 24 plan", which has no short words: it wraps to two
+     balanced lines centred in the 8 px padding (R1's rule), a 1.2 pitch in the 72 px 特大 bar and 1.1 in 家人版's 76 px one,
+     so no glyph reaches the pill's round ends. */
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
+  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { line-height:1.1; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus) { font-size:0; }
@@ -158,7 +172,8 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
    labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
-   one). Below 360 px a primary that still has no room may wrap to two balanced lines with 8 px above and below. */
+   one). Below 360 px a primary that still has no room wraps to two balanced lines with 8 px above and below; at 特大 and
+   家人版 the short words stay on one line (the rule above), down to 320 px. */
 @media (max-width:399px) {
   html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=long] { display:none; }
   html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
@@ -188,7 +203,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
    At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. The aside runs the column's full
    height and the action card is sticky in it (J1): where the whole aside would not fit the screen (大 / 特大 / 简洁显示,
    or a screen under 820 px tall, e.g. a 768 px laptop) the facts scroll away and the actions stay in view to the end of the
-   body; where it fits (标准 from 820 px tall), the whole aside, facts included, stays in view, as before. */
+   body; where it fits (标准 from 820 px tall), the facts and the actions together (.detail-aside__stick) stay in view. */
 @media (min-width:1024px) {
   .local-discovery-detail { --detail-measure:42.5rem; box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
@@ -197,8 +212,10 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .detail-main { grid-column:1 / span 8; }
   .local-discovery-detail .detail-main--body { grid-row:2 / span 2; }
   .local-discovery-detail .detail-aside { grid-column:9 / span 4; grid-row:1 / span 2; align-self:stretch; }
-  /* B P04 / C P17: the column ends where the body ends: 附近还有 (row cards) and 本页图片来源 in the last row, so the sticky
-     aside above (rows 1–2) stops on top of them and no column of empty canvas runs beside the body. */
+  /* B P04 / C P17: the column ends where the body ends: 附近还有 (row cards) and 本页图片来源 in the last row, so no column
+     of empty canvas runs beside the body. What sticks lives inside the aside (rows 1–2), which is its containing block,
+     so it stops at the top of that last row instead of scrolling over it (a sticky grid item would be held by the whole
+     grid). */
   .local-discovery-detail .detail-aside-end { grid-column:9 / span 4; grid-row:3; align-self:end; margin-top:var(--section-gap); }
   .local-discovery-detail .detail-aside-end>.detail-rail--side { display:block; }
   .local-discovery-detail .detail-aside-end>.detail-rail--side .ui-more { margin-top:var(--sp-1); }
@@ -231,6 +248,6 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover { background:var(--color-surface-2); }
 }
 @media (min-width:1024px) and (min-height:820px) {
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-aside { align-self:start; position:sticky; top:5.5rem; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-aside__stick { display:block; position:sticky; top:5.5rem; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .site-detail-actions.detail-actions { position:static; }
 }

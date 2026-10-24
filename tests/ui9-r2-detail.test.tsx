@@ -23,6 +23,7 @@ const { StaticRouter } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord, nextCandidate, CARDS_ONLY_PHOTOS } = await import('../src/features/detail/build-detail');
+const { heroCover } = await import('../src/features/detail/hero-cover');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { COVER_TABLES } = await import('../src/lib/cover-candidates');
 
@@ -42,7 +43,7 @@ const find = (key: string) => {
 };
 const page = (key: string) => {
   const item = find(key);
-  return JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={discoveryShare(item).path}><LocalDiscoveryDetail record={buildDetailRecord(item)} today={TODAY} /></StaticRouter>));
+  return JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={discoveryShare(item).path}><LocalDiscoveryDetail record={buildDetailRecord(item, undefined, { railDay: TODAY })} today={TODAY} /></StaticRouter>));
 };
 const DETAILS = ['event:san-mateo-boos-brews-2026', 'event:menlo-park-halloween-hoopla-2026', 'offer:shake-shack-scarygood-oct2026', 'opening:marufuku-burlingame-announced'];
 
@@ -78,6 +79,10 @@ test('C P08 / N25: the credit is plain text on the picture\'s bottom-right; its 
   }
   const rule = decls(DETAIL_CSS, '.local-discovery-detail .detail-photo-credit');
   assert.deepEqual([rule.position, rule.right, rule.bottom, rule.background, rule.color, rule['pointer-events']], ['absolute', 'var(--sp-2)', 'var(--sp-2)', 'var(--color-badge-bg)', 'var(--color-surface)', 'none']);
+  assert.equal(rule['font-size'], 'var(--fs-label-thumb)', 'the base 13 px in every reading size');
+  const xl = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .detail-photo-credit');
+  assert.deepEqual([xl.top, xl.bottom], ['var(--sp-2)', 'auto'], '特大: the top-right corner, away from the bottom-left label');
+  for (const key of DETAILS) assert.equal(page(key).querySelector('.detail-photo-credit')?.getAttribute('data-simple') ?? 'hide', 'hide', `${key}: 简洁显示 leaves it out`);
   assert.equal(rule['text-decoration'], undefined, 'no underline');
   assert.ok(!/white-space:\s*nowrap|text-overflow/.test(readFileSync(DETAIL_CSS, 'utf8').match(/\.detail-photo-credit \{[^}]*\}/)![0]), 'it wraps, never cut');
 });
@@ -112,7 +117,11 @@ test('N03: fact keys at 400 (the site keeps 400 / 600 / 700); N23: every hover i
 test('R2-08 / OD6: at 特大 and in 家人版 the primary is one line in its short words; the day primary carries 加入计划', () => {
   const xl = 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions';
   const media = '(max-width:1023px)';
-  assert.equal(decls(DETAIL_CSS, `${xl} :is(.detail-action--primary,.detail-actions__primary .saves-add-day)`, media)['white-space'], 'nowrap');
+  assert.equal(decls(DETAIL_CSS, `${xl} :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))`, media)['white-space'], 'nowrap');
+  // Once added (✓ 已加入 10/24 / In your Oct 24 plan: no short words) it wraps to two balanced lines, never past the pill.
+  const added = decls(DETAIL_CSS, `${xl} .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media);
+  assert.deepEqual([added['white-space'], added['text-wrap'], added['text-align']], ['normal', 'balance', 'center']);
+  assert.equal(decls(DETAIL_CSS, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media)['line-height'], '1.1');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary [data-label=short]`, media).display, 'inline');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary [data-label=full]`, media).display, 'none');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus)::after`, media).content, 'var(--detail-day-short)');
@@ -151,7 +160,7 @@ test('B P21: every detail ends with a photo row; the column\'s 附近还有 repe
 
 test('B P21 budget: a rail card\'s picture is decorative, so the record (and the bucket\'s English pack) carries no alt', () => {
   for (const key of DETAILS) {
-    const record = buildDetailRecord(find(key));
+    const record = buildDetailRecord(find(key), undefined, { railDay: TODAY });
     const pictured = record.rail.filter(event => event.image);
     assert.ok(pictured.length >= 3, `${key}: ${pictured.length} rail pictures`);
     for (const event of pictured) assert.equal(event.image!.alt, '', `${key}: ${event.id} keeps no alt`);
@@ -174,4 +183,35 @@ test('DECISIONS 43(b): a cards-only venue photo never becomes a detail hero; rai
     const hero = nextCandidate('event', record, new Set(), { images, tables, hero: true });
     assert.ok(hero && hero.key !== key, `${key}: the hero falls to the next candidate (${hero?.key})`);
   }
+});
+
+test('DECISIONS 43(b): a listing whose own image is a cards-only photo does not lead with it; the hero takes the next one', () => {
+  const venue = Object.values(GUIDE_IMAGES).find(image => image.kind === 'photo' && image.subject === 'venue')!;
+  const base = buildDetailRecord(find('event:san-mateo-boos-brews-2026'), undefined, { railDay: TODAY });
+  assert.ok(base.item.kind === 'event');
+  const event = base.item.event;
+  const next = Object.entries(GUIDE_IMAGES).find(([key, image]) => image.kind === 'photo' && image.subject === 'venue' && image.src !== venue.src && !CARDS_ONLY_PHOTOS.has(key))!;
+  const own = (imageKey: string, hero?: { key: string; image: typeof venue }) => ({ ...base, item: { ...base.item, event: { ...event, imageKey } }, image: { ...venue, src: `/guides/venues/${imageKey}.webp` }, hero });
+  const src = (cover: ReturnType<typeof heroCover>) => (cover.tier === 'type' ? cover.tier : cover.image.src);
+  // The control: the same photo under any other key leads (the path is live).
+  assert.equal(src(heroCover(own('venue-test-43b-own'), TODAY)), '/guides/venues/venue-test-43b-own.webp');
+  for (const key of CARDS_ONLY_PHOTOS) {
+    assert.equal(src(heroCover(own(key, { key: next[0], image: next[1] }), TODAY)), next[1].src, `${key}: the next candidate leads`);
+    assert.equal(src(heroCover(own(key), TODAY)), 'type', `${key}: with no candidate, the type cover`);
+  }
+});
+
+test('C P16: an opening page says 已开业 once outside the editor\'s prose (a no-day key keeps the time)', () => {
+  const counts = new Map<number, string[]>();
+  for (const item of localDiscoveries.filter(row => row.kind === 'opening')) {
+    const key = `${item.kind}:${discoveryShare(item).id}`;
+    const doc = page(key);
+    for (const prose of doc.querySelectorAll('.detail-summary, .detail-prose')) prose.remove();
+    const n = (doc.textContent!.match(/已开业/g) || []).length;
+    counts.set(n, [...(counts.get(n) || []), key]);
+  }
+  assert.deepEqual([...counts.keys()].filter(n => n > 1), [], JSON.stringify(Object.fromEntries([...counts].filter(([n]) => n > 1))));
+  const when = (key: string) => page(key).querySelector('.detail-fact[data-fact=when] .detail-fact__key')?.textContent?.trim();
+  assert.equal(when('opening:roundup-alesta-sebastopol-2026'), '2026 年夏季');
+  assert.equal(when('opening:asia-live-valley-fair'), '2026 年 6 月 · 九月复核');
 });

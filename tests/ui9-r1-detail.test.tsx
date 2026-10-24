@@ -130,9 +130,11 @@ test('J1 P20 / J2 P14 / J3 P18: 问 BayBay from 360 px in every reading mode (En
   css.walkRules(rule => { if (rule.selector.includes('[data-label=tight]') && /display:\s*inline/.test(rule.toString())) tight.push(`${mediaOf(rule)} ${rule.selector}`); });
   assert.deepEqual(tight, ['(max-width:399px) html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=tight]',
     '(max-width:359px) .site-detail-actions.detail-actions [data-label=tight]'], 'BayBay alone only below 360 px (English 特大: below 400 px)');
-  // R2-08 / OD6 (UI9-R2-DETAIL): one line, in the short words (the old two balanced lines are gone).
-  const wrap = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)');
+  // R2-08 / OD6 (UI9-R2-DETAIL): one line, in the short words; once added (已加入 10/24) two balanced lines.
+  const wrap = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))', '(max-width:1023px)');
   assert.deepEqual([wrap['white-space'], wrap['text-wrap']], ['nowrap', undefined], 'one line at 特大 and in 家人版');
+  const added = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)');
+  assert.deepEqual([added['white-space'], added['text-wrap'], added['text-align'], added['line-height']], ['normal', 'balance', 'center', '1.2'], 'added: two balanced lines');
   assert.equal(decls(DETAIL_CSS, 'html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions', '(max-width:1023px)')['padding-inline'], '0 var(--sp-1)');
   assert.equal(decls(DETAIL_CSS, 'html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)')['padding-inline'], 'var(--sp-2)');
   assert.equal(decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:359px)')['text-align'], 'center');
@@ -174,8 +176,11 @@ test('desktop: the whole aside sticky where it fits, else the action card sticky
   assert.deepEqual([card.position, card.top], ['sticky', '5.5rem']);
   const std = 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail';
   const tall = '(min-width:1024px) and (min-height:820px)';
-  const whole = decls(DETAIL_CSS, `${std} .detail-aside`, tall);
-  assert.deepEqual([whole['align-self'], whole.position, whole.top], ['start', 'sticky', '5.5rem'], '标准 on a tall screen: the facts stay in view too');
+  // UI9-R2-DETAIL: the facts + actions wrapper sticks inside the aside (rows 1–2), so it stops above the column's end.
+  assert.ok(!readFileSync(DETAIL_CSS, 'utf8').includes(`${std} .detail-aside {`), 'the aside itself is not sticky');
+  const whole = decls(DETAIL_CSS, `${std} .detail-aside__stick`, tall);
+  assert.deepEqual([whole.display, whole.position, whole.top], ['block', 'sticky', '5.5rem'], '标准 on a tall screen: the facts stay in view too');
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .detail-aside__stick').display, 'contents', 'no box elsewhere');
   assert.equal(decls(DETAIL_CSS, `${std} .site-detail-actions.detail-actions`, tall).position, 'static');
   // A guide's card keeps its boxed cells (UI9-R1-GUIDE-ARTICLE); a detail page's cells drop the box, hover and press keep
   // the sunken fill.

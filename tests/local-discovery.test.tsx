@@ -313,8 +313,9 @@ test('all detail pages server-render full content with matching canonical, OG, T
     } else {
       assert.ok(squash(content.textContent!).includes(squash(readerProse(item.shop.editorTip, 'zh-Hans'))));
       assert.ok(content.textContent!.includes(item.shop.address));
-      // C P16 (UI9-R2-DETAIL): the date line keeps every word except a leading day-and-status the chip already says.
-      const dateLine = readerProse(item.shop.dateLabel, 'zh-Hans').replace(/^\s*(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已开业\s*(?:·\s*|$)/, '').trim();
+      // C P16 (UI9-R2-DETAIL): the date line keeps every word except a day's or a time's status the chip already says.
+      const dateLine = readerProse(item.shop.dateLabel, 'zh-Hans').replace(/^\s*(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已开业\s*(?:·\s*|$)/, '')
+        .replace(/^(\d{4}\s*年[^·；;，,]*?)\s*已[开营]业(?=\s*(?:·|$))/, '$1').trim();
       assert.ok(content.textContent!.includes(dateLine), share.id);
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     }

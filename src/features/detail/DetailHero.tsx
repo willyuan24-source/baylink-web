@@ -32,7 +32,8 @@ export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
 
 /**
  * The credit on a photo (G13, C P08): the photographer or source after the label's words, as plain 13 px text on a dark chip
- * at the picture's bottom-right (white on --color-badge-bg reads ≥6.25:1 over any pixel), at most two lines, never cut. Not
+ * at the picture's bottom-right (top-right at 特大; white on --color-badge-bg reads ≥6.25:1 over any pixel), at most two
+ * lines, never cut; 简洁显示 leaves it out (data-simple=hide), as it does the long caption. Not
  * a link (N25: an 18–21 px link in the elder modes): the credit and licence links are in 本页图片来源 (PageCredits), which
  * lists every photo on the page. The provenance words are the picture's own label (DECISIONS 23: one label per picture),
  * so the credit neither repeats them nor a credit that starts with them. The long caption stays in the source section
@@ -43,5 +44,5 @@ export function HeroCredit({ cover, archive }: { cover: ResolvedCover; archive?:
   const tierLabel = useTierLabel();
   if (cover.tier === 'type') return null;
   const credit = creditAfterLabel(archive ? pick(cover.label) : tierLabel(cover), translateText(cover.image.credit, locale));
-  return credit ? <span className="detail-photo-credit">{credit}</span> : null;
+  return credit ? <span className="detail-photo-credit" data-simple="hide">{credit}</span> : null;
 }

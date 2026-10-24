@@ -224,7 +224,7 @@ test('#page-credits lists every photo on the page, last in the source section; a
     // B P04 / C P17 (UI9-R2-DETAIL): the list ends the desktop column under 附近还有, and is the page's last line on a phone.
     assert.equal(credits.parentElement!.lastElementChild, credits, `${key}: last in the column's end`);
     assert.ok(credits.closest('.detail-aside-end'), key);
-    // UI9 live check 10-20: the footer adds no second 「↑ 本页图片来源」 on a detail; the list is in 来源与核对.
+    // UI9 live check 10-20: the footer adds no second 「↑ 本页图片来源」 on a detail; the list ends the column (.detail-aside-end, UI9-R2-DETAIL).
     assert.equal(credits.hasAttribute('data-credits-at-end'), true, 'no footer link on a detail');
   }
 });

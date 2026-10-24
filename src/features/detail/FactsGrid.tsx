@@ -173,6 +173,16 @@ export function OfferFacts({ offer, official }: { offer: FreebieOffer; official?
  */
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const OPENED_LEAD = /^\s*(?:(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已[开開][业業]|Opened\s+[A-Z][a-z]{2}\s+\d{1,2})\s*(?:·\s*|$)/;
+/**
+ * C P16: with no day, a date label that is a time and the status ("2026 年夏季已开业", "Opened early fall 2026", "2026 年 6 月已营业
+ * · 九月复核") would say the 已开业 chip's word again as the 开业 key: the key keeps the time ("2026 年夏季", "Early fall 2026").
+ * Decided on the Chinese source, so every locale drops the same word.
+ */
+const STATUS_AFTER_TIME = /^(\d{4}\s*年[^·；;，,]*?)\s*已[开開营營][业業](?=\s*(?:·|$))/;
+const EN_STATUS_BEFORE_TIME = /^Open(?:ed| since)\s+([^·;]*?\d{4})(?=\s*(?:·|$))/;
+const timeKey = (prose: string, source: string) => !STATUS_AFTER_TIME.test(source) ? prose
+  : prose.replace(STATUS_AFTER_TIME, '$1').replace(EN_STATUS_BEFORE_TIME, (_, time: string) => time.charAt(0).toUpperCase() + time.slice(1));
+
 /** "已开业 · 当天营业…" → "当天营业…" (after translation: "Open · Check …" → "Check …"). */
 const withoutStatusWord = (note: string) => { const at = note.indexOf(' · '); return at > 0 && at <= 12 ? note.slice(at + 3) : note; };
 
@@ -182,7 +192,7 @@ export function OpeningFacts({ shop, today, official }: { shop: SeptemberOpening
   const shown = day ? readerMonthDay(day, english) : '';
   const ahead = !!day && (day > today || shop.status === 'announced');
   const prose = readerProse(shop.dateLabel, locale);
-  const key = shown ? ahead ? t(`预计 ${shown}`, `Expected ${shown}`) : shown : prose ? <PhoneLinked text={prose} /> : pick(openingChip(shop, today));
+  const key = shown ? ahead ? t(`预计 ${shown}`, `Expected ${shown}`) : shown : prose ? <PhoneLinked text={timeKey(prose, shop.dateLabel)} /> : pick(openingChip(shop, today));
   const rest = shown ? prose.replace(OPENED_LEAD, '').trim() : '';
   const dateLine = rest ? <PhoneLinked text={rest} /> : undefined;
   const cells: Cell[] = [

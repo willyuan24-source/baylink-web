@@ -213,10 +213,10 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
       </div>
       {/* The facts and the actions: in the flow under the H1 on a phone (the bar itself is fixed), the sticky aside on a
           desktop. One copy, so the reading order is the same everywhere. */}
-      <aside className="detail-aside">
+      <aside className="detail-aside"><div className="detail-aside__stick">
         <div className="detail-facts-card">{facts}<CheckedLine verifiedAt={review.verifiedAt} sourceLabel={sourceLabel} today={today} /></div>
         <DetailActionBar cells={cells} primary={<PrimaryAction primary={primary} title={title} />} />
-      </aside>
+      </div></aside>
       <div className="detail-main detail-main--body">
         {!endedOn && <ContentReviewNotice record={liveReview} today={today} />}
         <div className="detail-body">

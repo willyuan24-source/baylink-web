@@ -207,8 +207,9 @@ test('English details: the facts and the visit tip keep their reader text, and a
   await setLocale('en', false);
   try {
     const asia = page(findItem('opening', 'asia-live-valley-fair'));
-    // C P16 (UI9-R2-DETAIL): no recorded day, so the date line is the key (the chip above the H1 says Open now).
-    assert.match(asia.querySelector('[data-fact="when"] .detail-fact__key')?.textContent || '', /^Open since June 2026/);
+    // C P16 (UI9-R2-DETAIL): no recorded day, so the date line is the key, in its time only (the chip above the H1 says
+    // Open now).
+    assert.match(asia.querySelector('[data-fact="when"] .detail-fact__key')?.textContent || '', /^June 2026 · Rechecked in September/);
     assert.doesNotMatch(asia.querySelector('[data-fact="when"] dd small')?.textContent || '', /Open since June 2026|^Open\b/);
     const florecita = page(findItem('opening', 'florecita-mission'));
     // CNT-FRESH-1016: the tip names the old footer address and the new one. Owner decision 2026-10-17: the shop stays announced

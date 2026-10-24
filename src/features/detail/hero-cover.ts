@@ -5,10 +5,23 @@ import type { DetailRecord, RailCard } from './detail-record';
 /** A credit or licence URL the page may link: https only (DetailHero's credit line and PageCredits). */
 export const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
 
-/** The listing's own image through the honesty ladder (lib/cover.ts). */
+/**
+ * DECISIONS 43(b) (captain 10-23): venue photos the B2 approval cleared for "cards and rows only" (items 31–33: small or
+ * lettering-led) never become a detail page's hero, the listing's own image included; the hero falls to the next candidate
+ * (build-detail.ts nextCandidate), else the type cover. Rail cards may still show them.
+ * The same keys are close-up-faces.ts WEAK_LEAD_SCENES on main (UI9-IMG-B2-REGISTER); R2-INT may read that set instead.
+ */
+export const CARDS_ONLY_PHOTOS: ReadonlySet<string> = new Set([
+  'venue-smcl-brisbane-library', // Brisbane Library: 1250 × 598, too small for a hero
+  'venue-smcl-atherton-library', // Atherton Library: the entrance lettering is the subject
+  'venue-sjpl-calabazas-library', // Calabazas Branch: a wall of cast names fills a third of it
+]);
+
+/** The listing's own image through the honesty ladder (lib/cover.ts); a cards-only photo is not the hero's (DECISIONS 43(b)). */
 function ownCover({ item, image }: DetailRecord, today: string): ResolvedCover {
   const id = item.kind === 'event' ? item.event.id : item.kind === 'offer' ? item.offer.id : item.shop.id;
-  const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
+  const own = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
+  const imageKey = own && CARDS_ONLY_PHOTOS.has(own) ? undefined : own;
   return getCover({ kind: item.kind, id, imageKey }, { images: key => key === imageKey ? image : undefined, today });
 }
 

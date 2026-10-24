@@ -10,6 +10,7 @@ import { coverItemFor, getCover, type CoverAsset, type CoverKind } from '../../l
 import { COVER_TABLES, coverCandidates, type CandidateRecord, type CoverTables } from '../../lib/cover-candidates';
 import { slimListingImage } from '../../lib/listing-image';
 import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent } from './detail-record';
+import { CARDS_ONLY_PHOTOS } from './hero-cover';
 
 /**
  * Builds the per-detail records (detail-record.ts) from the full catalogs. Build-time only: scripts/
@@ -43,16 +44,8 @@ const listingImage = (key: string): CoverAsset | undefined => {
   return image && image.kind !== 'illustration' ? image : undefined;
 };
 
-/**
- * DECISIONS 43(b) (captain 10-23): venue photos the B2 approval cleared for "cards and rows only" (items 31–33: small or
- * lettering-led) never become a detail page's hero; the hero falls to the next candidate. Rail cards may still show them.
- * The same keys are close-up-faces.ts WEAK_LEAD_SCENES on main (UI9-IMG-B2-REGISTER); R2-INT may read that set instead.
- */
-export const CARDS_ONLY_PHOTOS: ReadonlySet<string> = new Set([
-  'venue-smcl-brisbane-library', // Brisbane Library: 1250 × 598, too small for a hero
-  'venue-smcl-atherton-library', // Atherton Library: the entrance lettering is the subject
-  'venue-sjpl-calabazas-library', // Calabazas Branch: a wall of cast names fills a third of it
-]);
+/** DECISIONS 43(b): the cards-only venue photos (hero-cover.ts, which the hero reads too). */
+export { CARDS_ONLY_PHOTOS };
 
 /** The registry and candidate tables the picker reads (tests pass their own). */
 export type CandidateSources = { images?: Readonly<Record<string, CoverAsset>>; tables?: CoverTables };
