@@ -362,6 +362,9 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
   .ev-calendar__cards .ui-feed-grid>li+li .ui-cover { border-radius:var(--r-md); }
   .ev-calendar__cards .ui-feed-grid>li+li>.ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
   .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card:not(.ev-card--action)>.ui-feed-card__save { grid-area:media; }
+  /* A past day has no 加入: its lead and rows drop the empty add column and its gap. */
+  .ev-calendar__cards .ui-feed-grid>li:first-child>.ui-feed-card:not(.ev-card--action) { grid-template-columns:minmax(0, 1fr); grid-template-areas:"media" "title" "when" "meta" "trust"; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card:not(.ev-card--action) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"media title" "media when" "media meta" "media trust"; }
   .ev-calendar__cards .ui-feed-grid>li+li .ui-card-link::after { inset:0; border-radius:var(--r-md); }
   .ev-calendar__cards .ui-feed-card>.ui-feed-card__media { grid-area:media; }
   .ev-calendar__cards .ui-feed-card>.ui-feed-card__title { grid-area:title; }

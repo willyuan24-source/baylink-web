@@ -64,6 +64,9 @@ test('a past day has no 加入: its cards keep ♡ on the picture\'s top-right c
   assert.match(css, /li:first-child>\.ev-card--action>\.ui-feed-card__save \{ grid-area:add;/);
   assert.match(css, /li\+li>\.ev-card--action>\.ui-feed-card__save \{ grid-area:add;/);
   assert.match(css, /li\+li>\.ui-feed-card:not\(\.ev-card--action\)>\.ui-feed-card__save \{ grid-area:media; \}/);
+  // ...and a past day's lead and rows drop the empty add column (no trailing gap).
+  assert.match(css, /li:first-child>\.ui-feed-card:not\(\.ev-card--action\) \{ grid-template-columns:minmax\(0, 1fr\); grid-template-areas:"media" "title" "when" "meta" "trust"; \}/);
+  assert.match(css, /li\+li>\.ui-feed-card:not\(\.ev-card--action\) \{ grid-template-columns:7rem minmax\(0, 1fr\); grid-template-areas:"media title" "media when" "media meta" "media trust"; \}/);
 });
 
 test('row hearts: on the thumbnail at the standard size (A1), under it at 大 / 特大 (DECISIONS 44), in RowCard\'s save slot', () => {
