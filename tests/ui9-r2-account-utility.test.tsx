@@ -48,7 +48,8 @@ test('R2-15: the band photos are approved ③ records, copied field for field, w
   for (const photo of Object.values(BAND_PHOTOS)) {
     const record = registry.get(photo.key);
     assert.ok(record, `${photo.key} is in the approved category stock library (UI9-IMG-B1b), so no new download`);
-    for (const field of ['src', 'width', 'height', 'alt', 'credit', 'creditUrl', 'licenseUrl'] as const) assert.equal(photo[field], record[field], `${photo.key}.${field}`);
+    for (const field of ['src', 'width', 'height', 'credit', 'creditUrl', 'licenseUrl'] as const) assert.equal(photo[field], record[field], `${photo.key}.${field}`);
+    assert.equal(photo.alt, '', 'the band is decorative: no alt text to ship');
     assert.equal((record.rights as { basis: string }).basis, 'stock');
     // The srcset names exactly the files the ladder wrote (480 / 800 / 1200; the original only when there is no 1200).
     const base = photo.src.replace(/\.webp$/, '');
@@ -74,10 +75,11 @@ test('R2-15: the band shows its ③ label on the picture and its credit under it
     assert.equal(cover.querySelector('img')?.getAttribute('loading'), 'lazy');
     const links = [...figure.querySelectorAll('figcaption a')];
     assert.equal(links[0].getAttribute('href'), BAND_PHOTOS.together.creditUrl);
-    assert.match(links[0].textContent ?? '', /Gray Clary \/ Unsplash/);
+    assert.match(links[0].textContent ?? '', /Daniel Seßler \/ Unsplash/);
     assert.equal(links[1].getAttribute('href'), 'https://unsplash.com/license');
     assert.equal(links[1].textContent, licence);
     assert.doesNotMatch(figure.querySelector('figcaption')?.textContent ?? '', / · /, 'no " · " in the credit row, so no line starts with one (N06)');
+    assert.ok(!(figure.querySelector('figcaption')?.textContent ?? '').includes(label), 'the label once, on the picture, not again in the credit row');
     cleanup();
   }
   assert.match(read('src/features/profile/ProfileView.tsx'), /<AccountBand photo=\{BAND_PHOTOS\.me\} \/>[\s\S]*<AccountBand photo=\{BAND_PHOTOS\.me\} \/>/, '/me signed in and signed out');

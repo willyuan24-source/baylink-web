@@ -2,8 +2,9 @@
  * The two photos under the account pages' header bands (UI9-R2-ACCOUNT-UTILITY, R2-15: /me and /together "look like a
  * generic template"; no picture slot at all). Both are approved ③ category stock photos (UI9-IMG-B1b, owner approval in
  * chat 2026-10-21 09:28 PT; records in src/data/category-stock-photos.json, sources in
- * docs/category-media-sources-2026-10-21.md): no new download, no faces close up (DECISIONS 24: backs and a skyline). They
- * are labelled 示意图 on the picture (DECISIONS 23) and credited under it, and they never pose as a listed venue or event.
+ * docs/category-media-sources-2026-10-21.md): no new download, no faces and no children (DECISIONS 24: a skyline and two
+ * coffees). They are labelled 示意图 on the picture (DECISIONS 23) and credited under it, and they never pose as a listed
+ * venue or event. The band is decorative, so `alt` is empty here (the record's alt text would only ship as an unused string).
  *
  * The page imports these two records instead of the whole registry (src/data/guide-media.ts, about 30 KB gzip), so the
  * fields are copied here; tests/ui9-r2-account-utility.test.tsx keeps every field equal to the registry's record and the
@@ -30,22 +31,23 @@ export const BAND_PHOTOS = {
     src: '/guides/category-stock/stock-city-sights-2.webp',
     srcSet: '/guides/category-stock/stock-city-sights-2-small.webp 480w, /guides/category-stock/stock-city-sights-2.webp 1280w',
     width: 1280, height: 853,
-    alt: '隔着海湾看旧金山天际线',
+    alt: '',
     credit: '示意图 · 摄影 Leo_Visions / Unsplash',
     creditUrl: 'https://unsplash.com/photos/rZfgjSxJnFA',
     licenseUrl: 'https://unsplash.com/license',
     focal: [50, 60],
   },
-  // /together: a few people walking a park path, seen from behind and far off (一起去).
+  // /together: two coffees on a café table: two people meeting (一起去: 散步、看展、咖啡). Not a family photo: the page is for
+  // adults meeting people they don't know (18 岁以上), so no children and no faces.
   together: {
-    key: 'stock-family-outdoor-2',
-    src: '/guides/category-stock/stock-family-outdoor-2.webp',
-    srcSet: '/guides/category-stock/stock-family-outdoor-2-small.webp 480w, /guides/category-stock/stock-family-outdoor-2-800.webp 800w, /guides/category-stock/stock-family-outdoor-2-1200.webp 1200w',
-    width: 1280, height: 853,
-    alt: '公园小路上散步的人群，远景',
-    credit: '示意图 · 摄影 Gray Clary / Unsplash',
-    creditUrl: 'https://unsplash.com/photos/a-group-of-people-walking-down-a-path-in-a-park-9eU9t4vxQVk',
+    key: 'stock-cafe-tea-4',
+    src: '/guides/category-stock/stock-cafe-tea-4.webp',
+    srcSet: '/guides/category-stock/stock-cafe-tea-4-small.webp 480w, /guides/category-stock/stock-cafe-tea-4.webp 1280w',
+    width: 1280, height: 854,
+    alt: '',
+    credit: '示意图 · 摄影 Daniel Seßler / Unsplash',
+    creditUrl: 'https://unsplash.com/photos/wYKEz3GPdCA',
     licenseUrl: 'https://unsplash.com/license',
-    focal: [50, 78],
+    focal: [62, 45],
   },
 } as const satisfies Record<string, BandPhoto>;
