@@ -20,6 +20,8 @@ const { render, cleanup, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter, Routes, Route } = await import('react-router-dom');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+await import('../src/features/detail/ShopFacts');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { detailLoaders } = await import('../src/data/generated/detail-loaders');
 const { detailBucket } = await import('../src/lib/english-loading');
@@ -88,10 +90,13 @@ test('first screen order: back link, hero (+ credit under a photo), chips, H1, s
     assert.ok(main.firstElementChild!.matches('figure.detail-hero'), key);
     const hero = main.firstElementChild!;
     const photo = hero.getAttribute('data-tier') !== 'type';
-    assert.equal(!!hero.querySelector('figcaption .detail-credit'), photo, `${key}: a credit line under a photo only`);
-    // G13 / DECISIONS 23 (captain 10-22 02:50): the badge on the picture carries the tier words; the credit line does not repeat them.
+    // C P08 / N25 (UI9-R2-DETAIL): the credit is plain text on the picture (no line under it, no link); G13 / DECISIONS 23:
+    // the badge carries the tier words and the credit does not repeat them.
+    const credit = hero.querySelector('.ui-cover > .detail-photo-credit');
+    assert.equal(!!credit, photo, `${key}: a credit on a photo only`);
+    assert.equal(hero.querySelector('figcaption, a'), null, `${key}: nothing under the picture, no link on it`);
     const badge = hero.querySelector('[data-provenance]')?.textContent;
-    if (photo && badge) assert.ok(!hero.querySelector('figcaption')!.textContent!.startsWith(badge), `${key}: the credit line does not repeat ${badge}`);
+    if (credit && badge) assert.ok(!credit.textContent!.startsWith(badge), `${key}: the credit does not repeat ${badge}`);
     const chips = doc.querySelector('.detail-chips')!;
     assert.ok(chips.querySelectorAll('.ui-status:not(.detail-cat)').length <= 2, `${key}: at most two status chips`);
     if (!key.startsWith('opening:')) assert.ok(chips.firstElementChild!.matches('.detail-cat[data-cat]'), `${key}: the category chip first`);
@@ -100,11 +105,12 @@ test('first screen order: back link, hero (+ credit under a photo), chips, H1, s
     assert.match(card.lastElementChild!.textContent || '', /官网核对 \d+\/\d+|媒体报道 · \d+\/\d+ 核对/);
     for (const fact of card.querySelectorAll('.detail-fact')) assert.ok(fact.querySelector('dd > .detail-fact__key')?.textContent, `${key}: every fact has a key`);
   }
-  // The opening's H1 is the name; its city is the sub line (P26). Its 开业 key is openingChip's text.
+  // The opening's H1 is the name; its city is the sub line (P26). C P16: the chip above the H1 says 10/11 已开业 once; the
+  // 开业 key is the day.
   const shop = page('opening:marufuku-burlingame-announced');
   assert.equal(shop.querySelector('h1')!.textContent, 'Marufuku Ramen');
   assert.equal(shop.querySelector('.detail-sub')!.textContent, 'Burlingame');
-  assert.match(shop.querySelector('[data-fact="when"] .detail-fact__key')!.textContent || '', /开业|试营业/);
+  assert.match(shop.querySelector('[data-fact="when"] .detail-fact__key')!.textContent || '', /^\d+\/\d+$/);
 });
 
 test('the event 何时 key is eventWhenLine as written: weekday first, 24 h clock time, never "N–M 点"', () => {
@@ -204,22 +210,24 @@ test('ended pages: the notice link is a full target on its own line, and the lon
   const row = source.querySelector(':scope > .detail-share')!;
   assert.ok(row, 'the share row is in 来源与核对');
   assert.equal(row.getAttribute('data-simple'), 'hide');
-  assert.equal(row.nextElementSibling, source.querySelector('#page-credits'), 'page credits stay last');
+  // UI9-R2-DETAIL: #page-credits moved to the column's end (.detail-aside-end), so 分享 is the section's last line.
+  assert.equal(row.nextElementSibling, null, 'the share row is the last line of 来源与核对');
 });
 
-test('#page-credits lists every photo on the page, last in the source section; a type cover has no credit', () => {
+test('#page-credits lists every photo on the page, last in the column\'s end (.detail-aside-end); a type cover has no credit', () => {
   for (const key of DETAILS) {
     const doc = page(key);
     const credits = doc.querySelector('details#page-credits');
     const photos = doc.querySelectorAll('.detail-hero[data-tier]:not([data-tier="type"]), .detail-photo').length
-      + [...doc.querySelectorAll('.detail-rail__track [data-cover="image"]')].length;
+      + [...doc.querySelectorAll('.detail-rail__track [data-cover="image"], .detail-rail--side [data-cover="image"]')].length;
     if (!photos) { assert.equal(credits, null, key); continue; }
     assert.ok(credits, key);
     assert.equal(Number(credits.getAttribute('data-count')), credits.querySelectorAll('li').length, key);
     assert.equal(credits.querySelectorAll('li').length, photos, key);
-    assert.equal(credits.parentElement!.lastElementChild, credits, `${key}: last in 来源与核对`);
-    assert.ok(credits.closest('section.detail-source'), key);
-    // UI9 live check 10-20: the footer adds no second 「↑ 本页图片来源」 on a detail; the list is in 来源与核对.
+    // B P04 / C P17 (UI9-R2-DETAIL): the list ends the desktop column under 附近还有, and is the page's last line on a phone.
+    assert.equal(credits.parentElement!.lastElementChild, credits, `${key}: last in the column's end`);
+    assert.ok(credits.closest('.detail-aside-end'), key);
+    // UI9 live check 10-20: the footer adds no second 「↑ 本页图片来源」 on a detail; the list ends the column (.detail-aside-end, UI9-R2-DETAIL).
     assert.equal(credits.hasAttribute('data-credits-at-end'), true, 'no footer link on a detail');
   }
 });
@@ -280,7 +288,9 @@ test('the files this lane styles: tokens for every font size, 400 / 600 only, no
   for (const file of ['src/components/local-discovery-detail.css', 'src/components/discovery-community.css', 'src/features/detail/facts-grid.css',
     'src/features/detail/detail-sheet.css', 'src/features/detail/detail-skeleton.css']) {
     css(file).walkDecls(decl => {
-      if (decl.prop === 'font-size') assert.match(decl.value, /^(?:var\(--|inherit$)/, `${file}: ${decl.parent && (decl.parent as Rule).selector} ${decl.value}`);
+      // 0 only where a ::after swaps the words (R2-08: 加入计划 in place of AddToDayPlan's 加入这天计划): no type size.
+      const swap = !!decl.parent && (decl.parent as Rule).selector?.endsWith(':has(>.lucide-calendar-plus)') && decl.value === '0';
+      if (decl.prop === 'font-size' && !swap) assert.match(decl.value, /^(?:var\(--|inherit$)/, `${file}: ${decl.parent && (decl.parent as Rule).selector} ${decl.value}`);
       if (decl.prop === 'font-weight') assert.match(decl.value, /^(400|600|inherit)$/, `${file}: ${decl.value}`);
       assert.notEqual(decl.prop === 'text-transform' ? decl.value : '', 'uppercase', file);
     });

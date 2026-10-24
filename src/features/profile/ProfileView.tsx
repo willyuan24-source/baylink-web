@@ -27,6 +27,8 @@ import { NotificationPreferencesCard } from './NotificationPreferencesCard';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeList, MePositioning, MeRow, MeTiles } from './MeHub';
 import { useMyWeekSavedCount } from './me-saved-count';
+import { AccountBand } from '../../components/AccountBand';
+import { BAND_PHOTOS } from '../../lib/account-band-photos';
 import './me-hub.css';
 
 type ProfileViewProps = {
@@ -70,6 +72,7 @@ function GuestHub({ onLogin }: { onLogin: () => void }) {
   const library = usePlannerLibrary(undefined);
   const savedCount = useMyWeekSavedCount(undefined, library);
   return <div className="me-hub" data-signed-out="">
+    <AccountBand photo={BAND_PHOTOS.me} />
     <header className="me-hub__header" data-guest="">
       <div className="me-hub__heading"><h1 className="me-hub__name">{t('我的 BAYLINK', 'My BAYLINK')}</h1><MePositioning /></div>
     </header>
@@ -114,6 +117,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
 
   return (
     <div className="me-hub">
+      <AccountBand photo={BAND_PHOTOS.me} />
       <header className="me-hub__header">
         <div className="me-hub__avatar"><Avatar src={user.avatar} name={user.nickname} theme={user.profileTheme} size={18} /></div>
         <div className="me-hub__heading">

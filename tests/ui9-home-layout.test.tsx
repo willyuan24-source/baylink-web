@@ -93,7 +93,7 @@ test('the trust line says 官网核对, never 人工核对, and links the one me
   assert.doesNotMatch(doc.body.innerHTML, /人工核对|编辑核对|how-we-check/);
   const { SITE_IDENTITY, OFFICIAL_LINKS, FREE_NO_SIGN_IN, METHOD_HREF } = await import('../src/lib/check-dates');
   assert.equal(METHOD_HREF, '/about#about-method-title');
-  assert.equal(doc.querySelector('.home-head__identity')!.textContent, `${SITE_IDENTITY.zh} · ${FREE_NO_SIGN_IN.zh}`);
+  assert.equal(doc.querySelector('.home-head__identity')!.textContent!.replace(/\u00a0/g, ' '), `${SITE_IDENTITY.zh} · ${FREE_NO_SIGN_IN.zh}`); // UI9-R2-HOME: a no-break space keeps 「·」 on the line above
   assert.ok(trust.textContent!.startsWith(`✓ ${OFFICIAL_LINKS.zh}`));
 });
 
@@ -120,14 +120,23 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
     if (decl.prop === 'border-radius') assert.match(decl.value, /^(?:var\(--r(?:-[a-z0-9]+)+\)|0)$/, `${(decl.parent as postcss.Rule).selector}: radius ${decl.value}`);
   });
   // The postcards' own rules, byte for byte as the base had them (captain decision 1).
-  const postcard = CSS.split('\n').filter(line => /home-3d/.test(line)).join('\n');
+  const lines = CSS.split('\n').filter(line => /home-3d/.test(line));
+  const postcard = lines.join('\n');
   assert.equal(createHash('sha256').update(postcard).digest('hex').slice(0, 16), POSTCARD_RULES_SHA, postcard);
+  // The art's own lines (its size, corners and badge) are the ones UI9-IMG-A1a left; only the frames around them changed.
+  const art = lines.filter(line => /__art|ui-cover|ui-provenance/.test(line)).join('\n');
+  assert.equal(createHash('sha256').update(art).digest('hex').slice(0, 16), POSTCARD_ART_SHA, art);
 });
 
 // UI9-IMG-A1a: + one rule letting the strip's label wrap on a phone (「3D scene ill…」, UI9 live check 10-20); the art's own rules
 // (size, crop, place) are unchanged, and the postcard pixels with them. UI9-R1 (N23): the strip's and the tile's hover
 // underlines moved, unchanged, behind @media (hover:hover) and (pointer:fine); no other postcard line changed.
-const POSTCARD_RULES_SHA = 'b83103a112ddcc4b';
+// UI9-R2-HOME (R2-06 A P8, N04, N13): the strip's frame becomes one tile of the desktop feed grid, its size line reads 14 px on
+// the 14 px line height (1.571, as its sibling line) and the two hover underlines take the underline tokens. The art lines
+// (POSTCARD_ART_SHA) did not change, and the 18 pixel crops of the postcards (art and badge) are identical
+// (lanes/UI9-R2-HOME/postcards-*.txt).
+const POSTCARD_RULES_SHA = 'be23d7146763523f';
+const POSTCARD_ART_SHA = 'e92815bc92e3dee0';
 
 test('no information card and no info-card note on the home: every card is a picture, credited once in the credits line (UI9-IMAGES DECISIONS 21)', () => {
   const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer', caption: '' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
@@ -168,7 +177,7 @@ test('phone: the lead asks for its real width (100vw less the gutters, UI9-IMG-A
   const doc = home();
   const lead = doc.querySelector('.home-picks__list>li:first-child img');
   if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) calc\(100vw - 32px\), /);
-  assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
+  assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h3,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
 });
 
 test('no share card: the cell holds 看本周末全部 and 订阅日历 from 1024; below 1024 only 订阅日历 (the picks\' link is above it)', () => {

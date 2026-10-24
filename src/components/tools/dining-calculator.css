@@ -1,56 +1,56 @@
-.dining-intro { display:flex; align-items:flex-start; gap:13px; color:var(--color-ink-2); }
-.dining-intro>svg { flex-shrink:0; margin-top:3px; }
+.dining-intro { display:flex; align-items:flex-start; gap:12px; color:var(--color-ink-2); }
+.dining-intro>svg { flex-shrink:0; margin-top:4px; }
 .dining-intro strong { font-size:var(--fs-keep-18); font-weight:600; }
-.dining-intro p { margin:7px 0 0; font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-3); }
-.dining-example { background:var(--color-warning-tint); border-radius:var(--r-md); padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
-.dining-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); align-items:start; gap:28px; }
-.dining-inputs { display:flex; flex-direction:column; gap:21px; min-width:0; }
+.dining-intro p { margin:8px 0 0; font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-3); }
+.dining-example { background:var(--color-warning-tint); border-radius:var(--r-md); padding:12px 12px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
+.dining-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); align-items:start; gap:32px; }
+.dining-inputs { display:flex; flex-direction:column; gap:24px; min-width:0; }
 .dining-money-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .dining-field-serviceCharge { grid-column:1/-1; }
-.dining-service-note { display:flex; gap:9px; background:var(--color-warning-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-md); padding:12px; }
-.dining-service-note svg { flex-shrink:0; color:var(--color-ink-3); margin-top:2px; }
+.dining-service-note { display:flex; gap:8px; background:var(--color-warning-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-md); padding:12px; }
+.dining-service-note svg { flex-shrink:0; color:var(--color-ink-3); margin-top:4px; }
 .dining-service-note p { margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.8; }
 .dining-tip,.dining-basis { border:0; margin:0; padding:0; min-width:0; }
-.dining-tip>legend,.dining-basis>legend { margin-bottom:10px; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
+.dining-tip>legend,.dining-basis>legend { margin-bottom:12px; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 .dining-tip-presets { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
 /* The tip chips are FilterChips too (the loan tool's mode toggle and term chips): ink when chosen. */
 .dining-tip-presets button { min-height:var(--control-height); padding:0 8px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); color:var(--color-ink); background:var(--color-surface); font-size:var(--text-fact); white-space:nowrap; }
 .dining-tip-presets button[aria-pressed="true"] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 .dining-percent-field { display:flex; flex-direction:row; align-items:center; justify-content:space-between; margin-top:12px; }
 .dining-percent-field>div { position:relative; width:112px; }
-.dining-percent-field input { padding-right:30px; }
+.dining-percent-field input { padding-right:32px; }
 .dining-percent-field>div>span { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--color-ink-3); }
-.dining-basis { display:flex; flex-wrap:wrap; gap:12px 18px; margin-top:18px; }
+.dining-basis { display:flex; flex-wrap:wrap; gap:12px 16px; margin-top:16px; }
 .dining-basis>legend { font-size:var(--text-caption); font-weight:400; color:var(--color-ink-3); }
-.dining-basis label { display:flex; align-items:center; gap:7px; font-size:var(--text-caption); line-height:1.6; color:var(--color-ink-2); cursor:pointer; }
+.dining-basis label { display:flex; align-items:center; gap:8px; font-size:var(--text-caption); line-height:1.6; color:var(--color-ink-2); cursor:pointer; }
 .dining-basis input { accent-color:var(--color-brand); width:16px; height:16px; }
-.dining-people>div { display:flex; align-items:center; gap:10px; }
+.dining-people>div { display:flex; align-items:center; gap:12px; }
 .dining-people input { text-align:center; width:95px; font-variant-numeric:tabular-nums; }
 /* The − / + steppers are the shared IconButton (ui.css); its disabled look is in tools.css (ink-3, not faded). */
 .dining-calculator input[aria-invalid="true"] { border-color:var(--color-danger); }
-.dining-receipt { min-width:0; background:var(--color-surface-2); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); padding:23px; }
-.dining-receipt-heading { display:flex; justify-content:space-between; align-items:center; color:var(--color-ink-3); padding-bottom:20px; border-bottom:1px dashed var(--color-line-strong); }
+.dining-receipt { min-width:0; background:var(--color-surface-2); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); padding:24px; }
+.dining-receipt-heading { display:flex; justify-content:space-between; align-items:center; color:var(--color-ink-3); padding-bottom:24px; border-bottom:1px dashed var(--color-line-strong); }
 .dining-receipt-heading>span { font-size:var(--text-fact); font-weight:600; }
-.dining-breakdown { margin:20px 0 12px; display:flex; flex-direction:column; gap:13px; }
-.dining-breakdown>div { display:flex; justify-content:space-between; align-items:baseline; gap:14px; font-size:var(--text-caption); line-height:1.6; }
+.dining-breakdown { margin:24px 0 12px; display:flex; flex-direction:column; gap:12px; }
+.dining-breakdown>div { display:flex; justify-content:space-between; align-items:baseline; gap:16px; font-size:var(--text-caption); line-height:1.6; }
 .dining-breakdown dt { color:var(--color-ink-3); }
 .dining-breakdown dd { margin:0; color:var(--color-ink); white-space:nowrap; font-variant-numeric:tabular-nums; }
 .dining-basis-note { margin:0; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
-.dining-total { margin-top:20px; padding:19px 0; border-top:1px dashed var(--color-line-strong); display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--color-ink-2); }
+.dining-total { margin-top:24px; padding:16px 0; border-top:1px dashed var(--color-line-strong); display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; color:var(--color-ink-2); }
 .dining-total>span { font-size:var(--text-fact); font-weight:600; }
 .dining-total>strong { font-size:var(--fs-keep-28); letter-spacing:-1px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.dining-per-person { display:flex; flex-direction:column; gap:8px; border-radius:var(--r-md); padding:17px; background:var(--color-brand-tint); color:var(--color-ink-2); }
+.dining-per-person { display:flex; flex-direction:column; gap:8px; border-radius:var(--r-md); padding:16px; background:var(--color-brand-tint); color:var(--color-ink-2); }
 .dining-per-person>span { font-size:var(--text-caption); }
 .dining-per-person>strong { font-size:var(--fs-keep-20); line-height:1.5; letter-spacing:-.5px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .dining-per-person>small { color:var(--color-ink-3); font-size:var(--text-caption); }
-.dining-split { margin-top:18px; }
+.dining-split { margin-top:16px; }
 .dining-split>p { font-size:var(--text-caption); color:var(--color-ink-3); line-height:1.7; }
-.dining-split ul { display:flex; flex-direction:column; gap:7px; list-style:none; margin:10px 0; padding:0; }
+.dining-split ul { display:flex; flex-direction:column; gap:8px; list-style:none; margin:12px 0; padding:0; }
 .dining-split li { color:var(--color-ink-2); font-size:var(--text-caption); font-variant-numeric:tabular-nums; }
 .dining-split small { display:block; font-size:var(--text-caption); line-height:1.8; color:var(--color-ink-3); }
-.dining-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:285px; padding:25px 2px; gap:18px; color:var(--color-ink-3); }
+.dining-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:285px; padding:24px 4px; gap:16px; color:var(--color-ink-3); }
 .dining-empty strong { font-size:var(--text-body); line-height:1.7; color:var(--color-ink-3); }
 .dining-empty p { font-size:var(--text-caption); line-height:1.9; margin:0; }
 .dining-manual-copy textarea { min-height:210px; font-variant-numeric:tabular-nums; }
 @media (max-width:1000px) { .dining-layout { grid-template-columns:minmax(0,1fr); gap:24px; } .dining-empty { min-height:170px; } }
-@media (max-width:560px) { .dining-intro strong { font-size:var(--text-reading); } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:5px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:20px; } .dining-per-person>strong { font-size:var(--fs-keep-20); } }
+@media (max-width:560px) { .dining-intro strong { font-size:var(--text-reading); } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:4px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:24px; } .dining-per-person>strong { font-size:var(--fs-keep-20); } }

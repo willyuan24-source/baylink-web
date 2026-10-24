@@ -298,3 +298,56 @@ test('a plan 加入这天计划 named reads in the page’s language; a title th
     cleanup();
   }
 });
+
+// UI9-R2-ACCOUNT-UTILITY (R2-15, N06): the picture strip on an empty 行程, rendered. The mocked week (2026-10-16) has far
+// more than six listed events, so 这周可以去 has its six rows and the strip its four.
+const STRIP = '这周可以先排进去的活动';
+const eventHrefs = (root: HTMLElement) => [...root.querySelectorAll<HTMLAnchorElement>('a[href^="/events/"]')].map(link => link.getAttribute('href')!.split('?')[0]);
+
+test('no day planned: 行程 shows four picture cards, none of them a 这周可以去 row', async t => {
+  t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
+  const view = render(page(null));
+  const strip = await view.findByRole('list', { name: STRIP });
+  const cards = eventHrefs(strip), rows = eventHrefs(view.getByTestId('my-week-events'));
+  assert.equal(cards.length, 4);
+  assert.equal(rows.length, 6);
+  assert.deepEqual(cards.filter(href => rows.includes(href)), [], 'no event shows twice');
+});
+
+test('a member with a day planned: the same strip is there while the plans load and stays under the timeline (nothing moves)', async t => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const plan = { id: 'planned', title: '已经排好的一天', date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), version: 1 };
+  let answer: (value: unknown) => void = () => {};
+  const planner = new Promise(resolve => { answer = resolve; });
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/planner/me') return planner;
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    throw new Error(`Unexpected request: ${path}`);
+  });
+  const view = render(page());
+  await act(async () => { await Promise.resolve(); });
+  const loading = view.getByRole('list', { name: STRIP });
+  const before = eventHrefs(loading);
+  assert.equal(before.length, 4, 'the strip is on the first frame, while the plans load');
+  await act(async () => { answer({ ...structuredClone(EMPTY_LIBRARY), plans: [plan] }); await planner; });
+  await view.findByRole('heading', { name: plan.title });
+  const strip = view.getByRole('list', { name: STRIP });
+  assert.ok(strip === loading && strip.isConnected, 'the same strip node: not removed and drawn again');
+  assert.deepEqual(eventHrefs(strip), before);
+  const plans = view.getByTestId('my-week-plans');
+  assert.ok(plans.contains(strip) && (view.getByRole('heading', { name: plan.title }).compareDocumentPosition(strip) & 4), 'under the timeline (4: following), in 行程');
+});
+
+test('N06: a 这周可以去 meta line glues every separator to the word before it, so no wrapped line starts with ·', async t => {
+  t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
+  const view = render(page(null));
+  await view.findByRole('list', { name: STRIP });
+  const metas = [...view.getByTestId('my-week-events').querySelectorAll('.ui-row-card__meta')].map(meta => meta.textContent!);
+  assert.equal(metas.length, 6);
+  for (const meta of metas) {
+    assert.match(meta, /\u00a0· /);
+    assert.doesNotMatch(meta, / · /);
+  }
+});

@@ -33,10 +33,12 @@ const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }
 
 /**
  * Public introduction shared by the interactive route and static HTML (HOMEIA-03: one positioning line on every surface).
- * UI9-NAV (content arrangement §8): the 1216 frame at x = 112; the H1 block, then 我们怎么核对 (the only target of
- * /about#about-method-title), 能帮你做什么, 图片怎么标, all in columns 1-8 at the reading measure; 联系与反馈 is the last
- * section on a phone and an aside in columns 9-12 on a desktop, level with the H1. 简洁显示 folds 图片怎么标 and hides the
- * 还有 row. The wording and the image-label rows are unchanged.
+ * UI9-NAV (content arrangement §8): the 1216 frame at x = 112; the H1 block in columns 1-8 with 联系与反馈 beside it in
+ * columns 9-12 on a desktop (the last section on a phone). UI9-R2-ACCOUNT-UTILITY (R2-15, N16 short rows 72.9%): the three
+ * sections below span the frame on a desktop with side headings (the H2 and its notes in columns 1-3) and their rows as
+ * cards in 4-12 — 我们怎么核对 (the only target of /about#about-method-title) and 能帮你做什么 two by two, 图片怎么标's labels
+ * in one two-column panel — each line still within the CJK / Latin measure. 简洁显示 folds 图片怎么标
+ * and hides the 还有 row. The wording and the image-label rows are unchanged.
  */
 export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () => void; onWarmBayBay?: () => void }) {
   const simple = useSimpleDisplay();
@@ -67,7 +69,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
   </>;
   return <PageContainer size="wide" className="about-page">
     <div className="about-layout">
-    <div className="about-main">
+    <div className="about-head">
     <PageHeader
       breadcrumb={<span><Link to="/">{t('首页', 'Home')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{t('关于 BAYLINK', 'About BAYLINK')}</span></span>}
       title={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}
@@ -76,10 +78,12 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
         <Button key="events" variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>,
         onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay} onPointerEnter={onWarmBayBay} onFocus={onWarmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
       ]} />
+    </div>
 
+    <div className="about-main">
     <section className="about-section" aria-labelledby="about-method-title">
       <h2 id="about-method-title">{t('我们怎么核对', 'How we check')}</h2>
-      <ol className="about-list">
+      <ol className="about-list" data-columns="2">
         {method.map(({ icon: Icon, title, text }) => <li key={title}>
           <span className="about-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
           <div><h3>{title}</h3><p>{text}</p></div>
@@ -90,7 +94,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
 
     <section className="about-section" aria-labelledby="about-uses-title">
       <h2 id="about-uses-title">{t('BAYLINK 能帮你做什么', 'What BAYLINK helps with')}</h2>
-      <ul className="about-list">
+      <ul className="about-list" data-columns="2">
         {uses.map(({ icon: Icon, to, title, text, action }) => <li key={to}>
           <span className="about-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
           <div><h3>{title}</h3><p>{text}</p><Link className="about-link" to={to}>{action}</Link></div>

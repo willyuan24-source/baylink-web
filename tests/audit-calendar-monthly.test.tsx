@@ -80,13 +80,13 @@ test('the calendar serves the week strip and the day list first and loads the ma
   const week = view.container.querySelector('.ev-week')!;
   const rows = view.container.querySelector('.ev-calendar__rows')!;
   assert.ok(week.compareDocumentPosition(rows) & 4, 'the week strip comes before the rows');
-  assert.ok(rows.querySelectorAll('.ui-row-card').length > 0, 'the first render contains actual event rows');
+  assert.ok(rows.querySelectorAll('.ui-feed-card').length > 0, 'the first render contains the day\'s actual event cards');
   assert.equal(view.container.querySelector('.ev-calendar__map'), null, 'the map engine is not mounted for the first render');
   const mode = within(view.getByRole('radiogroup', { name: '显示方式' }));
   assert.equal(mode.getByRole('radio', { name: '列表' }).getAttribute('aria-checked'), 'true');
   await act(async () => { fireEvent.click(mode.getByRole('radio', { name: '地图' })); });
   assert.ok(view.container.querySelector('.ev-calendar__map'), '地图 mounts the map panel');
-  assert.ok(rows.isConnected && rows.querySelectorAll('.ui-row-card').length > 0, 'the rows stay under the map');
+  assert.ok(rows.isConnected && rows.querySelectorAll('.ui-feed-card').length > 0, 'the cards stay under the map');
   await act(async () => { fireEvent.click(mode.getByRole('radio', { name: '列表' })); });
   assert.equal(view.container.querySelector('.ev-calendar__map'), null);
 });

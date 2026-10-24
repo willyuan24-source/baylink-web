@@ -75,17 +75,19 @@ test('the eight home entry tiles: a lazy 480 w photo each, its name and one line
     assert.equal(photo.width, 480);
     assert.match(photo.credit, /^入口配图/, `${id}: credited as an entry photo, never 示意图`);
   }
-  // The warm scrim (tokens.css --color-scrim-rgb 30 24 16) at .62 from 38% of the tile down, over a white pixel: white text ≥ 4.5:1.
+  // The warm scrim (tokens.css --color-scrim-rgb 30 24 16) is the words' own box (UI9-R2-HOME R2-04: the photo stays clear
+  // above them), at .76 or more behind the words, over a white pixel: white text ≥ 4.5:1.
   const css = readFileSync('src/components/home-discovery.css', 'utf8');
-  assert.match(css, /\.home-mood::before \{[^}]*rgb\(var\(--color-scrim-rgb\) \/ \.62\) 38%, rgb\(var\(--color-scrim-rgb\) \/ \.8\) 100%\)/);
+  assert.match(css, /\.home-mood__text \{[^}]*background:linear-gradient\(0deg, rgb\(var\(--color-scrim-rgb\) \/ \.84\) 0%, rgb\(var\(--color-scrim-rgb\) \/ \.76\) calc\(100% - var\(--sp-6\)\), rgb\(var\(--color-scrim-rgb\) \/ 0\) 100%\)/);
+  assert.doesNotMatch(css, /\.home-mood::before/, 'no veil over the whole tile');
   const lin = (v: number) => (v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
   const over = (alpha: number) => [30, 24, 16].map(channel => (alpha * channel + (1 - alpha) * 255) / 255);
   const luminance = (rgb: number[]) => rgb.map(lin).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
-  assert.ok(1.05 / (luminance(over(.62)) + .05) >= 4.5, `${(1.05 / (luminance(over(.62)) + .05)).toFixed(2)}:1`);
+  assert.ok(1.05 / (luminance(over(.76)) + .05) >= 4.5, `${(1.05 / (luminance(over(.76)) + .05)).toFixed(2)}:1`);
   assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /className="[^"]*ui-chip/, 'the tiles are .home-mood, not the shared chip');
 });
 
-test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a row\'s ♡ sits on its thumbnail at a third of it, hit area 44 px', async () => {
+test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a row\'s ♡ sits on its thumbnail\'s top-right corner', async () => {
   const { readFileSync } = await import('node:fs');
   const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
   assert.match(library, /\.gl-all-cell \{ display:none; \}/);
@@ -94,13 +96,18 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a ro
   assert.match(library, /\.gl-all-cell>\.ui-button \{[^}]*aspect-ratio:3 \/ 2;[^}]*border-radius:var\(--r-lg\); \}/);
   assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /<li className="gl-all-cell"><Button variant="secondary" block/);
   const home = readFileSync('src/components/home-discovery.css', 'utf8');
-  assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 2 \/ 2; top:var\(--sp-1\); right:var\(--sp-1\); \}/, 'home 大 / 特大 rows: ♡ on the thumbnail');
+  // The A1 contract (DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), as on the /events rows. Its size is
+  // UI9-R2-FOUNDATION's one circle (saves.css, --control-height): UI9-R2-HOME dropped the home's 36 px circle and its 44 px ring.
+  // DECISIONS 44 (owner, 10-23): at 大 / 特大 the ♡ leaves the 112 px thumbnail and sits under it (0% of the picture covered).
+  assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 6 \/ 2; top:calc\(112px \+ var\(--sp-2\)\); right:auto; left:0; \}/, 'home 大 / 特大 rows: ♡ under the thumbnail');
   assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');
+  assert.doesNotMatch(home, /36px|saves-toggle/, 'no home size for the ♡');
+  // /events rows (UI9-R2, DECISIONS 44): ♡ is RowCard's save slot, the shared 44 px circle (saves.css) — on the thumbnail's
+  // top-right corner at the standard size (A1), under the thumbnail at 大 / 特大, so the picture stays whole there.
   const events = readFileSync('src/features/events/events.css', 'utf8');
-  for (const css of [home, events]) {
-    assert.match(css, /width:36px; height:36px; min-height:36px;/);
-    assert.match(css, /\.saves-toggle::after \{ content:""; position:absolute; inset:-4px; \}/, '36 + 2 × 4 = 44 px to tap');
-  }
+  assert.match(events, /\.ev-page \.ui-row-card__save \{ grid-area:thumb; align-self:start; justify-self:end; margin:var\(--sp-1\); \}/);
+  assert.match(events, /html:is\(\[data-reading=large\],\[data-reading=extra-large\]\) \.ev-page \.ui-row-card__save \{ grid-area:save;/);
+  assert.doesNotMatch(events, /width:36px/);
 });
 
 test('every share card and weekly tile fronts a picture promotion allows: never AI art, never CC BY-SA (DECISIONS 21/24)', async () => {

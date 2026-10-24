@@ -353,7 +353,7 @@ test('/calendar: a close-up face photo or a poster never leads a day (DECISIONS 
   for (let offset = 0; offset < 7; offset++) {
     const day = addCalendarDays(today, offset);
     const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
-    const card = view.container.querySelector('.ev-calendar__lead');
+    const card = view.container.querySelector('.ev-calendar__cards li:first-child');
     const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
     const lead = href && byId.get(href.replace(/^\/events\/|\?.*$/g, ''));
     // The day's lead is an event whose picture can lead (a ① or ② photograph: Ferry Plaza never, on 10/20 or after), or,
@@ -370,7 +370,7 @@ test('/calendar: a close-up face photo or a poster never leads a day (DECISIONS 
   // shared list), and that photo leaves the day's lead.
   const leadOf = (day: string) => {
     const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
-    const card = view.container.querySelector('.ev-calendar__lead');
+    const card = view.container.querySelector('.ev-calendar__cards li:first-child');
     const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
     const result = { event: href ? byId.get(href.replace(/^\/events\/|\?.*$/g, '')) : undefined, html: card?.innerHTML ?? '' };
     cleanup();

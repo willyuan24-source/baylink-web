@@ -56,9 +56,13 @@ function PollHarness({ item, account = host, onSaved = noop }: { item: Outing; a
 const timePoll = (patch: Partial<NonNullable<Outing['timePoll']>> = {}): NonNullable<Outing['timePoll']> => ({ id: 'poll-fixture', status: 'open', planVersion: 2, createdAt: now, eligibleCount: 2, repliedCount: 0, myAnswers: null,
   options: [{ id: 'option-1', date: '2026-10-17', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-17T21:00:00Z'), endAt: Date.parse('2026-10-17T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }, { id: 'option-2', date: '2026-10-18', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-18T21:00:00Z'), endAt: Date.parse('2026-10-18T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }], ...patch });
 const hub = (account: UserData | null = user, path = '/together', extras: Partial<AppContextValue> = {}) => <MemoryRouter initialEntries={[path]}><OutingsHub app={appFor(account, extras)} /></MemoryRouter>;
+// /together's 城市, 参加日期, 沟通语言 and 只看有空位 live in the 筛选 sheet (DECISIONS 41, NAV PR B), applied on 显示小队.
+const filterSheet = (view: ReturnType<typeof render>) => view.getByRole('dialog', { name: '筛选小队' });
+const openFilters = async (view: ReturnType<typeof render>) => { await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); }); return within(await view.findByRole('dialog', { name: '筛选小队' })); };
+const showOutings = async (view: ReturnType<typeof render>) => { await act(async () => { fireEvent.click(within(filterSheet(view)).getByRole('button', { name: '显示小队' })); }); await act(async () => {}); };
 const pickDay = async (view: ReturnType<typeof render>, day: RegExp, monthsAhead = 0) => {
   await act(async () => { fireEvent.click(within(view.getByRole('group', { name: '参加日期' })).getByRole('button', { name: /选日期|月\d+日/ })); });
-  const sheet = await view.findByRole('dialog');
+  const sheet = await view.findByRole('dialog', { name: '选日期' });
   for (let step = 0; step < monthsAhead; step++) await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: '下个月' })); });
   await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: day })); });
 };
@@ -465,6 +469,30 @@ test('StrictMode public listing completes a fresh request instead of turning its
   assert.ok(signals.some(signal => signal?.aborted)); assert.ok(signals.some(signal => !signal?.aborted));
 });
 
+test('显示小队 hands focus back to the same 筛选 chip (the bar is not remounted), and 清除筛选 empties the search field', async t => {
+  signIn(user);
+  t.mock.method(api, 'request', async (path: string) => new URL(path, 'https://example.test').pathname === '/outings' ? { outings: [outing()], nextCursor: null } : { outing: outing() });
+  const view = render(hub(user, '/together?q=museum')); await view.findByRole('link', { name: initial.title });
+  const chip = view.getByRole('button', { name: /^筛选/ }), search = view.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement;
+  assert.equal(search.value, 'museum');
+  // jsdom lays nothing out; the modal only hands focus back to an element with a box (ui/Modal.tsx restoreFocus).
+  t.mock.method(window.HTMLElement.prototype, 'getClientRects', () => [{ width: 1, height: 1 }]);
+  chip.focus(); // a keyboard user is on the chip when it opens the sheet
+  const sheet = await openFilters(view);
+  fireEvent.change(sheet.getByRole('textbox', { name: '城市（可选）' }), { target: { value: 'Fremont' } });
+  await showOutings(view); await view.findByRole('link', { name: initial.title });
+  assert.equal(view.queryByRole('dialog', { name: '筛选小队' }), null);
+  assert.ok(chip.isConnected, 'the same chip node is still on the page');
+  // The sheet leaves after its exit (useExit, 200 ms), then hands focus back. (assert.ok, not assert.equal: a failed equal
+  // on two DOM nodes makes node:assert walk the whole jsdom graph.)
+  for (let wait = 0; wait < 20 && document.activeElement !== chip; wait++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+  assert.ok(document.activeElement === chip, `focus returns to the 筛选 chip (WCAG 2.4.3), not to ${document.activeElement?.tagName}`);
+  assert.equal(chip.getAttribute('aria-label'), '筛选，已选 1 项');
+  assert.equal(search.value, 'museum', 'the search is kept with the sheet\'s filters');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除筛选' })); }); await act(async () => {});
+  assert.equal(search.value, '', '清除筛选 empties the search field too');
+});
+
 test('date and city filters reach the API and survive opening a detail and returning to the list', async t => {
   signIn(user); const filters: URLSearchParams[] = [];
   t.mock.method(api, 'request', async (path: string) => {
@@ -473,16 +501,24 @@ test('date and city filters reach the API and survive opening a detail and retur
     return { outing: outing() };
   });
   const view = render(hub()); await view.findByRole('link', { name: initial.title });
-  await pickDay(view, /10月17日/, 1); await view.findByRole('link', { name: initial.title });
-  assert.equal(filters.at(-1)!.get('date'), '2026-10-17', 'a day from the sheet applies at once');
-  fireEvent.change(view.getByRole('textbox', { name: '城市（可选）' }), { target: { value: 'Fremont' } });
-  fireEvent.click(view.getByRole('button', { name: '筛选小队' })); await act(async () => {});
+  const reads = filters.length;
+  const sheet = await openFilters(view);
+  await pickDay(view, /10月17日/, 1);
+  assert.equal(filters.length, reads, 'a day picked in the sheet waits for 显示小队');
+  fireEvent.change(sheet.getByRole('textbox', { name: '城市（可选）' }), { target: { value: 'Fremont' } });
+  await showOutings(view); await view.findByRole('link', { name: initial.title });
+  assert.equal(view.queryByRole('dialog', { name: '筛选小队' }), null, '显示小队 closes the sheet');
+  assert.equal(filters.at(-1)!.get('date'), '2026-10-17'); assert.equal(filters.at(-1)!.get('city'), 'Fremont');
+  assert.ok(view.getByRole('button', { name: '筛选，已选 2 项' }), 'the chip names how many filters are on');
+  const summary = within(view.container.querySelector<HTMLElement>('.outing-filter-summary')!);
+  assert.ok(summary.getByText('10月17日周六') && summary.getByText('Fremont'), 'the filters in force read in words under the bar');
   const link = view.getByRole('link', { name: initial.title }); const url = new URL(link.getAttribute('href')!, 'https://example.test');
   assert.equal(url.searchParams.get('date'), '2026-10-17'); assert.equal(url.searchParams.get('city'), 'Fremont');
   fireEvent.click(link); await view.findByRole('heading', { level: 1, name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '返回小队' })); await view.findByRole('link', { name: initial.title });
+  const again = await openFilters(view);
   assert.equal(dayChip(view).textContent, '10月17日周六'); assert.equal(dayChip(view).getAttribute('aria-pressed'), 'true');
-  assert.equal((view.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).value, 'Fremont');
+  assert.equal((again.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).value, 'Fremont');
   assert.equal(filters.at(-1)!.get('date'), '2026-10-17'); assert.equal(filters.at(-1)!.get('city'), 'Fremont');
 });
 
@@ -496,29 +532,35 @@ test('discovery presets replace exact dates and preserve search, city aliases, l
   });
   const view = render(hub(user, '/together?date=2026-10-17')); await view.findByRole('link', { name: initial.title });
   fireEvent.change(view.getByRole('textbox', { name: '搜索小队' }), { target: { value: '散步 & coffee' } });
-  fireEvent.change(view.getByRole('textbox', { name: '城市（可选）' }), { target: { value: '舊金山' } });
-  view.getByText('更多筛选').closest('details')!.open = true;
-  fireEvent.change(view.getByRole('combobox', { name: '沟通语言' }), { target: { value: 'zh' } });
-  fireEvent.click(view.getByRole('checkbox', { name: '只看有空位' }));
-  fireEvent.click(view.getByRole('button', { name: '本周末' })); await view.findByText('10月3日周六 — 10月4日周日');
-  assert.deepEqual(Object.fromEntries(requests.at(-1)!), { q: '散步 & coffee', city: '舊金山', dateFrom: '2026-10-03', dateTo: '2026-10-04', language: 'zh', seats: 'open', sort: 'soonest' });
+  const sheet = await openFilters(view);
+  fireEvent.change(sheet.getByRole('textbox', { name: '城市（可选）' }), { target: { value: '舊金山' } });
+  fireEvent.change(sheet.getByRole('combobox', { name: '沟通语言' }), { target: { value: 'zh' } });
+  fireEvent.click(sheet.getByRole('checkbox', { name: '只看有空位' }));
+  fireEvent.click(sheet.getByRole('button', { name: '本周末' })); await sheet.findByText('10月3日周六 — 10月4日周日');
   assert.equal(dayChip(view).textContent, '选日期'); assert.equal(dayChip(view).getAttribute('aria-pressed'), 'false');
+  await showOutings(view);
+  assert.deepEqual(Object.fromEntries(requests.at(-1)!), { q: '散步 & coffee', city: '舊金山', dateFrom: '2026-10-03', dateTo: '2026-10-04', language: 'zh', seats: 'open', sort: 'soonest' });
   const link = await view.findByRole('link', { name: initial.title }), destination = new URL(link.getAttribute('href')!, 'https://example.test');
   for (const [key, value] of requests.at(-1)!) assert.equal(destination.searchParams.get(key), value);
   fireEvent.click(link); await view.findByRole('heading', { level: 1, name: initial.title });
   fireEvent.click(view.getByRole('button', { name: '返回小队' })); await view.findByRole('link', { name: initial.title });
   assert.equal((view.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement).value, '散步 & coffee');
-  assert.equal((view.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).value, '舊金山');
-  assert.equal((view.getByRole('combobox', { name: '沟通语言' }) as HTMLSelectElement).value, 'zh');
-  assert.equal((view.getByRole('checkbox', { name: '只看有空位' }) as HTMLInputElement).checked, true);
-  assert.equal(view.getByRole('button', { name: '本周末' }).getAttribute('aria-pressed'), 'true');
-  await pickDay(view, /10月17日/, 1); await act(async () => {});
+  const kept = await openFilters(view);
+  assert.equal((kept.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).value, '舊金山');
+  assert.equal((kept.getByRole('combobox', { name: '沟通语言' }) as HTMLSelectElement).value, 'zh');
+  assert.equal((kept.getByRole('checkbox', { name: '只看有空位' }) as HTMLInputElement).checked, true);
+  assert.equal(kept.getByRole('button', { name: '本周末' }).getAttribute('aria-pressed'), 'true');
+  await pickDay(view, /10月17日/, 1); await showOutings(view);
   assert.equal(requests.at(-1)!.get('date'), '2026-10-17');
   assert.equal(requests.at(-1)!.has('dateFrom'), false); assert.equal(requests.at(-1)!.has('dateTo'), false);
-  fireEvent.click(view.getByRole('button', { name: '未来 7 天' })); await act(async () => {});
+  fireEvent.click((await openFilters(view)).getByRole('button', { name: '未来 7 天' })); await showOutings(view);
   assert.equal(requests.at(-1)!.get('dateFrom'), '2026-09-30'); assert.equal(requests.at(-1)!.get('dateTo'), '2026-10-06'); assert.equal(requests.at(-1)!.has('date'), false);
-  fireEvent.click(view.getByRole('button', { name: '今天' })); await act(async () => {});
+  fireEvent.click((await openFilters(view)).getByRole('button', { name: '今天' })); await showOutings(view);
   assert.equal(requests.at(-1)!.get('date'), '2026-09-30'); assert.equal(requests.at(-1)!.has('dateFrom'), false);
+  // The search field filters on its own (Enter), keeping the sheet's filters.
+  fireEvent.change(view.getByRole('textbox', { name: '搜索小队' }), { target: { value: '看展' } });
+  await act(async () => { fireEvent.submit(view.getByRole('search')); }); await act(async () => {});
+  assert.equal(requests.at(-1)!.get('q'), '看展'); assert.equal(requests.at(-1)!.get('date'), '2026-09-30'); assert.equal(requests.at(-1)!.get('city'), '舊金山');
 });
 
 test('list failure shows retry rather than no outings and only guest intent to create requests login', async t => {

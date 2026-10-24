@@ -5,7 +5,7 @@
    targets (48 in 简洁显示). Loaded globally after tokens.css (src/main.tsx), so selectors start at .local-discovery-detail;
    the facts card's own rules ship with the detail route (features/detail/facts-grid.css). */
 .local-discovery-detail { width:min(100%,76rem); margin-inline:auto; color:var(--color-ink); }
-.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:var(--page-gutter); }
+.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.detail-aside-end,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:var(--page-gutter); }
 .local-discovery-detail .detail-back { display:flex; align-items:center; min-height:var(--control-height); padding-inline:var(--sp-2); }
 .local-discovery-detail .detail-back a { display:inline-flex; align-items:center; gap:2px; min-height:var(--control-height); padding-inline:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-body); }
 .local-discovery-detail .detail-back svg { width:1.25rem; height:1.25rem; }
@@ -13,23 +13,31 @@
 .local-discovery-detail .detail-back--end { display:none; }
 html[data-simple] .local-discovery-detail .detail-back--end { display:flex; margin-top:var(--section-gap); padding:0; }
 
-/* Hero: full-bleed on a phone, square corners; the provenance chip is C's. The credit line sits under a photo (G13). */
+/* Hero: full-bleed on a phone, square corners; FOUNDATION's one frame and bottom-left label (a brand image whole on its blurred
+   copy). C P08 / N25: the credit is quiet text on the picture's bottom-right, white on the badge ink (≥6.25:1 over any
+   pixel), one quiet line on most pictures (60% of the width at most, then it wraps, never cut); not a link (the links are
+   in 本页图片来源). It keeps the base 13 px in every reading size (the label beside it grows), and at 大 and 特大, where the
+   label takes much of the bottom edge, it moves to the top-right corner, so the two never meet; 简洁显示 leaves it out, like
+   the long caption (the credit stays in 本页图片来源). */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero .ui-cover { width:100%; border-radius:0; }
-.local-discovery-detail :is(.detail-hero,.detail-photo) figcaption { padding:var(--sp-2) var(--page-gutter) 0; }
-.local-discovery-detail .detail-credit { display:block; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
-.local-discovery-detail .detail-credit>*+* { margin-left:var(--sp-2); }
-.local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
+.local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:60%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-label-thumb); line-height:var(--lh-snug); overflow-wrap:anywhere; pointer-events:none; }
+html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-photo-credit { top:var(--sp-2); bottom:auto; }
+.local-discovery-detail :is(.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
 /* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
 .local-discovery-detail .detail-head { padding-top:var(--sp-3); }
 .local-discovery-detail .detail-chips { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0 0 var(--sp-2); }
-.local-discovery-detail .detail-cat[data-cat=family] { background:var(--tc-family-bg); color:var(--tc-family-fg); }
-.local-discovery-detail .detail-cat[data-cat=culture] { background:var(--tc-culture-bg); color:var(--tc-culture-fg); }
-.local-discovery-detail .detail-cat[data-cat=outdoors] { background:var(--tc-outdoors-bg); color:var(--tc-outdoors-fg); }
-.local-discovery-detail .detail-cat[data-cat=food] { background:var(--tc-food-bg); color:var(--tc-food-fg); }
-.local-discovery-detail .detail-cat[data-cat=seniors] { background:var(--tc-seniors-bg); color:var(--tc-seniors-fg); }
-.local-discovery-detail .detail-cat[data-cat=free] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
+/* N07: the category chip's words are ink on its tone's tint (the one category map, --tc-*-bg), so no tone adds a text
+   colour. N08: 商家活动 is not a category of the map (it shared 亲子's coral): its own look, a white chip on a strong line. */
+.local-discovery-detail .detail-cat { color:var(--color-ink); }
+.local-discovery-detail .detail-cat[data-cat=family] { background:var(--tc-family-bg); }
+.local-discovery-detail .detail-cat[data-cat=culture] { background:var(--tc-culture-bg); }
+.local-discovery-detail .detail-cat[data-cat=outdoors] { background:var(--tc-outdoors-bg); }
+.local-discovery-detail .detail-cat[data-cat=food] { background:var(--tc-food-bg); }
+.local-discovery-detail .detail-cat[data-cat=seniors] { background:var(--tc-seniors-bg); }
+.local-discovery-detail .detail-cat[data-cat=free] { background:var(--tc-free-bg); }
+.local-discovery-detail .detail-cat[data-cat=merchant] { border-color:var(--color-line-strong); background:var(--color-surface); }
 .local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:var(--text-h1); font-weight:600; line-height:var(--lh-h1); overflow-wrap:break-word; text-wrap:balance; }
 .local-discovery-detail .detail-head h1 .title-keep { white-space:nowrap; }
 .local-discovery-detail :is(.detail-sub,.detail-dek) { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-snug); }
@@ -92,6 +100,19 @@ html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detai
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__rows { display:grid; gap:var(--sp-3); }
 .local-discovery-detail .detail-main>.detail-rail { margin-top:var(--sp-5); }
 
+/* The column's end (.detail-aside-end): on a phone only 本页图片来源, the page's last line before 继续发现湾区 (the 附近还有
+   rows are the desktop column's: a phone has the photo row). */
+.local-discovery-detail .detail-aside-end { margin-top:var(--sp-5); }
+/* The facts and the actions' wrapper is no box (the bar stays the aside's child for its sticky and fixed rules) except
+   where the two stick together on a desktop (below). */
+.local-discovery-detail .detail-aside__stick { display:contents; }
+.local-discovery-detail .detail-aside-end>.detail-rail--side { display:none; }
+.local-discovery-detail .detail-aside-end>.detail-rail--side h2 { margin:0 0 var(--stack-head); font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
+.local-discovery-detail .detail-rail--side .detail-rail__rows { display:grid; gap:var(--sp-3); }
+/* The column's row pictures are 104 px, so an archive label keeps its year (场馆照 · 2024, DECISIONS 23). */
+.local-discovery-detail .detail-rail--side .ui-row-card { grid-template-columns:6.5rem minmax(0,1fr) auto; }
+.local-discovery-detail .detail-rail--side .ui-row-card__thumb { width:6.5rem; height:6.5rem; }
+
 /* Page end: one H2 and three → links over a 1 px rule that splits the section gap like 来源与核对's. */
 .local-discovery-detail .discovery-return { margin-top:calc(var(--section-gap) * .625); padding:calc(var(--section-gap) * .375) 0 0; border:0; border-top:1px solid var(--color-line); border-radius:0; background:none; }
 .local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); }
@@ -116,7 +137,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:not(:disabled)):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
   .local-discovery-detail :is(.detail-back a,.detail-page-credits summary):hover { text-decoration:underline 1px; text-underline-offset:.2em; }
   /* N23: the source and credit links answer a hover in colour too (a thicker underline alone did not register). */
-  .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover { color:var(--color-ink); text-decoration-thickness:2px; }
+  .local-discovery-detail :is(.detail-page-credits,.content-review-ended,.trust-row) a:hover { color:var(--color-ink); text-decoration-thickness:2px; }
   .local-discovery-detail .trust-row a:hover { color:var(--color-brand-hover); }
 }
 /* The primary never wraps: where its cell is narrower than icon + label, the icon goes. em = the cell's --fs-body. */
@@ -128,22 +149,37 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions { position:fixed; z-index:50; inset:auto 0 0; height:var(--site-mobile-nav-height); padding:var(--sp-1) var(--sp-3) calc(var(--sp-1) + env(safe-area-inset-bottom,0px)) var(--sp-2); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); box-shadow:var(--e1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); }
-  /* 特大 and 家人版 (UI9-R1, J1 P20): from 360 px the ask cell keeps 问 BayBay / Ask BayBay; it reads BayBay only below 360
-     px. 家人版 makes the room on the bar's edges (the 56 px 收藏 cell centres its icon 16 px in, 4 px each side), so the
-     cell labels keep 12 px between them; a primary that still has no room wraps to two balanced lines (its button is 3rem
-     tall) instead of a word being swapped. The wrapped lines are centred and keep the 8 px padding, so no glyph reaches
-     the pill's round ends (the offer and opening primary is the shared Button <a>, which starts its text at the left;
-     AddToDayPlan's <button> centres already). Detail pages only: a guide's bar keeps its own arrangement
-     (guide-article.css). Follow-up 2: two wrapped lines keep 8 px above and below too. The 特大 bar is 72 px (64 elsewhere),
-     so the two lines keep a 1.2 pitch with room to the bar's edges; 家人版's 76 px bar holds them at 1.1 (a 68.6 px pill). */
+  /* 特大 and 家人版 (UI9-R1, J1 P20; R2-08, OD6 = DECISIONS 32): the primary is one line in its short words (加入计划 /
+     Add to day, 领取入口 / Claim, 加入计划 / Plan, 官方页 / Official; the name keeps the full ones), so it never wraps at
+     360 or 390 px. AddToDayPlan prints 加入这天计划, so while it is still "add" (its calendar+ icon) the bar shows
+     --detail-day-short (DetailActionBar) in its place; once added it reads 已加入 10/24. From 360 px the ask cell keeps
+     问 BayBay; in English, whose cells are wider, it reads BayBay below 400 px so "Add to day" keeps its room (its name
+     stays Ask BayBay about this page). 家人版 makes room on the bar's edges (the 56 px 收藏 cell centres its icon 16 px in,
+     4 px each side). Detail pages only: a guide's bar keeps its own arrangement (guide-article.css). The 特大 bar stays
+     72 px (64 elsewhere): a larger target for the larger words. */
   html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions) { --site-mobile-nav-height:calc(72px + env(safe-area-inset-bottom,0px)); }
-  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
-  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { line-height:1.1; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus)) { white-space:nowrap; }
+  /* Once added (its ✓) AddToDayPlan reads 已加入 10/24 / "In your Oct 24 plan", which has no short words: in every reading
+     size it wraps to two balanced lines centred in the padding (R1's 特大 rule; English overflowed a 360–390 px pill at
+     标准 too), a 1.2 pitch (a 54 px pill in the 64 px bar, 72 px at 特大) and 1.1 at 大 (its larger words in the 64 px bar)
+     and in 家人版's 76 px bar, so no glyph reaches the pill's round ends. Chinese breaks at the space only (已加入 / 10/24,
+     never 已加 / 入 10/24: CJK has no word boundaries for balance to keep). */
+  .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; word-break:keep-all; }
+  html:is([data-reading=large],[data-reading=extra-large][data-simple]) .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { line-height:1.1; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus) { font-size:0; }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus)::after { content:var(--detail-day-short); font-size:var(--fs-body); }
   html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions { padding-inline:0 var(--sp-1); }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
    labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
-   one). AddToDayPlan's 加入这天计划 still breaks in balance (加入这 / 天计划) until its shorter label exists (UI9-INT). */
+   one). Below 360 px a primary that still has no room wraps to two balanced lines with 8 px above and below; at 特大 and
+   家人版 the short words stay on one line (the rule above), down to 320 px. */
+@media (max-width:399px) {
+  html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=long] { display:none; }
+  html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
+}
 @media (max-width:359px) {
   .site-detail-actions.detail-actions { padding-inline:var(--sp-1); }
   .site-detail-actions.detail-actions [data-label=long] { display:none; }
@@ -169,19 +205,32 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
    At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. The aside runs the column's full
    height and the action card is sticky in it (J1): where the whole aside would not fit the screen (大 / 特大 / 简洁显示,
    or a screen under 820 px tall, e.g. a 768 px laptop) the facts scroll away and the actions stay in view to the end of the
-   body; where it fits (标准 from 820 px tall), the whole aside, facts included, stays in view, as before. */
+   body; where it fits (标准 from 820 px tall), the facts and the actions together (.detail-aside__stick) stay in view. */
 @media (min-width:1024px) {
-  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
+  .local-discovery-detail { --detail-measure:42.5rem; box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
   .local-discovery-detail .detail-back { margin-bottom:var(--sp-2); }
-  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); align-items:start; }
+  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr auto; column-gap:var(--grid-gutter); align-items:start; }
   .local-discovery-detail .detail-main { grid-column:1 / span 8; }
-  .local-discovery-detail .detail-main--body { grid-row:2; }
+  .local-discovery-detail .detail-main--body { grid-row:2 / span 2; }
   .local-discovery-detail .detail-aside { grid-column:9 / span 4; grid-row:1 / span 2; align-self:stretch; }
+  /* B P04 / C P17: the column ends where the body ends: 附近还有 (row cards) and 本页图片来源 in the last row, so no column
+     of empty canvas runs beside the body. What sticks lives inside the aside (rows 1–2), which is its containing block,
+     so it stops at the top of that last row instead of scrolling over it (a sticky grid item would be held by the whole
+     grid). */
+  .local-discovery-detail .detail-aside-end { grid-column:9 / span 4; grid-row:3; align-self:end; margin-top:var(--section-gap); }
+  .local-discovery-detail .detail-aside-end>.detail-rail--side { display:block; }
+  .local-discovery-detail .detail-aside-end>.detail-rail--side .ui-more { margin-top:var(--sp-1); }
+  /* B P04: the body reads at the reading step on a 680 px measure (40 CJK characters, N05); English keeps --measure
+     (≤ 75 Latin characters). The facts card and the column keep their 14 / 16 px. */
+  .local-discovery-detail:lang(en) { --detail-measure:var(--measure); }
+  .local-discovery-detail :is(.detail-summary,.detail-prose,.detail-plan,.detail-conditions,.detail-steps,.detail-rail__note) { max-width:var(--detail-measure); }
+  .local-discovery-detail :is(.detail-summary,.detail-prose),.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { font-size:var(--fs-reading); }
   .local-discovery-detail .site-detail-actions.detail-actions { position:sticky; top:5.5rem; }
-  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:0; }
-  .local-discovery-detail .detail-hero figcaption { padding-inline:0; }
+  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.detail-aside-end,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:0; }
   .local-discovery-detail .detail-hero .ui-cover { border-radius:var(--r-lg); }
+  /* C P08: the desktop H1 is the display step (44 px), the page's one display heading. */
+  .local-discovery-detail .detail-head h1 { font-size:var(--text-display); line-height:var(--lh-display); }
   .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
   .site-detail-actions.detail-actions>.detail-actions__primary { grid-column:1 / -1; order:-1; }
   /* Six tracks: three cells take two each, two cells three each (a waiting event has no 收藏), a lone cell the row. */
@@ -191,12 +240,16 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-ink); white-space:normal; }
   /* N12 (part): on a detail page the cells keep the bar's quiet look (no box: icon over label, the sunken fill on hover and
      press), so the primary is the card's one filled button. A guide's card keeps its boxed cells (UI9-R1-GUIDE-ARTICLE). */
-  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { border-color:transparent; }
-  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):not(:hover,:active) { background:none; }
+  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { border-color:transparent; background:none; }
+  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active { background:var(--color-surface-2); }
   .site-detail-actions.detail-actions [data-label=desk] { display:inline; }
   .site-detail-actions.detail-actions [data-label=phone] { display:none; }
 }
+/* N23: the quiet cells' hover is a pointer's (the sunken fill), gated like every other hover. */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine) {
+  .local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover { background:var(--color-surface-2); }
+}
 @media (min-width:1024px) and (min-height:820px) {
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-aside { align-self:start; position:sticky; top:5.5rem; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-aside__stick { display:block; position:sticky; top:5.5rem; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .site-detail-actions.detail-actions { position:static; }
 }

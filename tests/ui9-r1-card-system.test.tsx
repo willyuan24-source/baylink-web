@@ -85,16 +85,18 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.match(decls(UI, '.ui-button[data-variant=quiet]').padding, /^var\(--sp-2\) /);
   assert.equal(decls(UI, '.ui-button[data-variant=secondary]').border, decls(UI, '.ui-icon-button').border);
   assert.match(decls('src/features/saves/saves.css', '.saves-control .saves-toggle,.saves-day .saves-add-day').padding, /^var\(--sp-2\) /);
-  // The detail action bar's primary (家人版 / 特大 at 360 and 390 px wraps 加入这天计划, How to claim, Add to a plan): the
-  // narrow-cell rule only changes the sides, and two wrapped lines at a 1.1 pitch keep the pill inside the 64 / 76 px bar.
+  // The detail action bar's primary: the narrow-cell rule only changes the sides. At 特大 and in 家人版 (R2-08 / OD6,
+  // UI9-R2-DETAIL) the primary is one line in its short words (加入计划, 领取入口, Add to day), so it no longer wraps there;
+  // once added (已加入 10/24, no short words) the day primary keeps R1's two balanced lines.
   const DETAIL = 'src/components/local-discovery-detail.css', PRIMARY = ':is(.detail-action--primary,.detail-actions__primary .saves-add-day)';
   assert.match(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`).padding, /^var\(--sp-2\) /);
   const narrow = decls(DETAIL, '.site-detail-actions.detail-actions .detail-actions__primary .saves-add-day', 'detail-primary (max-width:9.5em)');
   assert.equal(narrow.padding, undefined);
   assert.equal(narrow['padding-inline'], 'var(--sp-2)');
-  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.2');
-  assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
-  // 特大 (not 家人版): the detail bar is 72 px, so the 1.2-pitch two-line pill (66 px) keeps room to the bar's edges
+  assert.equal(decls(DETAIL, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))', '(max-width:1023px)')['white-space'], 'nowrap');
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], undefined);
+  assert.equal(decls(DETAIL, 'html:is([data-reading=large],[data-reading=extra-large][data-simple]) .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)')['line-height'], '1.1');
+  // 特大 (not 家人版): the detail bar stays 72 px, a larger target for the larger words
   assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
@@ -138,7 +140,7 @@ test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往�
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
-  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)');
+  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body,.planner-editor>p,.planner-empty>p)');
   assert.equal(rule['text-wrap'], 'balance');
   assert.equal(rule['word-break'], 'keep-all');
 });
@@ -153,7 +155,7 @@ test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balan
   const plan = read('src/styles/plan-page.css');
   assert.equal(decls('src/styles/plan-page.css', '.plan-weekend .ui-feed-grid', '(min-width:700px)')['--ui-feed-cols'], '4');
   assert.doesNotMatch(plan, /\(min-width:768px\) \{ \.plan-weekend \.ui-feed-grid \{/);
-  assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)')['word-break'], 'keep-all');
+  assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body,.planner-editor>p,.planner-empty>p)')['word-break'], 'keep-all');
   // card-press is no longer a static import of the card modules (route JS budgets): Card.tsx loads it dynamically, and
   // HeroCard.tsx has no module-level effect, so the barrel can still drop it from routes that never render one.
   const card = read('src/components/ui/Card.tsx'), hero = read('src/components/ui/HeroCard.tsx');

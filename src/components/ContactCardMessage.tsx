@@ -51,7 +51,7 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
                 type="button"
                 onClick={() => copy(m.value)}
                 disabled={!m.value?.trim()}
-                className="shrink-0 rounded-lg border border-black/[0.06] bg-white p-1.5 text-baylink-muted transition hover:text-baylink-green disabled:cursor-not-allowed disabled:opacity-40"
+                className="shrink-0 rounded-lg border border-black/[0.06] bg-white p-1.5 text-baylink-muted transition hover:text-baylink-green disabled:cursor-not-allowed disabled:border-transparent disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)]"
                 aria-label={`复制${typeLabel(m.type, m.label)}`}
               >
                 <Copy size={14} />

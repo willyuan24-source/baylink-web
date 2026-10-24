@@ -40,39 +40,46 @@ const native = (root: ParentNode) => [
 ];
 
 beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); localStorage.clear(); await setLocale('zh-Hans'); });
+// The filters other than the search field are in the 筛选 sheet (DECISIONS 41, NAV PR B), portalled to <body>.
+const openFilters = async (view: ReturnType<typeof render>) => { await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); }); return within(await view.findByRole('dialog', { name: '筛选小队' })); };
 afterEach(() => cleanup());
 after(() => { styles.deregister(); dom.window.close(); });
 
 test('the hub has no native date, time or select control: date chips (未来 7 天) and the ui Select', async t => {
   t.mock.method(api, 'request', async () => ({ outings: [], nextCursor: null }));
   const view = render(hub()); await view.findByText('还没有符合条件的小队');
-  assert.deepEqual(native(view.container), []);
-  const dates = view.getByRole('group', { name: '参加日期' });
+  const sheet = await openFilters(view);
+  assert.deepEqual(native(document.body), []);
+  const dates = sheet.getByRole('group', { name: '参加日期' });
   assert.deepEqual(within(dates).getAllByRole('button').map(chip => chip.textContent), ['今天', '本周末', '未来 7 天', '选日期']);
-  assert.ok(view.container.querySelector('.ui-select>select.ui-select__field[name=language]'), 'the language filter is the ui Select');
-  assert.doesNotMatch(view.container.textContent ?? '', /未来7天|7天包含/);
-  assert.match(view.container.textContent ?? '', /未来 7 天包含今天/);
-  assert.equal((view.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).placeholder, '旧金山 / SF');
+  assert.ok(document.querySelector('.outing-filter-sheet .ui-select>select.ui-select__field[name=language]'), 'the language filter is the ui Select');
+  const words = document.querySelector('.outing-filter-sheet')?.textContent ?? '';
+  assert.doesNotMatch(words, /未来7天|7天包含/);
+  assert.match(words, /未来 7 天包含今天/);
+  assert.equal((sheet.getByRole('textbox', { name: '城市（可选）' }) as HTMLInputElement).placeholder, '旧金山 / SF');
 });
 
 test('choosing the selected quick range again clears the dates; a URL range that is no quick range reads in words with no chip on', async t => {
   const requests: URLSearchParams[] = [];
   t.mock.method(api, 'request', async (path: string) => { requests.push(new URL(path, 'https://example.test').searchParams); return { outings: [], nextCursor: null }; });
   const view = render(hub()); await view.findByText('还没有符合条件的小队');
-  const weekend = () => view.getByRole('button', { name: '本周末' });
-  await act(async () => { weekend().click(); }); await view.findByText('10月3日周六 — 10月4日周日');
+  const sheet = await openFilters(view);
+  const weekend = () => sheet.getByRole('button', { name: '本周末' });
+  await act(async () => { weekend().click(); }); await sheet.findByText('10月3日周六 — 10月4日周日');
   assert.equal(weekend().getAttribute('aria-pressed'), 'true');
-  assert.equal(requests.at(-1)!.get('dateFrom'), '2026-10-03'); assert.equal(requests.at(-1)!.get('dateTo'), '2026-10-04');
   await act(async () => { weekend().click(); }); await act(async () => {});
-  assert.equal(requests.at(-1)!.has('dateFrom'), false); assert.equal(requests.at(-1)!.has('dateTo'), false);
   assert.equal(weekend().getAttribute('aria-pressed'), 'false');
-  assert.equal(view.queryByRole('button', { name: '清除日期' }), null);
+  assert.equal(sheet.queryByRole('button', { name: '清除日期' }), null);
+  await act(async () => { sheet.getByRole('button', { name: '显示小队' }).click(); }); await act(async () => {});
+  assert.equal(requests.at(-1)!.has('dateFrom'), false); assert.equal(requests.at(-1)!.has('dateTo'), false);
   cleanup();
   const range = render(hub('/together?dateFrom=2026-10-08&dateTo=2026-10-12')); await range.findByText('还没有符合条件的小队');
-  const chips = within(range.getByRole('group', { name: '参加日期' })).getAllByRole('button');
+  assert.ok(range.getByText('10月8日周四 — 10月12日周一'), 'a range in force reads in words under the bar');
+  const rangeSheet = await openFilters(range);
+  const chips = within(rangeSheet.getByRole('group', { name: '参加日期' })).getAllByRole('button');
   assert.deepEqual(chips.filter(chip => chip.getAttribute('aria-pressed') === 'true').map(chip => chip.textContent), []);
-  assert.ok(range.getByText('10月8日周四 — 10月12日周一'));
-  assert.ok(range.getByRole('button', { name: '清除日期' }));
+  assert.ok(rangeSheet.getByText('10月8日周四 — 10月12日周一'));
+  assert.ok(rangeSheet.getByRole('button', { name: '清除日期' }));
 });
 
 test('the results area reserves the empty state height while loading, except on a first frame with the site footer on screen', async t => {
@@ -93,7 +100,7 @@ test('the results area reserves the empty state height while loading, except on 
   } finally { footer.remove(); }
 });
 
-test('one filled primary per view: 筛选小队 is secondary; the empty and error states are the ui states', async t => {
+test('one filled primary per view: 筛选 is a chip; the empty and error states are the ui states', async t => {
   let fail = true;
   t.mock.method(api, 'request', async () => { if (fail) throw { status: 503 }; return { outings: [], nextCursor: null }; });
   const view = render(hub());
@@ -105,7 +112,9 @@ test('one filled primary per view: 筛选小队 is secondary; the empty and erro
   // A failed load: 重试 is the one solid button; the head's 发起小队 steps down to secondary (UI9-R1 polish).
   assert.deepEqual(primaries(), ['重试']);
   assert.ok(view.getByRole('button', { name: '发起小队' }).classList.contains('outing-secondary'));
-  assert.ok(view.getByRole('button', { name: '筛选小队' }).classList.contains('outing-secondary'));
+  const chip = view.getByRole('button', { name: /^筛选/ });
+  assert.ok(chip.classList.contains('outing-filter-chip') && chip.getAttribute('aria-haspopup') === 'dialog', '筛选 is a chip that opens the sheet');
+  assert.equal(view.queryByRole('button', { name: '筛选小队' }), null, 'no second filter button on the page');
   fail = false;
   await act(async () => { view.getByRole('button', { name: '重试' }).click(); });
   const empty = (await view.findByText('还没有符合条件的小队')).closest('.ui-state');
@@ -208,7 +217,10 @@ test('UI9-R1 polish: 我的小队 for a guest leads with 登录后继续; the la
   const browse = render(hub()); await browse.findByText('还没有符合条件的小队');
   assert.ok(browse.getAllByRole('button', { name: '发起小队' })[0].classList.contains('outing-primary'), 'the browse view: the head leads again');
   // The filter Select keeps the pill (select.css --chip); every form Select takes the field corner.
-  assert.ok(browse.container.querySelector('select[name=language]')!.classList.contains('ui-select__field--chip'));
+  await openFilters(browse);
+  assert.ok(document.querySelector('.outing-filter-sheet select[name=language]')!.classList.contains('ui-select__field--chip'));
+  // The sheet's one solid button is 显示小队; 清除 is a text button.
+  assert.deepEqual([...document.querySelectorAll('.outing-filter-sheet :is(.outing-primary,.ui-button[data-variant=primary])')].map(button => button.textContent), ['显示小队']);
   const field = browse.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement;
   assert.equal(field.placeholder, '散步、看展、咖啡或集合点');
   assert.notEqual(field.parentElement!.querySelector('svg')!.getAttribute('width'), '16', 'the magnifier is sized by CSS (1em), not a fixed 16px');

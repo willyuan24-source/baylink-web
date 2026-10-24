@@ -95,8 +95,9 @@
 html:not([data-simple]) .ui-row-card:has(>.ui-row-card__save+.ui-row-card__trailing) { grid-template-areas:"thumb body save" "thumb body trailing"; }
 .ui-row-card__save:has(+.ui-row-card__trailing) { grid-area:save; place-self:end; }
 /* 简洁 / 家人版: list rows drop the ♡ (decision 16; covers.css does the same for a trailing ♡), not 我的收藏 (#saved, whose
-   rows have no 加入), so a row with 加入 is a one-action row again. */
-[data-simple] .ui-row-card__save:not(#saved *) { display:none; }
+   rows have no 加入), so a row with 加入 is a one-action row again. On html only: a section marked data-simple=hide (the
+   /events pick rows) is not 简洁, and its rows keep their ♡ at the other sizes. */
+html[data-simple] .ui-row-card__save:not(#saved *) { display:none; }
 /* An 88px thumbnail keeps its label as every picture does (covers.css: bottom-left, one line, its short words); the date
    and price are already in the row. */
 .ui-row-card__thumb .ui-stickers { display:none; }

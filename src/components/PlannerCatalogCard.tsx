@@ -16,7 +16,7 @@ export type PlannerCatalogItem = Stop & { title: string; city: string; summary: 
  * One event or place in the planner's list (行程, plan T13): a RowCard with its cover (getCover via PlannerStopThumb),
  * kicker (date or kind) and one meta line, the ♡ on the thumbnail (the one ♡ on a picture, N13), 加入计划 as the row's one
  * compact trailing button (D7: a calendar+ circle named 加入计划, with 加入 beside the icon from 768px), then the summary,
- * any offers and 以这里为起点. The map pin number, when the stop is on the map, leads the kicker.
+ * any offers and one 更多操作 menu (以这里为起点, the map and the coordinates' source). The map pin number, when the stop is on the map, leads the kicker.
  */
 export function PlannerCatalogCard({ item, cover, today, date, pin, selected, favorite, favoriteReady, busy, replacing, onToggleFavorite, onAdd, onStart, children }: {
   item: PlannerCatalogItem; cover: ResolvedCover; today: string; date: string; pin: number; selected: boolean;
@@ -45,11 +45,15 @@ export function PlannerCatalogCard({ item, cover, today, date, pin, selected, fa
     {item.when && <p className="planner-place-when">{item.when}</p>}
     {item.summary && <p className="planner-place-summary">{item.summary}</p>}
     <PlannerStopOffers stop={item} date={date} />
-    {onStart && <div className="planner-place-actions"><Button variant="text" onClick={onStart}>{t('以这里为起点', 'Start here')}</Button></div>}
-    {item.point && <p className="planner-place-links">
-      <a href={`https://www.google.com/maps/search/?api=1&query=${item.point.lat},${item.point.lng}`} target="_blank" rel="noreferrer">{translateText('查看地图与路线 ↗', locale)}</a>
-      <a href={item.point.sourceUrl} target="_blank" rel="noreferrer">{translateText('坐标来源 ↗', locale)}</a>
-    </p>}
+    {/* R2-10: the row's secondary actions in one overflow menu under the summary (one text link per row at most). */}
+    {(onStart || item.point) && <details className="planner-place-menu">
+      <summary>{t('更多操作', 'More actions')}</summary>
+      <div>
+        {onStart && <Button variant="text" onClick={onStart}>{t('以这里为起点', 'Start here')}</Button>}
+        {item.point && <a href={`https://www.google.com/maps/search/?api=1&query=${item.point.lat},${item.point.lng}`} target="_blank" rel="noreferrer">{translateText('查看地图与路线 ↗', locale)}</a>}
+        {item.point && <a href={item.point.sourceUrl} target="_blank" rel="noreferrer">{translateText('坐标来源 ↗', locale)}</a>}
+      </div>
+    </details>}
     {children}
   </div>;
 }

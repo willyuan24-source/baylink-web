@@ -1,6 +1,6 @@
 import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SkeletonFeed, SkeletonRow, useFeedLayout } from '../../components/ui';
 import { DayChips } from '../../components/ui/Segmented';
 import { Disclosure } from '../../components/ui/Disclosure';
@@ -23,7 +23,7 @@ import { prefetchLaterEvents, useIndexEvents } from './events-later';
 import { ChunkBoundary, ChunkError } from './ChunkBoundary';
 import { loadWhenIdle, parts, retryableLazy, useOnDemand } from './lazy-view';
 import type { IndexEvent } from './events-index-types';
-import { EventFeedCard, EventLeadCard, EventRowCard } from './EventCards';
+import { EventFeedCard, EventLeadCard, EventRowCard, NextCard, NextLinks, NextRow } from './EventCards';
 import type { StripProps, StripState } from './ShareLandingStrip';
 import { ImageCredits } from './ImageCredits';
 import { arrangePicks, homeLeadFor, leadImageKey } from './weekend-lead';
@@ -235,19 +235,25 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     ] : []),
   ];
   const dateValue = weekend ? day || 'weekend' : SCOPES.includes(filters.when) ? filters.when : '';
+  // UI9-R2 R2-12: on a phone at 大 / 特大 the rail is three chips and 筛选 — the date choice (本周末 ▾ / 周六 ▾ / 未来 7 天 ▾,
+  // the sheet holds the dates and the weekend's days), 免费 and the region — plus a tag that is on; the date radios and the
+  // other tags wait in the sheet (events.css), so the filters never stack into a wall of 3–4 rows.
+  const dateChipLabel = dateItems.find(item => item.id === dateValue)?.label;
   const rail = <div className="ev-rail" role="group" aria-label={t('选择日期和筛选', 'Dates and filters')}>
     <DayChips className="ev-rail__group ev-rail__dates" label={t('选择日期', 'Choose dates')} items={dateItems} value={dateValue}
       part={weekend ? { from: scopes.length, className: 'ev-days-bar ev-days' } : undefined}
       onChange={id => (SCOPES as readonly string[]).includes(id) ? update({ when: id === defaultWhen ? null : id, day: null }) : update({ day: id })} />
     <div className="ev-rail__group">
+      {roomy && !simple && dateChipLabel && <FilterChip className="ev-date-chip" selected aria-haspopup="dialog" onClick={() => setSheetOpen(true)}
+        aria-label={t(`日期：${dateChipLabel}，换日期`, `Dates: ${dateChipLabel}, change`)}>{dateChipLabel}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
       <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
       {/* 简洁显示 keeps 免费 only, and a tag that is on (home's 亲子 / 长辈友好 links), so it can be seen and cleared. */}
-      {RAIL_TAGS.map(id => <FilterChip key={id} data-simple={filters.tag === id ? undefined : 'hide'} selected={filters.tag === id} onClick={() => update({ tag: filters.tag === id ? null : id, category: null })}>{pick(TAGS.find(tag => tag.id === id)!.label)}</FilterChip>)}
+      {RAIL_TAGS.map(id => <FilterChip key={id} className="ev-rail__tag" data-simple={filters.tag === id ? undefined : 'hide'} selected={filters.tag === id} onClick={() => update({ tag: filters.tag === id ? null : id, category: null })}>{pick(TAGS.find(tag => tag.id === id)!.label)}</FilterChip>)}
       {sheetChips.map(chip => <FilterChip key={chip.key} selected aria-label={t(`清除：${chip.label}`, `Clear ${chip.label}`)} onClick={() => update(chip.clear)}>{chip.label}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>)}
       {/* 简洁显示 (D6, filters on two rows at most): 整个湾区 ▾ steps aside until a region is chosen (筛选 holds the regions). */}
       <FilterChip className="ev-region-chip" data-simple={filters.region === 'all' ? 'hide' : undefined} selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>{pick(regionLabel(filters.region))}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
       <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
-        icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
+        icon={<span className="ev-glyph" data-glyph="filters" aria-hidden="true" />}>{t('筛选', 'Filters')}</FilterChip>
     </div>
   </div>;
 
@@ -373,26 +379,30 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
 
     {/* The 筛选 sheet loads on its own (idle, or the first tap), then stays mounted for its exit animation. */}
     {sheetOpen !== undefined && FilterSheet && <FilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)} count={sheetCount} status={sheetStatus}
-      filters={filters} defaultWhen={defaultWhen} query={params.get('q') || ''} regions={regionChips} update={update} clear={clear} />}
+      filters={filters} defaultWhen={defaultWhen} query={params.get('q') || ''} regions={regionChips} update={update} clear={clear}
+      days={weekend ? { items: dateItems.slice(scopes.length), value: day } : undefined} />}
   </>;
 }
 
 /**
- * The end of the list (VISUAL-18 → G10): one quiet list of links at 400 — save the weekend as an image (本周末 only),
- * subscribe, and one link each to the rest. In 简洁显示 only the first two stay.
+ * The end of the list (VISUAL-18 → G10 → UI9-R2 C P20): one 接下来 card — save the weekend as an image (本周末 only),
+ * subscribe in a phone calendar, and one row of the related lists (免费与优惠 · 新店 · 半日慢游去处 · 出门前读一篇指南). In
+ * 简洁显示 only the first two rows stay.
  */
 export function EventsPageEnd({ region, today, weekend = true }: { region: EventsFilters['region']; today: string; weekend?: boolean }) {
   const { t } = useUiCopy();
-  return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <ul>
-      {weekend && <li><a className="ev-end__item" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a></li>}
-      <li><a className="ev-end__item" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a></li>
-      <li data-simple="hide"><Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link></li>
-      <li data-simple="hide"><Link className="ev-end__item" to="/events?view=openings">{t('新店', 'New shops')}</Link></li>
-      <li data-simple="hide"><Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link></li>
-      <li data-simple="hide"><Link className="ev-end__item" to="/guides">{t('出门前读一篇指南', 'Read a guide before you go')}</Link></li>
-    </ul>
-  </nav>;
+  return <NextCard label={t('更多活动入口', 'More from Events')}>
+    {weekend && <NextRow glyph="image" words={t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}
+      link={inner => <a className="ev-end__item" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{inner}</a>} />}
+    <NextRow glyph="calendar" words={t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}
+      link={inner => <a className="ev-end__item" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{inner}</a>} />
+    <NextLinks glyph="compass" label={t('也看看', 'See also')} simpleHide>
+      <li><Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link></li>
+      <li><Link className="ev-end__item" to="/events?view=openings">{t('新店', 'New shops')}</Link></li>
+      <li><Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link></li>
+      <li><Link className="ev-end__item" to="/guides">{t('出门前读一篇指南', 'Read a guide before you go')}</Link></li>
+    </NextLinks>
+  </NextCard>;
 }
 
 export type { ResolvedCover };

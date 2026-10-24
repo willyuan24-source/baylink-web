@@ -1,0 +1,13 @@
+/* The account pages' photographic band (AccountBand.tsx: /me, /together; UI9-R2-ACCOUNT-UTILITY R2-15). One ③ photo on the
+   page frame, full bleed in the frame's corner radius (DECISIONS 32 OD1: no mat, border or shadow), its 示意图 label at the
+   bottom-left (covers.css), the credit right under it. A fixed ratio (3:1 phone, 6:1 from 768) keeps CLS at 0; every mode
+   shows it (DECISIONS 21), 简洁显示 included. Tokens only. */
+.account-band { margin:0 0 var(--sp-4); }
+.account-band>.account-band__picture.ui-cover { aspect-ratio:3 / 1; border-radius:var(--r-lg); }
+@media (min-width:768px) { .account-band>.account-band__picture.ui-cover { aspect-ratio:6 / 1; } }
+/* The credit: label, photographer (the photo's page) and licence, one wrapping row with gaps and no " · ", so no line starts
+   on a separator (N06); each link is a 44px target (48 in 简洁显示). */
+.account-band__credit { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; column-gap:var(--sp-3); color:var(--color-ink-3); font-size:var(--text-fact); line-height:var(--lh-ui); }
+.account-band__credit>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-ink-2); text-decoration:underline var(--underline-thickness); text-decoration-color:var(--color-line-strong); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; overflow-wrap:anywhere; }
+@media (hover:hover) and (pointer:fine) { .account-band__credit>a:hover { text-decoration-color:currentColor; } }
+.account-band__credit>a:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }

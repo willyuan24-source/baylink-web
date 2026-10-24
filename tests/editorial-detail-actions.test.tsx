@@ -7,6 +7,8 @@ import { StaticRouter } from 'react-router-dom';
 import '../src/i18n/router';
 import { localDiscoveries, type LocalDiscovery } from '../src/data/local-discoveries';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+// An offer's and an opening's facts are their own chunk (shop-parts.ts); importing it registers them.
+import '../src/features/detail/ShopFacts';
 import { buildDetailRecord } from '../src/features/detail/build-detail';
 import { setLocale } from '../src/i18n/locale';
 import { getListingImage } from '../src/lib/offer-media';
@@ -48,7 +50,7 @@ test('offer and opening pages open on the hero; the official page is on the firs
   }
   const shopPage = page(opening);
   assert.ok(shopPage.querySelector('.detail-hero [data-cover="image"] .ui-provenance'), 'the photo carries its provenance badge');
-  assert.ok(shopPage.querySelector('.detail-credit'), 'the credit line stays on the page');
+  assert.ok(shopPage.querySelector('.detail-hero .ui-cover > .detail-photo-credit'), 'the credit stays on the picture');
 });
 
 test('offer conditions read as a checklist, the steps as 1-2-3, and the real store lookup stays', () => {

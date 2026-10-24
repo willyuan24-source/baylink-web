@@ -21,9 +21,12 @@ import { canLead, leadImageKey } from './weekend-lead';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
-// The lead cover is the phone width, or the 6-column span on desktop (events.css). It is the day's LCP image, so on phones
-// it takes the 800w rung at most (PHONE_COVER_CAP).
-const LEAD_SIZES = `${PHONE_COVER_CAP}, (max-width: 1023px) calc(100vw - 48px), 596px`;
+// The lead cover (the day's LCP image): a phone's 2-up cell, the full width on a tablet, the 6-column span on desktop
+// (events.css). A day with one event shows it phone-wide, so it takes the 800w rung at most there (PHONE_COVER_CAP).
+const LEAD_SIZES = '(max-width: 767px) calc(50vw - 22px), (max-width: 1023px) calc(100vw - 48px), 596px';
+const ONE_SIZES = `${PHONE_COVER_CAP}, (max-width: 1023px) calc(100vw - 48px), 596px`;
+/** The other events: a phone's 2-up cell, a 112px 4:3 row thumbnail from 768px. */
+const CARD_SIZES = '(max-width: 767px) calc(50vw - 22px), 112px';
 const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) === day;
 /** Rows per page: 12; 6 in 简洁显示 and 4 in 家人版 (content arrangement §6). The city rail names the top 4 cities. */
 const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4, TOP_CITIES = 4;
@@ -32,9 +35,13 @@ const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4, TOP_CITIES = 4;
  * 日历·地图 (design.md §4.11 ④; UI9-EVENTS content arrangement §5; UI9-R1 AFTER-A1): the week strip (‹ 10/19–25 ›, the
  * range opens the month grid and the region in a Sheet, then the 7 days with dots), then a section gap (N15), the day head
  * (H2 10/19 周一 · 9 场 in the site's date pattern, N06, with 列表 | 地图 always on its row, J2 P7), a city rail (全部, the
- * day's top 4 cities, 更多城市), the day's lead (the first picture that can lead) and rows 12 at a time. Every listed event
- * has one 加入这天计划 control, the compact calendar+ icon (D7: no wall of outline buttons). The list end names what is
- * shown, the next day and BayBay. The map loads when opened.
+ * day's top 4 cities, 更多城市), then the day's list in ONE anatomy (UI9-R2 R2-10): at the standard size the feed card —
+ * on a phone the same 2-up card as 未来 7 天, the first one the day's lead (the first picture that can lead); from 768px the
+ * lead card (span 6 beside four rows on desktop, the full width under 40vh on a tablet) and the others as rows, the same
+ * cards restyled (events.css) — and at 大 / 特大 / 简洁 every event a row. Every listed event has one 加入这天计划 control,
+ * the 加入 pill (D7: no wall of outline buttons), under the meta on a phone, beside the title or at the row's end from
+ * 768px, never on a picture. 12 at a time after the lead. The list end names what is shown, the next day and BayBay. The
+ * map loads when opened.
  */
 export default function CalendarView({ today }: { today: string }) {
   const { t, pick, english, locale } = useUiCopy();
@@ -89,9 +96,6 @@ export default function CalendarView({ today }: { today: string }) {
   const shownCount = pageSize * (pages.scope === `${scope}:${city}` ? pages.count : 1);
   const shownEvents = ordered.slice(0, shownCount + 1);
   const more = Math.min(pageSize, ordered.length - shownEvents.length);
-  // The phone's 2-up first row (lead + next event): marked here, not found by :has(), so a browser without :has() (Safari
-  // before 15.4, Firefox before 121) still shows each event once.
-  const pair = !roomy && shownEvents.length > 1;
   // DECISIONS 15/26: a lead never shows a close-up face photo; it takes its next candidate (never an information card).
   const covers = resolveCovers(shownEvents.map((event, index) => coverItemFor('event', event, { imageKey: index ? event.imageKey : leadImageKey(event.imageKey), lead: !index })), { ...coverContext(today), page: createCoverPage() });
   // The nearest days with events after an empty one can be past the route's own days: they read the whole catalog.
@@ -105,8 +109,8 @@ export default function CalendarView({ today }: { today: string }) {
   const nearest = [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(0, 3);
   const past = date < today;
   // 加入这天计划 (WEB-SAVES, plan D19) on every listed event of today or a later day: saves into that day's plan at once. The
-  // icon variant (D7): a 44px calendar+ on the picture's corner on phones, with the word 加入 beside the title or at the
-  // row's end from 768px (events.css); its name stays 加入这天计划：<title>.
+  // icon variant (D7) as the 加入 pill: under the meta on a phone (a card's last line, or a row's), beside the lead's title
+  // or at a row's end from 768px (events.css), never on a picture; its name stays 加入这天计划：<title>.
   const addToDay = (event: IndexEvent) => past ? undefined : <AddToDayPlan className="ev-add-day" stop={{ kind: 'event', id: event.id }} date={date} title={event.title} today={today} variant="icon" />;
   const beforeIndex = date < EVENTS_INDEX.edition.checkedAt;
 
@@ -174,18 +178,14 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-calendar__rows" aria-live="polite">
       {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
       : shownEvents.length ? <>
-        {/* The lead card (span 6 beside four rows on desktop). On a standard phone the lead and the next event are one 2-up
-            row of cards (--pair), so two whole cards fit the first screen (N18); that event's row (.ev-calendar__pair-row)
-            steps aside there (events.css), as the /events pick rows do. At 大 / 特大 and in 简洁显示 every event is a row. */}
-        {!roomy && <FeedGrid single label={t('这一天的活动', 'Events this day')} className={pair ? 'ev-calendar__lead ev-calendar__lead--pair' : 'ev-calendar__lead'}>
-          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} oneDay={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
-          {shownEvents.length > 1 && <FeedItem><EventFeedCard event={shownEvents[1]} cover={covers[1]} today={today} days={[date]} day={date} oneDay={date} action={addToDay(shownEvents[1])} /></FeedItem>}
-        </FeedGrid>}
-        {shownEvents.slice(roomy ? 0 : 1).map((event, index) => {
-          const at = roomy ? index : index + 1;
-          const row = <EventRowCard key={event.id} event={event} cover={covers[at]} today={today} day={date} oneDay action={addToDay(event)} />;
-          return !roomy && at === 1 ? <div key={event.id} className="ev-calendar__pair-row">{row}</div> : row;
-        })}
+        {/* One list, one anatomy (R2-10): the feed cards — a phone's 2-up grid (the first card the lead), from 768px the lead
+            card and the others restyled as rows (events.css) — or, at 大 / 特大 and in 简洁显示, every event a row. A day with
+            one event shows its card phone-wide (2:1, events.css). */}
+        {roomy ? shownEvents.map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index]} today={today} day={date} oneDay action={addToDay(event)} />)
+          : <FeedGrid label={t('这一天的活动', 'Events this day')} single={shownEvents.length === 1} className="ev-cards ev-calendar__cards">
+            {shownEvents.map((event, index) => <FeedItem key={event.id}><EventFeedCard event={event} cover={covers[index]} today={today} days={[date]} day={date} oneDay={date}
+              sizes={index ? CARD_SIZES : shownEvents.length === 1 ? ONE_SIZES : LEAD_SIZES} priority={!index} action={addToDay(event)} /></FeedItem>)}
+          </FeedGrid>}
         <div className="ev-list-end ev-calendar__end">
           <p className="ev-list-end__count">{t(`已显示 ${shownEvents.length} / ${ordered.length} 场`, `Showing ${shownEvents.length} of ${ordered.length}`)}</p>
           {more > 0 && <Button variant="secondary" className="ev-list-end__more" onClick={() => setPages(current => ({ scope: `${scope}:${city}`, count: (current.scope === `${scope}:${city}` ? current.count : 1) + 1 }))}>{t(`再看 ${more} 场`, `Show ${more} more`)}</Button>}

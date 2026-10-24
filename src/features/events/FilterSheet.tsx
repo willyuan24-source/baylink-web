@@ -14,13 +14,17 @@ export type FilterSheetProps = {
   regions: ReactNode;
   update: (changes: Record<string, string | null>) => void;
   clear: () => void;
+  /** On the weekend, its days (周六 / 周日 / 两天都开放): the rail's day chips, here too, as the phone rail at 大 / 特大 shows
+   *  only the date choice (UI9-R2 R2-12). None checked is the whole weekend. */
+  days?: { items: readonly { id: string; label: string }[]; value: string };
 };
 
 /**
- * The 筛选 sheet of the date lists (WeekendView): when, region, what kind (免费 and every tag) and the keyword. Its own
+ * The 筛选 sheet of the date lists (WeekendView): when (and on the weekend its days), region, what kind (免费 and every
+ * tag) and the keyword. Its own
  * chunk, loaded when the page is idle or the sheet first opens, so the routes' first load leaves it out (UI9-EVENTS budgets).
  */
-export default function FilterSheet({ open, onClose, count, status, filters, defaultWhen, query, regions, update, clear }: FilterSheetProps) {
+export default function FilterSheet({ open, onClose, count, status, filters, defaultWhen, query, regions, update, clear, days }: FilterSheetProps) {
   const { t, pick } = useUiCopy();
   return <Sheet open={open} onClose={onClose} title={t('筛选活动', 'Filter events')} status={status}
     footer={<>
@@ -31,6 +35,9 @@ export default function FilterSheet({ open, onClose, count, status, filters, def
       {WHEN_OPTIONS.map(option => <FilterChip key={option.id} selected={filters.when === option.id}
         onClick={() => update({ when: option.id === defaultWhen ? null : option.id, day: null })}>{pick(option.label)}</FilterChip>)}
     </SheetSection>
+    {days && days.items.length > 0 && <SheetSection title={t('本周末哪一天', 'Which day this weekend')}>
+      {days.items.map(item => <FilterChip key={item.id} selected={days.value === item.id} onClick={() => update({ day: days.value === item.id ? null : item.id })}>{item.label}</FilterChip>)}
+    </SheetSection>}
     <SheetSection title={t('地区', 'Region')}>{regions}</SheetSection>
     <SheetSection title={t('想找什么', 'What kind')}>
       <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>

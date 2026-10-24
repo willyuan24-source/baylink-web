@@ -79,7 +79,10 @@ test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the c
   // 反馈与报错 stays 8px under the actions (no fill that would strand it above the footer on a tall window), and the
   // page stylesheet leaves the chrome's <main> alone.
   assert.equal(page.flex, undefined);
-  assert.equal(one('src/components/not-found.css', '.nf-actions').margin, 'var(--section-gap) 0 var(--sp-2)');
+  // UI9-R2-ACCOUNT-UTILITY: the actions sit in the 还是没找到？ block, one section gap under the four places on a phone
+  // (beside them as the desktop side card), 16px under its line.
+  assert.equal(one('src/components/not-found.css', '.nf-help')['margin-top'], 'var(--section-gap)');
+  assert.equal(one('src/components/not-found.css', '.nf-actions').margin, 'var(--sp-4) 0 var(--sp-2)');
   assert.equal(one('src/components/not-found.css', '.nf-feedback')['margin-top'], undefined);
   // The lazy 反馈与报错 link's row is held from the first paint (the prerender has an empty .nf-feedback).
   assert.equal(one('src/components/not-found.css', '.nf-feedback')['min-height'], 'var(--control-height)');
@@ -88,14 +91,15 @@ test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the c
   assert.equal(one('src/components/not-found.css', '.nf-links a', '(min-width:1024px)')['min-height'], '5.5rem');
 });
 
-test('the account shell (first paint of the account pages) is a title bar over skeleton rows, the window tall (J1 P21 / J3 P23)', () => {
+test('the account shell (first paint of the account pages) is shaped like its page, the window tall (J1 P21 / J3 P23, DECISIONS 41)', () => {
   const file = 'src/features/profile/me-hub.css';
   assert.equal(one(file, '.account-shell')['min-height'], '100svh');
-  assert.equal(one(file, '.account-shell::before').content, '""');
+  assert.equal(one(file, '.account-shell__block[data-block=band]')['aspect-ratio'], '3 / 1', 'the band block is the photo band\'s frame');
+  assert.equal(one(file, '.account-shell__tiles')['grid-template-columns'], 'repeat(2, minmax(0, 1fr))', '/me: 2 x 2 tiles on a phone');
   // These rules reach account-shell.html only through the /me prerender: scripts/prerender.tsx renders the shell for /me,
   // so the file links the /me route's CSS, which carries me-hub.css (ProfileView imports it). Either link breaking drops the
   // rules silently (the built file itself is checked after the build, not here: npm test runs before npm run build).
-  assert.match(readFileSync('scripts/prerender.tsx', 'utf8'), /renderPage\(\{[^}]*path: '\/me'[^}]*\}, <AccountShell \/>, ACCOUNT_SHELL_FILE\)/);
+  assert.match(readFileSync('scripts/prerender.tsx', 'utf8'), /for \(const shell of ACCOUNT_SHELLS\) \{\n {2}await renderPage\(\{[^}]*path: '\/me'[^}]*\}, <AccountShell page=\{shell\.page\} \/>, shell\.file\);/);
   assert.match(readFileSync('src/features/profile/ProfileView.tsx', 'utf8'), /^import '\.\/me-hub\.css';$/m);
 });
 

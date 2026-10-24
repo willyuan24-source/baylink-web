@@ -48,7 +48,7 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
     {known ? <p className="home-head__dateline" data-simple="hide" {...dateScope('weekend')}>{t('湾区本周末', 'Bay Area weekend')} · <time dateTime={start}>{weekendRange(start, end, english)}</time></p>
       : <p className="home-head__dateline" data-simple="hide" {...dateScope('day')}>{t('湾区', 'Bay Area')} · <time dateTime={today}>{longDate(today, english)}</time></p>}
     <h1 className="home-head__title">{t('这个周末，湾区去哪？', 'Where to go in the Bay this weekend?')}</h1>
-    <p className="home-head__identity">{pick(SITE_IDENTITY)} · {pick(FREE_NO_SIGN_IN)}</p>
+    <p className="home-head__identity">{pick(SITE_IDENTITY)}{'\u00a0· '}<span className="home-head__keep">{pick(FREE_NO_SIGN_IN)}</span></p>
     <form className="home-ask" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       {/* The hero's one BayBay entry (J3 P12); 简洁 keeps none here, as before: its submit button turns into 问 BayBay. */}

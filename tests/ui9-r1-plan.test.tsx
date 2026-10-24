@@ -166,3 +166,38 @@ test('CSS: no bespoke button looks, no native marker or grip, measure caps, sect
   // DECISIONS 13: no font-size literal in a sheet this lane touched.
   for (const rule of all) if (rule.decls['font-size']) assert.match(rule.decls['font-size'], /^var\(--/, `${rule.selector}: ${rule.decls['font-size']}`);
 });
+
+// UI9-R2-PLAN (second cold review): R2-10 — a row's secondary actions sit in one 更多操作 menu, with no loose text link
+// beside the title; N25 — the catalog tabs wrap instead of scrolling sideways; and the 特大 pick card keeps three rows.
+test('R2-10: each catalog row has at most one 更多操作 menu, a place row holds 以这里为起点 and the two map links in it, and no other link sits outside it', async () => {
+  const view = await openPlanner();
+  const all = rows(view);
+  const places = all.filter(row => !row.id.startsWith('catalog-event:'));
+  assert.ok(places.length > 0, 'the first page shows places');
+  for (const row of all) {
+    const menus = row.querySelectorAll('details.planner-place-menu');
+    assert.ok(menus.length <= 1, `${row.id}: one menu at most`);
+    assert.equal(row.querySelector('.planner-place-links, .planner-place-actions'), null, `${row.id}: no loose action row`);
+    const loose = [...row.querySelectorAll('a')].filter(link => !link.closest('.planner-place-menu') && !link.closest('.ui-row-card__title'));
+    assert.deepEqual(loose.map(link => link.textContent), [], `${row.id}: no text link outside the menu but the title`);
+  }
+  const withPoint = places.find(row => row.querySelector('.planner-place-menu a[target=_blank]'));
+  assert.ok(withPoint, 'a place row with a map point');
+  const menu = withPoint!.querySelector<HTMLElement>('details.planner-place-menu')!;
+  assert.equal(menu.querySelector(':scope>summary')?.textContent, '更多操作');
+  assert.ok([...menu.querySelectorAll('button')].some(button => button.textContent === '以这里为起点'), 'the start action is in the menu');
+  assert.equal(menu.querySelectorAll('a[target=_blank]').length, 2, 'the map and source links are in the menu');
+});
+
+test('N25 + R2-10 CSS: the catalog tabs wrap with nothing clipped, the menu items share one look, and the 特大 pick card keeps three rows', () => {
+  const page = rules('src/styles/plan-page.css');
+  const tabs = page.find(rule => rule.selector === '.ui-chip-row.planner-catalog-tabs');
+  assert.equal(tabs?.decls['flex-wrap'], 'wrap');
+  assert.equal(tabs?.decls.overflow, 'visible');
+  const start = page.find(rule => rule.selector === '.planner-place-menu .ui-button[data-variant=quiet]');
+  const link = page.find(rule => rule.selector === '.planner-place-menu a');
+  for (const prop of ['min-height', 'text-decoration', 'text-underline-offset']) assert.equal(start?.decls[prop], link?.decls[prop], prop);
+  assert.equal(start?.decls.padding, '0');
+  const pick = page.find(rule => /\.plan-weekend \.ui-feed-card$/.test(rule.selector) && rule.decls.display === 'grid');
+  assert.equal(pick?.decls['grid-template-rows'], 'auto auto 1fr');
+});

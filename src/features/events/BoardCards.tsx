@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { COVER_SIZES, Cover, FeedCard, RowCard, StatusChip, offerBrandLine, useTierLabel } from '../../components/ui';
+import { COVER_SIZES, Cover, FeedCard, RowCard, StatusChip, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText, type Locale } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
@@ -37,17 +37,12 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
   return <>{t('媒体报道', 'News report')}{SEP}{t(`${readerMonthDay(day)} 核对`, `checked ${readerMonthDay(day, true)}`)}</>;
 }
 /**
- * Whether a row's source line names the picture: a ①② photo's words move from the 88 px thumbnail into the line, except in
- * 简洁 (DECISIONS 16); a ③ 示意图 / ④ AI 示意图 keeps its chip on the thumbnail in every size and mode (DECISIONS 23,
- * covers.css), so the line never repeats it.
+ * A row has no trust slot: its source line goes in the 13 px line under the meta. The picture's words are its one label on
+ * the thumbnail (UI9-R2 R2-03, every tier), so the line never repeats them.
  */
-const rowProvenance = (cover: ResolvedCover, simple?: boolean) =>
-  cover.tier !== 'type' && cover.tier !== 'stock' && cover.tier !== 'ai' && !simple;
-
-/** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
-function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?: string; sourceLabel?: string }) {
-  if (!day && !provenance) return null;
-  return <>{provenance && <>{glueSeparators(provenance)}{day && SEP}</>}{day && <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>}</>;
+function RowSource({ day, sourceLabel }: { day?: string; sourceLabel?: string }) {
+  if (!day) return null;
+  return <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>;
 }
 
 /**
@@ -59,17 +54,20 @@ function OfferMeta({ offer, today }: { offer: IndexOffer; today: string }) {
   // The brand's own " · " ("Muir Woods · Marin") is glued too, so no wrapped line starts with "·" (N06).
   const brand = glueSeparators(offerBrandLine(offer.brand, locale));
   const chip = offerChip(offer, today);
+  // Two pieces on a card's one-line meta (events.css): the chip with what the offer asks of you (.ui-meta-lead), which
+  // stays on the line and ends in "…" only when it alone is too long, so the condition is never hidden; then the brand
+  // and its separator (.ui-meta-place), which gives way with "…" and steps aside where fewer than about 4 characters
+  // would show, so a card never ends in "· T…".
   return <>
-    {chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}
-    {pick(offerCondition(offer))}
-    {brand && <>{SEP}<span translate="no">{brand}</span></>}
+    <span className="ui-meta-lead">{chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}{pick(offerCondition(offer))}</span>
+    {brand && <span className="ui-meta-place">{SEP}<span translate="no">{brand}</span></span>}
   </>;
 }
 
 /**
  * Offer card (1:1): its picture (the brand's own image, its venue's photo or a ③ 示意图, DECISIONS 22); the value and the
  * deadline are the caption's lines. ♡ on the cover saves the offer. `row` lists it as a row instead (phone at 大 / 特大,
- * 简洁显示); `simple` (简洁) drops ♡ and a ①② photo's provenance words there.
+ * 简洁显示); `simple` (简洁) drops ♡ there.
  */
 export function OfferFeedCard({ offer, cover, today, save = true, row, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
@@ -82,18 +80,17 @@ export function OfferFeedCard({ offer, cover, today, save = true, row, simple }:
 }
 
 /**
- * The offer as a row (phone at 大 / 特大, 简洁显示): a 1:1 picture thumbnail, the same two lines and the source line. 简洁
- * (`simple`) drops ♡ and a ①② photo's provenance words: saving happens on the detail page (DECISIONS 16). A ③ 示意图 or
- * ④ AI 示意图 keeps its chip on the thumbnail (rowProvenance).
+ * The offer as a row (phone at 大 / 特大, 简洁显示): a 1:1 picture thumbnail with its one label, the same two lines and the
+ * source line. ♡ in RowCard's save slot, under the thumbnail at 大 / 特大 (DECISIONS 44, events.css); 简洁 (`simple`)
+ * drops it: saving happens on the detail page (DECISIONS 16).
  */
 export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
-  const label = useTierLabel();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="offer" />;
   return <RowCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`} thumb={thumb}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} />}
-    credit={<RowSource provenance={rowProvenance(cover, simple) && cover.tier !== 'type' ? label(cover) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
-    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} />} />;
+    credit={<RowSource day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
+    save={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} />} />;
 }
 
 /** "Burlingame · 拉面": where the shop is and what it sells (`category` without a leading status word), else its type. */
@@ -102,7 +99,7 @@ function OpeningMeta({ opening }: { opening: IndexOpening }) {
   // English drops the leading word after translation, so "新餐厅 · 日式晚餐" reads "Japanese dinner", not the opening type.
   const sells = english ? openingSells(translateText(opening.category, locale)) : translateText(openingSells(opening.category), locale);
   const what = sells && !(english && HAN.test(sells)) ? sells : pick(OPENING_TYPES[opening.openingType]);
-  return <>{shown(opening.city, locale)}{SEP}{glueSeparators(what)}</>;
+  return <>{shown(opening.city, locale)}<span className="ui-meta-place">{SEP}{glueSeparators(what)}</span></>;
 }
 /** Line 1 of an opening card: openingChip unchanged ("10/11 已开业", "9/4 起试营业", "即将开业"), as the one status chip. */
 function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string }) {
@@ -125,13 +122,12 @@ export function OpeningFeedCard({ opening, cover, today, save = true, row, simpl
     save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} /> : undefined} />;
 }
 
-/** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and a photo's provenance words (not ③④: rowProvenance). */
+/** The new shop as a row (phone at 大 / 特大, 简洁显示), as the offer row: ♡ under the thumbnail, none in 简洁. */
 export function OpeningRowCard({ opening, cover, today, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { locale } = useUiCopy();
-  const label = useTierLabel();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening" />;
   return <RowCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
-    credit={<RowSource provenance={rowProvenance(cover, simple) && cover.tier !== 'type' ? label(cover) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
-    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} />} />;
+    credit={<RowSource day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
+    save={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} />} />;
 }

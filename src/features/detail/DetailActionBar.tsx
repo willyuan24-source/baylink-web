@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ArrowUpRight, CalendarPlus, Send } from 'lucide-react';
 import { useApp, type AppContextValue } from '../../app/context';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
@@ -62,10 +62,17 @@ export function AskCell() {
   </button>;
 }
 
-/** The primary: F's primary button, one line, the icon going first where the cell is narrow (container query). */
+/**
+ * The primary: F's primary button, one line, the icon going first where the cell is narrow (container query). R2-08 / OD6
+ * (DECISIONS 32): at 特大 and in 家人版 the day primary reads 加入计划 / Add to day, so it never wraps; AddToDayPlan is
+ * FOUNDATION's and prints 加入这天计划, so the shorter words ride on `--detail-day-short` and the bar's CSS shows them in
+ * place of the long ones while the button is still "add" (its name keeps 加入这天计划：…; once added it reads 已加入 10/24).
+ */
 export function PrimaryAction({ primary, title }: { primary: DetailPrimary; title: string }) {
   const { t } = useUiCopy();
-  if (primary.kind === 'day') return <div className="detail-actions__primary" data-day={primary.date}><AddToDayPlan stop={primary.stop} date={primary.date} today={primary.today} title={title} compact short /></div>;
+  if (primary.kind === 'day') return <div className="detail-actions__primary" data-day={primary.date} style={{ '--detail-day-short': JSON.stringify(t('加入计划', 'Add to day')) } as CSSProperties}>
+    <AddToDayPlan stop={primary.stop} date={primary.date} today={primary.today} title={title} compact short />
+  </div>;
   const shared = { variant: 'primary' as const, className: 'detail-actions__primary detail-action detail-action--primary' };
   if (primary.kind === 'plan') {
     const label = t('加入计划', 'Add to a plan');

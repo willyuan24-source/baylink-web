@@ -64,7 +64,9 @@ function appPaths(): string[] {
 
 // Pages the prerender writes: the sitemap plus the noindex and alias pages (scripts/prerender.tsx).
 const pages = new Set(generateSitemap().paths.map(path => path.replace(/\/$/, '') || '/'));
-for (const locale of ['', '/en', '/zh-Hant']) for (const path of ['/play', '/verify-email', '/notifications/unsubscribe', '/404', '/account-shell']) pages.add(`${locale}${path}`);
+// The account shells: one file per page shape (src/app/account-shell.ts ACCOUNT_SHELLS, DECISIONS 41).
+const shellPages = ['/account-shell', '/account-shell-week', '/account-shell-together', '/account-shell-list'];
+for (const locale of ['', '/en', '/zh-Hant']) for (const path of ['/play', '/verify-email', '/notifications/unsubscribe', '/404', ...shellPages]) pages.add(`${locale}${path}`);
 const pageFor = (html: string) => html.replace(/\.html$/, '').replace(/(^|\/)index$/, '$1').replace(/\/$/, '') || '/';
 
 test('every App route loads directly on the host in all three languages', () => {
@@ -97,6 +99,6 @@ test('the simulator keeps unknown URLs as 404s and follows query-gated and redir
   assert.deepEqual(resolveHosting('/n/sf'), { kind: 'redirect', location: '/events?region=sf&from=card-sf' });
   // G70: the signed-in pages open on the neutral account shell; the rest of the SPA keeps index.html.
   assert.deepEqual(resolveHosting('/me'), { kind: 'page', path: '/account-shell.html' });
-  assert.deepEqual(resolveHosting('/en/messages/abc'), { kind: 'page', path: '/en/account-shell.html' });
+  assert.deepEqual(resolveHosting('/en/messages/abc'), { kind: 'page', path: '/en/account-shell-list.html' });
   assert.deepEqual(resolveHosting('/reset-password'), { kind: 'page', path: '/index.html' });
 });

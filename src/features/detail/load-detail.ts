@@ -3,6 +3,7 @@ import { detailBucket } from '../../lib/english-loading';
 import { chunkLoader } from '../../lib/chunk-recovery';
 import { canonicalEventId } from '../../lib/event-id';
 import { detailKey, recordFromBucket, type DetailBucket, type DetailRecord } from './detail-record';
+import { shopParts } from './shop-parts';
 
 export type DetailKind = 'event' | 'offer' | 'opening';
 
@@ -21,6 +22,22 @@ let retryMs = 1000;
 const bucketKey = (kind: DetailKind, id: string) => detailBucket(kind, id);
 const lookupId = (kind: DetailKind, id: string) => kind === 'event' ? canonicalEventId(id) : id;
 
+/**
+ * An offer's or an opening's own parts (ShopFacts.tsx, shop-parts.ts): one chunk, loaded with the first such bucket through
+ * the same chunkLoader (a failure is a load failure, so 重试 asks for it again), and kept for the visit once in.
+ */
+let shopState: BucketState | undefined;
+function loadShop(kind: DetailKind): BucketState | undefined {
+  if (kind === 'event' || shopParts()) return undefined;
+  if (!shopState) {
+    const state: BucketState = {
+      promise: chunkLoader(() => import('./ShopFacts'), () => undefined, retryMs)().then(() => undefined, error => { state.error = error; }),
+    };
+    shopState = state;
+  }
+  return shopState;
+}
+
 function loadBucket(name: string): BucketState | undefined {
   const existing = buckets.get(name);
   if (existing) return existing;
@@ -37,6 +54,7 @@ function loadBucket(name: string): BucketState | undefined {
 /** Start loading a detail's bucket (the page module calls it for the URL it boots on, before React renders). */
 export function preloadDetailRecord(kind: DetailKind, id: string): void {
   loadBucket(bucketKey(kind, id));
+  loadShop(kind);
 }
 
 /**
@@ -47,8 +65,11 @@ export function readDetailRecord(kind: DetailKind, id: string): DetailRecord | n
   // An old event id lives in the bucket of its own URL (generate-detail-records.ts writes aliases there too).
   const state = loadBucket(bucketKey(kind, id));
   if (!state) return null;
+  const shop = loadShop(kind);
   if (state.error) throw state.error;
+  if (shop?.error) throw shop.error;
   if (!state.bucket) throw state.promise;
+  if (shop) throw shop.promise;
   return recordFromBucket(state.bucket, detailKey(kind, id)) ?? recordFromBucket(state.bucket, detailKey(kind, lookupId(kind, id))) ?? null;
 }
 
@@ -56,6 +77,7 @@ export function readDetailRecord(kind: DetailKind, id: string): DetailRecord | n
 export function retryDetailRecord(kind: DetailKind, id: string): void {
   const name = bucketKey(kind, id);
   if (buckets.get(name)?.error) buckets.delete(name);
+  if (shopState?.error) shopState = undefined;
 }
 
 /**

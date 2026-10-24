@@ -14,6 +14,11 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-head { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .home-head__dateline,.home-head__identity,.home-trust,.home-share p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
 .home-head__title { font-size:var(--text-display); line-height:var(--lh-display); font-weight:600; text-wrap:balance; }
+/* A P11: 「免费 · 不用登录」 wraps as one piece, so a narrow line never ends with 「不用」 over a lone 「登录」 (简洁 phone); the
+   「·」 before it stays at the end of the line above (a no-break space in HomeHead), and the line fills greedily (no
+   pretty-wrap moving 「南」 down beside it). */
+.home-head__keep,.home-share__keep { white-space:nowrap; }
+.home-head__identity { text-wrap:wrap; }
 .home-ask { display:flex; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2); padding:1px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); }
 .home-ask:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); }
 .home-ask input { flex:1; min-width:0; min-height:var(--control-height); border:0; padding:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); outline:none; }
@@ -57,9 +62,25 @@ html[data-simple] .home-ask { padding-inline-start:var(--sp-3); }
    compact row of its two buttons (保存图片, 订阅日历), without the card's box so they fit one line in English too. */
 @media (max-width:767px) {
   .home-top>.home-share { padding:0; background:transparent; }
-  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  :is(.home-picks>.home-section-head,.home-share h3,.home-share p) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover) { border-radius:0; }
+  /* N18 (two complete cards in a phone's first screen): the lead's place and its ✓ line share one line ("Cherryland 图书馆
+     ✓ 官网核对 10/21"), so picks 2–3 come up by that line. The place gives way with "…" at 11rem short of the width, which
+     holds the longest ✓ line ("✓ Source checked Oct 21", 「✓ 媒体报道 · 10/21 核对」); a longer one takes the next line. */
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card { flex-flow:row wrap; gap:var(--sp-1) var(--sp-3); }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>:not(.ui-feed-card__meta,.ui-feed-card__trust) { flex:0 0 100%; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>.ui-feed-card__media { flex-basis:calc(100% + 32px); }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>.ui-feed-card__meta { max-width:calc(100% - 11rem); }
+}
+/* R2-06 (A P3, B P12): a portrait tablet's lead is the picture on the left (seven parts, 16:9) and its words on the right, so
+   the first screen holds the lead and picks 2–3, and no tall frame stands over the words. The ♡ keeps the picture's corner. */
+@media (min-width:768px) and (max-width:1023px) {
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card { display:grid; grid-template-columns:minmax(0, 7fr) minmax(0, 5fr); grid-template-rows:repeat(4, auto) 1fr; gap:var(--sp-2) var(--grid-gutter); align-items:start; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>* { grid-column:2; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { grid-area:1 / 1 / -1 / 2; margin:0; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__save { grid-area:1 / 1 / 2 / 2; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__title { font-size:var(--text-card); }
 }
 
 /* The date guard (source-monitor.css) covers each of the picks' blocks, never the section: from 1024 the section is
@@ -67,29 +88,45 @@ html[data-simple] .home-ask { padding-inline-start:var(--sp-3); }
 html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:none; }
 
 /* ③ 按需要找: F's chip, wrapped, no counts; the brand icon from 768. */
-/* ③ 按需要找: eight photo tiles (UI9-IMAGES DECISIONS 27), 2 × 4 on a phone. The words sit on a warm scrim that is at least .6
-   from 38% of the tile down (white on it ≥ 4.6:1 over any photo; the text stays in the bottom 62%), the photo is the 480 w
-   file in a fixed frame (CLS 0), and the tile is one link with its name and one line (no counts, no badge). */
-.home-moods ul { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-2); margin:0; padding:0; list-style:none; }
-.home-mood { position:relative; isolation:isolate; display:flex; align-items:flex-end; overflow:hidden; aspect-ratio:16 / 9; min-height:var(--control-height); border-radius:var(--r-lg); background:var(--ui-lqip, var(--color-surface-2)); color:var(--color-surface); text-decoration:none; }
-.home-mood__img { position:absolute; inset:0; z-index:-2; width:100%; height:100%; object-fit:cover; }
-.home-mood::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / .3) 0%, rgb(var(--color-scrim-rgb) / .62) 38%, rgb(var(--color-scrim-rgb) / .8) 100%); }
-.home-mood__text { display:flex; flex-direction:column; min-width:0; padding:var(--sp-2) var(--sp-3); }
+/* ③ 按需要找: eight photo tiles (UI9-IMAGES DECISIONS 27; R2-04). The photo is clear above the words: the warm scrim is the
+   words' own box (its background, from 32 px above the name to the tile's foot, at least .76 behind the words, so white
+   reads ≥ 4.5:1 over any photo), not a veil over the whole tile — on a desktop tile it is the lower half. The tiles sit on the
+   page's card columns with the grid gutter between them (N16): 2 × 4 on a phone (3:2), 4 × 2 across the full 12 columns from
+   768 (4:3 on a tablet, 16:9 on a desktop: 286 × 161 at 1440); 4:3 at 大 / 特大. The 480 w file in a fixed frame (CLS 0); one
+   link with its name and one line (no counts, no badge). A Chinese line keeps its phrase whole (follow-up 11: never
+   「带孩子的好 / 去处」); an English one wraps balanced. */
+.home-moods ul { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--grid-gutter); margin:0; padding:0; list-style:none; }
+.home-mood { position:relative; isolation:isolate; display:flex; align-items:flex-end; overflow:hidden; aspect-ratio:3 / 2; min-height:var(--control-height); border-radius:var(--r-lg); background:var(--ui-lqip, var(--color-surface-2)); color:var(--color-surface); text-decoration:none; }
+.home-mood__img { position:absolute; inset:0; z-index:-1; width:100%; height:100%; object-fit:cover; }
+.home-mood__text { display:flex; flex-direction:column; width:100%; min-width:0; padding:var(--sp-6) var(--sp-3) var(--sp-2); background:linear-gradient(0deg, rgb(var(--color-scrim-rgb) / .84) 0%, rgb(var(--color-scrim-rgb) / .76) calc(100% - var(--sp-6)), rgb(var(--color-scrim-rgb) / 0) 100%); }
 .home-mood__label { font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; overflow-wrap:anywhere; }
-.home-mood__blurb { font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; text-wrap:balance; }
-/* 大 / 特大: the same grid, a taller tile so the bigger words stay on the scrim's dark part. */
+.home-mood__blurb { font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; word-break:keep-all; text-wrap:balance; }
 html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
+@media (min-width:768px) { .home-moods ul { grid-template-columns:repeat(4, minmax(0, 1fr)); } .home-mood { aspect-ratio:4 / 3; } }
+@media (min-width:1024px) { html:not([data-reading$=large]) .home-mood { aspect-ratio:16 / 9; } }
 
-/* The family-chat card: text and two buttons. */
+/* The family-chat card: text and two buttons. Its heading is an h3 under the picks' h2 (the same three picks; N02: no h3 is
+   larger than an h2, and N15: it is part of the picks block, not a section of its own). */
 .home-share,.home-empty { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
-.home-share h2 { font-size:var(--text-card); line-height:var(--lh-snug); font-weight:600; }
+.home-share h3 { font-size:var(--text-card); line-height:var(--lh-snug); font-weight:600; }
 .home-share__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
-/* The card's preview (UI9-IMG-A1b): from 768 px the panel is the preview beside its heading, line and buttons. */
+/* The card's preview (UI9-IMG-A1b): from 768 px the panel is the preview beside its heading, line and buttons; from 1280 one
+   compact strip under the lead (R2-06 A P9: the preview, the heading over its line, the buttons at the end), as tall as its
+   content — never stretched to the picks beside it (the base's 177 px blank). */
 .home-share__card { display:none; }
 @media (min-width:768px) {
   .home-share[data-card] { display:grid; grid-template-columns:5.5rem minmax(0, 1fr); grid-auto-rows:min-content; column-gap:var(--sp-4); align-items:start; }
   .home-share[data-card]>:not(.home-share__card) { grid-column:2; }
   .home-share__card { display:block; grid-row:1 / span 3; width:100%; height:auto; aspect-ratio:3 / 4; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); }
+}
+@media (min-width:1280px) {
+  .home-share[data-card] { grid-template-columns:3.5rem minmax(0, 1fr) auto; align-items:center; row-gap:var(--sp-1); }
+  .home-share[data-card] h3 { font-size:var(--text-body); }
+  /* The buttons at the end, beside the heading and its line (a Chinese line breaks only at its comma: ShareStrip keeps
+     each half whole). English words are longer: there the buttons stay under the words (the 768 layout), which then keep
+     one line each. */
+  .home-share[data-card]:not(:lang(en))>.home-share__actions { grid-area:1 / 3 / 3 / 4; flex-wrap:nowrap; }
+  .home-share[data-card]:not(:lang(en))>.home-share__card { grid-row:1 / span 2; }
 }
 
 /* ④ feed; the coded-cover note is printed once, in the credits line. */
@@ -105,14 +142,32 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-3d-strip__text { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .home-3d-strip__text strong { font-size:var(--text-body); line-height:1.5; font-weight:600; text-wrap:pretty; }
 .home-3d-strip__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.home-3d-strip__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+/* N04: the strip's size line reads at the 14 px fact size, as its other line (not the 13 px the phone 3D blocks keep). */
+.home-3d-strip__text small { color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.571; }
 @media (min-width:768px) and (max-width:1023px) { .home-feed .ui-feed-grid { grid-auto-flow:row dense; } }
 @media (min-width:768px) { .home-3d-strip .home-3d-strip__art { width:15rem; } .home-3d-strip { gap:24px; padding:12px; } .home-3d-strip__text strong { font-size:var(--text-card); } }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip { flex-direction:column; align-items:stretch; } :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip .home-3d-strip__art { width:100%; } }
+/* R2-06 (A P8): on a desktop the strip is one tile of the feed's grid, not a full-width card that is 70% empty. Only its
+   frame changes: the postcard keeps its 15rem and its pixels (DECISIONS 1), centred in the framed cell with the words under
+   it, the cell as tall as the row. 1024–1199 px the home feed has three columns, so a cell still holds the 15rem postcard;
+   from 1200 four, and a last card that would stand alone in a row gives way (eight cards and the tile fill two rows): eight
+   cards and one 15rem tile cannot fill rows of four otherwise (a tile two columns wide is the 70%-empty card again). It
+   gives way only when the 看本周末全部 N 场 button follows the grid (N > the cards shown), so that event stays one tap
+   away; phones and tablets show all eight. The 1px is the frame's border; the inset is derived from the frozen 15rem, not
+   a spacing step (N14 counts no length here). At 大 / 特大 (rows) and in 简洁 (the strip alone) it stays the wide strip. */
+@media (min-width:1024px) {
+  html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid>.ui-feed-grid__wide { grid-column:auto; }
+  html:not([data-reading$=large],[data-simple]) .home-3d-strip { --home-3d-inset:calc((100% - 15rem) / 2 - 1px); flex-direction:column; align-items:flex-start; gap:var(--sp-3); height:100%; padding:var(--home-3d-inset); }
+}
+@media (min-width:1024px) and (max-width:1199px) { html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid { --ui-feed-cols:3; } }
+@media (min-width:1200px) { html:not([data-reading$=large],[data-simple]) .home-feed:has(>.home-feed__all) .ui-feed-grid:has(>li:last-child:nth-child(4n+1))>li:last-child:not(.ui-feed-grid__wide) { display:none; } }
 
 /* ⑤ 问 BayBay: the brand-deep band, three one-tap questions (48 px). */
-.home-baybay { display:flex; flex-direction:column; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-xl); background:var(--color-brand-deep); color:var(--color-bg); }
+/* N07: its words are white (the tiles' white), not a seventh paper-coloured ink; N08: its AI 助手 tag is an outline on the
+   band, not the lime 免费 chip. */
+.home-baybay { display:flex; flex-direction:column; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-xl); background:var(--color-brand-deep); color:var(--color-surface); }
 .home-baybay__head { display:flex; align-items:center; gap:var(--sp-3); }
+.home-baybay__tag { padding:0 var(--sp-2); border:1px solid var(--color-on-brand-muted); border-radius:var(--r-pill); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .home-baybay h2 { font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .home-baybay ul { display:grid; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
 .home-baybay button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); width:100%; height:100%; min-height:3rem; padding:var(--sp-2) var(--sp-4); border:1px solid var(--color-on-brand-muted); border-radius:var(--r-md); background:transparent; color:inherit; font-size:var(--text-fact); line-height:var(--lh-snug); text-align:start; }
@@ -144,7 +199,9 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-3d__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .home-3d__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
 
-/* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. */
+/* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. It closes the last block
+   (16 px under it, N15: not a lone line a section gap away). */
+.home-discovery>.home-credits { margin-top:calc(var(--sp-4) - var(--section-gap)); }
 .home-credits { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
 .home-credits summary { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); cursor:pointer; list-style:none; }
 .home-credits summary::-webkit-details-marker { display:none; }
@@ -159,23 +216,25 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 /* N23: hover only where a pointer can hover (touch screens keep the press states). */
 @media (hover:hover) and (pointer:fine) {
   .home-ask__otter:hover { background:var(--color-surface-2); }
-  .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
-  .home-3d-strip:hover strong { text-decoration:underline; text-underline-offset:4px; }
-  .home-3d:hover strong { text-decoration:underline; text-underline-offset:4px; }
+  /* N13: the one underline (tokens.css --underline-offset / --underline-thickness), not 3 and 4 px offsets of their own. */
+  .home-mood:hover .home-mood__label { text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+  .home-3d-strip:hover strong { text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+  .home-3d:hover strong { text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
   .home-baybay button:hover { border-color:var(--color-highlight); }
 }
 
 /* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
-   guides — a 112 px thumbnail, the text beside it, ♡ at the row's end (not in 简洁, decision 16). */
+   guides — a 112 px thumbnail, the text beside it, ♡ under the thumbnail (not in 简洁, decision 16). */
 :is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
-/* 大 / 特大 rows: the ♡ sits on the thumbnail's top-right corner, never over the title (captain 10-21 18:30, the LumaFest row),
-   a 36 px circle with a 44 px hit area, so it covers about a third of the 112 px picture. The row is a grid, so the ♡ takes
-   the picture's grid area as its containing block. */
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 2 / 2; top:var(--sp-1); right:var(--sp-1); }
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-control .saves-toggle { position:relative; width:36px; height:36px; min-height:36px; }
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-toggle::after { content:""; position:absolute; inset:-4px; }
+/* 大 / 特大 rows (DECISIONS 44): the ♡ leaves the 112 px thumbnail and sits right under it, at the row's start edge, so none
+   of the picture is covered and the words keep the row's width — as on the /events rows. Its size is UI9-R2-FOUNDATION's
+   one circle (saves.css: --control-height, 44 px; 55 px at 特大), so no home size is left here. The thumbnail's grid area
+   (its column, as tall as the words) is the ♡'s containing block; a row whose words end above the ♡ grows to hold it. The
+   standard size keeps it on the picture's top-right corner (A1); 简洁 has none (decision 16). */
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 6 / 2; top:calc(112px + var(--sp-2)); right:auto; left:0; }
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card:has(>.ui-feed-card__save) { min-height:calc(112px + var(--sp-2) + var(--control-height)); }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
 html[data-simple] .home-picks .ui-feed-card__save { display:none; }
@@ -201,14 +260,18 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   :is(.home-offers__rail,.home-guides__rail) { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .home-offers__rail>li[data-wide] { grid-column:span 2; --ui-feed-ratio:16 / 9; }
   .home-picks li:first-child .ui-feed-card__title { font-size:var(--text-section); line-height:var(--lh-section); }
-  .home-picks li:first-child .home-pick__reason { display:block; }
+  /* The editor's reason under each pick (the lead and picks 2–3), so the left column runs as long as the lead's beside it. */
+  .home-picks__list .home-pick__reason { display:block; }
   .home-head { gap:var(--sp-4); }
   :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
   .home-ask { margin-top:var(--sp-3); }
-  /* The masthead in columns 1–6 beside the lead (7–12); picks 2–3 in 1–3 and 4–6 and the share card in 7–12 below, all on
-     one 12-column grid: the picks section and its list are display:contents here, so their children are the grid's items.
-     N16 (UI9-R1): every card starts on the feed's four columns (112 / 422 / 732 / 1042 at 1440), the lead included. */
-  .home-top { display:grid; grid-template:repeat(3, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }
+  /* One 12-column grid (the picks section and its list are display:contents here, so their children are its items). Left,
+     columns 1–6: the masthead, the trust line, picks 2–3 (1–3, 4–6). Right, 7–12: the picks' heading, the lead and, under
+     it, the share strip at its own height (R2-06 A P9: no stretched card with a 177 px blank). Then the eight tiles across
+     all twelve columns (N16: on the four card columns, 112 / 422 / 732 / 1042 at 1440, with the 24 px gutter). The fourth
+     row ends with the lead and the fifth (the flexible one) holds the share strip, so the strip always follows the lead
+     directly; when picks 2–3 run longer (English), the room is left under the strip, not between it and the lead. */
+  .home-top { display:grid; grid-template:repeat(4, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }
   .home-picks,.home-picks__list { display:contents; }
   .home-head { grid-area:1 / 1 / 3 / 7; }
   .home-picks>.home-section-head,.home-picks__all { grid-area:1 / 7 / 2 / -1; }
@@ -217,9 +280,8 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-picks>.home-section-head h2 { max-width:calc(100% - 13rem); }
   .home-picks__list>li:first-child,.home-empty { grid-area:2 / 7 / 5 / -1; }
   .home-trust { grid-area:3 / 1 / 4 / 7; }
-  .home-top>.home-moods { grid-area:4 / 1 / 5 / 7; margin:0; }
-  .home-picks__list>li+li,.home-top>.home-share { grid-area:5 / span 3; margin-top:var(--sp-2); }
-  .home-top>.home-share { grid-column:7 / -1; justify-content:center; }
+  .home-picks__list>li:nth-child(2) { grid-area:4 / 1 / 6 / 4; }
+  .home-picks__list>li:nth-child(3) { grid-area:4 / 4 / 6 / 7; }
+  .home-top>.home-share { grid-area:5 / 7 / 6 / -1; align-self:start; margin:0; }
+  .home-top>.home-moods { grid-area:6 / 1 / 7 / -1; margin:0; }
 }
-/* 4 × 2 in the masthead column from 1280 px (a 4:3 tile); 2 × 4 below it, where a quarter of the column is too narrow for a name. */
-@media (min-width:1280px) { .home-moods ul { grid-template-columns:repeat(4, minmax(0, 1fr)); } .home-mood { aspect-ratio:4 / 3; } }

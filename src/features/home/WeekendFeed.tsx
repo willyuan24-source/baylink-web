@@ -32,8 +32,10 @@ export function EventMeta({ event }: { event: HomeEvent }) {
 /**
  * ④ The rest of this weekend (1007 §4.2 ④, D9): eight 3:2 covers two-up (four-up on a desktop), the time window, status ·
  * place, the source check and ♡ 收藏 (FC3-02: the one save model). After the first four cards, the 3D San Francisco strip
- * (H36). Ends with one button to the whole weekend (without a number when the home cannot count it). At 大 / 特大 the
- * cards are rows and six show; in 简洁 only the strip stays (home-discovery.css).
+ * (H36). Ends with one button to the whole weekend (without a number when the home cannot count it). From 1200 px the strip
+ * is one tile of a four-column grid, so eight cards and the tile leave the eighth alone in a row: it gives way there, and
+ * only while this button follows the grid (home-discovery.css). At 大 / 特大 the cards are rows and six show; in 简洁
+ * only the strip stays.
  */
 export function WeekendFeed({ feed, covers, today, total }: { feed: readonly FeedEntry[]; covers: readonly ResolvedCover[]; today: string; total: number | null }) {
   const { t, english, pick } = useUiCopy();

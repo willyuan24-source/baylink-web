@@ -7,7 +7,7 @@
  * Rhythm: --section-gap between sections (40 phone / 64 desktop), --stack-head from a heading to its content, 16 px (phone)
  * / 32 px (desktop) between the view row and the first section; every block starts on the page frame (x=112 at 1440).
  */
-.ev-page { padding-bottom:var(--sp-7); color:var(--color-ink); background:var(--color-bg); }
+.ev-page { padding-bottom:var(--sp-6); color:var(--color-ink); background:var(--color-bg); }
 
 /* Head: H1 活动 with the range on its baseline (it wraps under the H1 at 大 / 特大 and in 简洁显示), then the facts line
    (14px ink-2, one line: the counts are in the prerendered page and the link alone is one line too, so nothing is reserved
@@ -22,6 +22,12 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-range
    measured 42–43 px with 12 px. */
 html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:calc((var(--control-height) - 1em) / 2); white-space:nowrap; }
 .ev-lede-facts .ui-more__arrow { display:inline-block; margin-inline-start:var(--sp-1); vertical-align:-.125em; }
+/* UI9-R2 (N18): on a standard phone the counts step aside (the list's head says 找到 79 场活动, the boards' sections their
+   counts) and 我们怎么核对 → joins the H1's row where it fits (本周末, 免费与优惠, 新店 in Chinese), else it keeps its own line. */
+@media (max-width:767px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page .ev-header { display:flex; flex-flow:row wrap; align-items:baseline; column-gap:var(--sp-3); }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-lede-counts { display:none; }
+}
 
 /* The view row: D3's segmented control (a pill track on the sunken surface, the current view an ink fill with paper text,
    44px items, 48 in 简洁显示), not sticky; one line at 390 in every language, a 2×2 grid at 大 / 特大 and in 简洁显示. */
@@ -32,6 +38,7 @@ html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:calc(
 .ev-tabs .ui-tabs__item:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .ev-tabs .ui-tabs__item:not([aria-current]):hover { background:var(--color-surface); color:var(--color-ink); } }
 @media (max-width:767px) {
+  .ev-tabs-bar { margin-bottom:var(--sp-3); }
   .ev-tabs { width:100%; }
   .ev-tabs .ui-tabs__item { flex:1 1 auto; padding:0 var(--sp-2); font-size:var(--fs-keep-14); }
 }
@@ -62,10 +69,12 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
    at 大 / 特大. The feed leaves out exactly the picks shown here (WeekendView). */
 .ev-picks__cards { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-4) var(--grid-gutter); margin:0; padding:0; list-style:none; }
 .ev-picks__cards>li { min-width:0; }
-.ev-picks__rows>:last-child>.ui-row-card { border-bottom:0; }
+.ev-picks__rows>:last-child>.ui-row-card { padding-bottom:0; border-bottom:0; }
 @media (max-width:1023px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__rows>:nth-child(-n+2) { display:none; }
   .ev-picks__cards+.ev-picks__rows:has(>:nth-child(3)) { margin-top:var(--sp-2); }
+  /* N18: the lead and the 2-up picks 8 px apart, so a second whole card ends on a standard phone's first screen. */
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__grid { row-gap:var(--sp-2); }
 }
 @media (min-width:1024px) {
   .ev-picks__grid { grid-template-columns:repeat(12, minmax(0, 1fr)); align-items:stretch; }
@@ -80,7 +89,8 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
    lead never fit the first screen at 特大 / 简洁 / 家人版, N18), 16:9 on desktop. HeroCard's own rules (home) are unchanged. */
 .ev-lead { gap:var(--sp-1); }
 .ev-lead :is(.ui-hero-card__media,.ui-hero-card__text) { display:contents; }
-.ev-picks .ev-lead .ui-cover { order:0; aspect-ratio:2 / 1; margin-bottom:var(--sp-2); border-radius:var(--r-lg); }
+.ev-picks .ev-lead .ui-cover { order:0; aspect-ratio:2 / 1; margin-bottom:var(--sp-1); border-radius:var(--r-lg); }
+@media (min-width:768px) { .ev-picks .ev-lead .ui-cover { margin-bottom:var(--sp-2); } }
 .ev-lead .ui-hero-card__reason { order:1; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ev-lead .ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
 .ev-lead .ui-hero-card__title { order:2; display:block; overflow:visible; font-size:var(--fs-section); line-height:var(--lh-tight); }
@@ -96,16 +106,17 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
 /* Card anatomy (G18): the title, then line 1 (RowCard prints its date line first elsewhere). */
 .ev-page .ui-row-card__date { order:0; color:var(--color-ink); }
 @media (min-width:768px) { .ev-rows { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--grid-gutter); } }
-/* ♡ on a row (the 大 / 特大 feed, the desktop pick rows, the boards): the cards' 44 px icon circle on the thumbnail's top-right
-   corner, as on every card (UI9-IMAGES: ♡ top-right of the picture), so the title and both meta lines keep the row's width. */
-.ev-page .ui-row-card:has(>.ui-row-card__trailing .saves-control) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body"; }
-.ev-page .ui-row-card__trailing:has(.saves-control) { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
-.ev-page .ui-row-card__trailing .saves-control { margin:0; }
-/* captain 10-21 18:30: at 特大 the control-height circle (55 px) hid 40% of the thumbnail; the circle is 36 px at every size
-   and its hit area stays 44 px (the ::after ring). No border: the ring is cut from the padding box, so a 1 px border made it
-   42 px (N25 probe at 特大). */
-.ev-page .ui-row-card__trailing .saves-control .saves-toggle::after { content:""; position:absolute; inset:-4px; }
-.ev-page .ui-row-card__trailing .saves-control .saves-toggle { position:relative; justify-content:center; gap:0; width:36px; height:36px; min-height:36px; padding:0; border:0; border-radius:var(--r-circle); font-size:0; }
+/* ♡ on a row (RowCard's save slot: the pick rows, the 大 / 特大 feeds, the boards' rows). At the standard size it sits on the
+   thumbnail's top-right corner, as on every card (A1), so the title and both meta lines keep the row's width; at 大 / 特大
+   it moves under the thumbnail (DECISIONS 44: the 112px picture stays whole, the circle stays 44px), in the thumbnail's
+   column; 简洁 / 家人版 rows have none (cards.css, DECISIONS 16). */
+.ev-page .ui-row-card:has(>.ui-row-card__save) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body"; }
+.ev-page .ui-row-card__save { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
+html:is([data-reading=large],[data-reading=extra-large]) .ev-page .ui-row-card:has(>.ui-row-card__save) { grid-template-areas:"thumb body" "save body"; grid-template-rows:auto 1fr; row-gap:var(--sp-2); }
+html:is([data-reading=large],[data-reading=extra-large]) .ev-page .ui-row-card__save { grid-area:save; justify-self:start; margin:0; }
+/* The compact control's own 8px top margin (saves.css) put the circle 16px under the picture, the home rows' 8px (--sp-2):
+   without it the ♡ sits where home puts it (DECISIONS 45 f), and at the standard size on the A1 corner's 4px. */
+.ev-page .ui-row-card__save .saves-control { margin:0; }
 
 /* B · 本周末全部活动: the H2 and "找到 n 场" on one line, then the rails. */
 .ev-feed__head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin:0 0 var(--stack-head); }
@@ -116,6 +127,26 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
    sideways on a standard phone and wraps on desktop, at 大 / 特大 and in 简洁显示 (0 sideways scrollers there). */
 .ev-rail { display:flex; align-items:center; gap:var(--sp-2); overflow-x:auto; margin:0 calc(-1 * var(--page-gutter)); padding:var(--sp-1) var(--page-gutter); scroll-padding-inline:var(--page-gutter); scrollbar-width:none; }
 .ev-rail::-webkit-scrollbar { display:none; }
+/* UI9-R2 R2-12: on a standard phone the filters are ONE sideways row — the regions join it as 整个湾区 ▾ (the 筛选 sheet
+   holds them, as at 大 / 特大), rail 2 steps aside — and the row's right edge fades, so a chip running out of view says the
+   row goes on (the end padding lets the last chip clear the fade). The calendar's cities and the boards' conditions too,
+   and on a tablet, where the rail still scrolls (it wraps from 1024px). */
+@media (max-width:1023px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page :is(.ev-rail,.ev-cities,.fb-kinds) { padding-inline-end:var(--sp-7); mask-image:linear-gradient(90deg, rgb(0 0 0) calc(100% - var(--sp-7)), transparent); }
+}
+@media (max-width:767px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page .ev-regions { display:none; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page .ev-region-chip { display:inline-flex; }
+}
+/* At 大 / 特大 on a phone: three chips and 筛选 (WeekendView) — the date choice as a sheet chip (本周末 ▾), 免费, the region
+   — and a tag only while it is on; the date radios and the other tags are in the sheet. */
+.ev-date-chip { display:none; }
+.ev-date-chip>svg:last-child { margin-inline-start:calc(-1 * var(--sp-1)); }
+@media (max-width:767px) {
+  html:is([data-reading=large],[data-reading=extra-large]):not([data-simple]) .ev-date-chip { display:inline-flex; }
+  html:is([data-reading=large],[data-reading=extra-large]):not([data-simple]) .ev-rail:has(.ev-date-chip) .ev-rail__dates,
+  html:is([data-reading=large],[data-reading=extra-large]):not([data-simple]) .ev-rail__tag:not([aria-pressed=true]) { display:none; }
+}
 .ev-rail__group { display:flex; flex:none; align-items:center; gap:var(--sp-2); }
 .ev-rail__group+.ev-rail__group { padding-inline-start:var(--sp-2); border-inline-start:1px solid rgb(var(--color-line-control-rgb) / .4); }
 .ev-rail .ui-chip>svg:last-child:not(:first-child) { margin-inline-start:calc(-1 * var(--sp-1)); }
@@ -140,6 +171,16 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-regio
    scopes other than 本周末 (the whole weekend) and the checked one. */
 html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev-cities,.ev-calendar__mode) { display:none; }
 
+/* A feed card's one-line meta (R2-11) as a line of pieces: the status chip and words keep their width, the place (with its
+   separator, EventStatusLine / OfferMeta / OpeningMeta) gives way with "…" down to about 4 characters, and where even
+   those do not fit it wraps onto the line's hidden second row, so the line never ends in "· Ch…" (the detail page names
+   the place). The line keeps its one-line height. */
+.ev-page .ui-feed-card__meta { display:flex; flex-wrap:wrap; align-items:baseline; max-height:calc(var(--lh-ui) * 1em); }
+.ev-page .ui-feed-card__meta>.ui-meta-place { flex:1 1 4.5em; min-width:4.5em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* The piece before it (an offer's chip and what the offer asks, OfferMeta; an event's price words) is placed at most the
+   line's width, so it never wraps away with the place: it ends in "…" only when it alone is too long. */
+.ev-page .ui-feed-card__meta>:is(.ui-meta-lead,.ui-meta-price) { flex:0 1 auto; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 /* The feed: 3:2 covers on /events and /calendar, 3-up at span 4 on desktop (FeedGrid's defaults stay for other pages);
    the date lists group the cards under day subheads. The boards' own "没有照片的条目…" line is said once in 本页图片来源. */
 .ev-cards { --ui-feed-ratio:3 / 2; }
@@ -160,20 +201,44 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-more { display:grid; justify-items:center; gap:var(--sp-2); margin:var(--sp-5) 0 0; }
 .ev-more .ui-button { max-width:24rem; }
 
-/* C · page end: 出行提醒 (Disclosure), one quiet list of links at 400, 本页图片来源 (#page-credits, G12). */
+/* C · page end: 出行提醒 (Disclosure), the 接下来 card (UI9-R2 C P20), 本页图片来源 (#page-credits, G12). */
 .ev-alerts { margin:var(--section-gap) 0 0; border-block:1px solid var(--color-line); }
 .ev-alerts ul { margin:0; padding:0; list-style:none; }
 .ev-alerts li { display:grid; gap:var(--sp-1); padding:var(--sp-3) 0; border-top:1px solid var(--color-line); }
 .ev-alerts li>strong { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:400; }
 .ev-alerts li>span { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ev-alerts a,.ev-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
+/* The 接下来 card: a white card of 1–3 rows split by hairlines — a 36px icon disc, the row's words, a chevron — where a row of
+   related lists names them as 44px links after its label. One card, so the page ends on one quiet block, not a link cloud. */
 .ev-end { margin:var(--section-gap) 0 0; }
-.ev-alerts+.ev-end { margin-top:var(--sp-4); }
-.ev-end,.ev-end>ul { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); }
-.ev-end>ul { margin:0; padding:0; list-style:none; }
+.ev-alerts+.ev-end { margin-top:var(--sp-5); }
+.ev-end__title { margin:0 0 var(--stack-head); color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
+.ev-end__rows { margin:0; padding:0 var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); list-style:none; }
+.ev-end__row+.ev-end__row { border-top:1px solid var(--color-line); }
+.ev-end__row>.ev-end__item { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:3.5rem; padding:var(--sp-2) 0; color:var(--color-ink); }
+.ev-end__icon { display:grid; flex:none; place-items:center; width:2.25rem; height:2.25rem; border-radius:var(--r-circle); background:var(--color-surface-2); color:var(--color-brand); }
+/* The column's decorative icons — the 接下来 rows' icons and chevron, 筛选's sliders — are lucide's own paths (1.75 stroke,
+   currentColor) drawn here as masks, so the route ships them as CSS, not JS (/events and /calendar budgets, INT13). */
+.ev-glyph { display:block; flex:none; width:1.25rem; height:1.25rem; background:currentColor; mask:var(--glyph) center / contain no-repeat; }
+.ui-chip>.ev-glyph { width:1rem; height:1rem; }
+.ev-glyph[data-glyph=image] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-3.1-3.1a2 2 0 0 0-2.814.014L6 21'/%3E%3Cpath d='m14 19 3 3v-5.5'/%3E%3Cpath d='m17 22 3-3'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=calendar] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M16 19h6'/%3E%3Cpath d='M19 16v6'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=compass] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z'/%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=guide] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 7v14'/%3E%3Cpath d='M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=free] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M16 14h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3Cpath d='M16 18h.01'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=chevron] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E"); }
+.ev-glyph[data-glyph=filters] { --glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='21' x2='14' y1='4' y2='4'/%3E%3Cline x1='10' x2='3' y1='4' y2='4'/%3E%3Cline x1='21' x2='12' y1='12' y2='12'/%3E%3Cline x1='8' x2='3' y1='12' y2='12'/%3E%3Cline x1='21' x2='16' y1='20' y2='20'/%3E%3Cline x1='12' x2='3' y1='20' y2='20'/%3E%3Cline x1='14' x2='14' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='10' y2='14'/%3E%3Cline x1='16' x2='16' y1='18' y2='22'/%3E%3C/svg%3E"); }
+.ev-end__words { flex:1 1 auto; min-width:0; }
+.ev-end__chevron { flex:none; width:1.125rem; height:1.125rem; color:var(--color-ink-3); }
+.ev-end__row--links { display:flex; align-items:flex-start; gap:var(--sp-3); padding:var(--sp-2) 0; }
+.ev-end__row--links>.ev-end__icon { margin-top:var(--sp-1); }
+.ev-end__group { display:flex; flex:1 1 auto; flex-wrap:wrap; align-items:center; gap:0 var(--sp-4); min-width:0; }
+.ev-end__label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.ev-end__links { display:flex; flex-wrap:wrap; gap:0 var(--sp-4); margin:0; padding:0; list-style:none; }
 .ev-end__item { display:inline-flex; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:400; text-decoration:none; transition:scale var(--dur-1) var(--ease-out); }
-.ev-end__item:active { scale:.96; }
-@media (hover:hover) and (pointer:fine) { .ev-end__item:hover { text-decoration:underline 1px; text-underline-offset:.2em; } }
+.ev-end__row>.ev-end__item { justify-content:flex-start; }
+.ev-end__item:active { scale:.98; }
+@media (hover:hover) and (pointer:fine) { .ev-end__item:hover :is(.ev-end__words),.ev-end__links .ev-end__item:hover { text-decoration:underline 1px; text-underline-offset:.2em; } }
 .ev-end__item:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .ev-credits { margin:var(--sp-4) 0 0; }
 .ev-credits ul { margin:0; padding:0; list-style:none; }
@@ -198,7 +263,7 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 /* 日历·地图: the week strip (‹ 10/19–25 › — the range opens the month grid and the region — then the 7 days), a section
    gap (N15: 40 px on phones, 64 on desktop, from the dots to the day head's first ink), the day head (H2 · n 场 with
    列表 | 地图 on its row at every size, J2 P7), the city rail, the lead and the rows. */
-.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 calc(var(--section-gap) - var(--sp-1)); }
+.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 var(--section-gap); }
 .ev-week__prev { grid-area:prev; }
 .ev-week__next { grid-area:next; }
 .ev-week__range { grid-area:range; justify-self:center; display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-3); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink); font-size:var(--fs-body); font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
@@ -272,7 +337,7 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
    it shows only while a city is chosen, to see and clear it: the first event then ends on screen 1 (N18). */
 @media (max-width:767px) { html:is([data-reading=large],[data-reading=extra-large]) .ev-cities:not(:has(.ev-cities__top[aria-pressed=true])) { display:none; } }
 .ev-calendar__map { display:grid; gap:var(--sp-2); margin:0 0 var(--sp-4); }
-.ev-calendar__note { margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.ev-calendar__note { max-width:var(--measure); margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ev-calendar__before { margin:0 0 var(--sp-3); }
 .ev-calendar__ask { border:0; background:none; cursor:pointer; font-size:var(--fs-body); }
 .ev-month__nav { display:flex; align-items:center; justify-content:space-between; margin:0 0 var(--sp-2); }
@@ -282,61 +347,74 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
 .ev-month__day { min-height:3rem; font-size:var(--fs-body); }
 .ev-month__day[data-outside]:not([aria-pressed=true]) { color:var(--color-ink-3); }
 
-/* The day's lead: 3:2, span 6 with the first four rows beside it on desktop. On a standard phone the lead and the next event
-   are one 2-up row of cards (4:3, as the /events picks), so two whole cards end on screen 1 (N18); that event's row steps
-   aside there, and the second card steps aside from 768 px. A day with one event keeps the 2:1 inset lead on a phone.
-   CalendarView marks the pair (--pair; the row is .ev-calendar__pair-row, only there then), so no rule needs :has(). The
-   2-up titles take the /events picks' size; whether they wrap or clamp is cards.css's (D1). Rows (a 112px 4:3 thumbnail)
-   come 12 at a time. */
-.ev-calendar__lead { margin:0 0 var(--sp-2); }
-.ev-calendar__pair-row { display:contents; }
+/* The day's list, one anatomy (UI9-R2 R2-10): at the standard size one grid of feed cards (CalendarView). On a phone the
+   2-up cards of 未来 7 天 (4:3, ev-cards), the first one the day's lead, each with its 加入 pill as its last line, under the
+   meta, so no control sits on a picture; a day with one event shows its card phone-wide at 2:1. From 768px the lead takes
+   the full width on a tablet (16:9, at most 40% of the window tall: R2-02) and span 6 beside the first four rows on
+   desktop (3:2), its pill beside the title; the other cards are restyled as rows (a 112px 4:3 thumbnail, the title and
+   the 3 lines, the pill at the row's end), two columns of rows. 12 at a time after the lead. A past day has no 加入: its
+   cards keep ♡ on the picture's top-right corner (A1), a row's on its thumbnail (the save slot takes the media area). */
+.ev-calendar__cards .ev-card--action>.ui-feed-card__save { position:static; align-self:flex-start; margin-top:var(--sp-1); }
 @media (max-width:767px) {
-  .ev-calendar__lead--pair .ui-feed-grid[data-single] { --ui-feed-cols:2; --ui-feed-ratio:4 / 3; gap:var(--sp-4) var(--grid-gutter); }
-  .ev-calendar__lead--pair .ui-feed-grid[data-single] .ui-feed-card__title { font-size:var(--fs-reading); line-height:var(--lh-snug); }
-  .ev-calendar__lead--pair .ui-feed-grid[data-single] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-meta); }
-  .ev-calendar__lead:not(.ev-calendar__lead--pair) .ui-feed-grid { --ui-feed-ratio:2 / 1; }
-  .ev-calendar__lead--pair { margin-bottom:var(--sp-3); }
-  .ev-calendar__pair-row { display:none; }
+  .ev-calendar__cards { margin:0 0 var(--sp-2); }
+  /* Two up on every phone, 360 px too (the feed grid's one-column rule below a 340 px container would leave no whole card
+     on a 360 × 780 first screen). */
+  .ev-calendar__cards .ui-feed-grid:not([data-single]) { --ui-feed-cols:2; --ui-feed-ratio:4 / 3; }
+  .ev-calendar__cards .ui-feed-grid[data-single] { --ui-feed-ratio:2 / 1; }
 }
 @media (min-width:768px) {
-  .ev-calendar__lead .ui-feed-grid>li+li { display:none; }
-  /* The lead's 加入 sits at the caption's trailing end, beside the title and line 1. */
-  .ev-calendar__lead .ui-feed-card.ev-card--action { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"media media" "title add" "when add" "meta meta" "trust trust"; column-gap:var(--sp-3); align-items:start; }
-  .ev-calendar__lead .ev-card--action>.ui-feed-card__media { grid-area:media; }
-  .ev-calendar__lead .ev-card--action>.ui-feed-card__title { grid-area:title; }
-  .ev-calendar__lead .ev-card--action>.ui-card-when { grid-area:when; }
-  .ev-calendar__lead .ev-card--action>.ui-feed-card__meta { grid-area:meta; }
-  .ev-calendar__lead .ev-card--action>.ui-feed-card__trust { grid-area:trust; }
-  .ev-calendar__lead .ev-card--action>.ui-feed-card__save { position:relative; top:auto; right:auto; grid-area:add; align-self:center; }
+  .ev-calendar__cards .ui-feed-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 var(--grid-gutter); align-items:start; }
+  .ev-calendar__cards .ui-feed-grid>li:first-child { grid-column:1 / -1; margin-bottom:var(--sp-3); }
+  /* The lead: its pill at the caption's trailing end, beside the title and line 1. */
+  .ev-calendar__cards .ui-feed-grid>li:first-child>.ui-feed-card { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"media media" "title add" "when add" "meta meta" "trust trust"; column-gap:var(--sp-3); row-gap:var(--sp-1); align-items:start; }
+  .ev-calendar__cards .ui-feed-grid>li:first-child>.ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
+  /* The rows: the same card, a 112px 4:3 thumbnail on the left, the pill at the row's end. */
+  .ev-calendar__cards .ui-feed-grid>li+li { --ui-feed-ratio:4 / 3; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card { display:grid; grid-template-columns:7rem minmax(0, 1fr) auto; grid-template-areas:"media title add" "media when add" "media meta add" "media trust add"; grid-template-rows:auto auto auto 1fr; column-gap:var(--sp-3); row-gap:var(--sp-1); align-items:start; padding:var(--sp-3) 0; border-bottom:1px solid var(--color-line); }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card>.ui-feed-card__media { width:7rem; margin:0; border-radius:var(--r-md); }
+  .ev-calendar__cards .ui-feed-grid>li+li .ui-cover { border-radius:var(--r-md); }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card:not(.ev-card--action)>.ui-feed-card__save { grid-area:media; }
+  /* A past day has no 加入: its lead and rows drop the empty add column and its gap. */
+  .ev-calendar__cards .ui-feed-grid>li:first-child>.ui-feed-card:not(.ev-card--action) { grid-template-columns:minmax(0, 1fr); grid-template-areas:"media" "title" "when" "meta" "trust"; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card:not(.ev-card--action) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"media title" "media when" "media meta" "media trust"; }
+  .ev-calendar__cards .ui-feed-grid>li+li .ui-card-link::after { inset:0; border-radius:var(--r-md); }
+  .ev-calendar__cards .ui-feed-card>.ui-feed-card__media { grid-area:media; }
+  .ev-calendar__cards .ui-feed-card>.ui-feed-card__title { grid-area:title; }
+  .ev-calendar__cards .ui-feed-card>.ui-card-when { grid-area:when; }
+  .ev-calendar__cards .ui-feed-card>.ui-feed-card__meta { grid-area:meta; }
+  .ev-calendar__cards .ui-feed-card>.ui-feed-card__trust { grid-area:trust; }
 }
+@media (min-width:768px) and (max-width:1023px) {
+  .ev-calendar__cards .ui-feed-grid>li:first-child { --ui-feed-ratio:16 / 9; }
+  .ev-calendar__cards .ui-feed-grid>li:first-child .ui-cover { max-height:40vh; }
+}
+@media (min-width:1024px) {
+  .ev-calendar__cards .ui-feed-grid { grid-template-columns:repeat(12, minmax(0, 1fr)); }
+  .ev-calendar__cards .ui-feed-grid>li { grid-column:span 6; }
+  .ev-calendar__cards .ui-feed-grid>li:first-child { grid-column:1 / span 6; grid-row:1 / span 4; margin:0; }
+  .ev-calendar__cards .ui-feed-grid[data-single]>li:first-child { grid-row:auto; }
+}
+.ev-calendar__end { margin-top:var(--sp-5); }
+.ev-calendar__rows>:is(.ev-list-end,.ui-state,[aria-busy]) { grid-column:1 / -1; }
 
-/* 加入这天计划, the icon variant (AddToDayPlan variant="icon", D7): one quiet control per event, never a wall of outline
-   buttons. On a phone a calendar+ circle on the picture's top-right corner — 44 px on a card, 36 px on a row's thumbnail
-   with a 44 px hit area, as ♡ is elsewhere — its word hidden (the name stays 加入这天计划：<title>); from 768 px a soft pill
-   with the word 加入 / Add at the row's end or beside the lead's title. Added: a check on the selected fill. */
+/* 加入这天计划, the icon variant (AddToDayPlan variant="icon", D7) as one quiet pill per event — calendar+ and the word 加入 /
+   Add on the sunken surface, 44px tall (48 in 简洁显示), never a wall of outline buttons and never on a picture. Added: a
+   check on the selected fill. On a row at 大 / 特大 / 简洁 it is the row's last line, under the meta (the thumbnail stays
+   whole); from 768px at the row's end. */
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon] { position:relative; gap:var(--sp-1); min-width:var(--control-height); min-height:var(--control-height); padding:0 var(--sp-3); border-color:transparent; border-radius:var(--r-pill); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-tight); white-space:nowrap; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon]:active { scale:.94; }
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon][data-done] { background:var(--selected-bg); color:var(--selected-fg); }
 .ev-calendar .ev-add-day .saves-add-day[data-variant=icon][data-done]>svg { color:currentColor; }
 @media (hover:hover) and (pointer:fine) { .ev-calendar .ev-add-day .saves-add-day[data-variant=icon]:not(:disabled,[data-done]):hover { background:var(--color-surface); border-color:var(--color-line-control); } }
-@media (max-width:767px) {
-  .ev-calendar .ev-add-day .saves-add-day[data-variant=icon] { width:var(--control-height); height:var(--control-height); padding:0; border-radius:var(--r-circle); background:var(--color-surface); }
-  .ev-calendar .ev-add-day .saves-add-day__word { display:none; }
-  .ev-calendar__rows .ui-row-card.ev-card--action .saves-add-day[data-variant=icon] { width:36px; height:36px; min-width:36px; min-height:36px; border:0; }
-  .ev-calendar__rows .ui-row-card.ev-card--action .saves-add-day[data-variant=icon]::after { content:""; position:absolute; inset:-4px; }
-  .ev-calendar__rows .ui-row-card.ev-card--action { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body"; }
-  .ev-calendar__rows .ev-card--action .ui-row-card__trailing { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
-}
-.ev-calendar__end { margin-top:var(--sp-5); }
+.ev-calendar__rows>.ui-row-card.ev-card--action { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body" "thumb trailing"; row-gap:var(--sp-2); }
+.ev-calendar__rows>.ui-row-card.ev-card--action>.ui-row-card__trailing { align-self:start; justify-self:start; }
 @media (min-width:768px) {
-  .ev-calendar__rows .ui-row-card.ev-card--action { grid-template-columns:7rem minmax(0, 1fr) auto; grid-template-areas:"thumb body trailing"; }
-  .ev-calendar__rows .ev-card--action .ui-row-card__trailing { align-self:center; }
+  .ev-calendar__rows>.ui-row-card.ev-card--action { grid-template-columns:7rem minmax(0, 1fr) auto; grid-template-areas:"thumb body trailing"; }
+  .ev-calendar__rows>.ui-row-card.ev-card--action>.ui-row-card__trailing { align-self:center; }
 }
 @media (min-width:1024px) {
-  .ev-calendar__rows { display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); align-items:start; }
-  .ev-calendar__rows>.ev-calendar__lead { grid-column:1 / span 6; grid-row:1 / span 4; margin:0; }
-  .ev-calendar__rows>:is(.ui-row-card,.ui-state),.ev-calendar__pair-row>.ui-row-card { grid-column:span 6; }
-  .ev-calendar__rows>:is(.ev-list-end,.ui-state,[aria-busy]) { grid-column:1 / -1; }
+  .ev-calendar__rows:has(>.ui-row-card) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--grid-gutter); align-items:start; }
 }
 /* The inline load failure: the shared error card, then 回到本周末. */
 .ev-chunk-error { display:grid; justify-items:center; gap:var(--sp-2); }
