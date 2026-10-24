@@ -11,7 +11,7 @@ import { downloadEventCalendar } from '../lib/monthly';
 import { recordProductEvent } from '../lib/product-events';
 import { setPageMetadata } from '../lib/seo';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
-import { readerMonthDay } from '../lib/event-facts';
+import { eventPlace, eventWhenLine, isPressSource, readerMonthDay, type EventFactsInput } from '../lib/event-facts';
 import { coverItemFor, createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
 import { coverCandidates } from '../lib/cover-candidates';
@@ -26,7 +26,9 @@ import { AddToDayPlan } from '../components/AddToDayPlan';
 import { SaveHeart } from '../features/saves/SaveHeart';
 import { planDisplayTitle } from '../features/saves/plan-title';
 import { Button, IconButton } from '../components/ui/Button';
-import { RowCard } from '../components/ui/Card';
+import { FeedCard, RowCard } from '../components/ui/Card';
+import { FeedGrid, FeedItem } from '../components/ui/FeedGrid';
+import { Select } from '../components/ui/Select';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { Cover } from '../components/ui/Cover';
 import { COVER_SIZES } from '../components/ui/cover-sizes';
@@ -35,6 +37,12 @@ import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
 import { confirmDialog } from '../components/ui/confirm';
 import '../features/saves/my-week.css';
+
+/**
+ * A meta line's parts joined with " · ", each separator glued to the word before it (a no-break space), so a wrapped line
+ * never starts with "·" (N06); a part's own " · " (a cost or date label from the catalog) is glued the same way.
+ */
+const joinMeta = (parts: string[]) => parts.filter(Boolean).join(' · ').replace(/ · /g, '\u00a0· ');
 
 /** "10/10 周六" / "Sat, Oct 10" (US English, WEB-FIX6) for a Pacific calendar day (zh-Hant converts the weekday at render). */
 function dayLabel(date: string, english: boolean) {
@@ -88,7 +96,7 @@ function WeekEvents({ events, today, coverPage, english }: { events: { event: Mo
       <RowCard title={title} to={`/events/${event.id}`} heading="h3"
         thumb={<Cover cover={covers[index]} sizes={COVER_SIZES.thumb} decorative kind="event" />}
         date={<><span>{t('本次', 'This visit')} </span><time dateTime={date}>{dayLabel(date, english)}</time></>}
-        meta={`${translateText(event.city, locale)} · ${translateText(event.costLabel, locale)} · ${t('活动期间', 'Runs')} ${translateText(event.dateLabel, locale)}`}
+        meta={joinMeta([translateText(event.city, locale), translateText(event.costLabel, locale), `${t('活动期间', 'Runs')} ${translateText(event.dateLabel, locale)}`])}
         trailing={<SaveHeart kind="event" id={event.id} title={title} />} />
       <div className="my-week__row-actions">
         <AddToDayPlan stop={{ kind: 'event', id: event.id }} date={date} title={event.title} compact />
@@ -96,6 +104,30 @@ function WeekEvents({ events, today, coverPage, english }: { events: { event: Mo
       </div>
     </li>;
   })}</ul>;
+}
+
+/**
+ * 这周可以先排进去 (R2-15: /my-week's empty 行程 was text only): with no day planned yet, the first four of this week's
+ * events as picture cards (the site's feed grid and card: cover, line 1 the visit day, line 2 the place, the source line,
+ * ♡ on the cover), so the empty state shows what a plan could hold. Their covers come first on the page's de-duplication,
+ * and 这周可以去 below lists the events after them, so no event or picture shows twice.
+ */
+function SuggestedEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
+  const locale = useLocale();
+  const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
+  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', { ...event, imageKeys: coverCandidates('event', event) })), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
+  return <div className="my-week__suggest">
+    <h3 className="my-week__suggest-title">{t('这周可以先排进去', 'Ideas for this week')}</h3>
+    <FeedGrid label={t('这周可以先排进去的活动', 'Events you could plan this week')}>{events.map(({ event, date }, index) => {
+      const title = translateText(event.title, locale), when = eventWhenLine(event as unknown as EventFactsInput, today, [date]);
+      const checked = readerMonthDay(event.verifiedAt, english);
+      return <FeedItem key={event.id}><FeedCard title={title} to={`/events/${event.id}?date=${date}`} heading="h4"
+        cover={<Cover cover={covers[index]} sizes={COVER_SIZES.feed} decorative kind="event" />}
+        when={english ? when.en : translateText(when.zh, locale)} meta={translateText(eventPlace(event as unknown as EventFactsInput), locale)}
+        trust={isPressSource(event.sourceLabel) ? t(`媒体报道 · ${checked} 核对`, `News report · checked ${checked}`) : `${t('官网核对', 'Source checked')} ${checked}`}
+        save={<SaveHeart kind="event" id={event.id} title={title} />} /></FeedItem>;
+    })}</FeedGrid>
+  </div>;
 }
 
 /**
@@ -117,9 +149,13 @@ export default function MyWeekPage() {
   const nextPlans = library.data.plans.filter(plan => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date) || b.updatedAt.localeCompare(a.updatedAt));
   const pastPlans = library.data.plans.filter(plan => plan.date < today).sort((a, b) => b.date.localeCompare(a.date));
   const { preferences } = library.data;
-  const thisWeek = useMemo(() => MONTHLY_EVENTS.filter(event => (!preferences.regions.length || preferences.regions.includes(event.region)) && (!preferences.interests.length || preferences.interests.includes(event.category)))
+  const upcoming = useMemo(() => MONTHLY_EVENTS.filter(event => (!preferences.regions.length || preferences.regions.includes(event.region)) && (!preferences.interests.length || preferences.interests.includes(event.category)))
     .flatMap(event => { const date = nextConfirmedEventDate(event, today); return date && date <= weekEnd ? [{ event, date }] : []; })
-    .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 6), [preferences.regions, preferences.interests, today, weekEnd]);
+    .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 10), [preferences.regions, preferences.interests, today, weekEnd]);
+  // With no day planned (also while the plans load: a first visit's state, so nothing moves when they answer), the first
+  // four lead 行程 as picture cards and 这周可以去 lists the next six.
+  const suggested = nextPlans.length ? [] : upcoming.slice(0, 4);
+  const thisWeek = upcoming.slice(suggested.length, suggested.length + 6);
   const deletePlan = async (plan: SavedPlan) => {
     if (!await confirmDialog({ message: t('删除这份已保存计划？', 'Delete this saved plan?'), confirmText: t('删除', 'Delete'), cancelText: t('取消', 'Cancel'), danger: true })) return;
     if (await library.deletePlan(plan)) setStatus(t('计划已删除。', 'Plan deleted.'));
@@ -142,6 +178,7 @@ export default function MyWeekPage() {
           body={online ? t('可能是网络不稳或服务繁忙。已保存的计划不会因此消失。', 'The connection or our service may be busy. Your saved plans are not lost.') : t('联网后再试一次。', 'Try again once you are back online.')} />
           : nextPlans.length ? <PlanTimeline plans={nextPlans} english={english} busy={disabled} onDelete={plan => void deletePlan(plan)} />
             : <p className="my-week__empty-line">{t('还没有安排哪天出门。在活动里点「加入这天计划」，就会排进这里。', 'No days planned yet. Tap “Add to this day’s plan” on an event and it lands here.')}</p>}
+      {suggested.length > 0 && <SuggestedEvents events={suggested} today={today} coverPage={coverPage} english={english} />}
     </section>
 
     <UnifiedSavedItems today={today} signedIn={signedIn} coverPage={coverPage} />
@@ -160,9 +197,9 @@ export default function MyWeekPage() {
         {!library.ready && library.error && <p className="my-week__note">{t('先重新读取资料，再调整出行偏好。', 'Reload your data before changing outing preferences.')}</p>}
         <ChipRow label={t('常去的地区', 'Areas I go to')}>{ATTRACTION_REGIONS.filter(region => region.id !== 'all').map(region => <FilterChip key={region.id} selected={preferences.regions.includes(region.id)} disabled={disabled} onClick={() => toggle('regions', region.id)}>{translateText(region.label, locale)}</FilterChip>)}</ChipRow>
         <ChipRow label={t('兴趣', 'Interests')}>{interests.map(interest => <FilterChip key={interest.id} selected={preferences.interests.includes(interest.id)} disabled={disabled} onClick={() => toggle('interests', interest.id)}>{t(interest.zh, interest.en)}</FilterChip>)}</ChipRow>
-        <label className="my-week__select">{t('常用出行方式', 'Usual way to get around')}<select value={preferences.travelMode} disabled={disabled} onChange={event => void library.savePreferences({ ...preferences, travelMode: event.target.value })}>
+        <label className="my-week__select">{t('常用出行方式', 'Usual way to get around')}<Select value={preferences.travelMode} disabled={disabled} onChange={event => void library.savePreferences({ ...preferences, travelMode: event.target.value })}>
           <option value="any">{t('暂未决定', 'Not decided')}</option><option value="drive">{t('开车', 'Drive')}</option><option value="transit">{t('公共交通', 'Transit')}</option><option value="walk">{t('步行', 'Walk')}</option>
-        </select></label>
+        </Select></label>
         <div className="planner-page my-week__legacy"><PlannerPreferenceMemory preferences={preferences} disabled={disabled} onSave={library.savePreferences} signedIn={signedIn} /></div>
       </details>
     </section>

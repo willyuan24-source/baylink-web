@@ -3,3 +3,40 @@
    takes the site's looks for its buttons, chips and fields there. */
 .together-page.ui-container { max-width:var(--container-wide); margin-inline:auto; padding:var(--sp-5) var(--page-gutter) 0; }
 @media (min-width:1024px) { .together-page.ui-container { padding-top:var(--sp-6); } }
+
+/* Discovery (UI9-R2-ACCOUNT-UTILITY, NAV PR B): one search field and the 筛选 chip on one row (OutingsHub.tsx
+   DiscoveryFilters), the filters in force in words under it, and the filter sheet (the site's Sheet). The field and the
+   chip are one height (--control-height, 48 in 简洁显示); the chip is the ui chip look with the brand count when filters are
+   on. outings.css's .outing-discovery-filter / .outing-filter-main / .outing-advanced-filter / .outing-filter-footer rules
+   no longer match anything (listed for R2-INT). */
+.together-page .outing-discovery { margin:0 0 var(--sp-5); }
+.together-page .outing-discovery-bar { display:grid; grid-template-columns:minmax(0, 1fr) auto; align-items:center; gap:var(--sp-3); }
+.together-page .outing-search-field { gap:0; }
+.together-page .outing-filter-chip { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; line-height:1.25; white-space:nowrap; }
+.together-page .outing-filter-chip>svg { width:1em; height:1em; flex:none; }
+.together-page .outing-filter-chip[data-active] { border-color:var(--selected-line); }
+.together-page .outing-filter-count { display:inline-grid; place-items:center; min-width:1.5em; height:1.5em; padding:0 var(--sp-1); border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); line-height:1; font-variant-numeric:tabular-nums; }
+@media (hover:hover) and (pointer:fine) { .together-page .outing-filter-chip:hover { border-color:var(--color-ink-3); background:var(--color-surface-2); } }
+.together-page .outing-filter-chip:active { scale:.97; }
+.together-page .outing-filter-summary { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-3); margin-top:var(--sp-3); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
+.together-page .outing-filter-token { display:inline-flex; align-items:center; min-height:2rem; padding:0 var(--sp-3); border-radius:var(--r-pill); background:var(--selected-bg); color:var(--selected-fg); }
+/* The sheet is portalled out of .together-page, so its form rules are its own (the page's field rules do not reach it). */
+.outing-filter-sheet .outing-filter-form { display:grid; gap:var(--sp-5); }
+.outing-filter-sheet .outing-filter-form label { display:flex; flex-direction:column; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); }
+.outing-filter-sheet .outing-city-field input { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:max(1rem, var(--text-body)); line-height:var(--lh-ui); }
+.outing-filter-sheet .outing-city-field input::placeholder { color:var(--color-ink-3); font-weight:400; }
+.outing-filter-sheet .outing-footnote { margin:0; color:var(--color-ink-3); font-size:var(--text-fact); line-height:var(--lh-read); }
+.outing-filter-sheet .outing-date-field { display:grid; gap:var(--sp-2); }
+.outing-filter-sheet .outing-field-label { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
+.outing-filter-sheet .ui-date-chips { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
+.outing-filter-sheet .outing-date-range { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
+.outing-filter-sheet .outing-check { flex-direction:row; align-items:center; gap:var(--sp-3); min-height:var(--control-height); color:var(--color-ink); font-size:var(--text-body); }
+.outing-filter-sheet .outing-check input { flex:none; width:1.25rem; height:1.25rem; accent-color:var(--color-brand); }
+/* The footer: 清除 (a text button) and 显示小队, the sheet's one solid button, in the ui Button looks. */
+.outing-filter-sheet :is(.outing-primary,.outing-link-button) { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); border-radius:var(--r-pill); font-size:var(--text-body); line-height:1.25; }
+.outing-filter-sheet .outing-primary { flex:1; padding:0 var(--sp-5); border:1px solid var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-weight:600; }
+.outing-filter-sheet .outing-link-button { padding:0 var(--sp-3); border:0; background:none; color:var(--color-brand); text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+@media (hover:hover) and (pointer:fine) { .outing-filter-sheet .outing-primary:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); } }
+.outing-filter-sheet :is(input,button,select):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
+/* The band sits on the frame above the hub head (AccountBand: account-band.css). */
+.together-page .outing-band { margin-bottom:var(--sp-4); }

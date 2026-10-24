@@ -17,6 +17,8 @@ export const editorialStyleScopes = [
   // WEB-FRESH2: the editor's source desk (loaded with the admin view).
   { file: 'src/features/source-monitor/source-monitor-admin.css' },
   { file: 'src/features/profile/me-hub.css' },
+  // UI9-R2-ACCOUNT-UTILITY: the /me and /together photo band (AccountBand.tsx).
+  { file: 'src/components/account-band.css' },
   { file: 'src/features/messages/messages-hub.css' },
   { file: 'src/features/events/events.css' },
   // UI9-PREP: the 免费与优惠 / 新店 boards' own sheet (UI9-FREE; empty until FREE fills it).
