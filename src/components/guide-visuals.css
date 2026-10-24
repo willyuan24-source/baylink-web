@@ -11,7 +11,10 @@
 .guide-figure--official-poster .guide-figure-open { padding:22px 22px 65px; background:linear-gradient(135deg,var(--color-line),var(--color-surface-2) 55%,var(--color-line)); }
 .guide-figure--official-poster .guide-figure-image { aspect-ratio:auto; max-height:700px; object-fit:contain; }
 .guide-figure-zoom { position:absolute; right:14px; bottom:14px; display:flex; align-items:center; gap:7px; min-height:36px; padding:8px 12px; border:1px solid rgb(var(--color-surface-rgb) / .5); border-radius:var(--r-pill); background:rgb(var(--color-surface-rgb) / .93); color:var(--color-ink); font-size:var(--text-caption); font-weight:600; }
-.guide-image-caption { display:grid; gap:8px; padding:13px 3px 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-read); overflow-wrap:anywhere; }
+/* N05 (UI9-R2-GUIDE): a caption keeps a short measure, 30em — a Chinese line ≤ 30 characters, a mixed one (Latin names are
+   half an em) ≤ 40 — so it reads as a caption under the picture, not a paragraph across it. */
+.guide-image-caption { display:grid; gap:8px; max-width:30em; padding:13px 3px 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-read); overflow-wrap:anywhere; }
+.guide-image-caption:lang(en) { max-width:var(--measure); }
 .guide-image-caption p { margin:0; }
 .guide-figure--preview { margin:0; }
 .guide-figure--preview .guide-figure-open { border-radius:var(--r-md); }
@@ -23,7 +26,7 @@
 .guide-figure--preview.guide-figure--official-poster .guide-figure-image,
 .guide-figure--preview.guide-figure--full-frame .guide-figure-image { aspect-ratio:auto; max-height:220px; object-fit:contain; }
 .guide-image-attribution { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; font-size:var(--text-caption); }
-.guide-image-attribution a { text-decoration:underline; text-underline-offset:3px; }
+.guide-image-attribution a { text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .guide-image-kind { padding:3px 8px; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink-2); font-size:var(--text-caption); font-weight:600; }
 .guide-poster-disclosure { margin-bottom:28px; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); }
 .guide-poster-disclosure summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 20px; color:var(--color-brand-hover); font-size:var(--fs-meta); font-weight:600; cursor:pointer; list-style:none; }
@@ -47,11 +50,12 @@
 .guide-route-stop-number { color:var(--color-ink-2); font-size:var(--text-caption); }
 .guide-route-stop h4 { margin:8px 0 10px; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-snug); font-weight:600; }
 .guide-route-stop p { margin:0; color:var(--color-ink); white-space:pre-line; font-size:var(--text-body); line-height:var(--lh-read); }
-.guide-route-stop > a { display:inline-flex; align-items:center; gap:7px; min-height:44px; margin-top:13px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:4px; }
+.guide-route-stop > a { display:inline-flex; align-items:center; gap:7px; min-height:44px; margin-top:13px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .guide-route-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:15px; }
 .guide-route-controls > span { color:var(--color-ink-2); font-size:var(--text-caption); font-variant-numeric:tabular-nums; }
 .guide-route-controls button { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.guide-route-controls button:disabled { opacity:.45; cursor:default; }
+/* N09: a disabled step button reads in the quiet ink (≥ 4.5:1 is not required for a disabled control; no opacity). */
+.guide-route-controls button:disabled { color:var(--color-ink-3); cursor:default; }
 @media(max-width:639px) {
   .guide-figure--cover { margin:25px -4px 24px; }
   .guide-figure--cover .guide-figure-open { border-radius:var(--r-lg); }

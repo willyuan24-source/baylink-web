@@ -37,12 +37,12 @@ test('the senior guide opens with a carousel: a cover with the first answer as a
   const answer = slides[0].querySelector('.gd-answer a')!;
   assert.equal(answer.getAttribute('href'), 'tel:+18005102020');
   assert.match(answer.getAttribute('aria-label')!, /^拨打 .*800-510-2020$/);
-  // The cover sits before the 30-second card (look → check); the action bar (DETAIL's contract, UI9-GUIDES) follows them,
-  // its one primary last: 拨打 the cover's number.
+  // UI9-R2-GUIDE (R2-07): the 30-second card comes first (the answer first), the story slides after it; the action bar
+  // (DETAIL's contract, UI9-GUIDES) follows them, its one primary last: 拨打 the cover's number.
   const keyFacts = view.getByRole('heading', { name: '30 秒看懂' });
-  assert.ok(carousel.compareDocumentPosition(keyFacts) & Node.DOCUMENT_POSITION_FOLLOWING);
+  assert.ok(keyFacts.compareDocumentPosition(carousel) & Node.DOCUMENT_POSITION_FOLLOWING);
   const actions = view.getByRole('group', { name: '这一页的操作' });
-  assert.ok(keyFacts.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING);
+  assert.ok(carousel.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING);
   assert.equal(actions.lastElementChild?.getAttribute('href'), 'tel:+18005102020');
   // Every slide but the cover names its source; county numbers are tap-to-call.
   for (const slide of slides.slice(1)) assert.ok(slide.querySelector('.gd-slide__source')?.textContent);
@@ -98,10 +98,11 @@ test('guides without pilot data keep a photo cover or no picture, never a carous
   assert.equal(lead.firstElementChild?.className, 'gd-cover-figure', 'the title picture comes first');
   assert.equal(lead.querySelector('.gd-cover img')?.getAttribute('src'), listed.tier !== 'type' ? listed.image.src : '', 'the ③ picture, never the AI art');
   assert.equal(lead.querySelector('.gd-cover')?.getAttribute('data-tier'), 'stock');
-  assert.ok(lead.querySelector('.gd-cover-figure + .gd-carousel'), 'the slides follow under it');
+  assert.ok(scam.container.querySelector('.gd-lead>.gd-lead__visual:first-child>.gd-cover-figure'), 'the title picture leads');
+  assert.ok(scam.container.querySelector('.gd-lead__side + .gd-lead__story>.gd-carousel'), 'the slides follow 30 秒看懂');
 });
 
-test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显示 and in English it grows instead of clipping', async () => {
+test('a phone slide is 3:4 at least but never a fixed 3:4 box; from 768 px one row as tall as the tallest slide', async () => {
   const { readFile } = await import('node:fs/promises');
   const css = await readFile(new URL('../src/features/guides/guide-article.css', import.meta.url), 'utf8');
   const rule = /^\.gd-slide \{([^}]*)\}/m.exec(css)?.[1] ?? '';
@@ -110,6 +111,12 @@ test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显
   assert.match(css, /@container \(min-width:23rem\) \{ \.gd-slide \{ min-height:calc\(100cqw \* 4 \/ 3\);/, 'a wider slide keeps 3:4');
   assert.match(rule, /height:100%/, 'the track stretches every slide to the tallest one');
   assert.doesNotMatch(css, /\.gd-slide[^{]*\{[^}]*(?:aspect-ratio|max-height|overflow:hidden)/, 'no fixed ratio or clipping on a slide');
+  // UI9-R2-GUIDE (R2-07): from 768 px the slides are one fixed-height row (a floor, never a cap) under 30 秒看懂.
+  assert.match(css, /\.gd-lead__story \.gd-slide \{ min-height:22\.5rem; \}/);
+  // No lime bar (lime means 免费 only, D2) and no deep-green slide: white and cream cards with a green number badge.
+  assert.doesNotMatch(css, /--color-highlight|--color-brand-deep\); color:var\(--color-surface\)/);
+  assert.match(css, /\.gd-answer \{[^}]*background:var\(--color-surface-2\); color:var\(--color-ink\);/);
+  assert.match(css, /\.gd-slide__number \{[^}]*background:var\(--color-brand\); color:var\(--color-surface\);/);
 });
 
 test('English "Read next" cards say "1 official source" in the singular, like the index and the head meta line', async () => {

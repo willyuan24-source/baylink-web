@@ -1,9 +1,9 @@
 {
   "today": {"key":"tile-today-1","spares":["tile-today-3"]},
-  "free": {"key":"tile-free-3","spares":["tile-free-1","tile-free-2"]},
-  "kids": {"key":"tile-kids-2","spares":["tile-kids-1","tile-kids-3"]},
-  "seniors": {"key":"tile-seniors-2","spares":["tile-seniors-1"]},
-  "rainy-day": {"key":"tile-rainy-day-2","spares":["tile-rainy-day-1"]},
+  "free": {"key":"tile-free-4","spares":["tile-free-1","tile-free-2"]},
+  "kids": {"key":"tile-kids-4","spares":["tile-kids-1","tile-kids-3"]},
+  "seniors": {"key":"tile-seniors-3","spares":["tile-seniors-1"]},
+  "rainy-day": {"key":"tile-rainy-day-3","spares":["tile-rainy-day-1"]},
   "no-car": {"key":"tile-no-car-1","spares":[]},
   "new-shops": {"key":"tile-new-shops-3","spares":["tile-new-shops-1","tile-new-shops-2"]},
   "calendar": {"key":"tile-calendar-2","spares":["tile-calendar-3"]}

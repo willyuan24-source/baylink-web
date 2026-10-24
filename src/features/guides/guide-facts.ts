@@ -1,7 +1,7 @@
 import type { Guide } from '../../data/guides';
 import { GUIDE_TOPICS, type GuideTopicId } from '../../data/guide-topics';
 import { createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
-import type { Copy, CoverTone } from '../../lib/event-facts';
+import type { Copy } from '../../lib/event-facts';
 import { getLocale } from '../../i18n/locale';
 import { coverFor, relatedForToday, type GuideCall, type GuideCard, type GuideRecord } from './guide-records';
 
@@ -22,17 +22,6 @@ export const GUIDE_REGIONS: readonly { id: GuideRegionId; zh: string; en: string
 ];
 export const isGuideRegion = (value: unknown): value is GuideRegionId => GUIDE_REGIONS.some(region => region.id === value);
 export const isGuideTopic = (value: unknown): value is GuideTopicId => GUIDE_TOPICS.some(topic => topic.id === value);
-
-/** Each topic's tone and icon key (the UI9-C type covers' palette; kept for the topic chips' data, UI9-IMAGES draws pictures only). */
-export const TOPIC_COVER: Readonly<Record<GuideTopicId, { tone: CoverTone; icon: string }>> = {
-  elders: { tone: 'seniors', icon: 'seniors' },
-  health: { tone: 'culture', icon: 'book' },
-  documents: { tone: 'family', icon: 'landmark' },
-  housing: { tone: 'food', icon: 'store' },
-  transport: { tone: 'outdoors', icon: 'bike' },
-  savings: { tone: 'free', icon: 'free' },
-  outings: { tone: 'outdoors', icon: 'outdoors' },
-};
 
 export const topicCopy = (topic: GuideTopicId): Copy => {
   const entry = GUIDE_TOPICS.find(item => item.id === topic)!;

@@ -139,40 +139,42 @@
     },
     "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
   },
-  "tile-free-3": {
-    "approvalId": "tile:free#3",
-    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+  "tile-free-4": {
+    "approvalId": "tilesA:free#1",
+    "approval": "DECISIONS 46 (captain 2026-10-24 04:05, UI9-IMG-TILES-A) under DECISIONS 33 (owner 2026-10-23 01:10 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」)",
     "tile": "free",
-    "rank": 3,
+    "rank": 1,
     "source": "unsplash",
-    "pageUrl": "https://unsplash.com/photos/legs-on-a-picnic-blanket-with-fruit-and-flowers-tc4I1P4DQdo",
-    "photographer": "Sou Jest",
-    "photographerUrl": "https://unsplash.com/@soujest",
+    "pageUrl": "https://unsplash.com/photos/people-sitting-on-green-grass-field-near-white-concrete-building-during-daytime-ehwWojSyaB8",
+    "photographer": "Sand Crain",
+    "photographerUrl": "https://unsplash.com/@sandcrain",
     "license": "Unsplash License",
     "licenseUrl": "https://unsplash.com/license",
-    "pageReadAt": "2026-10-21T18:21:17-07:00",
+    "pageReadAt": "2026-10-24T03:59:51-07:00",
     "pageSays": {
-      "ogTitle": "Photo by Sou Jest on Unsplash",
-      "title": "Legs on a picnic blanket with fruit and flowers - Free Photo on Unsplash",
+      "ogTitle": "Photo by Sand Crain on Unsplash",
+      "title": "People sitting on green grass field near white concrete building during daytime - Free Photo on Unsplash",
       "license": "Free to use under the Unsplash License",
-      "published": "Published on July 27, 2026"
+      "published": "Published on September 6, 2020",
+      "location": "Dolores Park West Pathway, San Francisco, CA, USA"
     },
-    "originalUrl": "https://images.unsplash.com/photo-1785175659726-57c924344bd9?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
-    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "originalUrl": "https://images.unsplash.com/photo-1599452294722-e2bbd90a1a08",
+    "retrievedAt": "2026-10-24T04:00:24-07:00",
     "contentType": "image/jpeg",
-    "bytes": 3814417,
-    "sha256": "099c2163ec1927173f76ef711de8e24ed44f7ed65c3a41eb7ed4793ee538ceb9",
-    "sha1": "b83b88bb1f778a1b0b968a8c2078cdda1f0454f9",
+    "bytes": 2236384,
+    "sha256": "c9549fc1afa0b6c25aaf0e023dc6f1073b68fa84b80022269c3e2e996874c99a",
+    "sha1": "3efd47e0121b965fef7c19fd516c1c19908bd9a3",
     "output": {
       "width": 1280,
-      "height": 853,
-      "bytes": 80884,
+      "height": 960,
+      "bytes": 161892,
       "small480": {
-        "bytes": 13910,
-        "quality": 60
+        "bytes": 14842,
+        "quality": 42
       }
     },
-    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q60) for the 15 KB tile budget. No other edits."
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q42) for the 15 KB tile budget. No other edits.",
+    "replaces": "tile-free-3"
   },
   "tile-kids-1": {
     "approvalId": "tile:kids#1",
@@ -209,40 +211,41 @@
     },
     "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
   },
-  "tile-kids-2": {
-    "approvalId": "tile:kids#2",
-    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+  "tile-kids-4": {
+    "approvalId": "tilesA:kids#1",
+    "approval": "DECISIONS 46 (captain 2026-10-24 04:05, UI9-IMG-TILES-A) under DECISIONS 33 (owner 2026-10-23 01:10 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」)",
     "tile": "kids",
-    "rank": 2,
+    "rank": 1,
     "source": "unsplash",
-    "pageUrl": "https://unsplash.com/photos/boy-and-woman-holding-hands-outdoor-5wTuk6vE-Kk",
-    "photographer": "Kelli McClintock",
-    "photographerUrl": "https://unsplash.com/@kelli_mcclintock",
+    "pageUrl": "https://unsplash.com/photos/family-of-four-standing-at-the-seashore-b8ZLTaFaD4Y",
+    "photographer": "Mehdi Benkaci",
+    "photographerUrl": "https://unsplash.com/@mehdibck",
     "license": "Unsplash License",
     "licenseUrl": "https://unsplash.com/license",
-    "pageReadAt": "2026-10-21T18:21:23-07:00",
+    "pageReadAt": "2026-10-24T03:59:54-07:00",
     "pageSays": {
-      "ogTitle": "Photo by Kelli McClintock on Unsplash",
-      "title": "Boy and woman holding hands outdoor - Free Photo on Unsplash",
+      "ogTitle": "Photo by Mehdi Benkaci on Unsplash",
+      "title": "Family of four standing at the seashore - Free Photo on Unsplash",
       "license": "Free to use under the Unsplash License",
-      "published": "Published on March 8, 2019"
+      "published": "Published on March 7, 2019"
     },
-    "originalUrl": "https://images.unsplash.com/photo-1552028650-a96d3db96bfd?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
-    "retrievedAt": "2026-10-21T18:24:10-07:00",
+    "originalUrl": "https://images.unsplash.com/photo-1551954590-71c4b7e6b2c7",
+    "retrievedAt": "2026-10-24T04:00:26-07:00",
     "contentType": "image/jpeg",
-    "bytes": 1897786,
-    "sha256": "81cd605a1dd7fa75302ee4c70d994aabf564273364556abb2990afe3143bbd9f",
-    "sha1": "f231ca1eaa3e513c4de4293d5697b82ab14e2647",
+    "bytes": 1941956,
+    "sha256": "c56b152c7bbca098e7be94d3a95571d73b6ce102ca9dcc8769e5af063c978379",
+    "sha1": "6f5f5e41f4fed62fdfbb1296c4a2ce68d5605b2e",
     "output": {
       "width": 1280,
       "height": 853,
-      "bytes": 59334,
+      "bytes": 81450,
       "small480": {
-        "bytes": 12746,
+        "bytes": 13406,
         "quality": 72
       }
     },
-    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits.",
+    "replaces": "tile-kids-2"
   },
   "tile-kids-3": {
     "approvalId": "tile:kids#3",
@@ -314,40 +317,41 @@
     },
     "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
   },
-  "tile-seniors-2": {
-    "approvalId": "tile:seniors#2",
-    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+  "tile-seniors-3": {
+    "approvalId": "tilesA:seniors#2",
+    "approval": "DECISIONS 46 (captain 2026-10-24 04:05, UI9-IMG-TILES-A) under DECISIONS 33 (owner 2026-10-23 01:10 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」)",
     "tile": "seniors",
-    "rank": 2,
+    "rank": 1,
     "source": "unsplash",
-    "pageUrl": "https://unsplash.com/photos/couple-walking-by-a-river-at-sunset-W3NqqtlK8ic",
-    "photographer": "Anna Stampfli",
-    "photographerUrl": "https://unsplash.com/@annastampfli",
+    "pageUrl": "https://unsplash.com/photos/man-and-woman-walking-on-road-while-holding-hands-DLLpNmIG0pk",
+    "photographer": "Sam Williams",
+    "photographerUrl": "https://unsplash.com/@sam_williams",
     "license": "Unsplash License",
     "licenseUrl": "https://unsplash.com/license",
-    "pageReadAt": "2026-10-21T18:21:34-07:00",
+    "pageReadAt": "2026-10-24T03:59:58-07:00",
     "pageSays": {
-      "ogTitle": "Photo by Anna Stampfli on Unsplash",
-      "title": "Couple walking by a river at sunset - Free Photo on Unsplash",
+      "ogTitle": "Photo by Sam Williams on Unsplash",
+      "title": "Man and woman walking on road while holding hands - Free Photo on Unsplash",
       "license": "Free to use under the Unsplash License",
-      "published": "Published on January 20, 2026"
+      "published": "Published on August 17, 2019"
     },
-    "originalUrl": "https://images.unsplash.com/photo-1768898548611-2dd94e452538?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
-    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "originalUrl": "https://images.unsplash.com/photo-1566053166065-79446ba9b79f",
+    "retrievedAt": "2026-10-24T04:00:28-07:00",
     "contentType": "image/jpeg",
-    "bytes": 3337255,
-    "sha256": "4e0f0af3e1c470257a5287fc1e61d183a6fb426e639411b38f53a2d25a052149",
-    "sha1": "6d6b2dea542b05f257b2b4f925c2d08ca5c076e8",
+    "bytes": 1817934,
+    "sha256": "585228bc6344d07f232754a5b09210c357127d08db7c5ec2ecb31158f8ff5951",
+    "sha1": "ae1a480b245d2be3a6079a3ee1a3037340487a02",
     "output": {
       "width": 1280,
-      "height": 853,
-      "bytes": 84320,
+      "height": 1043,
+      "bytes": 82186,
       "small480": {
-        "bytes": 13498,
-        "quality": 72
+        "bytes": 13958,
+        "quality": 42
       }
     },
-    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits."
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q42) for the 15 KB tile budget. No other edits.",
+    "replaces": "tile-seniors-2"
   },
   "tile-rainy-day-1": {
     "approvalId": "tile:rainy-day#1",
@@ -384,40 +388,41 @@
     },
     "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q40) for the 15 KB tile budget. No other edits."
   },
-  "tile-rainy-day-2": {
-    "approvalId": "tile:rainy-day#2",
-    "approval": "approved-b1a2-1021.json (owner 「圖片都過，沒問題」 2026-10-21 16:51 PT)",
+  "tile-rainy-day-3": {
+    "approvalId": "tilesA:rainy-day#3",
+    "approval": "DECISIONS 46 (captain 2026-10-24 04:05, UI9-IMG-TILES-A) under DECISIONS 33 (owner 2026-10-23 01:10 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」)",
     "tile": "rainy-day",
-    "rank": 2,
+    "rank": 1,
     "source": "unsplash",
-    "pageUrl": "https://unsplash.com/photos/a-dimly-lit-library-with-bookshelves-and-a-large-window-UVdS0D3rDNM",
-    "photographer": "panpan ma",
-    "photographerUrl": "https://unsplash.com/@mymphoebe",
+    "pageUrl": "https://unsplash.com/photos/a-table-and-chairs-in-a-room-with-large-windows-FTvkl9IJ5zw",
+    "photographer": "Takafumi Yamashita",
+    "photographerUrl": "https://unsplash.com/@yamashita0129",
     "license": "Unsplash License",
     "licenseUrl": "https://unsplash.com/license",
-    "pageReadAt": "2026-10-21T18:21:41-07:00",
+    "pageReadAt": "2026-10-24T04:00:02-07:00",
     "pageSays": {
-      "ogTitle": "Photo by panpan ma on Unsplash",
-      "title": "A dimly lit library with bookshelves and a large window - Free Photo on Unsplash",
+      "ogTitle": "Photo by Takafumi Yamashita on Unsplash",
+      "title": "A table and chairs in a room with large windows - Free Photo on Unsplash",
       "license": "Free to use under the Unsplash License",
-      "published": "Published on February 26, 2026"
+      "published": "Published on October 1, 2021"
     },
-    "originalUrl": "https://images.unsplash.com/photo-1772081014501-cf52c3e0bf76?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
-    "retrievedAt": "2026-10-21T18:24:11-07:00",
+    "originalUrl": "https://images.unsplash.com/photo-1633073490205-27c0ad419a84",
+    "retrievedAt": "2026-10-24T04:00:29-07:00",
     "contentType": "image/jpeg",
-    "bytes": 1880624,
-    "sha256": "84054267587dd5167b2cf67479a2dba3a1d09c0be2400d54f2a7ce5cbda304e7",
-    "sha1": "36e87aef0322385c38772b75f26fc4b55b24f0ca",
+    "bytes": 1589100,
+    "sha256": "ad6ee295fdd0555ba28d9a57f53e007668492b0e9f87e4e96fcd76bfd0b482e3",
+    "sha1": "d2e09790f96ed68db0e4676cd9acc28d008596c7",
     "output": {
       "width": 1280,
-      "height": 720,
-      "bytes": 87530,
+      "height": 853,
+      "bytes": 78298,
       "small480": {
-        "bytes": 14150,
-        "quality": 60
+        "bytes": 11832,
+        "quality": 72
       }
     },
-    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q60) for the 15 KB tile budget. No other edits."
+    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). The 480 w file was compressed on its own (WebP q72) for the 15 KB tile budget. No other edits.",
+    "replaces": "tile-rainy-day-2"
   },
   "tile-no-car-1": {
     "approvalId": "tile:no-car#1",

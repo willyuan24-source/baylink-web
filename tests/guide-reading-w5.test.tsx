@@ -129,7 +129,7 @@ test('H67, H52, H64, H24: carousel buttons on touch and a list in 简洁; sectio
   assert.match(guideCss, /\.gd-carousel \.ui-carousel :is\(\.ui-carousel__prev,\.ui-carousel__next\) \{ display:inline-grid; width:3rem; height:3rem; \}/, 'H67: 48px buttons at every width');
   assert.match(guideCss, /html\[data-simple\] \.gd-carousel \.ui-carousel__track \{ flex-direction:column;/, 'H67: 简洁 lists the slides');
   // H67 → UI9-GUIDES: 简洁 has no carousel at all (the slides' facts are in 30 秒看懂), so no order rule is needed for it.
-  assert.match(guideCss, /html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__visual>\.gd-carousel \{ display:none; \}/, 'H67: in 简洁 the slide list goes (the title picture stays)');
+  assert.match(guideCss, /html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__story \{ display:none; \}/, 'H67: in 简洁 the slide list goes (the title picture stays)');
   assert.match(guideCss, /:is\(html\[data-reading=large\],html\[data-reading=extra-large\],html\[data-simple\]\) \.gd-related__head \{ flex-direction:column;/, 'H52 article');
   assert.match(css('features/guides/guide-library.css'), /:is\(html\[data-reading=large\],html\[data-reading=extra-large\],html\[data-simple\]\) \.gl-section__head \{ flex-direction:column;/, 'H52 index');
   assert.match(guideCss, /@media \(max-width:419px\) \{\s*\.gd-article \.gd-phone-directory \{ grid-template-columns:minmax\(0, 1fr\);/, 'H64');

@@ -18,19 +18,26 @@ const read = <T>(file: string) => JSON.parse(readFileSync(file, 'utf8')) as T;
 const tiles = read<Record<string, { key: string; spares: string[] }>>('src/data/home-tile-photos.json');
 const records = read<{ key: string; src: string }[]>('src/data/home-tile-stock-photos.json');
 const english = read<Record<string, string>>('src/data/home-tile-stock-photos-en.json');
-const downloads = read<Record<string, { pageUrl: string; sha256: string; license: string; approval: string; tile: string }>>('scripts/data/home-tile-photos-downloads.json');
+const downloads = read<Record<string, { pageUrl: string; sha256: string; license: string; approval: string; tile: string; approvalId: string; replaces?: string; pageSays?: { location?: string } }>>('scripts/data/home-tile-photos-downloads.json');
 const photos = Object.values(tiles).flatMap(({ key, spares }) => [key, ...spares]);
 
 test('the eight home entries each have one tile photo, in the order the home lists them, and the spares are registered', () => {
   assert.deepEqual(Object.keys(tiles), ['today', 'free', 'kids', 'seniors', 'rainy-day', 'no-car', 'new-shops', 'calendar']);
-  assert.equal(photos.length, 18, 'the owner approved 18 tile photos: 8 shown and 10 spares');
+  assert.equal(photos.length, 18, '18 approved tile photos: 8 shown and 10 spares');
   assert.equal(new Set(photos).size, photos.length, 'a photo serves one tile');
   assert.deepEqual(records.map(record => record.key).sort(), [...photos].sort(), 'every registered tile photo is a tile\'s photo or spare');
   for (const [tile, { key, spares }] of Object.entries(tiles)) {
     for (const photo of [key, ...spares]) {
       assert.ok(photo.startsWith(`tile-${tile}-`), `${photo} belongs to ${tile}`);
       assert.equal(downloads[photo]?.tile, tile, `${photo}: download record`);
-      assert.match(downloads[photo].approval, /圖片都過，沒問題/);
+      // The 2026-10-21 batch (owner 「圖片都過，沒問題」), or the four brighter tile photos of DECISIONS 46 (owner rule DECISIONS 33),
+      // which cover only UI9-IMG-TILES-A candidates (approval id tilesA:<tile>#n).
+      if (downloads[photo].approvalId.startsWith('tilesA:')) {
+        assert.match(downloads[photo].approval, /^DECISIONS 46 .*只要你分析過後，覺得合適，更好，就可以通過/, photo);
+      } else {
+        assert.match(downloads[photo].approvalId, new RegExp(`^tile:${tile}#\\d$`), photo);
+        assert.match(downloads[photo].approval, /圖片都過，沒問題/, photo);
+      }
       assert.match(downloads[photo].sha256, /^[0-9a-f]{64}$/);
     }
   }
@@ -76,4 +83,30 @@ test('each shown tile\'s 480 w file is within 15 KB (DECISIONS 27; verify:images
     assert.ok(bytes <= HOME_TILE_BUDGET.each, `${tile}: ${small} is ${bytes} B`);
   }
   assert.ok(total <= HOME_TILE_BUDGET.total, `${total} B`);
+});
+
+test('DECISIONS 46: free, kids, seniors and rainy day show the four brighter photos; the dark photos they replace are off the register', () => {
+  // UI9-IMG-TILES-A candidates, approved by the captain 2026-10-24 04:05 under the owner's image rule (DECISIONS 33): upper 55 %
+  // of the tile crop L* ≥ 55 at 16:9 and 4:3 on the real 480 w file (the free tile's old photo read 49, rainy day's 31).
+  const shown = { free: ['tile-free-4', 'ehwWojSyaB8', 'Sand Crain'], kids: ['tile-kids-4', 'b8ZLTaFaD4Y', 'Mehdi Benkaci'],
+    seniors: ['tile-seniors-3', 'DLLpNmIG0pk', 'Sam Williams'], 'rainy-day': ['tile-rainy-day-3', 'FTvkl9IJ5zw', 'Takafumi Yamashita'] };
+  for (const [tile, [key, photoId, photographer]] of Object.entries(shown)) {
+    assert.equal(tiles[tile].key, key, `${tile} shows ${key}`);
+    assert.ok(downloads[key].pageUrl.startsWith('https://unsplash.com/photos/') && downloads[key].pageUrl.endsWith(`-${photoId}`), `${key}: the approved page`);
+    assert.equal(GUIDE_IMAGES[key].credit, `入口配图 · 摄影 ${photographer} / Unsplash`);
+    // The credit links the photo page by its short address (Unsplash redirects it to the page that was read).
+    assert.equal(GUIDE_IMAGES[key].creditUrl, `https://unsplash.com/photos/${photoId}`);
+    assert.match(downloads[key].approvalId, new RegExp(`^tilesA:${tile}#\\d$`));
+  }
+  // The free tile's alt names the park; the photo page's location line, kept in the download record, says so.
+  assert.match(GUIDE_IMAGES['tile-free-4'].alt, /Dolores/);
+  assert.match(downloads['tile-free-4'].pageSays?.location ?? '', /^Dolores Park .*San Francisco, CA, USA$/);
+  // The seniors couple is framed from the top so both heads stay in the 16:9 and 4:3 crops.
+  assert.deepEqual(GUIDE_IMAGES['tile-seniors-3'].focal, [50, 20]);
+  for (const [old, key] of [['tile-free-3', 'tile-free-4'], ['tile-kids-2', 'tile-kids-4'], ['tile-seniors-2', 'tile-seniors-3'], ['tile-rainy-day-2', 'tile-rainy-day-3']]) {
+    assert.equal(downloads[key].replaces, old);
+    assert.equal(GUIDE_IMAGES[old], undefined, `${old} is off the register`);
+    assert.equal(downloads[old], undefined, `${old}: its download record made way for ${key}`);
+    assert.equal(photos.includes(old), false, `${old} is no tile's photo or spare`);
+  }
 });

@@ -4,6 +4,7 @@ import { translateText, useLocale } from '../i18n/locale';
 import { BROADBAND_MAP_URL, type UtilityCity, type UtilityContact } from '../data/utility-types';
 import { utilityCityMatches } from '../lib/utility-directory';
 import { linkifyPhones } from '../lib/phone-links';
+import { Select } from './ui/Select';
 
 function Contact({ contact }: { contact: UtilityContact }) {
   const locale = useLocale();
@@ -44,9 +45,10 @@ export function UtilityDirectory({ cities, title, text }: { cities: UtilityCity[
     <h3>{t(title)}</h3><p>{t(text)}</p>
     <div className="utility-filters">
       <label htmlFor={`${id}-search`}>{t('搜索城市或服务商')}<input id={`${id}-search`} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder={t('例如：San Jose、旧金山、EBMUD')} /></label>
-      <label htmlFor={`${id}-county`}>{t('按县筛选')}<select id={`${id}-county`} value={county} onChange={event => setCounty(event.target.value)}>
+      {/* The site's one styled select, as on /explore (live check #67). */}
+      <label htmlFor={`${id}-county`}>{t('按县筛选')}<Select id={`${id}-county`} value={county} onChange={event => setCounty(event.target.value)}>
         <option value="all">{t('全部九县')}</option>{counties.map(name => <option key={name} value={name}>{name}</option>)}
-      </select></label>
+      </Select></label>
       {(query || county !== 'all') && <button type="button" onClick={() => { setQuery(''); setCounty('all'); }}>{t('清除筛选')}</button>}
     </div>
     <p className="utility-result-count" role="status">{t('显示城市')}：{matches.length} / {cities.length}</p>

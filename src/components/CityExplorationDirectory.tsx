@@ -6,6 +6,7 @@ import { useLocale, translateText } from '../i18n/locale';
 import { cityExplorationMatches } from '../lib/city-exploration';
 import { ATTRACTIONS } from '../data/attractions';
 import { CityCurrentCard } from './CityCurrentCard';
+import { Select } from './ui/Select';
 import { linkifyPhones } from '../lib/phone-links';
 
 export function CityExplorationDirectory({ cities, title, text }: { cities: CityExploration[]; title: string; text: string }) {
@@ -31,7 +32,8 @@ export function CityExplorationDirectory({ cities, title, text }: { cities: City
     <h3>{t(title)}</h3><p>{t(text)}</p>
     <div className="city-exploration-filters">
       <label htmlFor={`${id}-query`}>{t('搜索城市、景点或生活资源')}<input id={`${id}-query`} type="search" value={query} onChange={event => change('q', event.target.value)} placeholder={t('例如：San Jose、半月湾、图书馆')} /></label>
-      <label htmlFor={`${id}-county`}>{t('按县筛选')}<select id={`${id}-county`} value={county} onChange={event => change('county', event.target.value)}><option value="all">{t('全部九县')}</option>{CITY_COUNTIES.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+      {/* The site's one styled select (live check #67: this was the last native one on a guide page), as on /explore. */}
+      <label htmlFor={`${id}-county`}>{t('按县筛选')}<Select id={`${id}-county`} value={county} onChange={event => change('county', event.target.value)}><option value="all">{t('全部九县')}</option>{CITY_COUNTIES.map(name => <option key={name} value={name}>{name}</option>)}</Select></label>
       {(query || county !== 'all') && <button type="button" onClick={clear}>{t('清除筛选')}</button>}
     </div>
     <p className="city-exploration-count" role="status">{t('显示城市')}：{results.length} / {cities.length}</p>
