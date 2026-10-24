@@ -48,7 +48,7 @@ test('N02 / N15: the share card\'s heading is an h3 under the picks\' h2, at the
 
 test('R2-06: on a desktop the share strip sits under the lead at its own height; the tiles span all twelve columns', () => {
   const at = (selector: string) => decls(selector, '(min-width:1024px)');
-  assert.equal(at('.home-top')['grid-template'], 'repeat(3, auto) 1fr repeat(2, auto) / repeat(12, minmax(0, 1fr))');
+  assert.equal(at('.home-top')['grid-template'], 'repeat(4, auto) 1fr auto / repeat(12, minmax(0, 1fr))');
   assert.deepEqual(at('.home-top>.home-share'), { 'grid-area': '5 / 7 / 6 / -1', 'align-self': 'start', margin: '0' });
   assert.equal(at('.home-top>.home-moods')['grid-area'], '6 / 1 / 7 / -1');
   assert.equal(at('.home-picks__list>li:first-child,.home-empty')['grid-area'], '2 / 7 / 5 / -1');
