@@ -40,8 +40,9 @@ test('title links in event and calendar cards take the heading size while card a
   let calendar!: ReturnType<typeof render>;
   await act(async () => { calendar = render(<MemoryRouter initialEntries={['/calendar?date=2026-10-10']}><Routes><Route element={<Outlet context={{ openBayBay: () => {} }} />}><Route path="/calendar" element={<CalendarPage today="2026-10-07" />} /></Route></Routes></MemoryRouter>); });
   const monthly = render(<MemoryRouter><MonthlyEdition today="2026-10-07" /></MemoryRouter>);
-  const titles = [...calendar.container.querySelectorAll('.ui-row-card__title a'), ...monthly.container.querySelectorAll('.ui-feed-card__title a')];
-  assert.ok(calendar.container.querySelector('.ui-row-card__title a') && monthly.container.querySelector('.ui-feed-card__title a'), 'both card kinds render a title link');
+  // (The calendar lists its day as feed cards at the standard size since UI9-R2 R2-10, rows at 大 / 特大 / 简洁.)
+  const titles = [...calendar.container.querySelectorAll('.ui-feed-card__title a'), ...monthly.container.querySelectorAll('.ui-feed-card__title a')];
+  assert.ok(calendar.container.querySelector('.ui-feed-card__title a') && monthly.container.querySelector('.ui-feed-card__title a'), 'both pages render a card title link');
   const sheetRules = (path: string) => { const list: Rule[] = []; postcss.parse(readFileSync(new URL(path, import.meta.url), 'utf8')).each(node => { if (node.type === 'rule') list.push(node); }); return list; };
   // The primitives' three sheets (UI9-PREP split ui.css into ui / covers / cards; they load together, in this order).
   const uiRules = ['ui', 'covers', 'cards'].flatMap(name => sheetRules(`../src/components/ui/${name}.css`));

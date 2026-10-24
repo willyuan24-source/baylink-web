@@ -360,16 +360,16 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   assert.equal(days.find(day => day.getAttribute('aria-current') === 'date')?.querySelector('.ev-week__date')?.textContent, '9');
   assert.equal(days.find(day => day.getAttribute('aria-pressed') === 'true')?.querySelector('.ev-week__date')?.textContent, '10');
   const onDay = model.INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-10-10') === '2026-10-10');
-  // The lead card (one-offs first, a real picture first) and, for a standard phone's 2-up row, the next event as a card
-  // whose row follows (CSS shows one of the two: UI9-R1 N18); then rows 12 at a time, with 再看 for the rest.
-  assert.equal(view.container.querySelectorAll('.ev-calendar__lead .ui-feed-card').length, Math.min(2, onDay.length));
-  assert.equal(view.container.querySelectorAll('.ev-calendar__pair-row > .ui-row-card').length, onDay.length > 1 ? 1 : 0);
-  assert.equal(view.container.querySelectorAll('.ui-row-card').length, Math.min(12, onDay.length - 1));
+  // One list in one anatomy (UI9-R2 R2-10): the lead card (one-offs first, a real picture first), then the others as the
+  // same feed card (a phone's 2-up grid; rows from 768px are CSS), 12 at a time, with 再看 for the rest.
+  const cards = () => view.container.querySelectorAll('.ev-calendar__cards .ui-feed-card');
+  assert.equal(cards().length, Math.min(13, onDay.length));
+  assert.equal(view.container.querySelectorAll('.ev-calendar__rows .ui-row-card').length, 0, 'no second anatomy at the standard size');
   if (onDay.length > 13) {
     fireEvent.click(view.getByRole('button', { name: `再看 ${Math.min(12, onDay.length - 13)} 场` }));
-    assert.equal(view.container.querySelectorAll('.ui-row-card').length, Math.min(24, onDay.length - 1));
+    assert.equal(cards().length, Math.min(25, onDay.length));
   }
-  const leadHref = view.container.querySelector('.ev-calendar__lead a.ui-card-link')!.getAttribute('href')!;
+  const leadHref = view.container.querySelector('.ev-calendar__cards li:first-child a.ui-card-link')!.getAttribute('href')!;
   const lead = model.INDEX_EVENTS.find(event => leadHref.startsWith(`/events/${event.id}?`))!;
   assert.ok(model.hasRealCover('event', lead, today) || !onDay.some(event => model.hasRealCover('event', event, today)), 'a real photo leads the day when one exists');
   // The day in the site's one date pattern (N06): 10/10 周六, not 10月10日.
@@ -453,9 +453,10 @@ test('RC-33: a phone-wide cover (the picks, the calendar lead) asks for the 800w
   // (an 88 px square crops a wider file to its height, so it asks for the crop: calc(88px * 1.50), UI9-R2-FOUNDATION N21).
   for (const img of picks) assert.match(img.getAttribute('sizes')!, /^(?:\(max-width: 767px\) (?:266px|calc\(50vw - 22px\)), |(?:88px|calc\(88px \* \d\.\d\d\))$)/);
   assert.equal(picks[0].getAttribute('fetchpriority'), 'high', 'the first pick is the eager LCP image');
+  // The calendar's lead is a phone's 2-up cell (UI9-R2 R2-10: one card anatomy), the full width on a tablet, span 6 on desktop.
   const calendar = ssr('/calendar?date=2026-10-10', <CalendarPage today={today} />);
-  const lead = calendar.querySelector('.ev-calendar__lead img.ui-cover__img')!;
-  assert.match(lead.getAttribute('sizes')!, cap);
+  const lead = calendar.querySelector('.ev-calendar__cards li:first-child img.ui-cover__img')!;
+  assert.match(lead.getAttribute('sizes')!, /^\(max-width: 767px\) calc\(50vw - 22px\), \(max-width: 1023px\) calc\(100vw - 48px\), 596px$/);
   assert.equal(lead.getAttribute('fetchpriority'), 'high');
   // Feed cards keep the shared feed sizes (173px slots already pick 800w at DPR 3).
   assert.doesNotMatch(events.querySelector('.ev-feed img.ui-cover__img')!.getAttribute('sizes')!, cap);

@@ -102,9 +102,12 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a ro
   assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 6 \/ 2; top:calc\(112px \+ var\(--sp-2\)\); right:auto; left:0; \}/, 'home 大 / 特大 rows: ♡ under the thumbnail');
   assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');
   assert.doesNotMatch(home, /36px|saves-toggle/, 'no home size for the ♡');
+  // /events rows (UI9-R2, DECISIONS 44): ♡ is RowCard's save slot, the shared 44 px circle (saves.css) — on the thumbnail's
+  // top-right corner at the standard size (A1), under the thumbnail at 大 / 特大, so the picture stays whole there.
   const events = readFileSync('src/features/events/events.css', 'utf8');
-  assert.match(events, /width:36px; height:36px; min-height:36px;/);
-  assert.match(events, /\.saves-toggle::after \{ content:""; position:absolute; inset:-4px; \}/, '36 + 2 × 4 = 44 px to tap');
+  assert.match(events, /\.ev-page \.ui-row-card__save \{ grid-area:thumb; align-self:start; justify-self:end; margin:var\(--sp-1\); \}/);
+  assert.match(events, /html:is\(\[data-reading=large\],\[data-reading=extra-large\]\) \.ev-page \.ui-row-card__save \{ grid-area:save;/);
+  assert.doesNotMatch(events, /width:36px/);
 });
 
 test('every share card and weekly tile fronts a picture promotion allows: never AI art, never CC BY-SA (DECISIONS 21/24)', async () => {

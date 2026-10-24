@@ -44,27 +44,31 @@ const busyDay = [0, 1, 2, 3, 4, 5, 6].map(offset => addCalendarDays(today, offse
 const calendar = (date = busyDay) => render(<MemoryRouter initialEntries={[`/calendar?date=${date}`]}><CalendarPage today={today} /></MemoryRouter>);
 const weekday = (day: string) => model.WEEKDAYS[model.weekdayIndex(day)].short.zh;
 
-test('the calendar\'s 加入这天计划 is the compact icon on every listed event: no outline button wall (D7)', async () => {
+test('the calendar\'s 加入这天计划 is one 加入 pill on every listed event, never on a picture: no outline button wall (D7, UI9-R2 R2-10)', async () => {
   assert.ok(onDay(busyDay).length > 2, busyDay);
   const view = calendar();
   await waitFor(() => assert.ok(view.getAllByRole('button', { name: /^加入这天计划：/ }).every(button => !button.hasAttribute('disabled'))));
   const adds = view.getAllByRole('button', { name: /^加入这天计划：/ });
-  // One per card and row (the phone pair's second card repeats the next event's row; CSS shows one of the two).
+  // One per listed event: each card of the one list carries its own (no duplicate card or row any more).
   const shown = view.container.querySelectorAll('.ev-calendar__rows .ui-feed-card, .ev-calendar__rows .ui-row-card').length;
   assert.equal(adds.length, shown);
   for (const button of adds) {
     assert.equal(button.getAttribute('data-variant'), 'icon');
-    // The short word starts the name (WCAG 2.5.3); events.css hides it on phones, where the icon stands alone.
+    // The short word starts the name (WCAG 2.5.3) and shows at every width: the pill reads 加入.
     assert.equal(button.querySelector('.saves-add-day__word')!.textContent, '加入');
     assert.ok(button.querySelector('svg'), 'the calendar+ icon');
+    // The control is the card's own last part, after the meta lines, never inside its picture.
+    assert.equal(button.closest('[data-cover], .ui-feed-card__media, .ui-row-card__thumb'), null);
   }
-  // events.css: a soft pill without an outline (the wall was 11 outline buttons), a 44 px circle on a card's picture and a
-  // 36 px circle with a 44 px hit area on a row's thumbnail on phones, the word from 768 px.
+  // events.css: a soft 44 px pill without an outline (the wall was 11 outline buttons); its word is never hidden; on a phone
+  // card it is the card's last line (static, not over the picture); on a row the trailing pill (under the meta on a phone).
   const pill = rule('.ev-calendar .ev-add-day .saves-add-day[data-variant=icon]');
   assert.match(pill, /border-color:transparent/);
   assert.match(pill, /min-width:var\(--control-height\); min-height:var\(--control-height\)/);
-  assert.match(css, /\.ev-calendar \.ev-add-day \.saves-add-day__word \{ display:none; \}/);
-  assert.match(css, /\.ev-calendar__rows \.ui-row-card\.ev-card--action \.saves-add-day\[data-variant=icon\]::after \{ content:""; position:absolute; inset:-4px; \}/);
+  assert.doesNotMatch(css, /saves-add-day__word \{ display:none; \}/);
+  assert.match(rule('.ev-calendar__cards .ui-feed-card__save'), /position:static;/);
+  assert.match(rule('.ev-calendar__rows>.ui-row-card.ev-card--action'), /grid-template-areas:"thumb body" "thumb trailing";/);
+  assert.doesNotMatch(css, /width:36px/, 'no 36 px control left on the calendar (INT10: 36 × 36 加入 on phone rows)');
   assert.doesNotMatch(css, /\.ev-calendar \.ev-add-day \.saves-add-day \{/, 'the old outline-pill override is gone');
 });
 
@@ -105,29 +109,26 @@ test('the day head: 10/22 周四 · n 场 in the site\'s date pattern (N06), wit
   } finally { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); }
 });
 
-test('first screen (N18): a standard phone pairs the lead with the next event; 大 / 特大 / 简洁 list every event as a row', () => {
+test('one anatomy (UI9-R2 R2-10): the standard size lists every event as the same feed card, the first the lead; 大 / 特大 / 简洁 every event a row', () => {
   const events = onDay(busyDay);
   const view = calendar();
-  const lead = view.container.querySelector('.ev-calendar__lead')!;
-  const cards = [...lead.querySelectorAll('.ui-feed-grid > li .ui-feed-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0]);
-  assert.equal(cards.length, 2);
-  const pairRow = view.container.querySelector('.ev-calendar__pair-row a.ui-card-link')!.getAttribute('href')!.split('?')[0];
-  assert.equal(pairRow, cards[1], 'the second card repeats the next event, whose row follows (CSS shows one of the two)');
-  // CalendarView marks the pair, so a browser without :has() still shows each event once (review round 2).
-  assert.ok(lead.classList.contains('ev-calendar__lead--pair'));
-  // events.css: the 2-up row on phones (4:3, as the /events picks), the pair's row hidden there; the second card hidden from 768.
-  assert.match(css, /\.ev-calendar__lead--pair \.ui-feed-grid\[data-single\] \{ --ui-feed-cols:2; --ui-feed-ratio:4 \/ 3;/);
-  assert.match(css, /@media \(max-width:767px\) \{[^@]*\n {2}\.ev-calendar__pair-row \{ display:none; \}/);
-  assert.match(css, /\.ev-calendar__lead \.ui-feed-grid>li\+li \{ display:none; \}/);
-  assert.doesNotMatch(css, /ev-calendar__lead[^{]*:has\(/, 'no pair rule depends on :has()');
-  // The 2-up title sets its size only: whether it wraps or clamps is cards.css's (D1).
-  assert.doesNotMatch(rule('.ev-calendar__lead--pair .ui-feed-grid[data-single] .ui-feed-card__title'), /display|overflow/);
+  const grid = view.container.querySelector('.ev-calendar__cards')!;
+  const cards = [...grid.querySelectorAll('.ui-feed-grid > li .ui-feed-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0]);
+  assert.equal(cards.length, Math.min(events.length, 13));
+  assert.equal(new Set(cards).size, cards.length, 'each event once');
+  assert.equal(view.container.querySelectorAll('.ev-calendar__rows .ui-row-card').length, 0, 'no second anatomy');
+  // events.css: the phone's 2-up grid of the /events feed (ev-cards: 4:3), from 768px the lead and the others as rows (the
+  // same card restyled), the lead under 40% of a tablet window (R2-02).
+  assert.match(grid.className, /\bev-cards\b/);
+  assert.match(css, /\.ev-calendar__cards \.ui-feed-grid>li\+li>\.ui-feed-card \{ display:grid; grid-template-columns:7rem minmax\(0, 1fr\) auto;/);
+  assert.match(css, /@media \(min-width:768px\) and \(max-width:1023px\) \{[^@]*\.ev-calendar__cards \.ui-feed-grid>li:first-child \.ui-cover \{ max-height:40vh; \}/);
+  assert.doesNotMatch(css, /ev-calendar__pair-row|ev-calendar__lead--pair/, 'the old pair is gone');
   cleanup();
   for (const [key, value, attr] of [[READING_SIZE_KEY, 'extra-large', 'data-reading'], [SIMPLE_DISPLAY_KEY, '1', 'data-simple']] as const) {
     localStorage.setItem(key, value);
     document.documentElement.setAttribute(attr, attr === 'data-simple' ? '' : value);
     const roomy = calendar();
-    assert.equal(roomy.container.querySelector('.ev-calendar__lead'), null, `${attr}: no lead card`);
+    assert.equal(roomy.container.querySelector('.ev-calendar__cards'), null, `${attr}: no lead card`);
     const rows = [...roomy.container.querySelectorAll('.ev-calendar__rows .ui-row-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0]);
     assert.equal(rows[0], cards[0], `${attr}: the lead is the first row`);
     assert.equal(new Set(rows).size, rows.length, `${attr}: each event once`);
@@ -174,11 +175,11 @@ test('rhythm (N15): the week strip ends a section gap above the day head; no two
   // The facts line is one line: no min-height reserve on any view (the 26–35 px band above the view row).
   assert.doesNotMatch(css, /\.ev-lede-facts \{[^}]*min-height/);
   assert.doesNotMatch(css, /calc\(2em \* 1\.6\)/);
-  assert.match(rule('.ev-end__item'), /min-width:var\(--control-height\); min-height:var\(--control-height\)/);
-  // The 36 px circles on a row's thumbnail (♡, 加入) have no border: their ::after ring (inset -4px) is cut from the padding
-  // box, so 36 + 2 × 4 = 44 px only without one (a 1 px border made it 42 at 特大).
-  assert.match(rule('.ev-page .ui-row-card__trailing .saves-control .saves-toggle'), /width:36px; height:36px; min-height:36px; padding:0; border:0;/);
-  assert.match(rule('.ev-calendar__rows .ui-row-card.ev-card--action .saves-add-day[data-variant=icon]'), /width:36px; height:36px; min-width:36px; min-height:36px; border:0;/);
+  assert.match(css, /\n\.ev-end__item \{[^}]*min-width:var\(--control-height\); min-height:var\(--control-height\)/);
+  // A row of the 接下来 card that is one link is at least 56 px tall (UI9-R2 C P20).
+  assert.match(rule('.ev-end__row>.ev-end__item'), /min-height:3\.5rem;/);
+  // No 36 px circle is left on a row (UI9-R2): ♡ is the shared 44 px circle (saves.css), 加入 a 44 px pill.
+  assert.doesNotMatch(css, /width:36px/);
 });
 
 test('an empty result is not followed by 出行提醒 (J3 P27); 简洁显示 leaves 出行提醒 and 整个湾区 ▾ out (D6)', () => {
