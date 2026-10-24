@@ -240,12 +240,12 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // other tags wait in the sheet (events.css), so the filters never stack into a wall of 3–4 rows.
   const dateChipLabel = dateItems.find(item => item.id === dateValue)?.label;
   const rail = <div className="ev-rail" role="group" aria-label={t('选择日期和筛选', 'Dates and filters')}>
-    {roomy && !simple && dateChipLabel && <FilterChip className="ev-date-chip" selected aria-haspopup="dialog" onClick={() => setSheetOpen(true)}
-      aria-label={t(`日期：${dateChipLabel}，换日期`, `Dates: ${dateChipLabel}, change`)}>{dateChipLabel}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
     <DayChips className="ev-rail__group ev-rail__dates" label={t('选择日期', 'Choose dates')} items={dateItems} value={dateValue}
       part={weekend ? { from: scopes.length, className: 'ev-days-bar ev-days' } : undefined}
       onChange={id => (SCOPES as readonly string[]).includes(id) ? update({ when: id === defaultWhen ? null : id, day: null }) : update({ day: id })} />
     <div className="ev-rail__group">
+      {roomy && !simple && dateChipLabel && <FilterChip className="ev-date-chip" selected aria-haspopup="dialog" onClick={() => setSheetOpen(true)}
+        aria-label={t(`日期：${dateChipLabel}，换日期`, `Dates: ${dateChipLabel}, change`)}>{dateChipLabel}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
       <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
       {/* 简洁显示 keeps 免费 only, and a tag that is on (home's 亲子 / 长辈友好 links), so it can be seen and cleared. */}
       {RAIL_TAGS.map(id => <FilterChip key={id} className="ev-rail__tag" data-simple={filters.tag === id ? undefined : 'hide'} selected={filters.tag === id} onClick={() => update({ tag: filters.tag === id ? null : id, category: null })}>{pick(TAGS.find(tag => tag.id === id)!.label)}</FilterChip>)}
