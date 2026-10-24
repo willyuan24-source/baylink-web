@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "72f37787",
- "registryCount": 683,
+ "registryHash": "f30ec6d7",
+ "registryCount": 720,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -906,7 +906,7 @@
    "sha1": "aa0c28d624456fa3",
    "lqip": "#666",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -915,19 +915,11 @@
      "width": 480,
      "height": 360,
      "bytes": 25394
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/attractions/region-omca-1200.webp",
-     "width": 1200,
-     "height": 900,
-     "bytes": 83064,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/attractions/region-omca-small.webp 480w",
-    "/guides/attractions/region-omca-1200.webp 1200w"
+    "/guides/attractions/region-omca.webp 1400w"
    ]
   },
   "/guides/attractions/region-sausalito-waterfront.webp": {
@@ -2301,6 +2293,46 @@
     "/guides/category-stock/stock-cafe-tea-5.webp 1280w"
    ]
   },
+  "/guides/category-stock/stock-campus-open-day-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 320632,
+   "sha1": "c3aee0b7f95db902",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-campus-open-day-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 40638
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-campus-open-day-1-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 86016,
+     "quality": 58
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-campus-open-day-1-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 138836,
+     "quality": 46
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-campus-open-day-1-small.webp 480w",
+    "/guides/category-stock/stock-campus-open-day-1-800.webp 800w",
+    "/guides/category-stock/stock-campus-open-day-1-1200.webp 1200w"
+   ]
+  },
   "/guides/category-stock/stock-chinese-culture-1.webp": {
    "width": 1280,
    "height": 960,
@@ -2728,6 +2760,46 @@
     "/guides/category-stock/stock-community-festival-4-small.webp 480w",
     "/guides/category-stock/stock-community-festival-4-800.webp 800w",
     "/guides/category-stock/stock-community-festival-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-community-festival-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 208134,
+   "sha1": "d10e5654fda93632",
+   "lqip": "#787",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-community-festival-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 27222
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-community-festival-5-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 59586,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-community-festival-5-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 110788,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-community-festival-5-small.webp 480w",
+    "/guides/category-stock/stock-community-festival-5-800.webp 800w",
+    "/guides/category-stock/stock-community-festival-5-1200.webp 1200w"
    ]
   },
   "/guides/category-stock/stock-concert-1.webp": {
@@ -3395,6 +3467,107 @@
    "srcset": [
     "/guides/category-stock/stock-diwali-4-small.webp 480w",
     "/guides/category-stock/stock-diwali-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 79740,
+   "sha1": "fec16ed825bbca5a",
+   "lqip": "#965",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13816
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-5-small.webp 480w",
+    "/guides/category-stock/stock-diwali-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 92412,
+   "sha1": "861472a58b8ac511",
+   "lqip": "#cb9",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 15864
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-diwali-6-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 30874,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-6-small.webp 480w",
+    "/guides/category-stock/stock-diwali-6-800.webp 800w",
+    "/guides/category-stock/stock-diwali-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dumplings-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 74024,
+   "sha1": "231daa3a17c10790",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dumplings-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16786
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dumplings-1-small.webp 480w",
+    "/guides/category-stock/stock-dumplings-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dumplings-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 72136,
+   "sha1": "1baf9b6d8dc12f49",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dumplings-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14018
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dumplings-2-small.webp 480w",
+    "/guides/category-stock/stock-dumplings-2.webp 1280w"
    ]
   },
   "/guides/category-stock/stock-family-outdoor-1.webp": {
@@ -4878,6 +5051,46 @@
     "/guides/category-stock/stock-halloween-6.webp 1280w"
    ]
   },
+  "/guides/category-stock/stock-halloween-7.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 179666,
+   "sha1": "b6c31e7d25f95c89",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-7-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 33128
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-halloween-7-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 64568,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-halloween-7-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 107264,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-7-small.webp 480w",
+    "/guides/category-stock/stock-halloween-7-800.webp 800w",
+    "/guides/category-stock/stock-halloween-7-1200.webp 1200w"
+   ]
+  },
   "/guides/category-stock/stock-history-heritage-1.webp": {
    "width": 1280,
    "height": 961,
@@ -5296,6 +5509,38 @@
     "/guides/category-stock/stock-kids-play-4.webp 1280w"
    ]
   },
+  "/guides/category-stock/stock-lantern-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 131492,
+   "sha1": "849d932bce274107",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-lantern-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 31034
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-lantern-1-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 54148,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-lantern-1-small.webp 480w",
+    "/guides/category-stock/stock-lantern-1-800.webp 800w",
+    "/guides/category-stock/stock-lantern-1.webp 1280w"
+   ]
+  },
   "/guides/category-stock/stock-library-1.webp": {
    "width": 1280,
    "height": 853,
@@ -5531,6 +5776,46 @@
     "/guides/category-stock/stock-library-8.webp 800w"
    ]
   },
+  "/guides/category-stock/stock-library-9.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 360160,
+   "sha1": "dca0ec819deaa822",
+   "lqip": "#784",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-9-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 42138
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-library-9-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 84140,
+     "quality": 52
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-library-9-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 137892,
+     "quality": 40
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-9-small.webp 480w",
+    "/guides/category-stock/stock-library-9-800.webp 800w",
+    "/guides/category-stock/stock-library-9-1200.webp 1200w"
+   ]
+  },
   "/guides/category-stock/stock-lunar-new-year-1.webp": {
    "width": 1280,
    "height": 961,
@@ -5615,6 +5900,61 @@
     "/guides/category-stock/stock-lunar-new-year-3-small.webp 480w",
     "/guides/category-stock/stock-lunar-new-year-3-800.webp 800w",
     "/guides/category-stock/stock-lunar-new-year-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-muni-1.webp": {
+   "width": 1280,
+   "height": 857,
+   "bytes": 138810,
+   "sha1": "2593a356d087a71e",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-muni-1-small.webp",
+     "width": 480,
+     "height": 321,
+     "bytes": 26014
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-muni-1-800.webp",
+     "width": 800,
+     "height": 536,
+     "bytes": 49788,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-muni-1-small.webp 480w",
+    "/guides/category-stock/stock-muni-1-800.webp 800w",
+    "/guides/category-stock/stock-muni-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-muni-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 60292,
+   "sha1": "28e60909d8fb5aa1",
+   "lqip": "#666",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-muni-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12744
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-muni-2-small.webp 480w",
+    "/guides/category-stock/stock-muni-2.webp 1280w"
    ]
   },
   "/guides/category-stock/stock-museum-1.webp": {
@@ -6384,6 +6724,70 @@
     "/guides/category-stock/stock-pumpkin-harvest-4-1200.webp 1200w"
    ]
   },
+  "/guides/category-stock/stock-pumpkin-harvest-5.webp": {
+   "width": 1280,
+   "height": 814,
+   "bytes": 140118,
+   "sha1": "1857004c56bbc15b",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-5-small.webp",
+     "width": 480,
+     "height": 305,
+     "bytes": 27368
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-5-800.webp",
+     "width": 800,
+     "height": 509,
+     "bytes": 50260,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-5-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-5-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pumpkin-harvest-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 134702,
+   "sha1": "ff44e446a014393e",
+   "lqip": "#a98",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 18478
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-6-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 38866,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-6-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-6-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-6.webp 1280w"
+   ]
+  },
   "/guides/category-stock/stock-seniors-1.webp": {
    "width": 1280,
    "height": 960,
@@ -7070,6 +7474,29 @@
     "/guides/category-stock/stock-sports-hockey-6.webp 1280w"
    ]
   },
+  "/guides/category-stock/stock-sports-hockey-7.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 72012,
+   "sha1": "cef3aa2d65314c69",
+   "lqip": "#bba",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-7-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8104
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-7-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-7.webp 1280w"
+   ]
+  },
   "/guides/category-stock/stock-stage-show-1.webp": {
    "width": 1280,
    "height": 853,
@@ -7137,6 +7564,52 @@
    "srcset": [
     "/guides/category-stock/stock-stage-show-3-small.webp 480w",
     "/guides/category-stock/stock-stage-show-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-stage-show-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 87426,
+   "sha1": "0522d5e876a45489",
+   "lqip": "#256",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-stage-show-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17100
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-stage-show-4-small.webp 480w",
+    "/guides/category-stock/stock-stage-show-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-stage-show-5.webp": {
+   "width": 1280,
+   "height": 851,
+   "bytes": 46614,
+   "sha1": "7f80a00804e0205e",
+   "lqip": "#522",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-stage-show-5-small.webp",
+     "width": 480,
+     "height": 319,
+     "bytes": 10590
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-stage-show-5-small.webp 480w",
+    "/guides/category-stock/stock-stage-show-5.webp 1280w"
    ]
   },
   "/guides/category-stock/stock-storytime-2.webp": {
@@ -7356,6 +7829,110 @@
    "srcset": [
     "/guides/category-stock/stock-swap-meet-3-small.webp 480w",
     "/guides/category-stock/stock-swap-meet-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-4.webp": {
+   "width": 1280,
+   "height": 961,
+   "bytes": 224850,
+   "sha1": "b8219dda77773228",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-4-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 36870
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-swap-meet-4-800.webp",
+     "width": 800,
+     "height": 601,
+     "bytes": 73126,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-swap-meet-4-1200.webp",
+     "width": 1200,
+     "height": 901,
+     "bytes": 125674,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-4-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-4-800.webp 800w",
+    "/guides/category-stock/stock-swap-meet-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 99182,
+   "sha1": "395d9083c5bfa41b",
+   "lqip": "#777",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21506
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-swap-meet-5-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 38360,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-5-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-5-800.webp 800w",
+    "/guides/category-stock/stock-swap-meet-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 99462,
+   "sha1": "e7e6ba2845c63281",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20056
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-swap-meet-6-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 35746,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-6-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-6-800.webp 800w",
+    "/guides/category-stock/stock-swap-meet-6.webp 1280w"
    ]
   },
   "/guides/category-stock/stock-taichi-fitness-1.webp": {
@@ -8262,6 +8839,46 @@
    "srcset": [
     "/guides/category-stock/stock-winter-holidays-7-small.webp 480w",
     "/guides/category-stock/stock-winter-holidays-7-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-8.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 267784,
+   "sha1": "e54b511c65e1084c",
+   "lqip": "#332",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-8-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 41504
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-winter-holidays-8-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 88294,
+     "quality": 58
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-winter-holidays-8-1200.webp",
+     "width": 1200,
+     "height": 675,
+     "bytes": 148838,
+     "quality": 52
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-8-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-8-800.webp 800w",
+    "/guides/category-stock/stock-winter-holidays-8-1200.webp 1200w"
    ]
   },
   "/guides/city-roundup-east/roundup-east-albany.webp": {
@@ -9331,7 +9948,7 @@
    "sha1": "3eadbf462ee9ca50",
    "lqip": "#678",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -9340,19 +9957,11 @@
      "width": 480,
      "height": 340,
      "bytes": 31572
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/city-roundup/roundup-sap-center-1200.webp",
-     "width": 1200,
-     "height": 850,
-     "bytes": 88784,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/city-roundup/roundup-sap-center-small.webp 480w",
-    "/guides/city-roundup/roundup-sap-center-1200.webp 1200w"
+    "/guides/city-roundup/roundup-sap-center.webp 1280w"
    ]
   },
   "/guides/commons/commons-chinatown-ywca-chsa.webp": {
@@ -13870,7 +14479,7 @@
    "sha1": "745cc997095e59ba",
    "lqip": "#677",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -13879,28 +14488,11 @@
      "width": 480,
      "height": 320,
      "bytes": 38740
-    },
-    {
-     "rung": 800,
-     "file": "/guides/octnov-2026/octnov-sf-botanical-context-800.webp",
-     "width": 800,
-     "height": 533,
-     "bytes": 57776,
-     "quality": 64
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/octnov-2026/octnov-sf-botanical-context-1200.webp",
-     "width": 1200,
-     "height": 800,
-     "bytes": 108884,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/octnov-2026/octnov-sf-botanical-context-small.webp 480w",
-    "/guides/octnov-2026/octnov-sf-botanical-context-800.webp 800w",
-    "/guides/octnov-2026/octnov-sf-botanical-context-1200.webp 1200w"
+    "/guides/octnov-2026/octnov-sf-botanical-context.webp 1280w"
    ]
   },
   "/guides/octnov-2026/octnov-sfmoma-context.webp": {
@@ -14834,36 +15426,36 @@
     "/guides/official-events/daly-city-top-of-the-hill-festival-2026-1200.webp 1200w"
    ]
   },
-  "/guides/official-events/danville-scarecrow-stroll-2026.webp": {
-   "width": 1280,
-   "height": 641,
-   "bytes": 124900,
-   "sha1": "b89cbc8bfccb005f",
-   "lqip": "#aa9",
+  "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow.webp": {
+   "width": 1080,
+   "height": 720,
+   "bytes": 145552,
+   "sha1": "b435df6bb302fe50",
+   "lqip": "#777",
    "scope": "registry",
    "published": true,
-   "artwork": "poster",
+   "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/official-events/danville-scarecrow-stroll-2026-small.webp",
+     "file": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow-small.webp",
      "width": 480,
-     "height": 240,
-     "bytes": 28860
+     "height": 320,
+     "bytes": 27264
     },
     {
      "rung": 800,
-     "file": "/guides/official-events/danville-scarecrow-stroll-2026-800.webp",
+     "file": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow-800.webp",
      "width": 800,
-     "height": 401,
-     "bytes": 42224,
-     "quality": 72
+     "height": 533,
+     "bytes": 55136,
+     "quality": 64
     }
    ],
    "srcset": [
-    "/guides/official-events/danville-scarecrow-stroll-2026-small.webp 480w",
-    "/guides/official-events/danville-scarecrow-stroll-2026-800.webp 800w",
-    "/guides/official-events/danville-scarecrow-stroll-2026.webp 1280w"
+    "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow-small.webp 480w",
+    "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow-800.webp 800w",
+    "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow.webp 1080w"
    ]
   },
   "/guides/official-events/el-cerrito-harding-carnival-2026.webp": {
@@ -15363,6 +15955,38 @@
     "/guides/official-events/nov2026-fort-mason-farmers-market-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/nov2026-fruitvale-dia-muertos.webp": {
+   "width": 1280,
+   "height": 754,
+   "bytes": 148478,
+   "sha1": "90bea4e81c07ca80",
+   "lqip": "#667",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/nov2026-fruitvale-dia-muertos-small.webp",
+     "width": 480,
+     "height": 283,
+     "bytes": 24178
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/nov2026-fruitvale-dia-muertos-800.webp",
+     "width": 800,
+     "height": 471,
+     "bytes": 49288,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/nov2026-fruitvale-dia-muertos-small.webp 480w",
+    "/guides/official-events/nov2026-fruitvale-dia-muertos-800.webp 800w",
+    "/guides/official-events/nov2026-fruitvale-dia-muertos.webp 1280w"
+   ]
+  },
   "/guides/official-events/nov2026-presidio-dia-muertos-diwali.webp": {
    "width": 1280,
    "height": 853,
@@ -15799,27 +16423,44 @@
     "/guides/official-events/pleasanton-hometown-holiday-2026.webp 1024w"
    ]
   },
-  "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp": {
-   "width": 580,
-   "height": 350,
-   "bytes": 65712,
-   "sha1": "d85d3b27cdbcbdbe",
-   "lqip": "#644",
+  "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 197692,
+   "sha1": "76d5ffe6c53bcf55",
+   "lqip": "#432",
    "scope": "registry",
    "published": true,
-   "artwork": "poster",
+   "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-small.webp",
+     "file": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-small.webp",
      "width": 480,
-     "height": 290,
-     "bytes": 32100
+     "height": 320,
+     "bytes": 27842
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 60270,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 111746,
+     "quality": 64
     }
    ],
    "srcset": [
-    "/guides/official-events/pleasanton-pumpkins-after-dark-2026-small.webp 480w",
-    "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp 580w"
+    "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-small.webp 480w",
+    "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-800.webp 800w",
+    "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch-1200.webp 1200w"
    ]
   },
   "/guides/official-events/r2-petaluma-cider-circus-2026.webp": {
@@ -15854,44 +16495,44 @@
     "/guides/official-events/r2-petaluma-cider-circus-2026.webp 1280w"
    ]
   },
-  "/guides/official-events/r2-petaluma-lumafest-20261024.webp": {
+  "/guides/official-events/r2-petaluma-lumafest-20261024-altar.webp": {
    "width": 1280,
    "height": 853,
-   "bytes": 214702,
-   "sha1": "2932d7bbaf423342",
-   "lqip": "#766",
+   "bytes": 188446,
+   "sha1": "6001c19cd003c269",
+   "lqip": "#765",
    "scope": "registry",
    "published": true,
    "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-small.webp",
+     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-altar-small.webp",
      "width": 480,
      "height": 320,
-     "bytes": 46140
+     "bytes": 33694
     },
     {
      "rung": 800,
-     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-800.webp",
+     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-altar-800.webp",
      "width": 800,
      "height": 533,
-     "bytes": 64904,
+     "bytes": 65300,
      "quality": 64
     },
     {
      "rung": 1200,
-     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-1200.webp",
+     "file": "/guides/official-events/r2-petaluma-lumafest-20261024-altar-1200.webp",
      "width": 1200,
      "height": 800,
-     "bytes": 109646,
+     "bytes": 109584,
      "quality": 64
     }
    ],
    "srcset": [
-    "/guides/official-events/r2-petaluma-lumafest-20261024-small.webp 480w",
-    "/guides/official-events/r2-petaluma-lumafest-20261024-800.webp 800w",
-    "/guides/official-events/r2-petaluma-lumafest-20261024-1200.webp 1200w"
+    "/guides/official-events/r2-petaluma-lumafest-20261024-altar-small.webp 480w",
+    "/guides/official-events/r2-petaluma-lumafest-20261024-altar-800.webp 800w",
+    "/guides/official-events/r2-petaluma-lumafest-20261024-altar-1200.webp 1200w"
    ]
   },
   "/guides/official-events/r2-santarosa-soco-halloween-2026.webp": {
@@ -16056,36 +16697,36 @@
     "/guides/official-events/san-bruno-dia-de-los-muertos-2026-1200.webp 1200w"
    ]
   },
-  "/guides/official-events/san-jose-avenida-altares-2026.webp": {
+  "/guides/official-events/san-jose-avenida-altares-2026-altar.webp": {
    "width": 1280,
-   "height": 720,
-   "bytes": 122524,
-   "sha1": "a3709a47e19d649e",
-   "lqip": "#d94",
+   "height": 1024,
+   "bytes": 125114,
+   "sha1": "a4847e1e03493f72",
+   "lqip": "#a98",
    "scope": "registry",
    "published": true,
-   "artwork": "poster",
+   "artwork": "photo",
    "variants": [
     {
      "rung": 480,
-     "file": "/guides/official-events/san-jose-avenida-altares-2026-small.webp",
+     "file": "/guides/official-events/san-jose-avenida-altares-2026-altar-small.webp",
      "width": 480,
-     "height": 270,
-     "bytes": 24220
+     "height": 384,
+     "bytes": 23132
     },
     {
      "rung": 800,
-     "file": "/guides/official-events/san-jose-avenida-altares-2026-800.webp",
+     "file": "/guides/official-events/san-jose-avenida-altares-2026-altar-800.webp",
      "width": 800,
-     "height": 450,
-     "bytes": 34096,
-     "quality": 72
+     "height": 640,
+     "bytes": 43156,
+     "quality": 64
     }
    ],
    "srcset": [
-    "/guides/official-events/san-jose-avenida-altares-2026-small.webp 480w",
-    "/guides/official-events/san-jose-avenida-altares-2026-800.webp 800w",
-    "/guides/official-events/san-jose-avenida-altares-2026.webp 1280w"
+    "/guides/official-events/san-jose-avenida-altares-2026-altar-small.webp 480w",
+    "/guides/official-events/san-jose-avenida-altares-2026-altar-800.webp 800w",
+    "/guides/official-events/san-jose-avenida-altares-2026-altar.webp 1280w"
    ]
   },
   "/guides/official-events/san-mateo-boos-brews-2026.webp": {
@@ -20273,6 +20914,522 @@
     "/guides/sf-map/sutro-small.webp 480w",
     "/guides/sf-map/sutro-800.webp 800w",
     "/guides/sf-map/sutro-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-acl-castro-valley-library.webp": {
+   "width": 1280,
+   "height": 763,
+   "bytes": 131252,
+   "sha1": "465c3e7dd5105088",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-acl-castro-valley-library-small.webp",
+     "width": 480,
+     "height": 286,
+     "bytes": 19192
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-acl-castro-valley-library-800.webp",
+     "width": 800,
+     "height": 477,
+     "bytes": 39612,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-acl-castro-valley-library-small.webp 480w",
+    "/guides/venues/venue-acl-castro-valley-library-800.webp 800w",
+    "/guides/venues/venue-acl-castro-valley-library.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-exploratorium.webp": {
+   "width": 1280,
+   "height": 1518,
+   "bytes": 151560,
+   "sha1": "6e736a8c5d9a5d32",
+   "lqip": "#899",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-exploratorium-small.webp",
+     "width": 480,
+     "height": 569,
+     "bytes": 26722
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/venues/venue-exploratorium-1200.webp",
+     "width": 1200,
+     "height": 1423,
+     "bytes": 85174,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-exploratorium-small.webp 480w",
+    "/guides/venues/venue-exploratorium-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-ferry-building.webp": {
+   "width": 1280,
+   "height": 861,
+   "bytes": 100326,
+   "sha1": "33dc626c71739844",
+   "lqip": "#47a",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-ferry-building-small.webp",
+     "width": 480,
+     "height": 323,
+     "bytes": 16234
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-ferry-building-800.webp",
+     "width": 800,
+     "height": 538,
+     "bytes": 33096,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-ferry-building-small.webp 480w",
+    "/guides/venues/venue-ferry-building-800.webp 800w",
+    "/guides/venues/venue-ferry-building.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-fort-mason-center.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 52284,
+   "sha1": "87b189d34cbbb98c",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-fort-mason-center-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 8110
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-fort-mason-center-small.webp 480w",
+    "/guides/venues/venue-fort-mason-center.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-omca.webp": {
+   "width": 1200,
+   "height": 800,
+   "bytes": 97562,
+   "sha1": "6345f19db8e51c85",
+   "lqip": "#888",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-omca-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12974
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-omca-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 29546,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-omca-small.webp 480w",
+    "/guides/venues/venue-omca-800.webp 800w",
+    "/guides/venues/venue-omca.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-opl-dimond-library.webp": {
+   "width": 1280,
+   "height": 667,
+   "bytes": 134552,
+   "sha1": "ba7ab76c76f0c37c",
+   "lqip": "#678",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-opl-dimond-library-small.webp",
+     "width": 480,
+     "height": 250,
+     "bytes": 16704
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-opl-dimond-library-800.webp",
+     "width": 800,
+     "height": 417,
+     "bytes": 38314,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-opl-dimond-library-small.webp 480w",
+    "/guides/venues/venue-opl-dimond-library-800.webp 800w",
+    "/guides/venues/venue-opl-dimond-library.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-opl-main-library.webp": {
+   "width": 1280,
+   "height": 622,
+   "bytes": 167412,
+   "sha1": "3869d90ddc2780aa",
+   "lqip": "#677",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-opl-main-library-small.webp",
+     "width": 480,
+     "height": 233,
+     "bytes": 20748
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-opl-main-library-800.webp",
+     "width": 800,
+     "height": 389,
+     "bytes": 48710,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/venues/venue-opl-main-library-1200.webp",
+     "width": 1200,
+     "height": 583,
+     "bytes": 94096,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-opl-main-library-small.webp 480w",
+    "/guides/venues/venue-opl-main-library-800.webp 800w",
+    "/guides/venues/venue-opl-main-library-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-sap-center.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 122014,
+   "sha1": "addf62f8830411e0",
+   "lqip": "#579",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-sap-center-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 17004
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-sap-center-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 37446,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-sap-center-small.webp 480w",
+    "/guides/venues/venue-sap-center-800.webp 800w",
+    "/guides/venues/venue-sap-center.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-sccl-campbell-library.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 190696,
+   "sha1": "9ea5e1627e8cca63",
+   "lqip": "#467",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-sccl-campbell-library-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 23706
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-sccl-campbell-library-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 56228,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/venues/venue-sccl-campbell-library-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 108222,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-sccl-campbell-library-small.webp 480w",
+    "/guides/venues/venue-sccl-campbell-library-800.webp 800w",
+    "/guides/venues/venue-sccl-campbell-library-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-sf-botanical-garden.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 325108,
+   "sha1": "9ed525739b8d1f62",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-sf-botanical-garden-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 44502
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-sf-botanical-garden-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 86272,
+     "quality": 52
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/venues/venue-sf-botanical-garden-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 149886,
+     "quality": 46
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-sf-botanical-garden-small.webp 480w",
+    "/guides/venues/venue-sf-botanical-garden-800.webp 800w",
+    "/guides/venues/venue-sf-botanical-garden-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-sf-main-library.webp": {
+   "width": 1200,
+   "height": 1600,
+   "bytes": 218112,
+   "sha1": "7d64637b98528479",
+   "lqip": "#666",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-sf-main-library-small.webp",
+     "width": 480,
+     "height": 640,
+     "bytes": 43724
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-sf-main-library-800.webp",
+     "width": 800,
+     "height": 1067,
+     "bytes": 82144,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/venues/venue-sf-main-library-1200.webp",
+     "width": 1200,
+     "height": 1600,
+     "bytes": 145344,
+     "quality": 52
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-sf-main-library-small.webp 480w",
+    "/guides/venues/venue-sf-main-library-800.webp 800w",
+    "/guides/venues/venue-sf-main-library-1200.webp 1200w"
+   ]
+  },
+  "/guides/venues/venue-sjpl-calabazas-library.webp": {
+   "width": 1024,
+   "height": 768,
+   "bytes": 140550,
+   "sha1": "17f61ef7ef17ba14",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-sjpl-calabazas-library-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 29636
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-sjpl-calabazas-library-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 60268,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-sjpl-calabazas-library-small.webp 480w",
+    "/guides/venues/venue-sjpl-calabazas-library-800.webp 800w",
+    "/guides/venues/venue-sjpl-calabazas-library.webp 1024w"
+   ]
+  },
+  "/guides/venues/venue-smcl-atherton-library.webp": {
+   "width": 1160,
+   "height": 1600,
+   "bytes": 133032,
+   "sha1": "f61972ecaf6bb450",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-smcl-atherton-library-small.webp",
+     "width": 480,
+     "height": 662,
+     "bytes": 19576
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-smcl-atherton-library-800.webp",
+     "width": 800,
+     "height": 1103,
+     "bytes": 40058,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-smcl-atherton-library-small.webp 480w",
+    "/guides/venues/venue-smcl-atherton-library-800.webp 800w",
+    "/guides/venues/venue-smcl-atherton-library.webp 1160w"
+   ]
+  },
+  "/guides/venues/venue-smcl-brisbane-library.webp": {
+   "width": 1250,
+   "height": 598,
+   "bytes": 73658,
+   "sha1": "43bd8bfd028c51cf",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-smcl-brisbane-library-small.webp",
+     "width": 480,
+     "height": 230,
+     "bytes": 13080
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-smcl-brisbane-library-small.webp 480w",
+    "/guides/venues/venue-smcl-brisbane-library.webp 1250w"
+   ]
+  },
+  "/guides/venues/venue-smcl-foster-city-library.webp": {
+   "width": 1280,
+   "height": 964,
+   "bytes": 61696,
+   "sha1": "1743aec1d362bb75",
+   "lqip": "#678",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-smcl-foster-city-library-small.webp",
+     "width": 480,
+     "height": 362,
+     "bytes": 8976
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-smcl-foster-city-library-small.webp 480w",
+    "/guides/venues/venue-smcl-foster-city-library.webp 1280w"
+   ]
+  },
+  "/guides/venues/venue-smcl-millbrae-library.webp": {
+   "width": 1280,
+   "height": 964,
+   "bytes": 106592,
+   "sha1": "6bad19e9d3d514bc",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/venues/venue-smcl-millbrae-library-small.webp",
+     "width": 480,
+     "height": 362,
+     "bytes": 14062
+    },
+    {
+     "rung": 800,
+     "file": "/guides/venues/venue-smcl-millbrae-library-800.webp",
+     "width": 800,
+     "height": 602,
+     "bytes": 28762,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/venues/venue-smcl-millbrae-library-small.webp 480w",
+    "/guides/venues/venue-smcl-millbrae-library-800.webp 800w",
+    "/guides/venues/venue-smcl-millbrae-library.webp 1280w"
    ]
   }
  }
