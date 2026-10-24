@@ -149,6 +149,17 @@ test('B P21: every detail ends with a photo row; the column\'s 附近还有 repe
   }
 });
 
+test('B P21 budget: a rail card\'s picture is decorative, so the record (and the bucket\'s English pack) carries no alt', () => {
+  for (const key of DETAILS) {
+    const record = buildDetailRecord(find(key));
+    const pictured = record.rail.filter(event => event.image);
+    assert.ok(pictured.length >= 3, `${key}: ${pictured.length} rail pictures`);
+    for (const event of pictured) assert.equal(event.image!.alt, '', `${key}: ${event.id} keeps no alt`);
+    const doc = page(key);
+    for (const img of doc.querySelectorAll('.detail-rail img')) assert.equal(img.getAttribute('alt'), '', `${key}: rail img alt`);
+  }
+});
+
 test('DECISIONS 43(b): a cards-only venue photo never becomes a detail hero; rail cards may still show it', () => {
   assert.deepEqual([...CARDS_ONLY_PHOTOS].sort(), ['venue-sjpl-calabazas-library', 'venue-smcl-atherton-library', 'venue-smcl-brisbane-library']);
   // A stand-in for B2's venue photo (not on this base): an approved venue photo's record under the cards-only key.

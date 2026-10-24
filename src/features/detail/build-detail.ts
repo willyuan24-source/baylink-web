@@ -22,9 +22,10 @@ const cutoff = MONTHLY_EDITION.checkedAt;
 /**
  * The rails' first day: the build's Pacific day once it is past the edition's check (the home catalog and the events index
  * read it too), so a rail's eight candidates are the next ones from the day the page is published, not from the edition's
- * check two weeks earlier (an offer's nearby row kept 1 of 8 on 10-21).
+ * check two weeks earlier (an offer's nearby row kept 1 of 8 on 10-21). A caller's own catalog (tests' fixtures, dated
+ * around the edition) keeps the edition's check unless it passes a day.
  */
-const railDay = [cutoff, getBayAreaToday()].sort()[1];
+const buildRailDay = [cutoff, getBayAreaToday()].sort()[1];
 /**
  * Candidates kept per record: three same-category cards (live page) or four "接下来可以去" cards (ended page), and the desktop
  * column's three "附近还有" rows, with spares. An offer or an opening keeps its own eight: the page's closing photo row
@@ -83,7 +84,7 @@ const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') =
  * Upcoming events near a page: its region or its city (an offer valid Bay-wide has neither, so every upcoming event is near
  * it), same category first when the page is an event (`category`), then same city, then the nearest day.
  */
-function railFor(event: { id: string; category?: MonthlyEvent['category'] }, region: string | undefined, city: string, events: readonly MonthlyEvent[], claimed: Set<string> = new Set()): RailEvent[] {
+function railFor(event: { id: string; category?: MonthlyEvent['category'] }, region: string | undefined, city: string, events: readonly MonthlyEvent[], claimed: Set<string>, railDay: string): RailEvent[] {
   const anywhere = !region && !city;
   const candidates = [...new Map(events.map(candidate => [candidate.id, withOverrides(candidate)])).values()]
     .filter(candidate => candidate.id !== event.id && candidate.endDate >= railDay && candidate.occurrenceDates?.length !== 0 && nextEventDay(candidate, railDay) !== null
@@ -97,9 +98,11 @@ function railFor(event: { id: string; category?: MonthlyEvent['category'] }, reg
   return [...same, ...others]
     .map(candidate => {
       const next = nextCandidate('event', candidate, claimed);
-      // A rail card prints no caption: its picture carries the caption's signal (UI9-IMG-A1b, listing-image.ts).
+      // A rail card prints no caption: its picture carries the caption's signal (UI9-IMG-A1b, listing-image.ts). Nor an alt:
+      // the card reads its title, so its picture is decorative (DetailRail) and the bucket's English pack leaves the alt out
+      // (offers and openings carry rails too since R2: ~4 KiB gzip of English alts per detail bucket otherwise).
       const own = next?.image ?? listingImage(candidate.imageKey);
-      const image = own && slimListingImage(own);
+      const image = own && { ...slimListingImage(own), alt: '' };
       return {
         id: candidate.id, title: candidate.title, startDate: candidate.startDate, endDate: candidate.endDate,
         // A card states the day only: session days become the confirmed days, their times stay on the event's own page.
@@ -120,7 +123,7 @@ function railFor(event: { id: string; category?: MonthlyEvent['category'] }, reg
 }
 
 /** The record one detail page renders; `events` defaults to the published catalog (tests pass fixtures). */
-export function buildDetailRecord(item: LocalDiscovery, events: readonly MonthlyEvent[] = MONTHLY_EVENTS): DetailRecord {
+export function buildDetailRecord(item: LocalDiscovery, events: readonly MonthlyEvent[] = MONTHLY_EVENTS, { railDay = events === MONTHLY_EVENTS ? buildRailDay : cutoff }: { railDay?: string } = {}): DetailRecord {
   const resolved: LocalDiscovery = item.kind === 'event' ? { kind: 'event', event: withOverrides(item.event) } : item;
   const imageKey = resolved.kind === 'event' ? resolved.event.imageKey : resolved.kind === 'offer' ? resolved.offer.imageKey : resolved.shop.imageKey;
   const own = listingImage(imageKey);
@@ -130,9 +133,9 @@ export function buildDetailRecord(item: LocalDiscovery, events: readonly Monthly
   const claimed = new Set<string>();
   const record: CandidateRecord = resolved.kind === 'event' ? resolved.event : resolved.kind === 'offer' ? resolved.offer : resolved.shop;
   const hero = nextCandidate(resolved.kind, record, claimed, { hero: true });
-  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events, claimed)
-    : resolved.kind === 'opening' ? railFor({ id: resolved.shop.id }, resolved.shop.region, resolved.shop.city, events, claimed)
-    : railFor({ id: resolved.offer.id }, resolved.offer.region, '', events, claimed);
+  const rail = resolved.kind === 'event' ? railFor(resolved.event, resolved.event.region, resolved.event.city, events, claimed, railDay)
+    : resolved.kind === 'opening' ? railFor({ id: resolved.shop.id }, resolved.shop.region, resolved.shop.city, events, claimed, railDay)
+    : railFor({ id: resolved.offer.id }, resolved.offer.region, '', events, claimed, railDay);
   return { item: resolved, ...(image ? { image } : {}), ...(hero ? { hero } : {}), ...(placeId ? { placeId } : {}), rail, metadata: getDiscoveryMetadata(item) };
 }
 
