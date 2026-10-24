@@ -47,12 +47,14 @@ export function GuideCoverCredit({ image, label }: { image: GuideImage; label: s
 const CONTROLS = 'a[href], button, input, select, textarea, summary, label, [role=button], footer, .site-detail-actions';
 
 /**
- * What the floating button would cover (R2-14, UI9-R2-GUIDE): any text line, link or control under its box, the site footer
- * or the action bar. `quick` samples the page under the box at nine points (each frame while the page scrolls); the full
- * check (once the page rests) measures every text line and control whose box meets the button's. Stepped aside
- * (`data-off`) the button keeps its box but is hidden with visibility, which elementsFromPoint does not hit.
+ * What the floating button would cover (R2-14, UI9-R2-GUIDE): a text line, link or control under its box, the site footer or
+ * the action bar. It samples the page under the box on a grid of `steps + 1` × `steps + 1` points (3 × 3 each frame while
+ * the page scrolls, 7 × 7, about 8 px apart, once it rests): a link or control there (or inside the footer or the bar), or a
+ * text line of an element there whose box meets the button's. Only the elements under the button are measured, so the cost
+ * does not grow with the page. Stepped aside (`data-off`) the button keeps its box but is hidden with visibility, which
+ * elementsFromPoint does not hit.
  */
-function coversContent(button: HTMLElement, quick: boolean): boolean {
+function coversContent(button: HTMLElement, steps: number): boolean {
   const box = button.getBoundingClientRect();
   if (!box.width || !box.height) return false;
   const meets = (rect: DOMRect) => rect.width > 0 && rect.height > 0 && rect.left < box.right && rect.right > box.left && rect.top < box.bottom && rect.bottom > box.top;
@@ -62,24 +64,13 @@ function coversContent(button: HTMLElement, quick: boolean): boolean {
     range.selectNodeContents(node);
     return [...range.getClientRects()].some(meets);
   });
-  const visible = (element: Element) => { const style = getComputedStyle(element); return style.visibility !== 'hidden' && style.display !== 'none'; };
-  if (quick) {
-    const seen = new Set<Element>();
-    for (const fx of [.1, .5, .9]) for (const fy of [.1, .5, .9]) for (const element of document.elementsFromPoint(box.left + box.width * fx, box.top + box.height * fy)) {
+  const seen = new Set<Element>();
+  for (let i = 0; i <= steps; i++) for (let j = 0; j <= steps; j++) {
+    for (const element of document.elementsFromPoint(box.left + 1 + (box.width - 2) * i / steps, box.top + 1 + (box.height - 2) * j / steps)) {
       if (element === button || button.contains(element) || seen.has(element) || element === document.documentElement || element === document.body) continue;
       seen.add(element);
       if (element.closest(CONTROLS) || textMeets(element)) return true;
     }
-    return false;
-  }
-  for (const element of document.querySelectorAll(CONTROLS)) if (element !== button && !button.contains(element) && meets(element.getBoundingClientRect()) && visible(element)) return true;
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const checked = new Set<Element>();
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const parent = node.parentElement;
-    if (!parent || checked.has(parent) || button.contains(parent)) continue;
-    checked.add(parent);
-    if (meets(parent.getBoundingClientRect()) && visible(parent) && textMeets(parent)) return true;
   }
   return false;
 }
@@ -102,12 +93,12 @@ export function GuideToTop() {
     // The labelled end-of-page button (大 / 特大 / 简洁 on a phone, not fixed) is never stepped aside; a hidden floating one
     // stays aside until it is drawn and checked. While the page scrolls the quick check runs once a frame (it can only step
     // the button aside); 120 ms after the page rests the full check decides.
-    const covered = (quick: boolean) => {
+    const covered = (steps: number) => {
       const button = ref.current;
-      return !!button && getComputedStyle(button).position === 'fixed' && (button.hidden || coversContent(button, quick));
+      return !!button && getComputedStyle(button).position === 'fixed' && (button.hidden || coversContent(button, steps));
     };
-    const settle = () => { rest = 0; setCovering(covered(false)); };
-    const onFrame = () => { frame = 0; if (covered(true)) setCovering(true); };
+    const settle = () => { rest = 0; setCovering(covered(6)); };
+    const onFrame = () => { frame = 0; if (covered(2)) setCovering(true); };
     const check = () => {
       setShown(window.scrollY > window.innerHeight * 2);
       // Where a page has no frames to wait for (a test), at once.
