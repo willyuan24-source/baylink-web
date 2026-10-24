@@ -47,5 +47,5 @@ test('DECISIONS 44: one ♡ size on both pages (FOUNDATION\'s circle), standard 
   assert.deepEqual(decls(EVENTS, '.ev-page .ui-row-card__save'), { 'grid-area': 'thumb', 'align-self': 'start', 'justify-self': 'end', margin: 'var(--sp-1)' });
   // 简洁 / 家人版 (简洁 at 特大): no ♡ on the home picks or on a list row (decision 16).
   assert.match(HOME, /html\[data-simple\] \.home-picks \.ui-feed-card__save \{ display:none; \}/);
-  assert.match(CARDS, /\[data-simple\] \.ui-row-card__save:not\(#saved \*\) \{ display:none; \}/);
+  assert.match(CARDS, /\nhtml\[data-simple\] \.ui-row-card__save:not\(#saved \*\) \{ display:none; \}/, 'on html only: a data-simple=hide section (the /events picks) is not 简洁');
 });

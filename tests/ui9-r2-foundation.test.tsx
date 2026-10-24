@@ -205,7 +205,7 @@ test('N13 / N25: two ♡ forms — the 44px circle on a picture or at a row\'s r
   assert.equal(decls(CARDS, `html:not([data-simple]) ${both}`)['grid-template-areas'], '"thumb body save" "thumb body trailing"');
   assert.equal(decls(CARDS, `html:not([data-simple]) ${both}`)['grid-template-columns'], undefined, 'three tracks, as a one-action row');
   assert.equal(decls(CARDS, '.ui-row-card__save:has(+.ui-row-card__trailing)')['grid-area'], 'save');
-  assert.equal(decls(CARDS, '[data-simple] .ui-row-card__save:not(#saved *)').display, 'none', '简洁: the base one-action row');
+  assert.equal(decls(CARDS, 'html[data-simple] .ui-row-card__save:not(#saved *)').display, 'none', '简洁: the base one-action row');
   assert.match(read('src/components/ui/Sheet.tsx'), /<IconButton label=\{t\('关闭', 'Close'\)\} className="ui-close" onClick=\{onClose\}><X aria-hidden="true" strokeWidth=\{1\.75\} \/><\/IconButton>/, 'Sheet draws the shared close button\'s markup (ui-close)');
 });
 
