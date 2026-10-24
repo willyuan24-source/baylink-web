@@ -78,7 +78,8 @@ test('J1 P14: one fact per row, the offer\'s two short values side by side, 适�
 
 test('H58: an event\'s 多少钱 | 适合 share a phone row (标准) when 适合 fits two lines of half the card', () => {
   assert.equal(decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts:has(>[data-fact=for])', '(max-width:767px)')['grid-template-columns'], 'repeat(2,minmax(0,1fr))');
-  assert.equal(decls(FACTS_CSS, '.local-discovery-detail .detail-fact[data-fact^=for] .detail-fact__key')['font-weight'], '400', 'both 适合 cells at 400');
+  // N03 (UI9-R2-DETAIL): every key is at 400, 适合 included.
+  assert.equal(decls(FACTS_CSS, '.local-discovery-detail .detail-fact__key')['font-weight'], '400', 'both 适合 cells at 400');
   let paired = 0, wide = 0;
   for (const item of localDiscoveries.filter(row => row.kind === 'event').slice(0, 60)) {
     const id = discoveryShare(item).id;
@@ -123,13 +124,15 @@ test('J1 P14: a clamped note fades out at the end of its second line and 展开 
   assert.ok(global.length > 0 && global.every(selector => selector.startsWith('.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,')), global.join(' | '));
 });
 
-test('J1 P20 / J2 P14 / J3 P18: 问 BayBay from 360 px in every reading mode; 特大 wraps the primary, it never swaps a word', () => {
+test('J1 P20 / J2 P14 / J3 P18: 问 BayBay from 360 px in every reading mode (English 特大 below 400 px reads BayBay); 特大 keeps the primary on one line', () => {
   const css = sheet(DETAIL_CSS);
   const tight: string[] = [];
   css.walkRules(rule => { if (rule.selector.includes('[data-label=tight]') && /display:\s*inline/.test(rule.toString())) tight.push(`${mediaOf(rule)} ${rule.selector}`); });
-  assert.deepEqual(tight, ['(max-width:359px) .site-detail-actions.detail-actions [data-label=tight]'], 'BayBay alone only below 360 px');
+  assert.deepEqual(tight, ['(max-width:399px) html[data-reading=extra-large]:lang(en) .local-discovery-detail .site-detail-actions.detail-actions [data-label=tight]',
+    '(max-width:359px) .site-detail-actions.detail-actions [data-label=tight]'], 'BayBay alone only below 360 px (English 特大: below 400 px)');
+  // R2-08 / OD6 (UI9-R2-DETAIL): one line, in the short words (the old two balanced lines are gone).
   const wrap = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)');
-  assert.deepEqual([wrap['white-space'], wrap['text-wrap'], wrap['text-align']], ['normal', 'balance', 'center'], 'wrapped lines centred, clear of the round ends');
+  assert.deepEqual([wrap['white-space'], wrap['text-wrap']], ['nowrap', undefined], 'one line at 特大 and in 家人版');
   assert.equal(decls(DETAIL_CSS, 'html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions', '(max-width:1023px)')['padding-inline'], '0 var(--sp-1)');
   assert.equal(decls(DETAIL_CSS, 'html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)')['padding-inline'], 'var(--sp-2)');
   assert.equal(decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:359px)')['text-align'], 'center');
@@ -158,7 +161,7 @@ test('N05 / N16 / N23: the caption at 30em, the rail on the grid gutter, the sou
   assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .detail-caption')['max-width'], 'min(var(--measure),30em)');
   assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .detail-rail__track', '(min-width:768px)').gap, 'var(--grid-gutter)');
   const hover = '(hover:hover) and (pointer:fine)';
-  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover', hover).color, 'var(--color-ink)');
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail :is(.detail-page-credits,.content-review-ended,.trust-row) a:hover', hover).color, 'var(--color-ink)');
   assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .trust-row a:hover', hover).color, 'var(--color-brand-hover)');
 });
 
@@ -178,8 +181,11 @@ test('desktop: the whole aside sticky where it fits, else the action card sticky
   // the sunken fill.
   const shared = decls(DETAIL_CSS, '.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk);
   assert.equal(shared.border, '1px solid var(--color-line-control)');
-  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk)['border-color'], 'transparent');
-  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):not(:hover,:active)', desk).background, 'none');
+  const quiet = decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle)', desk);
+  assert.deepEqual([quiet['border-color'], quiet.background], ['transparent', 'none']);
+  // N23 (UI9-R2-DETAIL): press anywhere, the hover fill only under (hover:hover).
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active', desk).background, 'var(--color-surface-2)');
+  assert.equal(decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover', '(min-width:1024px) and (hover:hover) and (pointer:fine)').background, 'var(--color-surface-2)');
   // One filled button per bar (its primary, on every kind) and at most one per body section.
   for (const key of ['event:san-mateo-boos-brews-2026', 'offer:shake-shack-scarygood-oct2026', 'opening:marufuku-burlingame-announced']) {
     const doc = page(key);
@@ -202,6 +208,7 @@ test('N15: a section rule splits the section gap instead of adding to it; the sh
 
 test('DECISIONS 13: no font-size literal in the sheets this lane touches', () => {
   for (const file of [DETAIL_CSS, FACTS_CSS, 'src/features/detail/detail-sheet.css']) {
-    sheet(file).walkDecls('font-size', decl => { assert.match(decl.value, /^(?:var\(--|inherit$)/, `${file}: ${decl.value}`); });
+    // 0 only where a ::after swaps the words (R2-08, UI9-R2-DETAIL): no type size.
+    sheet(file).walkDecls('font-size', decl => { if (!((decl.parent as Rule).selector?.endsWith(':has(>.lucide-calendar-plus)') && decl.value === '0')) assert.match(decl.value, /^(?:var\(--|inherit$)/, `${file}: ${decl.value}`); });
   }
 });

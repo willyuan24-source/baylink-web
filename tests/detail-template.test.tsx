@@ -121,7 +121,7 @@ test('a venue photo too old to be the cover still shows the place below the summ
   assert.ok(old.querySelector('.detail-summary')!.compareDocumentPosition(photo) & FOLLOWING, 'after the summary');
   assert.match(photo.textContent || '', /资料图 · 2013/);
   assert.ok(photo.querySelector('img[loading="lazy"]'), 'below the fold, so it loads lazily');
-  assert.equal(old.querySelectorAll('.detail-credit').length, 2, 'one credit line each for the hero picture and the venue photo');
+  assert.equal(old.querySelectorAll('.ui-cover > .detail-photo-credit').length, 2, 'one credit on each picture: the hero and the venue photo');
   // A photo that is the cover is not repeated; offers keep the brand-image rule (a CC Muni photo is not the offer).
   for (const [kind, id] of [['event', 'san-francisco-fleet-week-2026'], ['offer', 'sfmta-free-muni-seniors'], ['offer', 'omca-free-oct4']]) {
     assert.equal(page(find(kind, id)).querySelector('.detail-photo'), null, `${kind}:${id}`);
@@ -162,8 +162,8 @@ test('a fact or a section whose text is all editor note is left out: no label or
   assert.equal(record.item.kind, 'opening');
   if (record.item.kind !== 'opening') return;
   const doc = render0({ ...record, item: { ...record.item, shop: { ...record.item.shop, dateLabel: '本包只录入九月场', summary: '核对时尚未到开业日，保留预告状态。', editorTip: '本条只收录 10/5 场。' } } });
-  // 开业's key is openingChip (structured status and date); the editor-note date line under it is left out.
-  assert.equal(doc.querySelector('[data-fact="when"] .detail-fact__key')?.textContent, '10/11 已开业');
+  // 开业's key is the day (C P16: the chip above the H1 says 已开业); the editor-note date line under it is left out.
+  assert.equal(doc.querySelector('[data-fact="when"] .detail-fact__key')?.textContent, '10/11');
   assert.ok(!/本包只录入/.test(doc.querySelector('[data-fact="when"]')?.textContent || ''), 'no editor note as the note');
   assert.ok(doc.querySelector('[data-fact="where"]'), 'the other facts stay');
   assert.equal(doc.querySelector('#detail-visit-title'), null, 'no 这一趟怎么安排 without a tip');
@@ -207,8 +207,9 @@ test('English details: the facts and the visit tip keep their reader text, and a
   await setLocale('en', false);
   try {
     const asia = page(findItem('opening', 'asia-live-valley-fair'));
-    assert.equal(asia.querySelector('[data-fact="when"] .detail-fact__key')?.textContent, 'Open now');
-    assert.match(asia.querySelector('[data-fact="when"] dd small')?.textContent || '', /^Open since June 2026/);
+    // C P16 (UI9-R2-DETAIL): no recorded day, so the date line is the key (the chip above the H1 says Open now).
+    assert.match(asia.querySelector('[data-fact="when"] .detail-fact__key')?.textContent || '', /^Open since June 2026/);
+    assert.doesNotMatch(asia.querySelector('[data-fact="when"] dd small')?.textContent || '', /Open since June 2026|^Open\b/);
     const florecita = page(findItem('opening', 'florecita-mission'));
     // CNT-FRESH-1016: the tip names the old footer address and the new one. Owner decision 2026-10-17: the shop stays announced
     // until its 3D city sign, so the tip names the new address without sending the reader there as if it were open.

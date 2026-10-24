@@ -48,7 +48,7 @@ test('offer and opening pages open on the hero; the official page is on the firs
   }
   const shopPage = page(opening);
   assert.ok(shopPage.querySelector('.detail-hero [data-cover="image"] .ui-provenance'), 'the photo carries its provenance badge');
-  assert.ok(shopPage.querySelector('.detail-credit'), 'the credit line stays on the page');
+  assert.ok(shopPage.querySelector('.detail-hero .ui-cover > .detail-photo-credit'), 'the credit stays on the picture');
 });
 
 test('offer conditions read as a checklist, the steps as 1-2-3, and the real store lookup stays', () => {

@@ -59,9 +59,10 @@ test('soft opening details and share metadata preserve trial operation without c
   const item: LocalDiscovery = { kind: 'opening', shop: { ...openShop.shop, status: 'soft_open', openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' } };
   assert.equal(discoveryShare(item).label, '新店 · 试营业');
   const view = render(detail(item, '2026-10-15'));
-  assert.ok(view.getByText('试营业 · 营业时段与菜单可能调整，出发前请查商家公告。'));
-  assert.equal(Boolean(view.queryByText('已开业 · 当天营业与订位请查商家入口。')), false);
-  assert.equal(Boolean(view.queryByText('开业预告 · 尚未确认正式营业，请先查商家公告。')), false);
+  // C P16 (UI9-R2-DETAIL): the status is the chip's; the 开业 note keeps its advice without the status word.
+  assert.ok(view.getByText('营业时段与菜单可能调整，出发前请查商家公告。'));
+  assert.equal(Boolean(view.queryByText(/当天营业与订位请查商家入口/)), false);
+  assert.equal(Boolean(view.queryByText(/尚未确认正式营业/)), false);
 });
 const canonical = (doc: Document | DocumentFragment) => doc.querySelector('link[rel="canonical"]')?.getAttribute('href');
 const meta = (doc: Document | DocumentFragment, name: string) => doc.querySelector('meta[property="' + name + '"],meta[name="' + name + '"]')?.getAttribute('content');
@@ -277,10 +278,13 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(img?.getAttribute('alt'), cover.image.alt);
       assert.equal(img?.getAttribute('loading'), 'eager');
       assert.equal(img?.getAttribute('fetchpriority'), 'high');
-      const credit = content.querySelector('.detail-credit')!;
-      // A ③ credit that repeats its badge ("示意图 · 摄影 …") prints after the badge without the repeat (creditAfterLabel).
+      // C P08 / N25 (UI9-R2-DETAIL): the credit is plain text on the picture; its links are in 本页图片来源. A ③ credit that
+      // repeats its badge ("示意图 · 摄影 …") prints after the badge without the repeat (creditAfterLabel).
+      const credit = content.querySelector('.detail-hero .ui-cover > .detail-photo-credit')!;
       assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit.replace(/^示意图 · /, ''))), share.id + ' keeps its photo credit');
-      if (cover.image.licenseUrl?.startsWith('https://')) assert.ok([...credit.querySelectorAll('a')].some(a => a.getAttribute('href') === cover.image.licenseUrl));
+      assert.equal(credit.querySelector('a'), null, share.id + ' the credit on the picture is not a link');
+      const credits = content.querySelector('#page-credits')!;
+      if (cover.image.licenseUrl?.startsWith('https://')) assert.ok([...credits.querySelectorAll('a')].some(a => a.getAttribute('href') === cover.image.licenseUrl));
     } else {
       assert.equal(img, null);
       assert.ok(content.querySelector('.detail-hero [data-cover="type"]'), share.id + ' shows a TypeCover rather than inventing an image');
@@ -309,7 +313,9 @@ test('all detail pages server-render full content with matching canonical, OG, T
     } else {
       assert.ok(squash(content.textContent!).includes(squash(readerProse(item.shop.editorTip, 'zh-Hans'))));
       assert.ok(content.textContent!.includes(item.shop.address));
-      assert.ok(content.textContent!.includes(readerProse(item.shop.dateLabel, 'zh-Hans')));
+      // C P16 (UI9-R2-DETAIL): the date line keeps every word except a leading day-and-status the chip already says.
+      const dateLine = readerProse(item.shop.dateLabel, 'zh-Hans').replace(/^\s*(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已开业\s*(?:·\s*|$)/, '').trim();
+      assert.ok(content.textContent!.includes(dateLine), share.id);
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     }
     // Catalog text only (the interface's own loading lines are not editor notes).
@@ -453,10 +459,12 @@ test('opening recipients can distinguish an operating shop from an unconfirmed a
     assertExternal(view.getByRole('link', { name: item.shop.sourceLabel, exact: true }), item.shop.sourceUrl);
     // The status note is the 开业 fact's note (UI9-DETAIL), not a box of its own.
     const notice = view.container.querySelector('[data-fact="when"] dd small')?.textContent || '';
-    if (item.shop.status === 'open') assert.match(notice, /已开业.*当天营业与订位/);
+    // C P16 (UI9-R2-DETAIL): the chip above the H1 says the status once; the note keeps the advice only.
+    assert.doesNotMatch(notice, /已开业|开业预告/);
+    if (item.shop.status === 'open') assert.match(notice, /当天营业与订位/);
     else {
-      assert.match(notice, /开业预告.*尚未确认正式营业/);
-      assert.doesNotMatch(notice, /已开业/, 'an expected opening date does not automatically confirm operation');
+      assert.match(notice, /尚未确认正式营业/);
+      assert.doesNotMatch(view.container.textContent || '', /已开业/, 'an expected opening date does not automatically confirm operation');
     }
     assert.equal(Boolean(view.queryByText(/已结束|已过期/)), false, 'an opening report is not an expiring event');
     assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
