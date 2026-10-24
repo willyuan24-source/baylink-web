@@ -63,10 +63,13 @@ html[data-simple] .home-ask { padding-inline-start:var(--sp-3); }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover) { border-radius:0; }
   /* N18 (two complete cards in a phone's first screen): the lead's place and its ✓ line share one line ("Cherryland 图书馆
-     ✓ 官网核对 10/21"; the place gives way with "…", the ✓ never does), so picks 2–3 come up by that line. */
-  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card { display:grid; grid-template-columns:minmax(0, max-content) minmax(max-content, 1fr); gap:var(--sp-1) var(--sp-3); }
-  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>:not(.ui-feed-card__meta,.ui-feed-card__trust) { grid-column:1 / -1; }
-  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__trust { grid-column:2; }
+     ✓ 官网核对 10/21"), so picks 2–3 come up by that line. The place gives way with "…" at 11rem short of the width, which
+     holds the longest ✓ line ("✓ Source checked Oct 21", 「✓ 媒体报道 · 10/21 核对」); a longer one takes the next line. */
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card { flex-flow:row wrap; gap:var(--sp-1) var(--sp-3); }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>* { flex:0 0 100%; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>.ui-feed-card__media { flex-basis:calc(100% + 32px); }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>.ui-feed-card__meta { flex:0 1 auto; max-width:calc(100% - 11rem); }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card>.ui-feed-card__trust { flex:0 1 auto; min-width:0; }
 }
 /* R2-06 (A P3, B P12): a portrait tablet's lead is the picture on the left (seven parts, 16:9) and its words on the right, so
    the first screen holds the lead and picks 2–3, and no tall frame stands over the words. The ♡ keeps the picture's corner. */
