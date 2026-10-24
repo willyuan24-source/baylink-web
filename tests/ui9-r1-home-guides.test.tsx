@@ -52,7 +52,11 @@ test('N16: on a desktop the masthead fills columns 1–6 and the lead 7–12, so
   assert.match(HOME_CSS, /\.home-head \{ grid-area:1 \/ 1 \/ 3 \/ 7; \}/);
   assert.match(HOME_CSS, /\.home-picks>\.home-section-head,\.home-picks__all \{ grid-area:1 \/ 7 \/ 2 \/ -1; \}/);
   assert.match(HOME_CSS, /\.home-picks__list>li:first-child,\.home-empty \{ grid-area:2 \/ 7 \/ 5 \/ -1; \}/);
-  assert.match(HOME_CSS, /\.home-top>\.home-share \{ grid-column:7 \/ -1;/);
+  // UI9-R2-HOME: picks 2–3 under the masthead (1–3, 4–6), the share strip under the lead (7–12), the tiles on all 12.
+  assert.match(HOME_CSS, /\.home-picks__list>li:nth-child\(2\) \{ grid-area:4 \/ 1 \/ 6 \/ 4; \}/);
+  assert.match(HOME_CSS, /\.home-picks__list>li:nth-child\(3\) \{ grid-area:4 \/ 4 \/ 6 \/ 7; \}/);
+  assert.match(HOME_CSS, /\.home-top>\.home-share \{ grid-area:5 \/ 7 \/ 6 \/ -1; align-self:start;/);
+  assert.match(HOME_CSS, /\.home-top>\.home-moods \{ grid-area:6 \/ 1 \/ 7 \/ -1;/);
   // /guides: the elder band's panel reaches past the column edges by its own padding in every desktop mode but 简洁, so its
   // cards start on the columns of the topic sections under it: at 标准 the four (rows in 2–4); at 大 / 特大 (review r2) the
   // three of the base band, under its heading — the four-column placement is 标准's only.
