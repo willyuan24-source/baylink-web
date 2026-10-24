@@ -406,8 +406,20 @@
       "dest": "/en/$1.html"
     },
     {
-      "src": "^/en/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "src": "^/en/(?:me)/?$",
       "dest": "/en/account-shell.html"
+    },
+    {
+      "src": "^/en/(?:my-week)/?$",
+      "dest": "/en/account-shell-week.html"
+    },
+    {
+      "src": "^/en/(?:together)/?$",
+      "dest": "/en/account-shell-together.html"
+    },
+    {
+      "src": "^/en/(?:me/bookings|messages|messages/[^/]+)/?$",
+      "dest": "/en/account-shell-list.html"
     },
     {
       "src": "^/en/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
@@ -512,8 +524,20 @@
       "dest": "/zh-Hant/$1.html"
     },
     {
-      "src": "^/zh-Hant/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "src": "^/zh-Hant/(?:me)/?$",
       "dest": "/zh-Hant/account-shell.html"
+    },
+    {
+      "src": "^/zh-Hant/(?:my-week)/?$",
+      "dest": "/zh-Hant/account-shell-week.html"
+    },
+    {
+      "src": "^/zh-Hant/(?:together)/?$",
+      "dest": "/zh-Hant/account-shell-together.html"
+    },
+    {
+      "src": "^/zh-Hant/(?:me/bookings|messages|messages/[^/]+)/?$",
+      "dest": "/zh-Hant/account-shell-list.html"
     },
     {
       "src": "^/zh-Hant/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
@@ -584,8 +608,20 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "src": "^/(?:me)/?$",
       "dest": "/account-shell.html"
+    },
+    {
+      "src": "^/(?:my-week)/?$",
+      "dest": "/account-shell-week.html"
+    },
+    {
+      "src": "^/(?:together)/?$",
+      "dest": "/account-shell-together.html"
+    },
+    {
+      "src": "^/(?:me/bookings|messages|messages/[^/]+)/?$",
+      "dest": "/account-shell-list.html"
     },
     {
       "src": "^/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
