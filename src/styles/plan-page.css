@@ -115,6 +115,8 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 .planner-place-menu>summary { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); }
 .planner-place-menu>div { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; padding-bottom:4px; }
 .planner-place-menu a { display:inline-flex; align-items:center; min-height:var(--control-height); text-decoration:underline; text-underline-offset:var(--underline-offset); }
+/* 以这里为起点 is a quiet Button: in the menu it reads like the two map links (same size, underline, edge and height). */
+.planner-place-menu .ui-button[data-variant=quiet] { min-height:var(--control-height); padding:0; font-size:var(--text-fact); line-height:inherit; text-decoration:underline; text-underline-offset:var(--underline-offset); }
 .planner-place .planner-outing-preview { margin-left:6.25rem; width:auto; }
 .planner-place .planner-small-note { margin-left:6.25rem; }
 @media (max-width:420px) {

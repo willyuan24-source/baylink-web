@@ -44,6 +44,8 @@ main .planner-page.ui-container { padding-bottom:0; }
 .planner-place-summary~* { order:2; }
 .planner-place>.planner-place-more { order:1; align-self:start; margin:-8px 0 0 6.25rem; }
 .planner-place-more[hidden] { display:none; }
+/* 展开介绍 starts on the row's text edge, like the 更多操作 summary under it. */
+.planner-place>.ui-button.planner-place-more { padding-inline:0; }
 .planner-place:has(>.planner-place-more[aria-expanded=false])>.planner-place-summary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .planner-place>.planner-place-more { margin-left:0; }
 /* 更多方式 (J3 P08): 站外搜索 and the screenshot import as two rows of one block, side by side from 768px. */
@@ -184,14 +186,14 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .planner-
 .planner-outing-route li>span { color:var(--color-brand); font-size:var(--text-fact); font-weight:600; font-variant-numeric:tabular-nums; }
 .planner-outing-route strong { color:var(--color-ink); font-size:var(--text-fact); font-weight:600; overflow-wrap:anywhere; }
 .planner-outing-route small { grid-column:2; margin-top:4px; color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-outing-route .planner-outing-break { grid-column:1/-1; display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:8px 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); }
+.planner-outing-route .planner-outing-break { grid-column:1/-1; display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); }
 .planner-outing-preview>.ui-button { margin-top:12px; }
 .planner-outing-notices { margin:12px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-outing-notices summary { min-height:var(--control-height); padding-top:8px; color:var(--color-brand); }
 .planner-outing-notices ul { margin:8px 0; padding-left:16px; }
 
 /* Offers at a stop */
-.planner-stop-offers { margin:12px 0; padding:12px 12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-stop-offers { margin:12px 0; padding:12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-stop-offers summary { display:flex; align-items:center; gap:8px; min-height:var(--control-height); color:var(--color-ink); }
 .planner-stop-offers>p { margin-top:8px; }
 .planner-stop-offers>div { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
