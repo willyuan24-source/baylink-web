@@ -47,6 +47,8 @@
 .my-week__filters { margin-bottom:8px; }
 /* 这周可以先排进去 (MyWeekPage SuggestedEvents): picture cards in the site's feed grid under the empty 行程 line. */
 .my-week__suggest { margin-top:var(--sp-4); }
+/* While the plans load, 行程 keeps the strip's place: a title-tall bar over skeleton cards (MyWeekPage.tsx). */
+.my-week__suggest-title-skeleton { display:block; width:min(12em, 60%); height:calc(var(--text-card) * var(--lh-card)); margin:0 0 var(--sp-3); }
 .my-week__suggest-title { margin:0 0 var(--sp-3); color:var(--color-ink); font-size:var(--text-card); line-height:var(--lh-card); font-weight:600; }
 
 /* Saved items and this week's events: RowCards; two columns on wide screens. */

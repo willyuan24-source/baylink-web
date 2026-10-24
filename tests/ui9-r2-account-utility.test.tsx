@@ -109,15 +109,8 @@ test('/tools: one grouped list on phones and tablets, each tool a row with its 4
   assert.equal(rule('src/components/tools/tools.css', '.tools-picker ul', '(min-width:1024px)').border, '0', 'the desktop side list has no card');
 });
 
-test('/my-week: picture strip on an empty 行程, the 24px gutter, meta separators glued, the ui Select', () => {
+test('/my-week: the 24px gutter and the ui Select (the strip and the meta glue are rendered in my-week-notice-ui.test.tsx)', () => {
   const page = read('src/pages/MyWeekPage.tsx');
-  assert.match(page, /const thisWeek = upcoming\.slice\(0, 6\);\n {2}const suggested = nextPlans\.length \? \[\] : upcoming\.slice\(6, 10\);/, 'the strip shows the four after the list\'s six: no event twice');
-  assert.match(page, /<SuggestedEvents events=\{suggested\}/);
-  assert.match(page, /<FeedGrid label=/);
-  // N06: every " · " in a meta line is glued to the word before it (U+00A0), so a wrapped line never starts with "·".
-  assert.match(page, /const joinMeta = \(parts: string\[\]\) => parts\.filter\(Boolean\)\.join\(' · '\)\.replace\(\/ · \/g, '\\u00a0· '\);/);
-  assert.match(page, /meta=\{joinMeta\(\[/);
-  assert.match(page, /<Select value=\{preferences\.travelMode\}/);
   assert.doesNotMatch(page, /<select\b/, 'no platform select (N13)');
   assert.equal(rule('src/features/saves/my-week.css', '.my-week__list', '(min-width:1024px)')['column-gap'], 'var(--grid-gutter)', 'N16: the one 24px gutter');
 });
