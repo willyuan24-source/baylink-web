@@ -77,12 +77,13 @@ export const LEGACY_URLS = [
   { url: '/recommend', redirect: [301, '/events'] },
   { url: '/en/recommend', redirect: [301, '/en/events'] },
   { url: '/plan?stops=event%3Asan-francisco-fleet-week-2026&date=2026-10-10', page: '/plan.html' },
-  // G70: the signed-in pages open on the neutral account shell (src/app/account-shell.ts), not the homepage.
-  { url: '/my-week', page: '/account-shell.html' },
-  { url: '/me/bookings', page: '/account-shell.html' },
-  { url: '/messages/sample-thread-1', page: '/account-shell.html' },
+  // G70: the signed-in pages open on the neutral account shell (src/app/account-shell.ts), not the homepage; one file per
+  // page shape (DECISIONS 41: /me, /my-week, /together, and the list pages).
+  { url: '/my-week', page: '/account-shell-week.html' },
+  { url: '/me/bookings', page: '/account-shell-list.html' },
+  { url: '/messages/sample-thread-1', page: '/account-shell-list.html' },
   { url: '/en/me', page: '/en/account-shell.html' },
-  { url: '/zh-Hant/together', page: '/zh-Hant/account-shell.html' },
+  { url: '/zh-Hant/together', page: '/zh-Hant/account-shell-together.html' },
   { url: '/reset-password', page: '/index.html' },
   { url: '/play', page: '/play.html' },
   { url: '/play?date=2026-10-10&stops=place%3Agolden-gate', page: '/plan.html' },

@@ -209,10 +209,11 @@ test('hosting config has explicit public routes, a real missing-page status and 
   // W9-E (review 2026-10-01 R§5 #3): /opus-bay has its own prerendered page, no longer the SPA's index.html
   for (const path of ['/opus-bay', '/opus-bay/']) assert.equal(routeFor(path).dest, '/$1.html', path);
   // G70: the signed-in pages open on the neutral account shell (src/app/account-shell.ts), not the homepage's HTML.
-  assert.equal(routeFor('/my-week').dest, '/account-shell.html');
-  assert.equal(routeFor('/my-week/').dest, '/account-shell.html');
+  // One shell file per page shape (DECISIONS 41): /my-week's own, the list pages' rows for /me/bookings.
+  assert.equal(routeFor('/my-week').dest, '/account-shell-week.html');
+  assert.equal(routeFor('/my-week/').dest, '/account-shell-week.html');
   for (const path of ['/me/bookings', '/me/bookings/']) {
-    assert.equal(routeFor(path).dest, '/account-shell.html', 'booking notification links must load directly');
+    assert.equal(routeFor(path).dest, '/account-shell-list.html', 'booking notification links must load directly');
     const headers = config.routes.find((route: { src?: string; headers?: Record<string, string> }) => route.headers?.['X-Robots-Tag'] && route.src && new RegExp(route.src).test(path))?.headers;
     assert.equal(headers?.['X-Robots-Tag'], 'noindex, follow');
     assert.equal(headers?.['Cache-Control'], 'no-store');
