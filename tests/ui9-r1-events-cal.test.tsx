@@ -169,8 +169,9 @@ test('English at 大 / 特大 / 简洁: the date scopes read Weekend · Next 7 �
 });
 
 test('rhythm (N15): the week strip ends a section gap above the day head; no two-line facts reserve; end links 44 px wide (N25)', () => {
-  // The dots' 4 px cell padding plus the margin make the section gap (40 phone / 64 desktop).
-  assert.match(rule('.ev-week'), /margin:0 0 calc\(var\(--section-gap\) - var\(--sp-1\)\);/);
+  // The margin is the section gap (40 phone / 64 desktop; UI9-R2: the band from the dots to the day head's ink measured 34 /
+  // 60 with the old 4 px less).
+  assert.match(rule('.ev-week'), /margin:0 0 var\(--section-gap\);/);
   assert.match(rule('.ev-week__day'), /padding:var\(--sp-1\) 0;/);
   // The facts line is one line: no min-height reserve on any view (the 26–35 px band above the view row).
   assert.doesNotMatch(css, /\.ev-lede-facts \{[^}]*min-height/);

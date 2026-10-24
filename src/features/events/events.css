@@ -69,7 +69,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
    at 大 / 特大. The feed leaves out exactly the picks shown here (WeekendView). */
 .ev-picks__cards { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-4) var(--grid-gutter); margin:0; padding:0; list-style:none; }
 .ev-picks__cards>li { min-width:0; }
-.ev-picks__rows>:last-child>.ui-row-card { border-bottom:0; }
+.ev-picks__rows>:last-child>.ui-row-card { padding-bottom:0; border-bottom:0; }
 @media (max-width:1023px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__rows>:nth-child(-n+2) { display:none; }
   .ev-picks__cards+.ev-picks__rows:has(>:nth-child(3)) { margin-top:var(--sp-2); }
@@ -244,7 +244,7 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 /* 日历·地图: the week strip (‹ 10/19–25 › — the range opens the month grid and the region — then the 7 days), a section
    gap (N15: 40 px on phones, 64 on desktop, from the dots to the day head's first ink), the day head (H2 · n 场 with
    列表 | 地图 on its row at every size, J2 P7), the city rail, the lead and the rows. */
-.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 calc(var(--section-gap) - var(--sp-1)); }
+.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 var(--section-gap); }
 .ev-week__prev { grid-area:prev; }
 .ev-week__next { grid-area:next; }
 .ev-week__range { grid-area:range; justify-self:center; display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-3); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink); font-size:var(--fs-body); font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
