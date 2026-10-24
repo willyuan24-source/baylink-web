@@ -28,7 +28,9 @@ test('the account shell is the chrome around a fixed-height skeleton: no heading
       assert.equal(main.querySelector('h1'), null, 'each signed-in page brings its own H1');
       assert.equal(main.querySelector('[aria-busy="true"] [role="status"]')?.textContent, loading);
       assert.equal(main.querySelector(`.account-shell__page[data-page="${page}"]`)?.getAttribute('aria-busy'), 'true');
-      assert.ok(main.querySelector('.ui-container.account-shell[data-size="wide"]'), 'on the pages\' wide frame (x = 112 at 1440)');
+      // me, week and together sit on the wide frame (x = 112 at 1440); /messages and /me/bookings on the 960 content column.
+      const size = page === 'list' ? 'content' : 'wide';
+      assert.ok(main.querySelector(`.ui-container.account-shell[data-size="${size}"]`), `${page} on its page's frame (${size})`);
       assert.doesNotMatch(main.textContent || '', /这个周末|湾区去哪|This weekend/);
       assert.ok(document.querySelector('header.site-topbar') && document.querySelector('footer.site-footer') && document.querySelector('nav.site-mobile-nav'));
     }

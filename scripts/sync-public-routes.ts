@@ -5,6 +5,8 @@ import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries'
 import { guides } from '../src/data/guides';
 import { CARD_REGIONS, LANG_REDIRECT_EXCLUDED, ROUTES } from '../src/app/route-table';
 import { ACCOUNT_SHELLS } from '../src/app/account-shell';
+// Any account shell file, current or retired (a renamed or removed shape must not leave a route to a file no longer built).
+const ACCOUNT_SHELL_DEST = /^\/(?:(?:en|zh-Hant)\/)?account-shell(?:-[a-z]+)?\.html$/;
 
 // Vercel limits each route's src to 4096 characters; leave room for future syntax changes.
 export const PUBLIC_ROUTE_SRC_LIMIT = 3500;
@@ -152,7 +154,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   (security.headers as Record<string, string>)['Permissions-Policy'] = PERMISSIONS_POLICY;
   (security.headers as Record<string, string>)['Strict-Transport-Security'] = STRICT_TRANSPORT_SECURITY;
   const baseRoutes = config.routes
-    .filter(route => !route.src?.startsWith('^/en/') && !route.src?.startsWith('^/zh-Hant/') && !route.src?.startsWith('^/(en|zh-Hant)') && route.dest !== '/en/index.html' && route.dest !== '/zh-Hant/index.html' && route.dest !== '/this-week.html' && !isRedirect(route) && !String(route.dest || '').startsWith('/api/outing-page') && !String(route.dest || '').startsWith('/api/user-card-page') && !table.accountShells.some(shell => shell.dest === route.dest))
+    .filter(route => !route.src?.startsWith('^/en/') && !route.src?.startsWith('^/zh-Hant/') && !route.src?.startsWith('^/(en|zh-Hant)') && route.dest !== '/en/index.html' && route.dest !== '/zh-Hant/index.html' && route.dest !== '/this-week.html' && !isRedirect(route) && !String(route.dest || '').startsWith('/api/outing-page') && !String(route.dest || '').startsWith('/api/user-card-page') && !ACCOUNT_SHELL_DEST.test(String(route.dest || '')))
     .map(route => isStaticGroup(route) ? { ...route, ...table.staticPages } : isSpaShell(route) ? { ...route, ...table.spaShell } : isSpaHeaders(route) ? { ...route, src: table.spaHeaders } : route);
   if ([isStaticGroup, isSpaShell, isSpaHeaders].some(kind => baseRoutes.filter(kind).length !== 1)) throw new Error('vercel.json must keep exactly one static-page group, SPA shell route and SPA header route');
   baseRoutes.splice(baseRoutes.findIndex(isSpaShell), 0, ...table.accountShells);

@@ -8,7 +8,8 @@ const Block = ({ shape }: { shape: string }) => <span className="ui-skeleton acc
 /**
  * The prerendered first paint of the account pages (src/app/account-shell.ts writes one file per shape): no page heading
  * of its own (each page has its own H1 once the app renders it), one polite loading line, and placeholders shaped like the
- * page that will arrive (DECISIONS 41, NAV PR B: not four generic rows), on the page's own frame (x = 112 at 1440):
+ * page that will arrive (DECISIONS 41, NAV PR B: not four generic rows), on the page's own frame: the wide frame (x = 112 at
+ * 1440) for me, week and together, the 960 content column for list, as /messages (.msg-hub) and /me/bookings sit there:
  * - me: the photo band, the avatar and name, the four tiles (2 x 2 on a phone), the settings list;
  * - week: the title, the 行程 section with its empty line and the picture strip, then rows;
  * - together: the photo band, the head, the search field with the 筛选 chip, the list's empty state;
@@ -17,7 +18,7 @@ const Block = ({ shape }: { shape: string }) => <span className="ui-skeleton acc
  */
 export function AccountShell({ page = 'list' }: { page?: AccountShellPage }) {
   const { t } = useUiCopy();
-  return <PageContainer size="wide" className="account-shell">
+  return <PageContainer size={page === 'list' ? 'content' : 'wide'} className="account-shell">
     <div className="account-shell__page" data-page={page} aria-busy="true">
       <p className="ui-visually-hidden" role="status">{t('正在加载', 'Loading')}</p>
       <div aria-hidden="true">
