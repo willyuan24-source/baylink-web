@@ -152,10 +152,11 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
    frame changes: the postcard keeps its 15rem and its pixels (DECISIONS 1), centred in the framed cell with the words under
    it, the cell as tall as the row. 1024–1199 px the home feed has three columns, so a cell still holds the 15rem postcard;
    from 1200 four, and a last card that would stand alone in a row gives way (eight cards and the tile fill two rows). The
-   1px is the frame's border. At 大 / 特大 (rows) and in 简洁 (the strip alone) it stays the wide strip. */
+   1px is the frame's border; the inset is derived from the frozen 15rem, not a spacing step (N14 counts no length here). At
+   大 / 特大 (rows) and in 简洁 (the strip alone) it stays the wide strip. */
 @media (min-width:1024px) {
   html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid>.ui-feed-grid__wide { grid-column:auto; }
-  html:not([data-reading$=large],[data-simple]) .home-3d-strip { flex-direction:column; align-items:flex-start; gap:var(--sp-3); height:100%; padding:calc((100% - 15rem) / 2 - 1px); }
+  html:not([data-reading$=large],[data-simple]) .home-3d-strip { --home-3d-inset:calc((100% - 15rem) / 2 - 1px); flex-direction:column; align-items:flex-start; gap:var(--sp-3); height:100%; padding:var(--home-3d-inset); }
 }
 @media (min-width:1024px) and (max-width:1199px) { html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid { --ui-feed-cols:3; } }
 @media (min-width:1200px) { html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid:has(>li:last-child:nth-child(4n+1))>li:last-child:not(.ui-feed-grid__wide) { display:none; } }

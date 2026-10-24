@@ -134,7 +134,7 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 // UI9-R2-HOME (R2-06 A P8, N04, N13): the strip's frame becomes one tile of the desktop feed grid, its size line reads 14 px and
 // the two hover underlines take the underline tokens. The art lines (POSTCARD_ART_SHA) did not change, and the 18 pixel crops
 // of the postcards (art and badge) are identical (lanes/UI9-R2-HOME/postcards-*.txt).
-const POSTCARD_RULES_SHA = 'de91bb77fe995177';
+const POSTCARD_RULES_SHA = '3634c8b9135b0ba3';
 const POSTCARD_ART_SHA = 'e92815bc92e3dee0';
 
 test('no information card and no info-card note on the home: every card is a picture, credited once in the credits line (UI9-IMAGES DECISIONS 21)', () => {

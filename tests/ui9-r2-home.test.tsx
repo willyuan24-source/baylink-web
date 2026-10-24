@@ -73,7 +73,8 @@ test('R2-04 / N16: the tiles\' scrim is the words\' own box (the photo clear abo
 
 test('R2-06 A P8: from 1024 the 3D strip is one framed tile of the feed grid, its 15rem postcard untouched', () => {
   const tile = decls('html:not([data-reading$=large],[data-simple]) .home-3d-strip', '(min-width:1024px)');
-  assert.equal(tile.padding, 'calc((100% - 15rem) / 2 - 1px)', 'the cell less the 15rem postcard and the frame\'s border, split evenly');
+  assert.equal(tile['--home-3d-inset'], 'calc((100% - 15rem) / 2 - 1px)', 'the cell less the 15rem postcard and the frame\'s border, split evenly');
+  assert.equal(tile.padding, 'var(--home-3d-inset)');
   assert.equal(tile['flex-direction'], 'column');
   assert.equal(decls('html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid>.ui-feed-grid__wide', '(min-width:1024px)')['grid-column'], 'auto');
   assert.equal(decls('html:not([data-reading$=large],[data-simple]) .home-feed .ui-feed-grid', '(min-width:1024px) and (max-width:1199px)')['--ui-feed-cols'], '3');
