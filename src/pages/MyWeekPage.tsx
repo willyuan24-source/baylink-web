@@ -107,10 +107,10 @@ function WeekEvents({ events, today, coverPage, english }: { events: { event: Mo
 }
 
 /**
- * 这周可以先排进去 (R2-15: /my-week's empty 行程 was text only): with no day planned yet, the first four of this week's
- * events as picture cards (the site's feed grid and card: cover, line 1 the visit day, line 2 the place, the source line,
- * ♡ on the cover), so the empty state shows what a plan could hold. Their covers come first on the page's de-duplication,
- * and 这周可以去 below lists the events after them, so no event or picture shows twice.
+ * 这周可以先排进去 (R2-15: /my-week's empty 行程 was text only): with no day planned yet, four more of this week's events
+ * (the ones after 这周可以去's six) as picture cards (the site's feed grid and card: cover, line 1 the visit day, line 2 the
+ * place, the source line, ♡ on the cover), so the empty state shows what a plan could hold. No event shows twice, and the
+ * page's de-duplication keeps their pictures apart from the rows'.
  */
 function SuggestedEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
   const locale = useLocale();
@@ -152,10 +152,10 @@ export default function MyWeekPage() {
   const upcoming = useMemo(() => MONTHLY_EVENTS.filter(event => (!preferences.regions.length || preferences.regions.includes(event.region)) && (!preferences.interests.length || preferences.interests.includes(event.category)))
     .flatMap(event => { const date = nextConfirmedEventDate(event, today); return date && date <= weekEnd ? [{ event, date }] : []; })
     .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 10), [preferences.regions, preferences.interests, today, weekEnd]);
-  // With no day planned (also while the plans load: a first visit's state, so nothing moves when they answer), the first
-  // four lead 行程 as picture cards and 这周可以去 lists the next six.
-  const suggested = nextPlans.length ? [] : upcoming.slice(0, 4);
-  const thisWeek = upcoming.slice(suggested.length, suggested.length + 6);
+  // 这周可以去 lists the first six with their actions (加入这天计划, 提醒这一天). With no day planned (also while the plans
+  // load: a first visit's state, so nothing moves when they answer), the next four lead 行程 as picture cards.
+  const thisWeek = upcoming.slice(0, 6);
+  const suggested = nextPlans.length ? [] : upcoming.slice(6, 10);
   const deletePlan = async (plan: SavedPlan) => {
     if (!await confirmDialog({ message: t('删除这份已保存计划？', 'Delete this saved plan?'), confirmText: t('删除', 'Delete'), cancelText: t('取消', 'Cancel'), danger: true })) return;
     if (await library.deletePlan(plan)) setStatus(t('计划已删除。', 'Plan deleted.'));

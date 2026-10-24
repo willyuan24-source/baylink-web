@@ -160,16 +160,13 @@ test('a disabled tool button keeps its disabled look under the pointer: tools.cs
   assert.equal(look('.tool-workspace .ui-icon-button:disabled').background, 'var(--color-surface)');
 });
 
-test('the tool picker goes to one column at 大 / 特大 / 简洁显示 on a phone (--feed-cols) and its tiles read as rows there', () => {
+test('the tool picker is one column of rows on a phone in every reading mode (UI9-R2-ACCOUNT-UTILITY: one grouped list)', () => {
   const tools = parsed.find(sheet => sheet.file.endsWith('/tools.css'))!.root;
   const found: Record<string, { media: string; decls: Record<string, string> }> = {};
   tools.walkRules(rule => { found[rule.selector] ??= { media: rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '', decls: declsOf(rule) }; });
-  assert.equal(found['.tools-picker ul'].decls['grid-template-columns'], 'repeat(var(--feed-cols),minmax(0,1fr))');
-  const tokens = readFileSync('src/tokens.css', 'utf8');
-  assert.match(tokens, /:root \{ --feed-cols:2; \}/);
-  assert.match(tokens, /@media\(max-width:767px\) \{\s*html:is\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \{ --feed-cols:1; \}/);
-  const row = found['html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item'];
-  assert.deepEqual([row.media, row.decls['flex-direction']], ['(max-width:767px)', 'row']);
+  assert.equal(found['.tools-picker ul'].decls['grid-template-columns'], 'minmax(0,1fr)', 'one column at every size (the 2-up tiles read pale and generic, R2-15)');
+  assert.deepEqual([found['.tools-picker-item'].media, found['.tools-picker-item'].decls['flex-direction']], ['', 'row'], 'each tile a row, the icon beside its two lines');
+  assert.equal(found['html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item'], undefined, 'no elder-only override left');
 });
 
 test('an invalid unit Select keeps its danger edge under the pointer: the unit-price rule outranks the Select hover', () => {
