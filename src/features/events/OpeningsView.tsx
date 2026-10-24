@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button, EmptyState, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -6,6 +7,7 @@ import { coverItemFor, createCoverPage, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, coverContext, filterOpenings } from './events-model';
 import type { IndexOpening, MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './BoardCards';
+import { NextCard, NextRow } from './EventCards';
 import { openingSections, type OpeningSectionId } from './board-status';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter } from './RegionFilter';
@@ -60,9 +62,9 @@ export default function OpeningsView({ today, region }: { today: string; region:
       </section>;
     })}</div> : <EmptyState headingLevel="h3" title={t('这个地区暂时没有新店', 'No new shops here yet')} body={t('换个地区再看看。', 'Try another region.')}
       actions={<Button variant="primary" onClick={() => setRegion('all')}>{t(`看整个湾区的新店（${INDEX_OPENINGS.length}）`, `Show the whole Bay Area (${INDEX_OPENINGS.length})`)}</Button>} />}
-    <nav className="ev-end" aria-label={t('新店指南', 'New shop guide')}>
-      <Link className="ev-end__item" to={OPENINGS_GUIDE}>{t('新店手册：去之前先确认开门', 'New shop guide: check they are open first')}</Link>
-    </nav>
+    <NextCard label={t('新店指南', 'New shop guide')}>
+      <NextRow icon={<BookOpen strokeWidth={1.75} />} words={t('新店手册：去之前先确认开门', 'New shop guide: check they are open first')} link={inner => <Link className="ev-end__item" to={OPENINGS_GUIDE}>{inner}</Link>} />
+    </NextCard>
     <ImageCredits covers={[...covers.values()]} />
   </div>;
 }

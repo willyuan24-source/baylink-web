@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { translateText } from '../../i18n/locale';
 import { EventCover, EventWhen, FeedCard, HeroCard, RowCard, COVER_SIZES, useRowCredit } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -49,7 +50,9 @@ export function EventMeta({ event }: { event: IndexEvent }) {
 /**
  * Line 2 of an event card (G18): the status, then the place — "免费 · UCSF Mission Bay". 免费 and 部分免费 are C's one
  * status map (StatusChip: one look each, 14px, wraps); a price reads as plain text ("$8–12 · Fremont"); an unknown cost
- * leaves the place alone. The line wraps and is never cut, and never starts with "·".
+ * leaves the place alone. Never starts with "·". The separator and the place are ONE element (.ui-meta-place): on a feed
+ * card's one-line meta the place gives way with "…", and where fewer than about 4 characters of it would show, it steps
+ * aside with its separator (events.css), so a card never ends in "· Ch…"; rows and heroes wrap it whole.
  */
 export function EventStatusLine({ event }: { event: IndexEvent }) {
   const { pick, locale } = useUiCopy();
@@ -61,7 +64,7 @@ export function EventStatusLine({ event }: { event: IndexEvent }) {
     ? <span className="ui-status" data-tone={price.tone === 'free' ? 'free' : 'partial'}>{pick(price.text)}</span>
     : <span className="ui-meta-price">{pick(price.text)}</span>;
   // A no-break space before "·": the dot stays with the status, so a wrapped line never starts with it (N06).
-  return <>{status}{status && place && <span className="ui-meta-sep">{'\u00a0· '}</span>}{place && <span className="ui-meta-place">{place}</span>}</>;
+  return <>{status}{place && <span className="ui-meta-place">{status && <span className="ui-meta-sep">{'\u00a0· '}</span>}{place}</span>}</>;
 }
 
 /** Line 1: the date and time in one pattern, or in a one-day list (`oneDay`) the time window alone (event-lines.ts). */
@@ -124,18 +127,43 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
 }
 
 /**
- * Row (a 112px 4:3 thumbnail in events.css): line 1, the title, line 2 and ✓ 官网核对 — the calendar, the share strip, the
- * desktop pick rows and every events feed at 大 / 特大 and in 简洁显示. The thumbnail is a picture (DECISIONS 21) whose ①②
- * badge words sit in the row's 13 px line (a ③④ badge stays on it). `oneDay` prints line 1 as the time window alone; the share strip keeps the card's own day. The one
- * trailing control: `action` (the calendar's 加入这天计划, WEB-SAVES), else ♡ when `save`.
+ * Row (a 112px 4:3 thumbnail in events.css): the title, line 1, line 2 and ✓ 官网核对 — the calendar at 大 / 特大 / 简洁,
+ * the share strip, the pick rows and every events feed at 大 / 特大 and in 简洁显示. The thumbnail is a picture
+ * (DECISIONS 21) with its one label on it (R2-03). `oneDay` prints line 1 as the time window alone; the share strip keeps
+ * the card's own day. One control: `action` (the calendar's 加入这天计划, WEB-SAVES) as the row's trailing pill, else ♡
+ * when `save`, in RowCard's save slot: on the thumbnail's top-right corner at the standard size (A1), under the
+ * thumbnail at 大 / 特大 (DECISIONS 44: 0 of the picture covered), none in 简洁 / 家人版 (DECISIONS 16).
  */
 export function EventRowCard({ event, cover, today, day, oneDay, action, save = false }: { event: IndexEvent; cover: ResolvedCover; today: string; day: string; oneDay?: boolean; action?: ReactNode; save?: boolean }) {
   const credit = useRowCredit();
   const thumb = <EventCover event={facts(event)} cover={cover} today={today} days={[day]} ratio="1:1" sizes={COVER_SIZES.thumb} decorative />;
   return <RowCard title={event.title} to={`/events/${event.id}?date=${day}`} thumb={thumb} className={action ? 'ev-row ev-card--action' : 'ev-row'}
     when={<WhenLine event={event} today={today} days={[day]} oneDay={oneDay ? day : undefined} />} meta={<EventStatusLine event={event} />}
-    trust={<TrustLine day={event.verifiedAt} press={event.press} />} credit={credit(cover)}
-    trailing={action ?? (save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined)} />;
+    trust={<TrustLine day={event.verifiedAt} press={event.press} />} credit={credit(cover)} trailing={action}
+    save={!action && save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined} />;
+}
+
+/**
+ * The page end of the events views (UI9-R2 C P20): one 接下来 card of 1–3 icon rows instead of a cloud of links — a row that
+ * is one link (存成一张图, 订阅到手机日历, a guide) is that link from edge to edge with a chevron; a row of related lists
+ * names them as 44px links after its label (也看看：免费与优惠 · 新店 …). `rows` are NextRow / NextLinks.
+ */
+export function NextCard({ label, children }: { label: string; children: ReactNode }) {
+  const { t } = useUiCopy();
+  return <nav className="ev-end" aria-label={label}>
+    <h2 className="ev-end__title">{t('接下来', 'What next')}</h2>
+    <ul className="ev-end__rows">{children}</ul>
+  </nav>;
+}
+/** One row that is one link: its icon, its words and a chevron; `link` renders the anchor (a or Link) around them. */
+export function NextRow({ icon, words, link, simpleHide }: { icon: ReactNode; words: string; link: (inner: ReactNode) => ReactNode; simpleHide?: boolean }) {
+  return <li className="ev-end__row" data-simple={simpleHide ? 'hide' : undefined}>{link(<><span className="ev-end__icon" aria-hidden="true">{icon}</span>
+    <span className="ev-end__words">{words}</span><ChevronRight className="ev-end__chevron" aria-hidden="true" strokeWidth={1.75} /></>)}</li>;
+}
+/** A row of related lists: its icon and label, then the links (each a 44px .ev-end__item). */
+export function NextLinks({ icon, label, children, simpleHide }: { icon: ReactNode; label: string; children: ReactNode; simpleHide?: boolean }) {
+  return <li className="ev-end__row ev-end__row--links" data-simple={simpleHide ? 'hide' : undefined}><span className="ev-end__icon" aria-hidden="true">{icon}</span>
+    <div className="ev-end__group"><span className="ev-end__label">{label}</span><ul className="ev-end__links">{children}</ul></div></li>;
 }
 
 // The offer and new-shop cards (OfferFeedCard, OpeningFeedCard) are in BoardCards.tsx (UI9-PREP).

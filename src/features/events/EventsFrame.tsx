@@ -1,5 +1,5 @@
-import { Suspense, useDeferredValue, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useViewHold } from './view-hold';
+import { Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { carryHeight, takeCarriedHeight, useViewHold } from './view-hold';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { PageContainer, SegmentedTabs, SkeletonFeed } from '../../components/ui';
 import { MoreLink } from '../../components/ui/TextLink';
@@ -18,6 +18,7 @@ import type { EventsFilters } from './events-model';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 // The two other boards load on demand with their records (events-boards.ts, UI9-IMG-A1b): /events itself stays small
 // (RC-33), and their skeleton and retry states are real.
 const withBoards = <M,>(load: () => Promise<M>) => async () => (await Promise.all([load(), loadBoards(getLocale())]))[0];
@@ -109,6 +110,11 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   useEffect(() => { setPending(undefined); }, [column, locationKey]);
   const bodyRef = useRef<HTMLDivElement>(null);
   const hold = useViewHold(shown !== column || (pending !== undefined && pending !== column), bodyRef);
+  // N24 across the two routes (/calendar ↔ /events): the column's last body height, when it unmounted a moment ago, holds
+  // the new page's place while its board loads (the Suspense fallback below), so the page does not drop to a skeleton.
+  const [carried] = useState(takeCarriedHeight);
+  // (a layout effect: its cleanup runs while the body is still in the page, so its height is still there to read)
+  useIsoLayoutEffect(() => { const body = bodyRef.current; return () => carryHeight(body); }, []);
   let body: ReactNode;
   if (shown === 'list') body = list?.({ today, filters, defaultWhen }) ?? null;
   else if (shown === 'calendar') body = calendar!(today);
@@ -125,8 +131,10 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
           <h1 className="ui-page-header__title">{t('活动', 'Events')}</h1>
           <p className="ev-range" {...scope}>{rangeLine}</p>
         </div>
+        {/* UI9-R2: on a standard phone the counts step aside (the list's and the boards' heads say them) and 我们怎么核对 →
+            joins the H1's row where it fits (events.css), so the first screen keeps one more card. */}
         <p className="ev-lede-facts" data-simple="hide" {...scope}>
-          {counts}{counts && '\u00a0· '}
+          {counts && <span className="ev-lede-counts">{counts}{'\u00a0· '}</span>}
           <MoreLink to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}</MoreLink>
         </p>
       </header>
@@ -136,7 +144,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
       <div {...scope} ref={bodyRef} className="ev-view" data-hold={hold.phase === 'idle' ? undefined : hold.phase} aria-busy={hold.phase === 'idle' ? undefined : true}
         style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }}>
         {hold.phase === 'skeleton' && <div className="ev-view__skeleton"><SkeletonFeed count={4} /></div>}
-        <Suspense fallback={<SkeletonFeed count={4} />}>{body}</Suspense>
+        <Suspense fallback={<div style={carried ? { minHeight: carried } : undefined}><SkeletonFeed count={4} /></div>}>{body}</Suspense>
       </div>
     </PageContainer>
   </div>;
