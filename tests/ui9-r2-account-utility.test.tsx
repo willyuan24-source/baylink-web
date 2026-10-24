@@ -130,6 +130,9 @@ test('/about spans the frame below the head on a desktop; the 404 has its side c
   const desktop = '(min-width:1024px)';
   assert.equal(rule('src/components/about-baylink.css', '.about-main', desktop)['grid-column'], '1 / -1');
   assert.equal(rule('src/components/about-baylink.css', '.about-head', desktop)['grid-column'], '1 / span 8');
+  // Side headings: the H2 and the section's notes in columns 1-3, the rows in 4-12.
+  assert.equal(rule('src/components/about-baylink.css', '.about-main>.about-section>*', desktop)['grid-column'], '1 / span 3');
+  assert.equal(rule('src/components/about-baylink.css', '.about-main>.about-section>:is(.about-list,.about-labels,.about-images-more)', desktop)['grid-column'], '4 / -1');
   assert.equal(rule('src/components/not-found.css', '.nf-help', desktop)['grid-column'], '9 / span 4');
   assert.match(read('src/pages/NotFoundPage.tsx'), /<aside className="nf-help" aria-labelledby="nf-help-title">/);
 });
