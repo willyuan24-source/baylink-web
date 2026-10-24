@@ -360,3 +360,46 @@ Result: **48 of 48 checked, downloaded and registered** (all Unsplash, Unsplash 
 | `stock-transit-9` | transit | [Unsplash](https://unsplash.com/photos/k2V7pQo9fAI) | Britt Fowler | Unsplash License | 2026-10-21T18:23:26-07:00 | 2026-10-21T18:24:17-07:00 | `6a97fb7a7755d4e6e80722941253e7ae3ff44fb8161f80e7e7181577f1975100` |
 
 Not added: none. All 48 approved photos passed the checks and were downloaded.
+
+## Brighter entry tiles: free, kids, seniors, rainy day (UI9-IMG-TILES-REGISTER, 2026-10-24)
+
+**Approval**: UI-9 DECISIONS 46 (captain, 2026-10-24 04:05 PT), under the owner's image rule DECISIONS 33 (owner, 2026-10-23
+01:10: 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」). The four photos come from the UI9-IMG-TILES-A candidate page
+and its independent skeptic check (Unsplash License, camera EXIF, no AI marker, no readable faces or logos).
+
+Why: the four tiles' photos were too dark under the bottom-only scrim. The measure is the mean CIE L* of the upper 55 % of the
+tile crop (the part the scrim leaves clear), on the real 480 w file, at 16:9 (phone) and 4:3 (desktop, 大 / 特大), with
+object-position = the photo's focal point. The goal is L* ≥ 55 at both crops.
+
+- **Checked before download**: each photo page read as a guest in a headless Chrome, 03:59:51–04:00:02 PT: `og:title` "Photo by
+  <the listed photographer> on Unsplash", the listed profile on the page, "Free to use under the Unsplash License" (not Unsplash+),
+  the page shows the approved file, no AI label.
+- **Downloads**: 04:00:24–04:00:29 PT, one at a time, the approved CDN original (`imageUrl` as listed) of each page.
+- **Processing**: the same as the second batch above. Resized to at most 1280 px wide (never upscaled, never cropped), WebP q78
+  → `public/guides/home-tiles/`. Each 480 w file compressed on its own at the first quality from 72 down to 40 that fits 15 KB.
+- **The seniors photo** is framed from the top (focal `[50, 20]`) so both heads stay in the 16:9 and 4:3 crops. The fallback
+  named in DECISIONS 46 (`chiSxOp2Mkc`) was not needed and was not downloaded.
+
+| Tile | Shown before → now | 480 w | Upper-55 % L* 16:9 / 4:3, before → now | b* 16:9 before → now |
+|---|---|---|---|---|
+| free | `tile-free-3` → `tile-free-4` | 14.8 KB (q42) | 51.1 / 49.4 → **70.5 / 72.5** | 14.0 → 2.8 |
+| kids | `tile-kids-2` → `tile-kids-4` | 13.4 KB (q72) | 51.4 / 51.5 → **80.0 / 81.0** | 0.8 → 4.7 |
+| seniors | `tile-seniors-2` → `tile-seniors-3` | 14.0 KB (q42) | 46.2 / 47.7 → **62.3 / 59.1** | 28.6 → 20.7 |
+| rainy-day | `tile-rainy-day-2` → `tile-rainy-day-3` | 11.8 KB (q72) | 31.4 / 36.3 → **74.2 / 71.5** | 7.5 → 7.7 |
+
+The eight 480 w tile files together: 101.9 KB (was 102.2 KB). Each tile keeps its spares.
+
+**Off the register**: `tile-free-3`, `tile-kids-2`, `tile-seniors-2` and `tile-rainy-day-2`. Nothing else referenced them, so
+their records, English strings, download records and files are removed. Their rows in the second-batch table above stay as the
+record of what was downloaded on 2026-10-21. 本页图片来源 now credits Sand Crain, Mehdi Benkaci, Sam Williams and Takafumi Yamashita
+in place of Sou Jest, Kelli McClintock, Anna Stampfli and panpan ma.
+
+| Key | Tile | Page | Photographer | Licence | Page read | Downloaded | SHA-256 of the download |
+|---|---|---|---|---|---|---|---|
+| `tile-free-4` | tile: free | [Unsplash](https://unsplash.com/photos/people-sitting-on-green-grass-field-near-white-concrete-building-during-daytime-ehwWojSyaB8) | Sand Crain | Unsplash License | 2026-10-24T03:59:51-07:00 | 2026-10-24T04:00:24-07:00 | `c9549fc1afa0b6c25aaf0e023dc6f1073b68fa84b80022269c3e2e996874c99a` |
+| `tile-kids-4` | tile: kids | [Unsplash](https://unsplash.com/photos/family-of-four-standing-at-the-seashore-b8ZLTaFaD4Y) | Mehdi Benkaci | Unsplash License | 2026-10-24T03:59:54-07:00 | 2026-10-24T04:00:26-07:00 | `c56b152c7bbca098e7be94d3a95571d73b6ce102ca9dcc8769e5af063c978379` |
+| `tile-seniors-3` | tile: seniors | [Unsplash](https://unsplash.com/photos/man-and-woman-walking-on-road-while-holding-hands-DLLpNmIG0pk) | Sam Williams | Unsplash License | 2026-10-24T03:59:58-07:00 | 2026-10-24T04:00:28-07:00 | `585228bc6344d07f232754a5b09210c357127d08db7c5ec2ecb31158f8ff5951` |
+| `tile-rainy-day-3` | tile: rainy-day | [Unsplash](https://unsplash.com/photos/a-table-and-chairs-in-a-room-with-large-windows-FTvkl9IJ5zw) | Takafumi Yamashita | Unsplash License | 2026-10-24T04:00:02-07:00 | 2026-10-24T04:00:29-07:00 | `ad6ee295fdd0555ba28d9a57f53e007668492b0e9f87e4e96fcd76bfd0b482e3` |
+
+**Still open**: the no-car tile (`tile-no-car-1`, no spare) is a 4:3 file, so at 4:3 the tile shows the whole frame and its
+upper 55 % reads L* 52.5 (16:9: 64.3). No approved photo can replace it yet.
