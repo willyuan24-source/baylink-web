@@ -88,7 +88,8 @@ test('DECISIONS 46: free, kids, seniors and rainy day show the four brighter pho
     assert.equal(tiles[tile].key, key, `${tile} shows ${key}`);
     assert.ok(downloads[key].pageUrl.startsWith('https://unsplash.com/photos/') && downloads[key].pageUrl.endsWith(`-${photoId}`), `${key}: the approved page`);
     assert.equal(GUIDE_IMAGES[key].credit, `入口配图 · 摄影 ${photographer} / Unsplash`);
-    assert.equal(GUIDE_IMAGES[key].creditUrl, downloads[key].pageUrl);
+    // The credit links the photo page by its short address (Unsplash redirects it to the page that was read).
+    assert.equal(GUIDE_IMAGES[key].creditUrl, `https://unsplash.com/photos/${photoId}`);
     assert.match(downloads[key].approvalId, new RegExp(`^tilesA:${tile}#\\d$`));
   }
   // The seniors couple is framed from the top so both heads stay in the 16:9 and 4:3 crops.
