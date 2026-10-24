@@ -188,7 +188,9 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-3d__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .home-3d__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
 
-/* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. */
+/* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. It closes the last block
+   (16 px under it, N15: not a lone line a section gap away). */
+.home-discovery>.home-credits { margin-top:calc(var(--sp-4) - var(--section-gap)); }
 .home-credits { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
 .home-credits summary { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); cursor:pointer; list-style:none; }
 .home-credits summary::-webkit-details-marker { display:none; }
@@ -246,7 +248,8 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   :is(.home-offers__rail,.home-guides__rail) { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .home-offers__rail>li[data-wide] { grid-column:span 2; --ui-feed-ratio:16 / 9; }
   .home-picks li:first-child .ui-feed-card__title { font-size:var(--text-section); line-height:var(--lh-section); }
-  .home-picks li:first-child .home-pick__reason { display:block; }
+  /* The editor's reason under each pick (the lead and picks 2–3), so the left column runs as long as the lead's beside it. */
+  .home-picks__list .home-pick__reason { display:block; }
   .home-head { gap:var(--sp-4); }
   :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
   .home-ask { margin-top:var(--sp-3); }

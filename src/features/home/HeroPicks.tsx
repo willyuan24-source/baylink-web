@@ -36,7 +36,7 @@ function PickCard({ pick, cover, today, lead }: { pick: HomeWeekendPick; cover: 
       when={copy(eventWhenLine(facts(event), today, [pick.date]))} meta={<EventMeta event={event} />}
       trust={checkedLine(event.verifiedAt, event.press, t, english)}
       save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
-    {/* The editor's reason shows under the lead on a desktop (home-discovery.css). */}
+    {/* The editor's reason shows under each pick on a desktop (home-discovery.css). */}
     {pick.editorial && <p className="home-pick__reason">{t('编辑推荐：', 'Editor’s pick: ')}{copy(pick.editorial.reason)}</p>}
   </>;
 }
