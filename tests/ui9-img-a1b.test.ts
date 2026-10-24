@@ -141,9 +141,12 @@ test('item 9 checks: a heavy stock picture comes last; city-sights only on city 
   const records = [...index.events.map((e: object) => ['event', e]), ...later.events.map((e: object) => ['event', e]), ...boards.offers.map((o: object) => ['offer', o]), ...boards.openings.map((o: object) => ['opening', o])] as [string, Record<string, unknown>][];
   assert.deepEqual(records.filter(([kind, record]) => photoCategoryOf(kind, record) === 'city-sights').map(([, record]) => record.id), [], 'city-sights (real landmarks) never on an event, offer or new shop');
   const fruitvale = [...index.events, ...later.events].find((event: { id: string }) => event.id === 'nov2026-fruitvale-dia-muertos');
-  if (fruitvale) assert.ok(fruitvale.imageKeys?.length && fruitvale.imageKeys.every((key: string) => key.startsWith('stock-')), 'Fruitvale shows a ③ picture, not its AI art');
-  const home = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8'));
-  if (home.weekends['2026-11-01']) assert.notEqual(home.weekends['2026-11-01'].ids[0], 'nov2026-fruitvale-dia-muertos', 'the 11/01 lead has a ① or ② picture');
+  // Since UI9-IMG-B2 (10-23) Fruitvale has the organiser's own La Catrina photo (①), then ③ pictures; never its AI art. Every
+  // home lead is a lead photograph (tests/ui9-r2-cover-pick.test.tsx), so the 11/01 lead may now be Fruitvale itself.
+  if (fruitvale) {
+    assert.equal(fruitvale.imageKeys?.[0], 'official-nov2026-fruitvale-dia-muertos', 'Fruitvale shows its ① photo first');
+    assert.ok(fruitvale.imageKeys.slice(1).every((key: string) => key.startsWith('stock-')), 'then ③ pictures, not its AI art');
+  }
 });
 
 // CI fix 2 (the /guides route budget, captain 10-22 02:50 decision 4): /guides moves a card to its second ③ only when its own
@@ -152,7 +155,7 @@ test('item 9 checks: a heavy stock picture comes last; city-sights only on city 
 // every picture more than one card shows once, by file.
 test('a /guides card ships its second ③ only when its own picture is not unique on the page; a shared picture ships once', async () => {
   const { readFileSync } = await import('node:fs');
-  const { expandGuidesIndex } = await import('../src/features/guides/guide-records');
+  const { expandGuidesIndex } = await import('../src/features/guides/guides-index');
   const { guideCover } = await import('../src/features/guides/guide-facts');
   const { GUIDE_TOPICS, guideTopicOf } = await import('../src/data/guide-topics');
   const file = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'utf8'));

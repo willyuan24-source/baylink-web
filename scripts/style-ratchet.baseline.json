@@ -5,20 +5,20 @@
     "hexDistinct": 31,
     "fontSizePx": 0,
     "fontSizePxUnder13": 0,
-    "fontSizeUnder13": 18,
-    "radiusKinds": 27,
-    "shadowKinds": 16,
+    "fontSizeUnder13": 4,
+    "radiusKinds": 26,
+    "shadowKinds": 10,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 13,
-    "baylinkClasses": 273,
+    "baylinkClasses": 272,
     "arrowUpRight": 29,
     "buttonLooks": 4,
-    "fontSizeOffLadder": 26,
-    "fontSizeLiteral": 88,
+    "fontSizeOffLadder": 6,
+    "fontSizeLiteral": 49,
     "fontWeightBold": 2,
     "durationOffScale": 0,
-    "durationLiteral": 5,
-    "spacingOffScale": 637,
+    "durationLiteral": 1,
+    "spacingOffScale": 550,
     "englishUiUntranslated": 101,
     "lazyCssDuplicateSelectors": 0
   },
@@ -185,18 +185,11 @@
       "var(--r-sm)",
       "var(--r-sm) var(--r-lg) var(--r-lg) var(--r-lg)",
       "var(--r-sm) var(--r-md) var(--r-md) var(--r-sm)",
-      "var(--r-sm) var(--r-sm) var(--r-sm) var(--r-sm)",
       "var(--r-xl)",
       "var(--r-xl) var(--r-xl) 0 0"
     ],
     "shadow": [
-      "0 0 0 18px rgb(var(--color-surface-rgb) / .07)",
-      "0 0 0 1px var(--profile-ink)",
-      "0 0 0 3px rgb(var(--color-brand-rgb) / .06)",
-      "0 0 0 3px rgb(var(--color-brand-rgb) / .07)",
-      "0 0 0 3px rgb(var(--color-line-control-rgb) / .09)",
       "0 0 0 3px var(--color-brand-tint)",
-      "inset 0 0 0 1px var(--color-brand)",
       "none",
       "tw:shadow-2xl",
       "tw:shadow-elevated",
@@ -221,14 +214,8 @@
     "src/components/account-menu.css": {
       "spacingOffScale": 1
     },
-    "src/components/archive.css": {
-      "spacingOffScale": 5
-    },
     "src/components/Avatar.tsx": {
       "hexOccurrences": 8
-    },
-    "src/components/BlockedUsersModal.tsx": {
-      "baylinkClasses": 1
     },
     "src/components/calendar-event-map.css": {
       "spacingOffScale": 21
@@ -290,20 +277,12 @@
     "src/components/local-discovery-detail.css": {
       "spacingOffScale": 4
     },
-    "src/components/monthly-deals.css": {
-      "spacingOffScale": 5
-    },
     "src/components/OfficialVerificationModal.tsx": {
       "baylinkClasses": 13,
       "textArbitraryUnder13": 1
     },
     "src/components/OpusBayShell.tsx": {
       "hexOccurrences": 18
-    },
-    "src/components/outing-inspiration.css": {
-      "durationLiteral": 2,
-      "fontSizeLiteral": 2,
-      "spacingOffScale": 5
     },
     "src/components/PerksGallery.tsx": {
       "arrowUpRight": 1
@@ -403,10 +382,6 @@
     "src/data/planner-verified-hours.ts": {
       "hexOccurrences": 2
     },
-    "src/design.css": {
-      "fontSizeLiteral": 4,
-      "spacingOffScale": 13
-    },
     "src/editorial-refinement.css": {
       "spacingOffScale": 5
     },
@@ -416,11 +391,6 @@
     "src/features/auth/LoginModal.tsx": {
       "baylinkClasses": 4,
       "textArbitraryUnder13": 2
-    },
-    "src/features/baybay-actions.css": {
-      "durationLiteral": 1,
-      "fontSizeLiteral": 7,
-      "spacingOffScale": 15
     },
     "src/features/baybay-conversation.css": {
       "fontSizeLiteral": 1,
@@ -459,19 +429,8 @@
       "fontSizeUnder13": 1,
       "spacingOffScale": 1
     },
-    "src/features/outings/outing-cover.css": {
-      "fontSizeLiteral": 24,
-      "fontSizeOffLadder": 18,
-      "fontSizeUnder13": 14,
-      "spacingOffScale": 34
-    },
     "src/features/outings/OutingCover.tsx": {
       "arrowUpRight": 1
-    },
-    "src/features/outings/outings.css": {
-      "fontSizeLiteral": 2,
-      "fontSizeOffLadder": 2,
-      "spacingOffScale": 2
     },
     "src/features/posts/community.css": {
       "spacingOffScale": 23
@@ -505,10 +464,6 @@
     "src/features/source-monitor/EditorialReviewQueue.tsx": {
       "baylinkClasses": 4,
       "fontWeightBold": 1
-    },
-    "src/features/source-monitor/source-monitor.css": {
-      "durationLiteral": 1,
-      "spacingOffScale": 8
     },
     "src/features/users/UserProfileModal.tsx": {
       "baylinkClasses": 30

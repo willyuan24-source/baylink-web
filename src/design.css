@@ -11,14 +11,13 @@ body { background:var(--color-bg); overflow-x:clip; height:auto; min-height:100%
 :where(button,a,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 button:disabled { cursor:not-allowed; }
 @media (hover:hover) and (pointer:fine) { .bay-button-dark:hover { background:var(--color-brand-hover); transform:translateY(-1px); } }
-.bay-home { max-width:1370px; padding:27px 32px 24px; margin:auto; }
-.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:12px; border:1px solid; background:var(--color-brand); color:var(--color-surface); border-color:var(--color-brand); border-radius:var(--r-md); padding:13px 16px; min-height:44px; font-size:.8125rem; font-weight:600; transition:background var(--dur-3) var(--ease-std),transform var(--dur-3) var(--ease-std); }
-.bay-feed-empty { background:var(--color-surface); border:1px dashed var(--color-line); border-radius:var(--r-lg); text-align:center; padding:36px 14px; color:var(--color-ink-3); }
+/* .bay-home's padding comes from home-discovery.css (home), community.css and editorial-refinement.css (/category); the
+   padding rules that stood here were overridden at every width (UI9-R2-RATCHET removed them, N14). */
+.bay-home { max-width:1370px; margin:auto; }
+.bay-button-dark { display:inline-flex; justify-content:center; align-items:center; gap:var(--sp-3); border:1px solid; background:var(--color-brand); color:var(--color-surface); border-color:var(--color-brand); border-radius:var(--r-md); padding:var(--sp-3) var(--sp-4); min-height:44px; font-size:var(--text-fact); font-weight:600; transition:background var(--dur-3) var(--ease-std),transform var(--dur-3) var(--ease-std); }
+.bay-feed-empty { background:var(--color-surface); border:1px dashed var(--color-line); border-radius:var(--r-lg); text-align:center; padding:var(--sp-6) var(--sp-4); color:var(--color-ink-3); }
 .bay-feed-empty>svg { margin:0 auto 16px; }
-.bay-feed-empty h3 { font-size:1.0625rem; color:var(--color-ink-2); margin-bottom:8px; }
-.bay-feed-empty>p { font-size:.875rem; margin-bottom:22px; }
-.bay-feed-empty>div { border:0; box-shadow:none; padding:10px 7px; }
-@media (max-width:1279px) and (min-width:1024px) { .bay-home { padding:24px; } }
-@media (max-width:1023px) { .bay-home { padding:24px 26px 110px; } }
-@media (max-width:639px) { .bay-home { padding:18px 17px 110px; } .bay-button-dark { font-size:.8125rem; padding:11px 12px; gap:8px; min-height:42px; } }
+.bay-feed-empty h3 { font-size:var(--text-reading); color:var(--color-ink-2); margin-bottom:var(--sp-2); }
+.bay-feed-empty>p { font-size:var(--text-fact); margin-bottom:var(--sp-5); }
+@media (max-width:639px) { .bay-button-dark { padding:var(--sp-3); gap:var(--sp-2); } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }

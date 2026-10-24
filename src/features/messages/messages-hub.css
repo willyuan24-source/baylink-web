@@ -1,6 +1,8 @@
 /* 消息 /messages (WEB-ACCOUNT, design.md T17): three round entries (联系请求 · 小队 · 预约), a notifications-off prompt,
-   contact requests and RowCard threads; system notices in a thread are cards. Tokens and rem only. */
-.msg-hub { box-sizing:content-box; max-width:var(--container-content); margin:0 auto; padding:var(--sp-5) var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-6)); color:var(--color-ink); }
+   contact requests and RowCard threads; system notices in a thread are cards. Tokens and rem only.
+   UI9-R2-RATCHET (NAV PR B, N16): the wide frame (the H1 at x = 112 in a 1440 window, as /me), the blocks in columns 1-8
+   from 1024, the search field on the control edge (≥3:1) and the one focus ring. */
+.msg-hub { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:var(--sp-5) var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-6)); color:var(--color-ink); }
 .msg-hub .ui-page-header { margin-bottom:var(--sp-4); }
 
 .msg-rounds { display:flex; gap:var(--sp-2); margin:0 0 var(--sp-4); padding:0; list-style:none; }
@@ -40,7 +42,7 @@
 /* Conversation list */
 .msg-list__title { margin:0 0 var(--sp-2); color:var(--color-ink); font-size:var(--fs-keep-20); line-height:1.364; font-weight:600; }
 .msg-controls { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0 0 var(--sp-2); }
-.msg-search { display:flex; flex:1 1 14rem; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-3); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-3); }
+.msg-search { display:flex; flex:1 1 14rem; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-3); }
 .msg-search input { flex:1; min-width:0; border:0; outline:none; background:transparent; color:var(--color-ink); font-size:var(--text-body); }
 .msg-search input::-webkit-search-cancel-button { display:none; }
 .msg-search button { display:grid; place-items:center; min-width:var(--control-height); min-height:var(--control-height); color:var(--color-ink-3); }
@@ -74,7 +76,7 @@
 .msg-state { box-sizing:content-box; max-width:40rem; margin:0 auto; padding:var(--sp-6) var(--sp-4); }
 .msg-state .ui-state { border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 
-.msg-hub :is(a,button,input):focus-visible,.msg-notice a:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+.msg-hub :is(a,button,input):focus-visible,.msg-notice a:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 /* 简洁显示: every control above sizes from --control-height (3rem there); the round entries say so explicitly. */
 html[data-simple] :is(.msg-round,.msg-requests__toggle,.msg-request__actions button) { min-height:3rem; }
 @media (min-width:768px) {
@@ -83,6 +85,6 @@ html[data-simple] :is(.msg-round,.msg-requests__toggle,.msg-request__actions but
   .msg-rounds>li { flex:0 0 7.5rem; }
   .msg-list__title { font-size:var(--fs-keep-24); line-height:1.333; }
 }
-@media (min-width:1024px) { .msg-hub { padding-inline:var(--sp-6); } }
+@media (min-width:1024px) { .msg-hub { padding-inline:var(--sp-6); } .msg-hub>* { max-width:calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter)); } }
 /* G91: one failed refresh over a list that already loaded: a quiet line, not the full error state. */
 .msg-refresh-note { margin:var(--sp-1) 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; }

@@ -74,7 +74,7 @@ export const BlockedUsersModal = ({
   return (
     <Sheet open onClose={onClose} title="已屏蔽用户">
       {loading ? (
-        <div className="site-dialog-empty" role="status" aria-label={t('正在加载', 'Loading')}><Loader2 className="mx-auto h-6 w-6 animate-spin text-baylink-green" aria-hidden="true" /></div>
+        <div className="site-dialog-empty" role="status" aria-label={t('正在加载', 'Loading')}><Loader2 className="mx-auto h-6 w-6 animate-spin text-[var(--color-brand)]" aria-hidden="true" /></div>
       ) : blocks.length === 0 ? (
         <p className="site-dialog-empty">你还没有屏蔽任何用户</p>
       ) : (

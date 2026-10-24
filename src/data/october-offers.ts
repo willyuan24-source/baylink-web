@@ -50,7 +50,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     dateLabel: '10/4 周日 · 按首个周日规则', startDate: '2026-10-04', endDate: '2026-10-04', availability: 'dated', kind: 'no-purchase',
     requirement: '所有人免费，官网现行规则包含特别展览。建议网上预约；现场票先到先得。',
     description: '十月首个周日落在 10/4。可把 OMCA 和 Lake Merritt 周边散步安排在一起；免费的是入馆，餐饮与购物另计。',
-    imageKey: 'region-omca', sourceUrl: 'https://museumca.org/first-sundays/', sourceLabel: 'OMCA 首个周日与预约规则',
+    imageKey: 'venue-omca', sourceUrl: 'https://museumca.org/first-sundays/', sourceLabel: 'OMCA 首个周日与预约规则',
   },
   {
     id: 'asian-art-free-oct4', brand: 'ASIAN ART MUSEUM · SF', title: '10/4 亚洲艺术博物馆普通门票免费',
@@ -106,7 +106,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     dateLabel: '长期福利 · 先查可预约日期', availability: 'ongoing', kind: 'reservation',
     requirement: 'SF 居民持 SFPL 图书证，通过 Discover & Go 预约；具体年龄、人数与入场凭证按所选场馆条款。',
     description: '九月下半月和整个十月都可查询可用日期，不保证每一天都有票。先登录选场馆，再确认人数与是否须打印，图书馆也可协助打印。',
-    imageKey: 'library', sourceUrl: 'https://sfpl.org/discover-and-go', sourceLabel: 'SFPL Discover & Go 资格与入口',
+    imageKey: 'venue-sf-main-library', sourceUrl: 'https://sfpl.org/discover-and-go', sourceLabel: 'SFPL Discover & Go 资格与入口',
   },
   {
     id: 'smcl-discover-go', brand: 'SAN MATEO COUNTY LIBRARIES', title: '半岛图书证，先核对卡号再借门票',

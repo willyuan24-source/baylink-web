@@ -6,13 +6,13 @@
 .bl-guide-edition-notice p { margin:var(--sp-1) 0; max-width:var(--measure); font-size:var(--fs-meta); line-height:var(--lh-ui); color:var(--color-ink); }
 .bl-guide-edition-notice div>span { font-size:var(--fs-meta); line-height:var(--lh-ui); color:var(--color-ink-2); }
 .bl-guide-edition-notice--archive { background:var(--color-surface-2); border-color:var(--color-line-strong); }
-.bl-guide-source-link { margin:18px 0 24px; padding:16px 18px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface-2); }
-.bl-guide-source-link>a { display:inline-flex; align-items:center; gap:8px; min-height:30px; color:var(--color-brand); font-size:var(--fs-meta); font-weight:600; line-height:var(--lh-ui); text-decoration:underline; text-underline-offset:4px; }
+/* The official-source link block under a guide section (GuideDetail). UI9-R2-RATCHET: the spacing steps, the one underline
+   offset and the one focus ring (N13 N14). */
+.bl-guide-source-link { margin:var(--sp-4) 0 var(--sp-5); padding:var(--sp-4); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface-2); }
+.bl-guide-source-link>a { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:30px; color:var(--color-brand); font-size:var(--fs-meta); font-weight:600; line-height:var(--lh-ui); text-decoration:underline; text-underline-offset:var(--underline-offset); }
 .bl-guide-source-link>a>svg { flex-shrink:0; }
-.bl-guide-source-link>a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
-.bl-guide-source-link>p { margin:7px 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-read); }
+.bl-guide-source-link>a:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
+.bl-guide-source-link>p { margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-read); }
 @media(max-width:639px) {
- .bl-guide-source-link { padding:14px 15px; }
- .bl-guide-source-link>a { font-size:var(--fs-meta); }
  .bl-guide-source-link>p { font-size:var(--text-caption); }
 }

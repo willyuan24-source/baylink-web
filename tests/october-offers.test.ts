@@ -230,7 +230,7 @@ test('offer media preserves verified places and official products without turnin
     assert.match(offer(id).imageNote || '', /非真实/);
   }
   for (const [id, key, place] of [
-    ['sfpl-radon-detector-loan', 'library', /San Francisco|旧金山/],
+    ['sfpl-radon-detector-loan', 'venue-sf-main-library', /San Francisco|旧金山/],
     ['cantor-stanford-free', 'region-cantor', /Cantor/],
   ] as const) {
     assert.equal(offer(id).imageKey, key);

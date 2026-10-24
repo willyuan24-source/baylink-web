@@ -1,23 +1,24 @@
-/* Reader trust row and source-state prompts (D11). Reviewed by check-editorial-styles. */
-.trust-row{margin:1.25rem 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2);overflow-wrap:anywhere}
+/* Reader trust row and source-state prompts (D11). Reviewed by check-editorial-styles. UI9-R2-RATCHET: spacing steps, the one
+   underline offset and focus ring, and the skeleton shimmer on the motion tokens (N13 N14 N24). */
+.trust-row{margin:var(--sp-5) 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2);overflow-wrap:anywhere}
 .trust-row-item{white-space:nowrap}
-.trust-row svg{display:inline-block;vertical-align:-.1875rem;margin-inline-end:.375rem;color:var(--color-brand)}
-.trust-row a{padding-block:.625rem;color:var(--color-brand);text-decoration:underline 1px;text-underline-offset:.2em}
-.reader-freshness-line{display:flex;gap:.5rem;align-items:flex-start;margin:1rem 0 0;font-size:var(--text-body);line-height:1.7;color:var(--color-ink)}
-.reader-freshness-line>svg{flex:none;margin-top:.3125rem;color:var(--color-ink-2)}
+.trust-row svg{display:inline-block;vertical-align:-.1875rem;margin-inline-end:var(--sp-2);color:var(--color-brand)}
+.trust-row a{padding-block:var(--sp-3);color:var(--color-brand);text-decoration:underline 1px;text-underline-offset:var(--underline-offset)}
+.reader-freshness-line{display:flex;gap:var(--sp-2);align-items:flex-start;margin:var(--sp-4) 0 0;font-size:var(--text-body);line-height:1.7;color:var(--color-ink)}
+.reader-freshness-line>svg{flex:none;margin-top:var(--sp-1);color:var(--color-ink-2)}
 .reader-freshness-line p{margin:0}
-.reader-freshness-line a,.content-review-notice.reader-freshness-hard a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);text-decoration:underline 1px;text-underline-offset:.2em}
+.reader-freshness-line a,.content-review-notice.reader-freshness-hard a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);text-decoration:underline 1px;text-underline-offset:var(--underline-offset)}
 .reader-freshness-line.is-hard>svg{color:var(--color-danger)}
-.content-review-notice.reader-freshness-hard{margin:1.25rem 0;padding:1rem;border:.0625rem solid var(--color-danger);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
-.content-review-notice.reader-freshness-hard h2{margin:0 0 .25rem;font-size:var(--text-body);font-weight:600;color:var(--color-danger)}
+.content-review-notice.reader-freshness-hard{margin:var(--sp-5) 0;padding:var(--sp-4);border:1px solid var(--color-danger);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
+.content-review-notice.reader-freshness-hard h2{margin:0 0 var(--sp-1);font-size:var(--text-body);font-weight:600;color:var(--color-danger)}
 .content-review-notice.reader-freshness-hard p{margin:0}
-.guide-date-meta{display:flex;flex-wrap:wrap;align-items:center;column-gap:1.25rem;margin:.5rem 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2)}
-.guide-date-meta a{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:none}
-.guide-date-meta summary{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--control-height);cursor:pointer;list-style:none;color:var(--color-ink-2)}
+.guide-date-meta{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--sp-5);margin:var(--sp-2) 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2)}
+.guide-date-meta a{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:none}
+.guide-date-meta summary{display:inline-flex;align-items:center;gap:var(--sp-2);min-height:var(--control-height);cursor:pointer;list-style:none;color:var(--color-ink-2)}
 .guide-date-meta summary::-webkit-details-marker{display:none}
 .guide-date-meta details[open]{flex-basis:100%}
-.guide-date-meta details p{margin:0 0 .5rem;max-width:40em;font-size:var(--text-fact);line-height:1.7;color:var(--color-ink-2)}
-.trust-row a:focus-visible,.reader-freshness-line a:focus-visible,.content-review-notice.reader-freshness-hard a:focus-visible,.guide-date-meta a:focus-visible,.guide-date-meta summary:focus-visible{outline:.1875rem solid var(--color-brand);outline-offset:.125rem}
+.guide-date-meta details p{margin:0 0 var(--sp-2);max-width:40em;font-size:var(--text-fact);line-height:1.7;color:var(--color-ink-2)}
+.trust-row a:focus-visible,.reader-freshness-line a:focus-visible,.content-review-notice.reader-freshness-hard a:focus-visible,.guide-date-meta a:focus-visible,.guide-date-meta summary:focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 
 /* CW-02 / EVT11-05 stale-date guard (src/lib/date-guard.ts, docs/daily-rebuild.md). public/reading-init.js marks
    html[data-date-stale] before the first paint when the page was prerendered for another Pacific day. The date blocks of the
@@ -63,7 +64,7 @@ html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before,
 html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline::before,
 html[data-date-stale~="day"] .site-boot-main .home-head__dateline::before,
 html[data-date-stale~="day"] main[data-prerender-path] .home-offers::before,
-html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:var(--r-md);background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
+html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:var(--r-md);background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer calc(6 * var(--dur-3)) var(--ease-std) infinite,date-guard-clear 0s 15s forwards}
 html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope] [data-date-scope]::before,
 html[data-date-stale~="weekend"] .site-boot-main [data-date-scope] [data-date-scope]::before,
 html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"] [data-date-scope]::before,

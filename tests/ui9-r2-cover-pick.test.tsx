@@ -26,7 +26,7 @@ const context = { images: GUIDE_IMAGES, today };
 const PHOTO = 'official-oakland-omca-dia-muertos-2026';
 const POSTERS = ['official-acl-cherryland-chinese-storytimes-oct24-2026', 'official-windsor-trick-or-treat-trail-2026', 'official-sf-world-of-dumplings-2026'];
 const GROUP = 'official-sjpl-almaden-sounds-of-south-asia-2026';
-const VENUE = 'roundup-chase-center';
+const VENUE = 'venue-sap-center'; // (the Chase Center corner photo is a weak lead scene since UI9-IMG-B2)
 
 test('DECISIONS 32: a lead slot takes a ① or ② photograph only; a flyer, a close-up or a posed group stays a card', () => {
   assert.equal(leadsWithPicture({ id: 'x-photo', imageKey: PHOTO }, context), true, 'an official photo leads');
@@ -41,8 +41,9 @@ test('DECISIONS 32: a lead slot takes a ① or ② photograph only; a flyer, a c
     const alone = getCover(leadItem({ id: record.id, imageKey: key }), context);
     assert.equal(alone.tier === 'type' && alone.reason, 'not-a-photo', `${key}: a lead never shows the flyer`);
   }
-  // The six close-ups the owner released (10-21) stay released for cards, rows and detail pages, and never lead.
-  assert.equal(RELEASED_CLOSE_UPS.size, 6);
+  // The close-ups the owner released (10-21; five still on the site after UI9-IMG-B2 replaced LumaFest's) stay released for
+  // cards, rows and detail pages, and never lead.
+  assert.equal(RELEASED_CLOSE_UPS.size, 5);
   for (const key of [...CLOSE_UP_FACE_IMAGES, ...POSED_GROUP_IMAGES]) {
     const record = { id: `x-${key}`, imageKey: key };
     assert.ok(NOT_FOR_LEAD.has(key));
@@ -60,8 +61,9 @@ test('DECISIONS 32: a lead slot takes a ① or ② photograph only; a flyer, a c
 });
 
 test('the home lead (getBuildWeekend): the editor\'s first pick with a photograph leads; the flyer and close-up picks follow as cards', () => {
-  // The 10/24–25 weekend as the editor listed it on 10-21: two flyers and a close-up before the OMCA photo.
-  const ids = ['acl-cherryland-chinese-storytimes-oct24-2026', 'r2-petaluma-lumafest-20261024', 'sf-financial-planning-day-oct24-2026', 'oakland-omca-dia-muertos-2026'];
+  // The 10/24–25 weekend as the editor listed it on 10-21: two flyers and a close-up before the OMCA photo (the close-up is
+  // the Goblin Jamboree's since UI9-IMG-B2 gave LumaFest its altar photo, which leads: checked below).
+  const ids = ['acl-cherryland-chinese-storytimes-oct24-2026', 'sausalito-goblin-jamboree-2026', 'sf-financial-planning-day-oct24-2026', 'oakland-omca-dia-muertos-2026'];
   const list = { '2026-10-24': ids.map(id => ({ id, reason: { zh: `理由 ${id}`, en: `Reason ${id}` } })) as WeekendPickEntry[] };
   const weekend = getBuildWeekend(today, MONTHLY_EVENTS, list);
   assert.deepEqual(weekend.picks.map(pick => [pick.event.id, pick.editorial?.rank]), [[ids[3], 4], [ids[0], 1], [ids[1], 2]]);
@@ -69,6 +71,9 @@ test('the home lead (getBuildWeekend): the editor\'s first pick with a photograp
   for (const pick of weekend.picks.slice(1)) assert.equal(buildCanLead(pick.event, today), false, `${pick.event.id}: a card, not a lead`);
   assert.equal(weekend.feed[0]?.event.id, ids[2], 'the third pick heads the feed the home shows (/plan\'s fourth card)');
   assert.equal(new Set([...weekend.picks, ...weekend.feed].map(entry => entry.event.id)).size, weekend.picks.length + weekend.feed.length, 'each event once');
+  // UI9-IMG-B2: LumaFest's own picture is now the 2025 altar photo (no people), so the editor's second pick leads that weekend.
+  const lumaFest = MONTHLY_EVENTS.find(event => event.id === 'r2-petaluma-lumafest-20261024')!;
+  assert.ok(buildCanLead(lumaFest, today), 'LumaFest leads with its altar photo');
 });
 
 test('the /events lead (arrangePicks) and each /calendar day lead (canLead) take the first event with a photograph', async () => {

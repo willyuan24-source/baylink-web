@@ -35,9 +35,26 @@ test('new photo descriptions, captions and credits are translated on English pag
 });
 
 test('context-photo approvals do not permit different venues, real event photos or official posters to be borrowed', () => {
-  assert.equal(isApprovedEventContextPhoto('region-omca', 'oakland-omca-friday-finale-2026'), true);
-  assert.equal(isApprovedEventContextPhoto('region-omca', 'sf-ybg-dance-day-2026'), false);
+  assert.equal(isApprovedEventContextPhoto('venue-omca', 'oakland-omca-friday-finale-2026'), true);
+  assert.equal(isApprovedEventContextPhoto('venue-omca', 'sf-ybg-dance-day-2026'), false);
   assert.equal(isApprovedEventContextPhoto('event-opera', 'sf-ybg-dance-day-2026'), false);
   assert.equal(isApprovedEventContextPhoto('event-portola', 'sf-ybg-dance-day-2026'), false);
   assert.equal(isApprovedEventContextPhoto('toString', 'sf-ybg-dance-day-2026'), false);
+});
+
+test('UI9-IMG-B2: ③ stock credits read in English by one pattern (en-patterns.json), not one dictionary entry per photographer', async () => {
+  const { default: stock } = await import('../src/data/category-stock-photos.json');
+  const { default: stockEnglish } = await import('../src/data/category-stock-photos-en.json');
+  await loadLocale('en');
+  let byPattern = 0;
+  for (const photo of stock) {
+    const match = /^示意图 · 摄影 (.+) \/ (Unsplash|Pexels)$/.exec(photo.credit);
+    if (!match) continue;
+    byPattern++;
+    assert.equal(Object.hasOwn(stockEnglish, photo.credit), false, `${photo.key}: no entry of its own`);
+    assert.equal(translateText(photo.credit, 'en'), `Illustrative photo · ${match[1]} / ${match[2]}`, photo.key);
+  }
+  assert.ok(byPattern >= 200, `${byPattern} Unsplash / Pexels credits`);
+  // Commons credits name the licence and keep their own entries.
+  for (const photo of stock) assert.doesNotMatch(translateText(photo.credit, 'en'), /\p{Script=Han}/u, photo.key);
 });

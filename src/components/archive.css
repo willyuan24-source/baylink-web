@@ -1,18 +1,19 @@
 /* 内容目录与往期记录 (/archive, WEB-SECONDARY-B): content container (960), the shared H1 spec, StatusChip for each record's
-   state, tokens and rem only. */
-.archive-page{padding-block:24px 56px;color:var(--color-ink)}
+   state, tokens and rem only. UI9-R2-RATCHET: spacing on the 4px steps, /about's pre-footer, the one underline, hover
+   only where a pointer can hover (N13 N14 N15 N23). */
+.archive-page{padding-block:var(--sp-5) var(--sp-6);color:var(--color-ink)}
 .archive-today{margin:-8px 0 0;color:var(--color-ink-2);font-size:var(--text-fact)}
-.archive-jump,.archive-links{display:flex;flex-wrap:wrap;gap:0 20px;margin-top:8px}
-.archive-jump a,.archive-links a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em}
-.archive-jump a:hover,.archive-links a:hover{text-decoration-color:currentColor}
+.archive-jump,.archive-links{display:flex;flex-wrap:wrap;gap:0 var(--sp-4);margin-top:var(--sp-2)}
+.archive-jump a,.archive-links a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset)}
+@media (hover:hover) and (pointer:fine){.archive-jump a:hover,.archive-links a:hover{text-decoration-color:currentColor}}
 .archive-group{margin-top:32px;scroll-margin-top:80px}
 .archive-group>h2{margin:0 0 8px;color:var(--color-ink);font-size:var(--fs-keep-20);line-height:1.364;font-weight:600}
 .archive-group details{margin-top:8px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface)}
-.archive-group summary{display:list-item;min-height:var(--control-height);padding:10px 16px;cursor:pointer;color:var(--color-ink);font-size:var(--text-fact);font-weight:400}
+.archive-group summary{display:list-item;min-height:var(--control-height);padding:var(--sp-3) var(--sp-4);cursor:pointer;color:var(--color-ink);font-size:var(--text-fact);font-weight:400}
 .archive-list{margin:0;padding:0 16px;list-style:none}
 .archive-list>li{display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--color-line)}
-.archive-title{color:var(--color-brand);font-size:var(--text-body);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em;overflow-wrap:anywhere}
+.archive-title{color:var(--color-brand);font-size:var(--text-body);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);overflow-wrap:anywhere}
 .archive-date{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
 .archive-status{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:0;color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.6}
-.archive-page :is(a,summary):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
-@media(min-width:1024px){.archive-page{padding-block:40px 72px}.archive-group>h2{font-size:var(--text-section);line-height:1.333}}
+.archive-page :is(a,summary):focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
+@media(min-width:1024px){.archive-page{padding-block:var(--sp-6) calc(var(--sp-6) + var(--sp-2))}.archive-group>h2{font-size:var(--text-section);line-height:1.333}}

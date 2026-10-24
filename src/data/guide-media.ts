@@ -8,6 +8,7 @@ import officialEventMedia from './official-event-media.json';
 import officialOpeningMedia from './official-opening-media.json';
 import guidePhotos1019 from './guide-photos-2026-10-19.json';
 import categoryStockPhotos from './category-stock-photos.json';
+import venuePhotoMedia from './venue-photo-media.json';
 import homeTileStockPhotos from './home-tile-stock-photos.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
@@ -160,6 +161,11 @@ for (const { key, ...asset } of guidePhotos1019) GUIDE_IMAGES[key] = { ...asset,
 // a listed event or venue. src/data/category-photos.json maps each category to its keys. Download and page-read records:
 // scripts/data/category-stock-photos-downloads.json; sources: docs/category-media-sources-2026-10-21.md.
 for (const { key, ...asset } of categoryStockPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', subject: 'category', rights: asset.rights as MediaRights };
+// UI9-IMG-B2 (owner DECISIONS 33, chat 2026-10-23: 「關於圖片方面，只要你分析過後，覺得合適，更好，就可以通過」; captain approval
+// and an independent skeptic recheck 2026-10-23): venue photos (②) of 16 venues, from Wikimedia Commons (author and licence in
+// the credit) and three venues' own location pages (官方场馆图, promoAllowed false). src/data/venue-photos.json names each
+// venue's records. Download records: scripts/data/venue-photo-media-downloads.json; sources: docs/b2-media-sources-2026-10-23.md.
+for (const { key, ...asset } of venuePhotoMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', subject: 'venue', rights: asset.rights as MediaRights };
 // UI9-IMG-B1b2 (owner approval in chat 2026-10-21 16:51 PT, 「圖片都過，沒問題」): the photos under the home's eight entry tiles
 // (UI9-IMAGES DECISIONS 27), Unsplash, each with its photographer, page and licence. Navigation images: no 示意图 badge, never a
 // card's cover (coverOk false, never in a card pool), listed in the home's image credits. src/data/home-tile-photos.json maps
@@ -253,7 +259,7 @@ const bySlug: Record<string, [string, string]> = {
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],
   'half-moon-bay-pumpkin-season-2026-guide': ['fresh-pumpkin-parade', 'fresh-hmb-pumpkins'],
   'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],
-  'oakland-lake-merritt-omca-half-day': ['region-omca', 'region-lake-merritt'],
+  'oakland-lake-merritt-omca-half-day': ['venue-omca', 'region-lake-merritt'],
   'stanford-cantor-campus-art-walk': ['region-stanford-quad', 'region-cantor'],
   'filoli-house-garden-day-trip': ['region-filoli-house', 'region-filoli-conservatory'],
   'san-jose-tech-japantown-day-trip': ['region-tech', 'region-japantown'],

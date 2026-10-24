@@ -212,8 +212,11 @@ test('H45 (owner rule 10-08): an event’s own card carries the organiser’s im
     const rights = GUIDE_IMAGES[item.event.imageKey]?.rights;
     return typeof rights === 'object' && rights?.basis === 'promo-editorial';
   });
-  const official = promo.filter(item => GUIDE_IMAGES[item.event.imageKey]?.coverOk !== false);
+  // A record that says no promotion (promoAllowed false: every UI9-IMG-B2 organiser photo, 10-23) stays off its card as well.
+  const noPromo = (item: (typeof promo)[number]) => (GUIDE_IMAGES[item.event.imageKey]?.rights as { promoAllowed?: boolean }).promoAllowed === false;
+  const official = promo.filter(item => GUIDE_IMAGES[item.event.imageKey]?.coverOk !== false && !noPromo(item));
   for (const item of promo.filter(item => GUIDE_IMAGES[item.event.imageKey]?.coverOk === false)) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), undefined, `${item.event.id}: not the page's cover`);
+  for (const item of promo.filter(noPromo)) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), undefined, `${item.event.id}: no promotion`);
   assert.ok(official.length >= 10, `${official.length} events with the organiser’s own image`);
   for (const item of official) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), GUIDE_IMAGES[item.event.imageKey], item.event.id);
   const photo: GuideImage = { src: '/x.webp', alt: '', caption: '2025', credit: 'Organiser', kind: 'photo', width: 1200, height: 800 };

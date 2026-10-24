@@ -1,0 +1,383 @@
+[
+  {
+    "key": "venue-sf-main-library",
+    "src": "/guides/venues/venue-sf-main-library.webp",
+    "width": 1200,
+    "height": 1600,
+    "focal": [
+      50,
+      45
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "旧金山主图书馆中庭的圆形玻璃天窗",
+    "caption": "旧金山主图书馆中庭，2026 年资料照片；不是活动现场。",
+    "credit": "ECTran71 / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:SFPL_Main_Branch_atrium_ceiling.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:SFPL_Main_Branch_atrium_ceiling.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-sap-center",
+    "src": "/guides/venues/venue-sap-center.webp",
+    "width": 1280,
+    "height": 720,
+    "focal": [
+      45,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "圣荷西 SAP Center 的玻璃金字塔入口",
+    "caption": "SAP Center 外观，2022 年资料照片；不是活动现场。",
+    "credit": "Daniel Ramirez / Wikimedia Commons · CC BY 2.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:SAP_Center_in_San_Jose_(52194580276).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:SAP_Center_in_San_Jose_(52194580276).jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY 2.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-exploratorium",
+    "src": "/guides/venues/venue-exploratorium.webp",
+    "width": 1280,
+    "height": 1518,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Exploratorium 所在的 15 号码头拱门入口",
+    "caption": "Exploratorium（15 号码头）入口，2022 年资料照片；不是活动现场。",
+    "credit": "Benoît Prieur / Wikimedia Commons · CC0 1.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Pier_15_(San_Francisco)_July_2022.JPG",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Pier_15_(San_Francisco)_July_2022.JPG",
+      "scope": "venue photo (②) for listings held at this venue; CC0 1.0, author and changes credited",
+      "promoAllowed": true
+    }
+  },
+  {
+    "key": "venue-ferry-building",
+    "src": "/guides/venues/venue-ferry-building.webp",
+    "width": 1280,
+    "height": 861,
+    "focal": [
+      50,
+      40
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "晴天的渡轮大厦钟楼和前面的广场",
+    "caption": "渡轮大厦外观，2022 年资料照片；不是活动现场。",
+    "credit": "Benoît Prieur / Wikimedia Commons · CC0 1.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Ferry_Building_July_2022_(2).JPG",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Ferry_Building_July_2022_(2).JPG",
+      "scope": "venue photo (②) for listings held at this venue; CC0 1.0, author and changes credited",
+      "promoAllowed": true
+    }
+  },
+  {
+    "key": "venue-opl-main-library",
+    "src": "/guides/venues/venue-opl-main-library.webp",
+    "width": 1280,
+    "height": 622,
+    "focal": [
+      45,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "奥克兰公共图书馆总馆的白色大楼外观",
+    "caption": "奥克兰公共图书馆总馆外观，2024 年资料照片；不是活动现场。",
+    "credit": "Mx. Granger / Wikimedia Commons · CC0 1.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Oakland_Public_Library_-_main_library.jpg",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Oakland_Public_Library_-_main_library.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC0 1.0, author and changes credited",
+      "promoAllowed": true
+    }
+  },
+  {
+    "key": "venue-omca",
+    "src": "/guides/venues/venue-omca.webp",
+    "width": 1200,
+    "height": 800,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "奥克兰博物馆的草坪和阶梯式花园建筑",
+    "caption": "奥克兰博物馆外观，2021 年资料照片；不是活动现场。",
+    "credit": "Oakland Museum of California (photographer initials OH) 官方场馆图",
+    "creditUrl": "https://museumca.org/press/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://museumca.org/press/",
+      "scope": "venue photo for listings held at this venue; editorial use with credit",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-sf-botanical-garden",
+    "src": "/guides/venues/venue-sf-botanical-garden.webp",
+    "width": 1280,
+    "height": 960,
+    "focal": [
+      50,
+      55
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "旧金山植物园里的池塘和植物",
+    "caption": "旧金山植物园园内，2024 年资料照片；不是活动现场。",
+    "credit": "Fastily / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:San_Francisco_Botanical_Garden_23_2024-04-23.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:San_Francisco_Botanical_Garden_23_2024-04-23.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-fort-mason-center",
+    "src": "/guides/venues/venue-fort-mason-center.webp",
+    "width": 1280,
+    "height": 720,
+    "focal": [
+      40,
+      55
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "黄昏时海湾边的 Fort Mason 红瓦建筑",
+    "caption": "Fort Mason Center 外观，2025 年资料照片；不是活动现场。",
+    "credit": "David Lee / Wikimedia Commons · CC BY 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Fort_Mason_in_December_2025_-_01.jpeg",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Fort_Mason_in_December_2025_-_01.jpeg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-smcl-millbrae-library",
+    "src": "/guides/venues/venue-smcl-millbrae-library.webp",
+    "width": 1280,
+    "height": 964,
+    "focal": [
+      45,
+      55
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Millbrae 图书馆的入口和门前广场",
+    "caption": "Millbrae 图书馆外观，2024 年资料照片；不是活动现场。",
+    "credit": "BriefEdits / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Millbrae_Library,_exterior_(October_2024)_01.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Millbrae_Library,_exterior_(October_2024)_01.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-smcl-foster-city-library",
+    "src": "/guides/venues/venue-smcl-foster-city-library.webp",
+    "width": 1280,
+    "height": 964,
+    "focal": [
+      50,
+      55
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Foster City 图书馆的砖墙外观",
+    "caption": "Foster City 图书馆外观，2024 年资料照片；不是活动现场。",
+    "credit": "BriefEdits / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Foster_City_Library,_exterior_(November_2024)_02.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Foster_City_Library,_exterior_(November_2024)_02.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-smcl-brisbane-library",
+    "src": "/guides/venues/venue-smcl-brisbane-library.webp",
+    "width": 1250,
+    "height": 598,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Brisbane 图书馆的玻璃入口",
+    "caption": "Brisbane 图书馆外观，2021 年资料照片；不是活动现场。",
+    "credit": "San Mateo County Libraries 官方场馆图",
+    "creditUrl": "https://smcl.org/locations/1R/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://smcl.org/locations/1R/",
+      "scope": "venue photo for listings held at this venue; editorial use with credit",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-smcl-atherton-library",
+    "src": "/guides/venues/venue-smcl-atherton-library.webp",
+    "width": 1160,
+    "height": 1600,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Atherton 图书馆的木门入口",
+    "caption": "Atherton 图书馆外观，2026 年资料照片；不是活动现场。",
+    "credit": "BrokenSegue / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Atherton_Library_Entrance.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Atherton_Library_Entrance.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-sjpl-calabazas-library",
+    "src": "/guides/venues/venue-sjpl-calabazas-library.webp",
+    "width": 1024,
+    "height": 768,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "圣荷西 Calabazas 分馆的外墙和馆名石碑",
+    "caption": "Calabazas 分馆外观，2021 年资料照片；不是活动现场。",
+    "credit": "Cristiano Tomás / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Calabazas_Branch_Library_0432.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Calabazas_Branch_Library_0432.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-sccl-campbell-library",
+    "src": "/guides/venues/venue-sccl-campbell-library.webp",
+    "width": 1280,
+    "height": 853,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Campbell 图书馆的木纹外墙",
+    "caption": "Campbell 图书馆外观，2026 年资料照片；不是活动现场。",
+    "credit": "Santa Clara County Library District 官方场馆图",
+    "creditUrl": "https://sccld.org/locations/campbell/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sccld.org/locations/campbell/",
+      "scope": "venue photo for listings held at this venue; editorial use with credit",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-acl-castro-valley-library",
+    "src": "/guides/venues/venue-acl-castro-valley-library.webp",
+    "width": 1280,
+    "height": 763,
+    "focal": [
+      50,
+      45
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "Castro Valley 图书馆的玻璃雨棚入口",
+    "caption": "Castro Valley 图书馆外观，2026 年资料照片；不是活动现场。",
+    "credit": "BriefEdits / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Castro_Valley_Library,_exterior_(September_2026)_01.jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Castro_Valley_Library,_exterior_(September_2026)_01.jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  },
+  {
+    "key": "venue-opl-dimond-library",
+    "src": "/guides/venues/venue-opl-dimond-library.webp",
+    "width": 1280,
+    "height": 667,
+    "focal": [
+      50,
+      50
+    ],
+    "kind": "photo",
+    "subject": "venue",
+    "coverOk": true,
+    "alt": "奥克兰 Dimond 分馆的白色外观",
+    "caption": "Dimond 分馆外观，2026 年资料照片；不是活动现场。",
+    "credit": "BriefEdits / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Oakland_Public_Library_Dimond_Branch,_exterior_(September_2026).jpg",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "rights": {
+      "basis": "cc",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Oakland_Public_Library_Dimond_Branch,_exterior_(September_2026).jpg",
+      "scope": "venue photo (②) for listings held at this venue; CC BY-SA 4.0, author and changes credited",
+      "promoAllowed": false
+    }
+  }
+]

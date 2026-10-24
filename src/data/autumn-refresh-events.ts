@@ -433,7 +433,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/",
     "sourceLabel": "Oakland Museum of California",
     "verifiedAt": "2026-10-21",
-    "imageKey": "region-omca"
+    "imageKey": "venue-omca"
   },
   {
     "id": "sunnyvale-spooky-storywalk-2026",
@@ -514,7 +514,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     "officialUrl": "https://museumca.org/event/friday-nights-at-omca-with-la-gente-sf/",
     "sourceLabel": "Oakland Museum of California",
     "verifiedAt": "2026-09-23",
-    "imageKey": "region-omca"
+    "imageKey": "venue-omca"
   },
   {
     "id": "palo-alto-addams-family-opening-2026",

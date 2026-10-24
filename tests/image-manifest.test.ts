@@ -12,6 +12,8 @@ import { ATTRACTIONS } from '../src/data/attractions';
 import { MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { getCover, rightsBasisOf, type CoverKind } from '../src/lib/cover';
 import { getImageProvenance } from '../src/lib/image-provenance';
+import { GUIDE_IMAGES as HOME_IMAGES } from '../src/lib/home-catalog';
+import { homeImageSrcSet } from '../src/lib/home-image-rungs';
 import { setLocale } from '../src/i18n/locale';
 import { publishedImageSources } from '../scripts/audit-media-coverage';
 import { IMAGE_BUDGETS, webpSize } from '../scripts/image-budgets.mjs';
@@ -196,9 +198,16 @@ test('the 3D postcards are byte-for-byte copies in /guides/3d, labelled 3D åœºæ™
 });
 
 test('the slim home catalog carries the same ladder srcset and placeholder colour as the registry (the home renders CoverImage)', () => {
-  type HomeImage = { src: string; srcSet: string; lqip?: string };
+  type HomeImage = { src: string; srcSet?: string; lqip?: string; rungs?: number };
   const home = JSON.parse(readFileSync(new URL('../src/data/generated/home-catalog.json', import.meta.url), 'utf8')) as { images: Record<string, HomeImage>; guides: { slug: string; imageKey?: string }[] };
-  for (const [key, image] of Object.entries(home.images)) {
+  // The catalog writes a ladder srcset as its rungs (UI9-IMG-B2, lib/home-image-rungs.ts); the page reads the expanded string.
+  assert.ok(Object.values(home.images).every(image => image.rungs !== undefined || image.srcSet), 'every catalog image has its rungs or its srcset');
+  assert.equal(Object.keys(HOME_IMAGES).length, Object.keys(home.images).length);
+  // The home's own copy of the ladder rule writes what ladderSrcSet writes, for every rung combination of every registry image.
+  for (const image of Object.values(GUIDE_IMAGES)) for (const rungs of [0, 1, 2, 3]) {
+    assert.equal(homeImageSrcSet(image, rungs), ladderSrcSet(image.src, image.width, { medium: (rungs & 1) === 1, large: (rungs & 2) === 2 }), image.src);
+  }
+  for (const [key, image] of Object.entries(HOME_IMAGES)) {
     // Listing images are keyed by their registry key, guide covers by their path (guides have no image key).
     const source = Object.hasOwn(GUIDE_IMAGES, key) ? GUIDE_IMAGES[key] : undefined;
     const ladder = manifest.images[image.src]?.srcset.join(', ');
@@ -208,6 +217,24 @@ test('the slim home catalog carries the same ladder srcset and placeholder colou
     if (source?.lqip) assert.equal(image.lqip, source.lqip, `${key}: the cover's placeholder colour`);
   }
   for (const guide of home.guides) if (guide.imageKey) assert.ok(Object.hasOwn(home.images, guide.imageKey), `${guide.slug}: its cover ships with the catalog`);
+});
+
+test('the /guides index ships each ladder srcset as its rungs and expandGuidesIndex writes back the registry srcset', async () => {
+  const { expandGuidesIndex } = await import('../src/features/guides/guides-index');
+  const raw = readFileSync(new URL('../src/data/generated/guides-index.json', import.meta.url), 'utf8');
+  assert.equal(raw.includes('"srcSet":'), false, 'no srcset string left in the index file (lib/home-image-rungs.ts rebuilds each one)');
+  const bySrc = new Map(Object.values(GUIDE_IMAGES).map(image => [image.src, image]));
+  let checked = 0;
+  for (const card of expandGuidesIndex(JSON.parse(raw)).guides) {
+    for (const covers of [card.covers, card.covers.stock]) for (const image of Object.values(covers ?? {})) {
+      if (!image || typeof image !== 'object' || !('src' in image)) continue;
+      const expected = bySrc.get(image.src)?.srcSet ?? manifest.images[image.src]?.srcset.join(', ');
+      assert.ok(expected, `${card.slug}: ${image.src} is a registry image or has a ladder in the manifest`);
+      assert.equal(image.srcSet, expected, `${card.slug}: ${image.src}`);
+      checked++;
+    }
+  }
+  assert.ok(checked >= 145, `${checked} guide card pictures checked`);
 });
 
 test('editorial images under /guides are WebP; the old PNG guide posters are gone', () => {

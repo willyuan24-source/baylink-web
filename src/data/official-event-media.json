@@ -352,20 +352,24 @@
   {
     "key": "official-danville-scarecrow-stroll-2026",
     "eventId": "danville-scarecrow-stroll-2026",
-    "src": "/guides/official-events/danville-scarecrow-stroll-2026.webp",
-    "width": 1280,
-    "height": 641,
-    "kind": "poster",
-    "artwork": "graphic",
-    "fullFrame": true,
-    "alt": "稻草边框横幅：左边写着“The Town of Danville Presents Scarecrow Stroll”和“On display: Oct. 1–Nov. 1”，右边是一个戴棕色帽子、穿格子衬衫和马甲的笑脸稻草人",
-    "caption": "Danville 镇 Scarecrow Stroll 的官方宣传图（横幅）；图中稻草人只是宣传照片，不代表街区实际展出的作品。",
-    "credit": "Town of Danville 官方活动图",
+    "src": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow.webp",
+    "width": 1080,
+    "height": 720,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      40,
+      20
+    ],
+    "alt": "Danville 街边坐在南瓜和干草旁的稻草人",
+    "caption": "Danville 镇政府活动页上的稻草人活动官方照片；具体展出以当日为准。",
+    "credit": "Town of Danville 官方活动图片",
     "creditUrl": "https://danville.ca.gov/851/Scarecrow-Stroll",
     "rights": {
       "basis": "promo-editorial",
       "evidenceUrl": "https://danville.ca.gov/851/Scarecrow-Stroll",
-      "scope": "same-event coverage only"
+      "scope": "same-event coverage only",
+      "promoAllowed": false
     }
   },
   {
@@ -497,23 +501,24 @@
   {
     "key": "official-r2-petaluma-lumafest-20261024",
     "eventId": "r2-petaluma-lumafest-20261024",
-    "src": "/guides/official-events/r2-petaluma-lumafest-20261024.webp",
+    "src": "/guides/official-events/r2-petaluma-lumafest-20261024-altar.webp",
     "width": 1280,
     "height": 853,
     "kind": "photo",
     "artwork": "photo",
     "focal": [
       50,
-      40
+      50
     ],
-    "alt": "挂满彩色剪纸旗的帐篷下，四位穿蓝色“Live Better Longer”T 恤的志愿者站在摆着万寿菊和亡灵节传单的摊位后微笑合影",
-    "caption": "2025 往届 LumaFest 上 Blue Zones Project Petaluma 摊位的活动官方照片；不是 2026 年活动现场，摊位与节目以官方页面为准。",
-    "credit": "SRJC LumaFest 官方照片",
+    "alt": "LumaFest 往届的亡灵节祭坛，摆满花、骷髅糖和彩纸",
+    "caption": "2025 往届 LumaFest 亡灵节祭坛的活动官方照片；不是 2026 年现场，节目以官方页面为准。",
+    "credit": "LumaFest 官方活动图片",
     "creditUrl": "https://lumafest.santarosa.edu/",
     "rights": {
       "basis": "promo-editorial",
       "evidenceUrl": "https://lumafest.santarosa.edu/",
-      "scope": "same-event coverage only"
+      "scope": "same-event coverage only",
+      "promoAllowed": false
     }
   },
   {
@@ -737,20 +742,24 @@
   {
     "key": "official-san-jose-avenida-altares-2026",
     "eventId": "san-jose-avenida-altares-2026",
-    "src": "/guides/official-events/san-jose-avenida-altares-2026.webp",
+    "src": "/guides/official-events/san-jose-avenida-altares-2026-altar.webp",
     "width": 1280,
-    "height": 720,
-    "kind": "poster",
-    "artwork": "graphic",
-    "fullFrame": true,
-    "alt": "橙色背景上，左边是粉橙装饰的糖骷髅图案，右边白字写着“Avenida de Altares · Avenue of the Altars · Sat. Oct 31, 2026 | 5:30–10:30 PM”",
-    "caption": "2026 年 Avenida de Altares 的官方宣传图；摊位与节目以官方页面为准。",
-    "credit": "Mexican Heritage Plaza 官方活动图",
+    "height": 1024,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      30
+    ],
+    "alt": "Avenida de los Altares 往届的橙色拱门祭坛",
+    "caption": "2025 往届 Avenida de los Altares 祭坛的活动官方照片，登在主办方 2026 活动页上；不是今年现场。",
+    "credit": "Mexican Heritage Plaza 官方活动图片",
     "creditUrl": "https://mhplaza.org/allevents/avenida26",
     "rights": {
       "basis": "promo-editorial",
       "evidenceUrl": "https://mhplaza.org/allevents/avenida26",
-      "scope": "same-event coverage only"
+      "scope": "same-event coverage only",
+      "promoAllowed": false
     }
   },
   {
@@ -1163,20 +1172,24 @@
   {
     "key": "official-pleasanton-pumpkins-after-dark-2026",
     "eventId": "pleasanton-pumpkins-after-dark-2026",
-    "src": "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp",
-    "width": 580,
-    "height": 350,
-    "kind": "poster",
-    "artwork": "graphic",
-    "fullFrame": true,
-    "alt": "宣传图：夜里点亮的南瓜灯拱形隧道，下方写着 PUMPKINS AFTER DARK",
-    "caption": "Alameda County Fairgrounds 官方宣传图；活动今年首次在此举办，图不是这里的现场；开放日与票价以官方页面为准。",
-    "credit": "Alameda County Fairgrounds 官方宣传图",
-    "creditUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+    "src": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-arch.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "alt": "夜里亮满南瓜灯的拱形步道入口",
+    "caption": "Pumpkins After Dark 官方网站入口的活动官方照片，拍的是另一处场地；不是 Pleasanton 场地。",
+    "credit": "Pumpkins After Dark 官方活动图片",
+    "creditUrl": "https://pumpkinsafterdark.com/",
     "rights": {
       "basis": "promo-editorial",
-      "evidenceUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
-      "scope": "same-event coverage only"
+      "evidenceUrl": "https://pumpkinsafterdark.com/",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
     }
   },
   {
@@ -1728,6 +1741,29 @@
       "basis": "promo-editorial",
       "evidenceUrl": "https://healdsburgfarmersmarket.org/",
       "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-nov2026-fruitvale-dia-muertos",
+    "eventId": "nov2026-fruitvale-dia-muertos",
+    "src": "/guides/official-events/nov2026-fruitvale-dia-muertos.webp",
+    "width": 1280,
+    "height": 754,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      30
+    ],
+    "alt": "Fruitvale 街头的大型 La Catrina 装置",
+    "caption": "Unity Council 官网 2026 年 9 月发布的 La Catrina 装置活动官方照片；不是节日当天。",
+    "credit": "The Unity Council 官方活动图片",
+    "creditUrl": "https://unitycouncil.org/lacatrina/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://unitycouncil.org/lacatrina/",
+      "scope": "same-event coverage only",
+      "promoAllowed": false
     }
   }
 ]
