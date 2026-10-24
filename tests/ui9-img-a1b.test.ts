@@ -87,7 +87,7 @@ test('the eight home entry tiles: a lazy 480 w photo each, its name and one line
   assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /className="[^"]*ui-chip/, 'the tiles are .home-mood, not the shared chip');
 });
 
-test('captain 10-21 18:30: a short /guides topic row ends on 看全部; a home 特大 row\'s ♡ sits under its thumbnail (UI9-R2-HOME N22)', async () => {
+test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a row\'s ♡ sits on its thumbnail\'s top-right corner', async () => {
   const { readFileSync } = await import('node:fs');
   const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
   assert.match(library, /\.gl-all-cell \{ display:none; \}/);
@@ -96,12 +96,11 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部; a home �
   assert.match(library, /\.gl-all-cell>\.ui-button \{[^}]*aspect-ratio:3 \/ 2;[^}]*border-radius:var\(--r-lg\); \}/);
   assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /<li className="gl-all-cell"><Button variant="secondary" block/);
   const home = readFileSync('src/components/home-discovery.css', 'utf8');
-  // UI9-R2-HOME (N22, from UI9-R2-FOUNDATION): the one 44 px ♡, under the 112 px thumbnail and centred on it — off the picture
-  // and off the words, which keep the row's width; no 36 px home ♡ is left.
-  assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ span 5 \/ 2; top:calc\(112px \+ var\(--sp-2\)\); right:auto; left:calc\(\(112px - var\(--control-height\)\) \/ 2\); line-height:0; \}/, 'home 大 / 特大 rows: ♡ under the thumbnail');
-  assert.match(home, /\.ui-feed-card:has\(>\.ui-feed-card__save\) \{ min-height:calc\(112px \+ var\(--sp-2\) \+ var\(--control-height\)\); \}/);
+  // The A1 contract (DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), as on the /events rows. Its size is
+  // UI9-R2-FOUNDATION's one 44 px circle (saves.css): UI9-R2-HOME dropped the home's 36 px circle and its 44 px ring.
+  assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 2 \/ 2; top:var\(--sp-1\); right:var\(--sp-1\); \}/, 'home 大 / 特大 rows: ♡ on the thumbnail');
   assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');
-  assert.doesNotMatch(home, /36px/);
+  assert.doesNotMatch(home, /36px|saves-toggle/, 'no home size for the ♡');
   const events = readFileSync('src/features/events/events.css', 'utf8');
   assert.match(events, /width:36px; height:36px; min-height:36px;/);
   assert.match(events, /\.saves-toggle::after \{ content:""; position:absolute; inset:-4px; \}/, '36 + 2 × 4 = 44 px to tap');
