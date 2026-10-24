@@ -95,7 +95,7 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.equal(narrow['padding-inline'], 'var(--sp-2)');
   assert.equal(decls(DETAIL, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))', '(max-width:1023px)')['white-space'], 'nowrap');
   assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], undefined);
-  assert.equal(decls(DETAIL, 'html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)')['line-height'], '1.1');
+  assert.equal(decls(DETAIL, 'html:is([data-reading=large],[data-reading=extra-large][data-simple]) .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)')['line-height'], '1.1');
   // 特大 (not 家人版): the detail bar stays 72 px, a larger target for the larger words
   assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');

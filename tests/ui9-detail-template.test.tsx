@@ -208,10 +208,11 @@ test('ended pages: the notice link is a full target on its own line, and the lon
   const row = source.querySelector(':scope > .detail-share')!;
   assert.ok(row, 'the share row is in 来源与核对');
   assert.equal(row.getAttribute('data-simple'), 'hide');
-  assert.equal(row.nextElementSibling, source.querySelector('#page-credits'), 'page credits stay last');
+  // UI9-R2-DETAIL: #page-credits moved to the column's end (.detail-aside-end), so 分享 is the section's last line.
+  assert.equal(row.nextElementSibling, null, 'the share row is the last line of 来源与核对');
 });
 
-test('#page-credits lists every photo on the page, last in the source section; a type cover has no credit', () => {
+test('#page-credits lists every photo on the page, last in the column\'s end (.detail-aside-end); a type cover has no credit', () => {
   for (const key of DETAILS) {
     const doc = page(key);
     const credits = doc.querySelector('details#page-credits');

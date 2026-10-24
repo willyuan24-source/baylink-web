@@ -16,13 +16,13 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 /* Hero: full-bleed on a phone, square corners; FOUNDATION's one frame and bottom-left label (a brand image whole on its blurred
    copy). C P08 / N25: the credit is quiet text on the picture's bottom-right, white on the badge ink (≥6.25:1 over any
    pixel), one quiet line on most pictures (60% of the width at most, then it wraps, never cut); not a link (the links are
-   in 本页图片来源). It keeps the base 13 px in every reading size (the label beside it grows), and at 特大, where the label
-   takes most of the bottom edge, it moves to the top-right corner, so the two never meet; 简洁显示 leaves it out, like the
-   long caption (the credit stays in 本页图片来源). */
+   in 本页图片来源). It keeps the base 13 px in every reading size (the label beside it grows), and at 大 and 特大, where the
+   label takes much of the bottom edge, it moves to the top-right corner, so the two never meet; 简洁显示 leaves it out, like
+   the long caption (the credit stays in 本页图片来源). */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero .ui-cover { width:100%; border-radius:0; }
 .local-discovery-detail .detail-photo-credit { position:absolute; right:var(--sp-2); bottom:var(--sp-2); z-index:1; max-width:60%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--fs-label-thumb); line-height:var(--lh-snug); overflow-wrap:anywhere; pointer-events:none; }
-html[data-reading=extra-large] .local-discovery-detail .detail-photo-credit { top:var(--sp-2); bottom:auto; }
+html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-photo-credit { top:var(--sp-2); bottom:auto; }
 .local-discovery-detail :is(.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
 /* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
@@ -161,10 +161,11 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus)) { white-space:nowrap; }
   /* Once added (its ✓) AddToDayPlan reads 已加入 10/24 / "In your Oct 24 plan", which has no short words: in every reading
      size it wraps to two balanced lines centred in the padding (R1's 特大 rule; English overflowed a 360–390 px pill at
-     标准 too), a 1.2 pitch (a 54 px pill in the 64 px bar, 72 px at 特大) and 1.1 in 家人版's 76 px bar, so no glyph
-     reaches the pill's round ends. */
-  .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
-  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { line-height:1.1; }
+     标准 too), a 1.2 pitch (a 54 px pill in the 64 px bar, 72 px at 特大) and 1.1 at 大 (its larger words in the 64 px bar)
+     and in 家人版's 76 px bar, so no glyph reaches the pill's round ends. Chinese breaks at the space only (已加入 / 10/24,
+     never 已加 / 入 10/24: CJK has no word boundaries for balance to keep). */
+  .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; word-break:keep-all; }
+  html:is([data-reading=large],[data-reading=extra-large][data-simple]) .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { line-height:1.1; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus) { font-size:0; }

@@ -169,10 +169,17 @@ export function OfferFacts({ offer, official }: { offer: FreebieOffer; official?
  * takes the listing's date line as the key ("计划 9 月下旬 · 未公布确切日"), else the chip's words. The date line follows the
  * day at 400 without a leading day-and-status the chip and the key already say ("10/1 已开业 · 午餐周一至五" → "午餐周一至五";
  * "9 月 9 日已开业" alone → no line); 简洁显示 keeps the hours. Presentation only, no data edit: the line is cut after it is
- * translated, so /en and 繁體 read their own words.
+ * translated, so /en and 繁體 read their own words. Whether it has that lead is decided on the Chinese source (as timeKey):
+ * /en words it many ways ("Opened August 10 · …", "Open since Oct 1 · …"), so there it drops its words up to the first ·.
  */
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const OPENED_LEAD = /^\s*(?:(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已[开開][业業]|Opened\s+[A-Z][a-z]{2}\s+\d{1,2})\s*(?:·\s*|$)/;
+const OPENED_LEAD = /^\s*(?:(?:\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\/\d{1,2})\s*已[开開][业業]|Open(?:ed| since)\s+[A-Z][a-z]+\.?\s+\d{1,2})\s*(?:·\s*|$)/;
+const afterOpenedLead = (prose: string, source: string, english: boolean) => {
+  if (!OPENED_LEAD.test(source)) return prose.replace(OPENED_LEAD, '').trim();
+  const at = prose.indexOf('·');
+  const rest = !source.replace(OPENED_LEAD, '').trim() ? '' : at >= 0 ? prose.slice(at + 1).trim() : prose.replace(OPENED_LEAD, '').trim();
+  return english ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest;
+};
 /**
  * C P16: with no day, a date label that is a time and the status ("2026 年夏季已开业", "Opened early fall 2026", "2026 年 6 月已营业
  * · 九月复核") would say the 已开业 chip's word again as the 开业 key: the key keeps the time ("2026 年夏季", "Early fall 2026").
@@ -193,7 +200,7 @@ export function OpeningFacts({ shop, today, official }: { shop: SeptemberOpening
   const ahead = !!day && (day > today || shop.status === 'announced');
   const prose = readerProse(shop.dateLabel, locale);
   const key = shown ? ahead ? t(`预计 ${shown}`, `Expected ${shown}`) : shown : prose ? <PhoneLinked text={timeKey(prose, shop.dateLabel)} /> : pick(openingChip(shop, today));
-  const rest = shown ? prose.replace(OPENED_LEAD, '').trim() : '';
+  const rest = shown ? afterOpenedLead(prose, shop.dateLabel, english) : '';
   const dateLine = rest ? <PhoneLinked text={rest} /> : undefined;
   const cells: Cell[] = [
     { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: key, aside: official && outLink(official),

@@ -26,6 +26,7 @@ const { buildDetailRecord, nextCandidate, CARDS_ONLY_PHOTOS } = await import('..
 const { heroCover } = await import('../src/features/detail/hero-cover');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { COVER_TABLES } = await import('../src/lib/cover-candidates');
+const { setLocale } = await import('../src/i18n/locale');
 
 after(() => {
   dom.window.close();
@@ -80,8 +81,8 @@ test('C P08 / N25: the credit is plain text on the picture\'s bottom-right; its 
   const rule = decls(DETAIL_CSS, '.local-discovery-detail .detail-photo-credit');
   assert.deepEqual([rule.position, rule.right, rule.bottom, rule.background, rule.color, rule['pointer-events']], ['absolute', 'var(--sp-2)', 'var(--sp-2)', 'var(--color-badge-bg)', 'var(--color-surface)', 'none']);
   assert.equal(rule['font-size'], 'var(--fs-label-thumb)', 'the base 13 px in every reading size');
-  const xl = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .detail-photo-credit');
-  assert.deepEqual([xl.top, xl.bottom], ['var(--sp-2)', 'auto'], '特大: the top-right corner, away from the bottom-left label');
+  const xl = decls(DETAIL_CSS, 'html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-photo-credit');
+  assert.deepEqual([xl.top, xl.bottom], ['var(--sp-2)', 'auto'], '大 / 特大: the top-right corner, away from the bottom-left label');
   for (const key of DETAILS) assert.equal(page(key).querySelector('.detail-photo-credit')?.getAttribute('data-simple') ?? 'hide', 'hide', `${key}: 简洁显示 leaves it out`);
   assert.equal(rule['text-decoration'], undefined, 'no underline');
   assert.ok(!/white-space:\s*nowrap|text-overflow/.test(readFileSync(DETAIL_CSS, 'utf8').match(/\.detail-photo-credit \{[^}]*\}/)![0]), 'it wraps, never cut');
@@ -121,7 +122,9 @@ test('R2-08 / OD6: at 特大 and in 家人版 the primary is one line in its sho
   // Once added (✓ 已加入 10/24 / In your Oct 24 plan: no short words) it wraps to two balanced lines, never past the pill.
   const added = decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', media);
   assert.deepEqual([added['white-space'], added['text-wrap'], added['text-align']], ['normal', 'balance', 'center']);
-  assert.equal(decls(DETAIL_CSS, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media)['line-height'], '1.1');
+  // Chinese breaks only at the space: 已加入 / 10/24, never 已加 / 入 10/24 (balance has no CJK word boundaries).
+  assert.equal(added['word-break'], 'keep-all');
+  assert.equal(decls(DETAIL_CSS, `html:is([data-reading=large],[data-reading=extra-large][data-simple]) .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media)['line-height'], '1.1');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary [data-label=short]`, media).display, 'inline');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary [data-label=full]`, media).display, 'none');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary[data-day] .saves-add-day:has(>.lucide-calendar-plus)::after`, media).content, 'var(--detail-day-short)');
@@ -201,16 +204,35 @@ test('DECISIONS 43(b): a listing whose own image is a cards-only photo does not 
   }
 });
 
-test('C P16: an opening page says 已开业 once outside the editor\'s prose (a no-day key keeps the time)', () => {
-  const counts = new Map<number, string[]>();
-  for (const item of localDiscoveries.filter(row => row.kind === 'opening')) {
-    const key = `${item.kind}:${discoveryShare(item).id}`;
-    const doc = page(key);
-    for (const prose of doc.querySelectorAll('.detail-summary, .detail-prose')) prose.remove();
-    const n = (doc.textContent!.match(/已开业/g) || []).length;
-    counts.set(n, [...(counts.get(n) || []), key]);
+test('C P16: an opening page says its status once outside the editor\'s prose, in every locale (a no-day key keeps the time)', async () => {
+  const STATUS = { 'zh-Hans': /已开业/g, 'zh-Hant': /已開業/g, en: /\bOpen(?:ed| since)\b/g } as const;
+  for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
+    await setLocale(locale, false);
+    try {
+      const counts = new Map<number, string[]>();
+      for (const item of localDiscoveries.filter(row => row.kind === 'opening')) {
+        const key = `${item.kind}:${discoveryShare(item).id}`;
+        const doc = page(key);
+        for (const prose of doc.querySelectorAll('.detail-summary, .detail-prose')) prose.remove();
+        const n = (doc.textContent!.match(STATUS[locale]) || []).length;
+        counts.set(n, [...(counts.get(n) || []), key]);
+      }
+      assert.deepEqual([...counts.keys()].filter(n => n > 1), [], `${locale}: ${JSON.stringify(Object.fromEntries([...counts].filter(([n]) => n > 1)))}`);
+      assert.ok((counts.get(1) || []).length >= 3, `${locale}: the chip says it on the opened pages`);
+    } finally {
+      await setLocale('zh-Hans', false);
+    }
   }
-  assert.deepEqual([...counts.keys()].filter(n => n > 1), [], JSON.stringify(Object.fromEntries([...counts].filter(([n]) => n > 1))));
+  // /en words the day-and-status lead many ways; the date line keeps only what follows it (decided on the Chinese source).
+  await setLocale('en', false);
+  try {
+    const line = (key: string) => page(key).querySelector('.detail-fact[data-fact=when] .detail-fact__line')?.textContent?.trim();
+    assert.equal(line('opening:broken-dreams-oakland'), 'Currently weekdays only');
+    assert.equal(line('opening:old-post-office-burlingame'), 'Lunch Mon–Fri, brunch Sat–Sun');
+    assert.equal(line('opening:raising-canes-jefferson-sf'), 'Jefferson Street location');
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
   const when = (key: string) => page(key).querySelector('.detail-fact[data-fact=when] .detail-fact__key')?.textContent?.trim();
   assert.equal(when('opening:roundup-alesta-sebastopol-2026'), '2026 年夏季');
   assert.equal(when('opening:asia-live-valley-fair'), '2026 年 6 月 · 九月复核');
