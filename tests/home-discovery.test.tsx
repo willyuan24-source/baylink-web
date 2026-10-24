@@ -34,7 +34,7 @@ test('the masthead asks the question under the weekend dateline; one identity li
   const range = weekend.start.slice(0, 7) === weekend.end.slice(0, 7) ? `${monthDay(weekend.start)}–${Number(weekend.end.slice(8))}` : `${monthDay(weekend.start)}–${monthDay(weekend.end)}`;
   assert.equal(doc.querySelector('.home-head__dateline')!.textContent, `湾区本周末 · ${range}`);
   assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), weekend.start);
-  assert.equal(doc.querySelector('.home-head__identity')!.textContent, '湾区华人家庭的周末活动与办事指南 · 免费 · 不用登录');
+  assert.equal(doc.querySelector('.home-head__identity')!.textContent!.replace(/\u00a0/g, ' '), '湾区华人家庭的周末活动与办事指南 · 免费 · 不用登录'); // UI9-R2-HOME: a no-break space keeps 「·」 on the line above
   assert.equal(doc.querySelector('.home-head__lede'), null, 'the dense lede is gone');
   // H02: when this weekend's events were checked, as checks against the official pages. The trust line names one day (UI9-HOME
   // arrangement: "✓ 多数 10/15 官网核对"): the day most were checked, or the day all were; the separator before
@@ -315,7 +315,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     const view = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
-    assert.equal(view.container.querySelector('.home-head__identity')!.textContent, 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in');
+    assert.equal(view.container.querySelector('.home-head__identity')!.textContent!.replace(/\u00a0/g, ' '), 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in'); // UI9-R2-HOME: a no-break space keeps 「·」 on the line above
     assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2}\u00a0\d+\u00a0· How we check →$/);
     view.unmount();
   } finally {

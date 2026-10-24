@@ -93,7 +93,7 @@ test('the trust line says 官网核对, never 人工核对, and links the one me
   assert.doesNotMatch(doc.body.innerHTML, /人工核对|编辑核对|how-we-check/);
   const { SITE_IDENTITY, OFFICIAL_LINKS, FREE_NO_SIGN_IN, METHOD_HREF } = await import('../src/lib/check-dates');
   assert.equal(METHOD_HREF, '/about#about-method-title');
-  assert.equal(doc.querySelector('.home-head__identity')!.textContent, `${SITE_IDENTITY.zh} · ${FREE_NO_SIGN_IN.zh}`);
+  assert.equal(doc.querySelector('.home-head__identity')!.textContent!.replace(/\u00a0/g, ' '), `${SITE_IDENTITY.zh} · ${FREE_NO_SIGN_IN.zh}`); // UI9-R2-HOME: a no-break space keeps 「·」 on the line above
   assert.ok(trust.textContent!.startsWith(`✓ ${OFFICIAL_LINKS.zh}`));
 });
 
