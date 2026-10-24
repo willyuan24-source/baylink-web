@@ -111,7 +111,7 @@ test('/tools: one grouped list on phones and tablets, each tool a row with its 4
 
 test('/my-week: picture strip on an empty 行程, the 24px gutter, meta separators glued, the ui Select', () => {
   const page = read('src/pages/MyWeekPage.tsx');
-  assert.match(page, /const suggested = nextPlans\.length \? \[\] : upcoming\.slice\(0, 4\);\n  const thisWeek = upcoming\.slice\(suggested\.length, suggested\.length \+ 6\);/, 'the strip\'s events are not listed again');
+  assert.match(page, /const suggested = nextPlans\.length \? \[\] : upcoming\.slice\(0, 4\);\n {2}const thisWeek = upcoming\.slice\(suggested\.length, suggested\.length \+ 6\);/, 'the strip\'s events are not listed again');
   assert.match(page, /<SuggestedEvents events=\{suggested\}/);
   assert.match(page, /<FeedGrid label=/);
   // N06: every " · " in a meta line is glued to the word before it (U+00A0), so a wrapped line never starts with "·".

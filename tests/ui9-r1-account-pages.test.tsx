@@ -99,7 +99,7 @@ test('the account shell (first paint of the account pages) is shaped like its pa
   // These rules reach account-shell.html only through the /me prerender: scripts/prerender.tsx renders the shell for /me,
   // so the file links the /me route's CSS, which carries me-hub.css (ProfileView imports it). Either link breaking drops the
   // rules silently (the built file itself is checked after the build, not here: npm test runs before npm run build).
-  assert.match(readFileSync('scripts/prerender.tsx', 'utf8'), /for \(const shell of ACCOUNT_SHELLS\) \{\n  await renderPage\(\{[^}]*path: '\/me'[^}]*\}, <AccountShell page=\{shell\.page\} \/>, shell\.file\);/);
+  assert.match(readFileSync('scripts/prerender.tsx', 'utf8'), /for \(const shell of ACCOUNT_SHELLS\) \{\n {2}await renderPage\(\{[^}]*path: '\/me'[^}]*\}, <AccountShell page=\{shell\.page\} \/>, shell\.file\);/);
   assert.match(readFileSync('src/features/profile/ProfileView.tsx', 'utf8'), /^import '\.\/me-hub\.css';$/m);
 });
 

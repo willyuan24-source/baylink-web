@@ -34,11 +34,7 @@
 .outing-filter-sheet .outing-date-range { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-ui); }
 .outing-filter-sheet .outing-check { flex-direction:row; align-items:center; gap:var(--sp-3); min-height:var(--control-height); color:var(--color-ink); font-size:var(--text-body); }
 .outing-filter-sheet .outing-check input { flex:none; width:1.25rem; height:1.25rem; accent-color:var(--color-brand); }
-/* The footer: 清除 (a text button) and 显示小队, the sheet's one solid button, in the ui Button looks. */
-.outing-filter-sheet :is(.outing-primary,.outing-link-button) { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); border-radius:var(--r-pill); font-size:var(--text-body); line-height:1.25; }
-.outing-filter-sheet .outing-primary { flex:1; padding:0 var(--sp-5); border:1px solid var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-weight:600; }
-.outing-filter-sheet .outing-link-button { padding:0 var(--sp-3); border:0; background:none; color:var(--color-brand); text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); }
-@media (hover:hover) and (pointer:fine) { .outing-filter-sheet .outing-primary:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); } }
+/* The footer: 清除 (quiet) and 显示小队, the sheet's one solid button: the ui Button looks (ui.css .ui-sheet__footer). */
 .outing-filter-sheet :is(input,button,select):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 /* The band sits on the frame above the hub head (AccountBand: account-band.css). */
 .together-page .outing-band { margin-bottom:var(--sp-4); }
