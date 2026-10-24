@@ -3,7 +3,7 @@
    only where a pointer can hover (N13 N14 N15 N23). */
 .archive-page{padding-block:var(--sp-5) var(--sp-6);color:var(--color-ink)}
 .archive-today{margin:-8px 0 0;color:var(--color-ink-2);font-size:var(--text-fact)}
-.archive-jump,.archive-links{display:flex;flex-wrap:wrap;gap:0 var(--sp-5);margin-top:var(--sp-2)}
+.archive-jump,.archive-links{display:flex;flex-wrap:wrap;gap:0 var(--sp-4);margin-top:var(--sp-2)}
 .archive-jump a,.archive-links a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset)}
 @media (hover:hover) and (pointer:fine){.archive-jump a:hover,.archive-links a:hover{text-decoration-color:currentColor}}
 .archive-group{margin-top:32px;scroll-margin-top:80px}

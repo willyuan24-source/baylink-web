@@ -53,10 +53,12 @@
 :where(.together-page) button:disabled { cursor:not-allowed; }
 
 /* Small print: 14px (N04), ink-3, at most a reading measure wide (N05, UI9-R2-RATCHET). Where the measure binds (from 768),
-   Chinese wraps between phrases (after ，、；。), so the page's closing note breaks after 各自处理。 and not inside 再次 (G8);
-   a phone keeps the normal CJK wrap (phrase breaks there leave ragged short lines). */
+   the page's closing note (the one footnote that is also .outing-toolbar) wraps between phrases (after ，、；。), so it
+   breaks after 各自处理。 and not inside 再次 (G8), and English avoids a one-word last line; overflow-wrap:anywhere lets an
+   unbroken run still shrink. Every other footnote (card footers with a host's nickname, the detail's fact columns, the
+   poll notes) keeps the normal CJK wrap, so a long name cannot push a card footer wider; a phone keeps it too. */
 .together-page .outing-footnote { max-width:var(--measure); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-read); color:var(--color-ink-3); }
-@media (min-width:768px) { .together-page .outing-footnote { word-break:keep-all; overflow-wrap:break-word; } }
+@media (min-width:768px) { .together-page .outing-footnote.outing-toolbar { word-break:keep-all; overflow-wrap:anywhere; text-wrap:pretty; } }
 .together-page .outing-eyebrow { font-size:var(--text-fact); font-weight:400; color:var(--color-brand); }
 
 /* Hub head: H1, lede and the one primary of the section (发起小队). */
@@ -240,7 +242,7 @@
 .together-page .outing-cover-designed-meta{font-size:var(--text-fact);color:var(--color-on-brand-muted);line-height:1.7}
 .together-page .outing-cover--detail .outing-cover-designed{min-height:240px}
 .together-page .outing-cover--detail .outing-cover-designed strong{font-size:var(--text-section)}
-.together-page .outing-cover--card .outing-cover-calendar-date{font-size:var(--fs-keep-32);line-height:1.2}
+.together-page .outing-cover--card .outing-cover-calendar-date{font-size:max(var(--fs-keep-32),var(--text-display));line-height:1.2}
 .together-page .outing-cover-picker-heading h4{font-size:var(--text-card);line-height:1.5}
 .together-page .outing-cover-picker-heading p{font-size:var(--text-fact);color:var(--color-ink-2)}
 .together-page .outing-cover-picker-heading>span{font-size:var(--text-caption);color:var(--color-ink-3);background:transparent;border:1px solid var(--color-line-strong)}

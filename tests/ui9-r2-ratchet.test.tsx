@@ -132,16 +132,35 @@ test('N24: Tailwind animate-spin and animate-pulse compile to the token loop (no
   assert.equal(animation['.animate-pulse'], 'pulse calc(6 * var(--dur-3)) var(--ease-std) infinite');
 });
 
-test('N05: the together footnotes keep a reading measure', () => {
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'max-width'), ['var(--measure)']);
-  // Where the measure binds (from 768) the closing note wraps between phrases only (measured: 各自处理。| 出发前请再次核对…);
-  // a phone keeps the normal CJK wrap.
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break', '@media (min-width:768px)'), ['keep-all']);
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'overflow-wrap', '@media (min-width:768px)'), ['break-word']);
-  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-footnote', 'word-break'), []);
+test('N05: the together footnotes keep a reading measure; only the closing note wraps between phrases', () => {
+  const sheet = 'src/features/outings/outings.css';
+  assert.deepEqual(find(sheet, '.together-page .outing-footnote', 'max-width'), ['var(--measure)']);
+  // Where the measure binds (from 768) the hub's closing note wraps between phrases (measured: 各自处理。| 出发前请再次核对…),
+  // and overflow-wrap:anywhere lets an unbroken run still shrink; English avoids a one-word last line.
+  const note = '.together-page .outing-footnote.outing-toolbar';
+  assert.deepEqual(find(sheet, note, 'word-break', '@media (min-width:768px)'), ['keep-all']);
+  assert.deepEqual(find(sheet, note, 'overflow-wrap', '@media (min-width:768px)'), ['anywhere']);
+  assert.deepEqual(find(sheet, note, 'text-wrap', '@media (min-width:768px)'), ['pretty']);
+  // No other footnote keeps CJK words whole: the hub card footer's 发起人 · {nickname} (30 characters allowed) is a flex item,
+  // and keep-all there made a long Chinese nickname push the footer wider than the card (review, 10-23: 400px in a 320 card).
+  const keepAll = decls.filter(d => d.prop === 'word-break' && d.value === 'keep-all' && /outing-footnote|outing-card-footer/.test(d.selector));
+  assert.deepEqual(keepAll.map(d => d.selector), [note]);
+  const sources = ['OutingsHub', 'OutingDetail', 'OutingForm', 'OutingDiscussion', 'OutingTimePoll'].map(name => read(`src/features/outings/${name}.tsx`)).join('\n');
+  assert.equal(sources.match(/className="outing-footnote outing-toolbar"/g)?.length, 1, 'the closing note is the only footnote that is also a toolbar');
+  assert.match(read('src/features/outings/OutingsHub.tsx'), /<footer className="outing-card-footer"><span className="outing-footnote">/);
 });
 
-test('NAV PR B: the profile stamp has no tracking and no blur; .outing-eyebrow stays in sentence case without tracking', () => {
+test('the card cover\'s date: the display step from 1024 (44px), never below the 32px kept step (a phone card keeps 32px)', () => {
+  const size = 'max(var(--fs-keep-32),var(--text-display))';
+  assert.deepEqual(find('src/features/outings/outing-cover.css', '.outing-cover--card .outing-cover-calendar-date', 'font-size'), [size]);
+  assert.deepEqual(find('src/features/outings/outings.css', '.together-page .outing-cover--card .outing-cover-calendar-date', 'font-size'), [size]);
+});
+
+test('/archive: the link rows keep a 16px gap, so the 11 继续浏览 links stay on one line at 1024-1440 (zh-Hans, zh-Hant)', () => {
+  assert.deepEqual(find('src/components/archive.css', '.archive-jump,.archive-links', 'gap'), ['0 var(--sp-4)']);
+});
+
+test('NAV PR B: the profile stamp has no tracking and no blur; .outing-eyebrow and .booking-eyebrow are not tracked', () => {
   const stamp = decls.filter(d => d.selector === '.profile-identity-stamp');
   assert.ok(stamp.length > 0);
   assert.deepEqual(stamp.filter(d => /^(?:letter-spacing|backdrop-filter|-webkit-backdrop-filter|text-transform)$/.test(d.prop)).map(d => `${d.prop}:${d.value}`), []);
@@ -149,9 +168,13 @@ test('NAV PR B: the profile stamp has no tracking and no blur; .outing-eyebrow s
   const eyebrow = decls.filter(d => /\.outing-eyebrow\b/.test(d.selector));
   assert.ok(eyebrow.length > 0);
   assert.deepEqual(eyebrow.filter(d => /^(?:letter-spacing|text-transform)$/.test(d.prop)).map(d => `${d.prop}:${d.value}`), []);
+  // The /me/bookings eyebrow (and the booking panel's, same class) is not tracked either.
+  const booking = decls.filter(d => /\.booking-eyebrow\b/.test(d.selector));
+  assert.ok(booking.length > 0);
+  assert.deepEqual(booking.filter(d => /^(?:letter-spacing|text-transform)$/.test(d.prop)).map(d => `${d.prop}:${d.value}`), []);
 });
 
-test('NAV PR B forms: sign-in / MFA, booking and messages fields take the control edge, the ink-3 placeholder at 400 and --r-md', () => {
+test('NAV PR B forms: sign-in / MFA, /me/bookings and messages fields take the control edge, the ink-3 placeholder at 400 and --r-md', () => {
   const field = (file: string, selector: string) => ({
     border: find(file, selector, 'border')[0] ?? find(file, selector, 'border-color')[0],
     radius: find(file, selector, 'border-radius')[0],
@@ -159,7 +182,6 @@ test('NAV PR B forms: sign-in / MFA, booking and messages fields take the contro
   });
   for (const [file, selector] of [
     ['src/features/member-ui.css', '.member-auth-input'],
-    ['src/features/bookings/bookings.css', '.booking-surface input:not([type=checkbox]),.booking-surface select,.booking-surface textarea'],
     ['src/features/messages/messages-hub.css', '.msg-search'],
     ['src/styles/modern-messaging.css', '.modern-chat-compose-row'],
   ]) {
@@ -174,13 +196,12 @@ test('NAV PR B forms: sign-in / MFA, booking and messages fields take the contro
   // The message box rings itself while its text area has focus; the phone rule keeps the one corner.
   assert.deepEqual(find('src/styles/modern-messaging.css', '.modern-chat-compose-row:has(>.modern-chat-input:focus-visible)', 'outline'), ['var(--focus-ring-width) solid var(--color-brand)']);
   assert.deepEqual(decls.filter(d => d.file === 'src/styles/modern-messaging.css' && d.selector === '.modern-chat-compose-row' && d.prop === 'border-radius').map(d => d.value), ['var(--r-md)']);
-  for (const [file, selector] of [
-    ['src/features/member-ui.css', '.member-auth-input::placeholder'],
-    ['src/features/bookings/bookings.css', '.booking-surface textarea::placeholder'],
-  ]) {
-    assert.deepEqual(find(file, selector, 'color'), ['var(--color-ink-3)'], selector);
-    assert.deepEqual(find(file, selector, 'font-weight'), ['400'], selector);
-  }
+  assert.deepEqual(find('src/features/member-ui.css', '.member-auth-input::placeholder', 'color'), ['var(--color-ink-3)']);
+  assert.deepEqual(find('src/features/member-ui.css', '.member-auth-input::placeholder', 'font-weight'), ['400']);
+  // /me/bookings: its fields (the reschedule select) take the control edge; the field corner is the shared --r-md. The booking
+  // request panel on /posts/:id shares .booking-surface and keeps its edge and placeholder for stage 1B ① (1B-03 A).
+  assert.deepEqual(find('src/features/bookings/bookings.css', '.service-bookings-dashboard .booking-surface :is(input:not([type=checkbox]),select,textarea)', 'border-color'), ['var(--color-line-control)']);
+  assert.deepEqual(find('src/features/bookings/bookings.css', '.booking-surface input:not([type=checkbox]),.booking-surface select,.booking-surface textarea', 'border-radius'), ['var(--r-md)']);
 });
 
 test('NAV PR B frame: /me/bookings and /messages on the wide frame (x = 112 at 1440), blocks in columns 1-8 from 1024', () => {
