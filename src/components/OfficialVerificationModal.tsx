@@ -156,7 +156,7 @@ const OfficialVerificationForm = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-baylink-green py-3.5 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover disabled:opacity-60"
+            className="w-full rounded-2xl bg-baylink-green py-3.5 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-ink-3)]"
           >
             {loading ? <span className="inline-flex items-center gap-2"><Loader2 size={16} className="event-spin" />提交中...</span> : '提交申请'}
           </button>
