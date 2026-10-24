@@ -175,7 +175,9 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   // B P04 / C P17: the desktop column under the action card ends beside the body with up to three more nearby rows (none the
   // page shows already), then 本页图片来源.
   const shown = new Set([...nextCards, ...relatedCards].map(card => card.event.id));
-  const sideCards = railEvents(event ?? nearPage(item), record.rail, today, { sameCategory: false, limit: 8 }).filter(card => !shown.has(card.event.id)).slice(0, 3);
+  const sideCards = railEvents(event ?? nearPage(item), record.rail, today, { sameCategory: false, limit: 8 }).filter(card => !shown.has(card.event.id))
+    // An ended page's body is short (no plan, no 一起去): two rows, so the column ends with the body (≤ 200 px apart).
+    .slice(0, eventOver || offerOver ? 2 : 3);
   const nextCovers = railCovers(nextCards, today, coverPage);
   const relatedCovers = railCovers(relatedCards, today, coverPage);
   const sideCovers = railCovers(sideCards, today, coverPage);

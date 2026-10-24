@@ -159,10 +159,11 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
      72 px (64 elsewhere): a larger target for the larger words. */
   html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions) { --site-mobile-nav-height:calc(72px + env(safe-area-inset-bottom,0px)); }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus)) { white-space:nowrap; }
-  /* Once added (its ✓) AddToDayPlan reads 已加入 10/24 / "In your Oct 24 plan", which has no short words: it wraps to two
-     balanced lines centred in the 8 px padding (R1's rule), a 1.2 pitch in the 72 px 特大 bar and 1.1 in 家人版's 76 px one,
-     so no glyph reaches the pill's round ends. */
-  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
+  /* Once added (its ✓) AddToDayPlan reads 已加入 10/24 / "In your Oct 24 plan", which has no short words: in every reading
+     size it wraps to two balanced lines centred in the padding (R1's 特大 rule; English overflowed a 360–390 px pill at
+     标准 too), a 1.2 pitch (a 54 px pill in the 64 px bar, 72 px at 特大) and 1.1 in 家人版's 76 px bar, so no glyph
+     reaches the pill's round ends. */
+  .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
   html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus)) { line-height:1.1; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }

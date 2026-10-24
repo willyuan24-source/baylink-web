@@ -119,7 +119,7 @@ test('R2-08 / OD6: at 特大 and in 家人版 the primary is one line in its sho
   const media = '(max-width:1023px)';
   assert.equal(decls(DETAIL_CSS, `${xl} :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))`, media)['white-space'], 'nowrap');
   // Once added (✓ 已加入 10/24 / In your Oct 24 plan: no short words) it wraps to two balanced lines, never past the pill.
-  const added = decls(DETAIL_CSS, `${xl} .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media);
+  const added = decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', media);
   assert.deepEqual([added['white-space'], added['text-wrap'], added['text-align']], ['normal', 'balance', 'center']);
   assert.equal(decls(DETAIL_CSS, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))`, media)['line-height'], '1.1');
   assert.equal(decls(DETAIL_CSS, `${xl} .detail-actions__primary [data-label=short]`, media).display, 'inline');
@@ -214,4 +214,11 @@ test('C P16: an opening page says 已开业 once outside the editor\'s prose (a 
   const when = (key: string) => page(key).querySelector('.detail-fact[data-fact=when] .detail-fact__key')?.textContent?.trim();
   assert.equal(when('opening:roundup-alesta-sebastopol-2026'), '2026 年夏季');
   assert.equal(when('opening:asia-live-valley-fair'), '2026 年 6 月 · 九月复核');
+});
+
+test('B P04: an ended page (a short body) keeps two rows in the column, so the column ends with the body', () => {
+  const doc = page('event:berkeley-indigenous-peoples-powwow-2026');
+  assert.ok(doc.querySelector('.content-review-notice, .content-review-ended'), 'the page is ended on TODAY');
+  const rows = doc.querySelectorAll('.detail-rail--side .detail-rail__rows a[href^="/events/"]').length;
+  assert.ok(rows >= 1 && rows <= 2, `${rows} rows`);
 });

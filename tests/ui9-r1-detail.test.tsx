@@ -133,7 +133,7 @@ test('J1 P20 / J2 P14 / J3 P18: 问 BayBay from 360 px in every reading mode (En
   // R2-08 / OD6 (UI9-R2-DETAIL): one line, in the short words; once added (已加入 10/24) two balanced lines.
   const wrap = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:has(>.lucide-calendar-plus))', '(max-width:1023px)');
   assert.deepEqual([wrap['white-space'], wrap['text-wrap']], ['nowrap', undefined], 'one line at 特大 and in 家人版');
-  const added = decls(DETAIL_CSS, 'html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)');
+  const added = decls(DETAIL_CSS, '.local-discovery-detail .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:has(>.lucide-calendar-plus))', '(max-width:1023px)');
   assert.deepEqual([added['white-space'], added['text-wrap'], added['text-align'], added['line-height']], ['normal', 'balance', 'center', '1.2'], 'added: two balanced lines');
   assert.equal(decls(DETAIL_CSS, 'html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions', '(max-width:1023px)')['padding-inline'], '0 var(--sp-1)');
   assert.equal(decls(DETAIL_CSS, 'html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day)', '(max-width:1023px)')['padding-inline'], 'var(--sp-2)');
