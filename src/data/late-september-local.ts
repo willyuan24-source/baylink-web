@@ -121,6 +121,7 @@ export const lateSeptemberLocalOffers: FreebieOffer[] = [
     "kind": "no-purchase",
     "requirement": "0–18 岁本人到 SJPL 分馆领取，每人限一本；家长不能代领。无需图书证、报名或参加活动，也不必穿变装。",
     "description": "官方 2026 Booktacular 已公布领取周。可选书不限万圣节题材，库存依现场；先查分馆营业与临时关闭，不保证每一馆都剩同样书目。",
+    "imageKey": "october-library-culture",
     "sourceUrl": "https://www.sjpl.org/news/halloween-booktacular-giveaway-2026/",
     "sourceLabel": "SJPL 2026 赠书公告与领取条件",
     "storeUrl": "https://www.sjpl.org/locations-table/",
