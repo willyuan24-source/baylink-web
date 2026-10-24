@@ -114,6 +114,9 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
 .ev-page .ui-row-card__save { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
 html:is([data-reading=large],[data-reading=extra-large]) .ev-page .ui-row-card:has(>.ui-row-card__save) { grid-template-areas:"thumb body" "save body"; grid-template-rows:auto 1fr; row-gap:var(--sp-2); }
 html:is([data-reading=large],[data-reading=extra-large]) .ev-page .ui-row-card__save { grid-area:save; justify-self:start; margin:0; }
+/* The compact control's own 8px top margin (saves.css) put the circle 16px under the picture, the home rows' 8px (--sp-2):
+   without it the ♡ sits where home puts it (DECISIONS 45 f), and at the standard size on the A1 corner's 4px. */
+.ev-page .ui-row-card__save .saves-control { margin:0; }
 
 /* B · 本周末全部活动: the H2 and "找到 n 场" on one line, then the rails. */
 .ev-feed__head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin:0 0 var(--stack-head); }
