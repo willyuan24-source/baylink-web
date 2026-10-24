@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
 /**
- * The one status map (UI9-C, N08 / G8; D2 tokens.md §2). Each status has exactly one look, 14 px, wrapping, never cut:
- *   free     免费                   lime fill, deep text
- *   partial  部分免费                lime outline, deep text
- *   soon     即将截止 / 还剩 N 天      red outline, red text
- *   urgent   今天截止 / 明天截止 / 售罄  solid red, white text
- *   open     已开业                  brand tint and a ✓
+ * The one status map (UI9-C, N08 / G8; D2 tokens.md §2; UI9-R2-FOUNDATION). Each status has exactly one look, 14 px,
+ * wrapping, never cut; solid red is for errors only (OD11):
+ *   free     免费                   lime fill, deep text (the one 免费 look everywhere)
+ *   partial  部分免费                a lighter lime fill, deep text (the same family; a price is plain text)
+ *   soon     即将截止 / 还剩 N 天      ink words after a small red dot
+ *   urgent   今天截止 / 明天截止 / 售罄  the same on a muted terracotta tint
+ *   open     已开业                  deep-green words, no ✓ (only the card's ✓ 官网核对 line carries one, R2-11)
  *   ended    已结束                  sunken, ink-3
  *   neutral  everything else (安排草案, 待核实, 还需补充, 日期待定 …)
  * No status is amber or indigo (the 市集美食 and 文化 hues). The old tone names still compile (LEGACY_STATUS_TONES: success,

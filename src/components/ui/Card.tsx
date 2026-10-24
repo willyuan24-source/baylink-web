@@ -65,7 +65,7 @@ export function FeedCard({ cover, when, meta, trust, save, className, heading = 
     <div className="ui-feed-card__media">{cover}</div>
     {when && <p className="ui-card-when ui-feed-card__when">{when}</p>}
     {meta && <p className="ui-feed-card__meta">{meta}</p>}
-    {trust && <p className="ui-feed-card__trust"><Check aria-hidden="true" strokeWidth={1.75} />{trust}</p>}
+    {trust && <p className="ui-feed-card__trust"><Check aria-hidden="true" strokeWidth={1.75} /><span>{trust}</span></p>}
     {save && <div className="ui-feed-card__save">{save}</div>}
   </article>;
 }

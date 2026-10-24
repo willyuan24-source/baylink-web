@@ -110,8 +110,8 @@ test('N01: 特大 renders every type step as a whole pixel, at least 17px, on on
   assert.equal(rootTokens({ width: 390, reading: 'large' }).px('--fs-title'), 29.25);
 });
 
-test('N04 / J1 P18: desktop captions are 14px; provenance badges and cover credits keep 13px', () => {
-  assert.equal(rootTokens({ width: 390 }).px('--text-caption'), 13);
+test('N04 / J1 P18 / followup 14: captions are 14px on phones and desktops; provenance badges, cover credits and the 3D blocks keep 13px', () => {
+  assert.equal(rootTokens({ width: 390 }).px('--text-caption'), 14);
   assert.equal(rootTokens({ width: 1440 }).px('--text-caption'), 14);
   assert.equal(rootTokens({ width: 1440, reading: 'extra-large' }).px('--text-caption'), 18);
   const keep = tokens.nodes.find(node => node.type === 'rule' && (node as Rule).selector === ':where(.ui-provenance,.ui-cover-credit)') as Rule | undefined;
@@ -187,9 +187,9 @@ test('N07 / N08: colour roles, one selected pair and lime for 免费 only, all f
   assert.deepEqual(lime.sort(), ['--free-bg', 'outline-color']);
 });
 
-test('N06: Chinese pages inherit text-wrap-style:pretty', () => {
+test('N06 / N05: every page inherits text-wrap-style:pretty (UI9-R2-FOUNDATION: English too)', () => {
   let pretty = '';
-  tokens.walkRules(':root:lang(zh)', rule => rule.walkDecls('text-wrap-style', declaration => { pretty = declaration.value; }));
+  tokens.walkRules(':root', rule => rule.walkDecls('text-wrap-style', declaration => { pretty = declaration.value; }));
   assert.equal(pretty, 'pretty');
 });
 

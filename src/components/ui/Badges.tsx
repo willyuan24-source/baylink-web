@@ -5,25 +5,17 @@ import './cards.css';
 import { cx } from './ui-copy';
 
 /**
- * The provenance chip: one per picture, bottom-left (UI9-IMAGES DECISIONS 23). The words come from tierLabelOf() (cover-labels.ts)
- * or, for a 3D postcard, getImageProvenance(). `tier` (data-tier) keeps a ③ 示意图 / ④ AI 示意图 chip on the picture in every
- * size and mode. `plain`: the badge exactly as it was before UI9-C, without the attribute the chip look keys on (covers.css
- * `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).
+ * The picture's label: one per picture, bottom-left inside it, one line (UI9-IMAGES DECISIONS 23, R2-03). The words come from
+ * tierLabelOf() (cover-labels.ts) or, for a 3D postcard, getImageProvenance(). `short` (data-short): the one-line words a
+ * picture ≤ 160 px wide draws instead, and one ≤ 200 px when the full words are over 18 characters (data-long: English
+ * "Official image · 2025 edition" is 179 px at 13 px, more than 75% of a 173 px card; covers.css), while the text — what
+ * assistive tech and the page's credits read — stays the full words. `tier` (data-tier) names the tier. `plain`: the badge exactly as it was before UI9-C, without the
+ * attribute the chip look keys on (covers.css `.ui-provenance[data-chip]`): the AI 3D postcards only (captain decision 1).
  */
-export function ProvenanceBadge({ label, className, plain, tier }: { label: string; className?: string; plain?: boolean; tier?: string }) {
-  // Two children, no fragment: the split adds no react import to this primitive's chunk (route JS budgets).
-  const dated = !plain && DATED.exec(label);
-  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier}>
-    {dated && <span className="ui-provenance__lead">{dated[1]}</span>}{dated ? dated[2] : label}
-  </span>;
+export function ProvenanceBadge({ label, short, className, plain, tier }: { label: string; short?: string; className?: string; plain?: boolean; tier?: string }) {
+  const own = plain || short === label ? undefined : short;
+  return <span className={cx('ui-provenance', className)} data-provenance data-chip={plain ? undefined : ''} data-tier={tier} data-short={own} data-long={own && label.length > 18 ? '' : undefined}>{label}</span>;
 }
-
-/**
- * A dated ①② badge ("官方图 · 2025 往届" / "Official image · 2025 edition"): its edition stands alone on a cover ≤ 120px wide
- * (covers.css hides the lead there; #62 live check: the full words wrapped to 2–3 lines over a thumbnail). The full words stay
- * on larger covers and in the page's image credits.
- */
-const DATED = /^(.+ · )(\d{4} ?(?:往[届屆]|edition))$/;
 
 export type StickerTone = 'date' | 'free' | 'mixed' | 'price' | 'paid' | 'danger' | 'warning' | 'success' | 'neutral';
 /** A fact printed on a member's photo (community posts). Listing covers carry no stickers since UI9-C (N22). */

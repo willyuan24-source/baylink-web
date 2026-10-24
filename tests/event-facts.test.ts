@@ -76,7 +76,7 @@ test('short titles, places, tones and session times come from structured fields 
   assert.equal(eventTone({ category: 'culture', audience: ['长者', '家庭'] }), 'seniors');
   assert.equal(eventTone({ category: 'food', audience: ['家庭'] }), 'food');
   const planning = { schedule: { sourceUrl: 'https://example.org', verifiedAt: '2026-10-01', dates: { '2026-10-10': [{ open: '11:00', close: '19:00' }] } } };
-  assert.equal(eventTimeLabel({ planning }, '2026-10-10', false), '11–19 点');
+  assert.equal(eventTimeLabel({ planning }, '2026-10-10', false), '11:00–19:00');
   assert.equal(eventTimeLabel({ planning }, '2026-10-10', true), '11am–7pm');
   assert.equal(eventTimeLabel({ sessions: [{ date: '2026-10-11', start: '10:30', end: '16:00' }] }, '2026-10-11', false), '10:30–16:00');
   assert.equal(eventTimeLabel({ planning }, '2026-10-11', false), undefined);

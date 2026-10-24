@@ -157,7 +157,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       <div className="xp-card__media">
         {shown && badge
           ? <CoverImage image={shown.image} tier={shown.tier} fit={shown.fit} focal={shown.focal} ratio="3:2" ratioLock decorative sizes={CARD_SIZES}
-            fallback={shown.fallback} fallbackLabel={shown.fallback ? tierLabel({ tier: 'stock', image: shown.image }) : undefined} />
+            fallback={shown.fallback} fallbackLabel={shown.fallback ? [tierLabel({ tier: 'stock', image: shown.image }), tierLabel({ tier: 'stock', image: shown.image }, true)] : undefined} />
           : <Cover cover={cover} ratio="3:2" ratioLock decorative sizes={CARD_SIZES} />}
         {/* A photo overlay: its focus ring is the site's lime one (tokens.css [data-surface=deep]). */}
         <div className="xp-card__caption" data-surface="deep">{shown && badge && <ProvenanceBadge label={badge} tier={shown.tier} />}<h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p><MapPin size={16} aria-hidden="true" /><span>{english && translateText(regionLabel, locale) === item.city ? item.city : `${item.city} · ${regionLabel}`}</span></p></div>

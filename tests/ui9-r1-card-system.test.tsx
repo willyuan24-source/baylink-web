@@ -99,18 +99,20 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
 
-test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumbnail at 36px', () => {
+test('N13 / N25 (UI9-R2-FOUNDATION): one ♡ circle (44px, white, e1) on a picture and at a row\'s right edge; no 36px ♡', () => {
   const save = decls(UI, '.ui-save');
   assert.equal(save.width, 'var(--control-height)');
   assert.equal(save.background, 'var(--color-surface)');
-  assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'thumb');
-  assert.equal(decls(CARDS, '.ui-row-card__save .ui-save').width, '2.25rem');
+  assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'trailing', 'the row\'s right edge, outside the picture');
+  assert.equal(decls(CARDS, 'html:not([data-simple]) .ui-row-card:has(>.ui-row-card__save+.ui-row-card__trailing)')['grid-template-areas'], '"thumb body save" "thumb body trailing"', 'with 加入: stacked in one right-edge column');
+  assert.doesNotMatch(read(CARDS), /\.ui-row-card__save \.ui-save \{/, 'no smaller row ♡');
+  assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle').width, 'var(--control-height)', 'the area sheets\' 36px give way (!important)');
   // the lift is scoped to the picture slots: the action bar's 收藏 cell and FreebieBoard's body pill are compact too, but flat
   const SAVES = read('src/features/saves/saves.css');
   assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');
   assert.doesNotMatch(SAVES, /^\.saves-control \.saves-toggle\[data-compact\] \{ box-shadow/m, 'no unscoped lift on every compact ♡');
   const card = read('src/components/PlannerCatalogCard.tsx');
-  assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is on the thumbnail');
+  assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is the row\'s save');
   assert.match(card, /trailing=\{<Button className="planner-add" aria-label=\{addLabel\}/, 'D7: 加入计划 is the row\'s compact trailing button');
 });
 
@@ -126,13 +128,13 @@ test('N02: a state title inside a section is body size; N24: no motion literal i
   assert.doesNotMatch(ui, /(?:animation|transition)[^;{}]*\b\d*\.?\d+m?s\b/, 'durations are --dur-* tokens');
 });
 
-test('follow-up 8: a dated ①② chip keeps its edition alone on a cover ≤ 120px', () => {
-  const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" tier="official" />);
-  assert.match(html, /<span class="ui-provenance__lead">官方图 · <\/span>2025 往届/);
-  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" plain />), /lead/, 'the 3D postcard badge stays as it was');
-  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="场馆照 · 2024" tier="venue" />), /lead/);
-  assert.match(renderToStaticMarkup(<ProvenanceBadge label="Official image · 2025 edition" tier="official" />), /lead">Official image · <\/span>2025 edition/);
-  assert.equal(decls(COVERS, '.ui-provenance[data-chip] .ui-provenance__lead', 'ui-cover (max-width:120px)').display, 'none');
+test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往届) on a thumbnail ≤ 160 px, one line, its text the full words', () => {
+  const html = renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" tier="official" />);
+  assert.match(html, /data-short="2025 往届">官方图 · 2025 往届<\/span>/);
+  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="官方图 · 2025 往届" short="2025 往届" plain />), /data-short/, 'the 3D postcard badge stays as it was');
+  assert.doesNotMatch(renderToStaticMarkup(<ProvenanceBadge label="示意图" short="示意图" tier="stock" />), /data-short/, 'no copy when the words are the same');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]::after', 'ui-cover (max-width:160px)').content, 'attr(data-short) / ""');
+  assert.equal(decls(COVERS, '.ui-cover>[data-chip][data-short]', 'ui-cover (max-width:160px)')['font-size'], '0');
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
@@ -141,11 +143,10 @@ test('follow-up 3: /plan head copy and empty state balance their lines and keep 
   assert.equal(rule['word-break'], 'keep-all');
 });
 
-test('Follow-up 8: a dated chip on a cover ≤ 120px shows its edition and still wraps, so a label is never cut', () => {
-  const small = read(COVERS).split('@container ui-cover (max-width:120px)')[1].split('\n}')[0];
-  assert.match(small, /\.ui-provenance\[data-chip\] \.ui-provenance__lead \{ display:none; \}/);
-  assert.doesNotMatch(small, /nowrap/, 'English 家人版 (20px words on a 112px cover) wraps instead of clipping "2025 editio"');
-  assert.equal(decls(COVERS, '.ui-provenance[data-chip]')['white-space'], 'normal');
+test('Follow-up 8 (R2-03): a label is one line at every size; on a cover ≤ 160px it is 12 px whatever Aa says, so 家人版 English fits', () => {
+  const small = read(COVERS).split('@container ui-cover (max-width:160px)')[1].split('\n}')[0];
+  assert.match(small, /font-size:var\(--fs-label-tiny\)/);
+  assert.equal(decls(COVERS, '.ui-cover>.ui-provenance[data-chip]')['white-space'], 'nowrap');
 });
 
 test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balance applies at every width', () => {

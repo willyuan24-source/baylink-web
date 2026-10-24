@@ -58,7 +58,9 @@ export function Sheet({ open, onClose, title, children, footer, status, initialF
       <div className="ui-sheet__handle" aria-hidden="true" />
       {custom ? header : <div className="ui-sheet__header">
         <h2 id={titleId} className="ui-sheet__title">{title}</h2>
-        <IconButton label={t('关闭', 'Close')} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></IconButton>
+        {/* N13: the one close button — CloseButton's markup (ui-close, the icon button, ✕ at 1.75) written out, so the 20-odd
+            lazy sheets do not each import CloseButton's own chunk (route JS budgets). */}
+        <IconButton label={t('关闭', 'Close')} className="ui-close" onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></IconButton>
       </div>}
       <div ref={bodyRef} className={cx('ui-sheet__body', bodyClassName)} onScroll={onBodyScroll}>{children}</div>
       {footer && <div className="ui-sheet__footer">{footer}</div>}

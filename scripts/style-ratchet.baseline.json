@@ -14,7 +14,7 @@
     "arrowUpRight": 29,
     "buttonLooks": 4,
     "fontSizeOffLadder": 26,
-    "fontSizeLiteral": 90,
+    "fontSizeLiteral": 88,
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 5,
@@ -367,7 +367,6 @@
       "spacingOffScale": 37
     },
     "src/components/ui/cards.css": {
-      "fontSizeLiteral": 2,
       "spacingOffScale": 8
     },
     "src/components/ui/ConfirmDialog.tsx": {

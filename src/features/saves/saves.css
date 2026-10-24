@@ -8,7 +8,7 @@
    adds no button style of its own (SYS bar: at most 5 button styles per template). */
 .saves-control { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:8px 0 16px; }
 .saves-control[data-compact] { margin:8px 0 0; }
-.saves-control .saves-toggle,.saves-day .saves-add-day { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:var(--sp-2) 20px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:400; cursor:pointer; }
+.saves-control .saves-toggle,.saves-day .saves-add-day { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:var(--sp-2) 20px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:var(--lh-tight); font-weight:400; cursor:pointer; }
 /* A label that wraps (加入这天计划 in 家人版 at 360px) keeps 8px above and below it, as the UI button does (ui.css). */
 .saves-control .saves-toggle[data-compact],.saves-day .saves-add-day[data-compact] { padding:var(--sp-2) 16px; }
 .saves-control .saves-toggle:disabled,.saves-day .saves-add-day:disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); cursor:default; }
@@ -22,13 +22,15 @@
 /* The circle sits at the slot's own corner (4px / 8px in): the compact control's in-flow top margin would push it 8px lower,
    onto the top of the cover picture (W5-INT). The calendar's 加入这天计划 in a save slot is not a .saves-control. */
 :is(.ui-feed-card__save,.ui-hero-card__save) .saves-control { margin:0; }
-:is(.ui-feed-card__save,.ui-hero-card__save) .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
-/* N13: a compact ♡ in a picture slot (a card's cover, an /events row's or a board's thumbnail) is the one ♡ on a picture —
-   the white circle with e1 of ui.css .ui-save — whatever size its slot gives it. Compact ♡ elsewhere (the 收藏 cell of a
-   detail or guide action bar, the 收藏 pill in a FreebieBoard card body) is not on a picture and takes no lift. */
+/* N13 / N25: and a ♡ in a row (an /events row, a board row) is that same circle, 44px (48 in 简洁显示) in every mode: the
+   area sheets' older 36px sizes at 特大 (home) and on /events rows give way to it (!important). */
+:is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height)!important; height:var(--control-height)!important; min-height:var(--control-height)!important; padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
+/* N13: a compact ♡ in a picture slot or a row is the one ♡ circle — the white circle with e1 of ui.css .ui-save. Compact ♡
+   elsewhere (the 收藏 cell of a detail or guide action bar, the 收藏 pill in a FreebieBoard card body) is the labelled
+   form and takes no lift. */
 :is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact] { box-shadow:var(--e1); }
 .saves-control__link { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
-.saves-control__note,.saves-control__error,.saves-day__error { flex-basis:100%; margin:0; font-size:var(--text-fact); line-height:1.571; }
+.saves-control__note,.saves-control__error,.saves-day__error { flex-basis:100%; margin:0; font-size:var(--text-fact); line-height:var(--lh-ui); }
 .saves-control__note { color:var(--color-ink-2); }
 .saves-control__error,.saves-day__error { color:var(--color-danger); }
 .saves-control__error button { min-height:var(--control-height); margin-left:8px; color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }

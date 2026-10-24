@@ -124,13 +124,16 @@ const twelve = (match: RegExpExecArray) => {
   const h = Number(match[1]), suffix = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
   return `${h12}${match[2] === '00' ? '' : `:${match[2]}`}${suffix}`;
 };
+/** zh's one time pattern (N06): "9:30", "19:00" — the hour without a leading zero, the minutes always. */
+const clock = (match: RegExpExecArray) => `${Number(match[1])}:${match[2]}`;
 /**
- * "11–19 点" / "11am–7pm" for the shown day, from structured sessions or the verified schedule only. A day with several
- * sessions (one per start time) lists the starts: "10:00、14:00" / "10am, 2pm".
+ * "11:00–19:00" / "11am–7pm" for the shown day, from structured sessions or the verified schedule only (one zh pattern on
+ * cards and details, N06: never "11–19 点" or "19 点起"). A day with several sessions (one per start time) lists the
+ * starts: "10:00、14:00" / "10am, 2pm".
  */
 export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string, english: boolean): string | undefined {
   const starts = (event.sessions ?? []).filter(item => item.date === day).map(item => hour(item.start)).filter((match): match is RegExpExecArray => !!match);
-  if (starts.length > 1) return english ? starts.map(twelve).join(', ') : starts.map(match => `${match[1]}:${match[2]}`).join('、');
+  if (starts.length > 1) return english ? starts.map(twelve).join(', ') : starts.map(clock).join('、');
   const schedule = event.planning?.schedule;
   const weeklyApplies = !!schedule?.weekly && validDay(day) && (!schedule.validFrom || day >= schedule.validFrom) && (!schedule.validThrough || day <= schedule.validThrough);
   const window: TimeSpan | undefined = span(event.sessions?.find(item => item.date === day))
@@ -140,8 +143,7 @@ export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planni
   const a = hour(window?.open), b = hour(window?.close);
   if (!a) return undefined;
   if (english) return b ? `${twelve(a)}–${twelve(b)}` : `From ${twelve(a)}`;
-  if (a[2] === '00' && (!b || b[2] === '00')) return b ? `${Number(a[1])}–${Number(b[1])} 点` : `${Number(a[1])} 点起`;
-  return b ? `${a[1]}:${a[2]}–${b[1]}:${b[2]}` : `${a[1]}:${a[2]} 起`;
+  return b ? `${clock(a)}–${clock(b)}` : `${clock(a)} 起`;
 }
 
 /** A structured window in minutes after midnight ("11:00–16:00" → 660–960). */
@@ -183,14 +185,15 @@ export function eventWhenLine(event: Pick<EventFactsInput, 'startDate' | 'endDat
   const line = (english: boolean) => {
     const parts = formatDateChip(chip, english);
     const date = chip.kind === 'range' ? `${parts.big}${english ? ' · ' : ' '}${parts.small}` : parts.label;
-    const time = chip.kind !== 'day' ? undefined : window ? window.map(match => english ? twelve(match) : `${Number(match[1])}:${match[2]}`).join('–') : eventTimeLabel(event, chip.date, english);
+    const time = chip.kind !== 'day' ? undefined : window ? window.map(english ? twelve : clock).join('–') : eventTimeLabel(event, chip.date, english);
     return time ? `${date} · ${time}` : date;
   };
   return { zh: line(false), en: line(true) };
 }
 
 export type PriceChip = { tone: 'free' | 'mixed' | 'price' | 'paid'; text: Copy };
-const usd = (value: number, cents = !Number.isInteger(value)) => `$${cents ? value.toFixed(2) : value}`;
+/** "$8", "$8.50", "$1,200": Intl's US-dollar format (N06), cents only when the amount has them. */
+const usd = (value: number, cents = !Number.isInteger(value)) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }).format(value);
 /**
  * The price sticker. 免费 only when `cost` is free; 部分免费 when mixed; an amount only when a structured
  * price or the planning admission is known; an unknown cost shows nothing.

@@ -7,30 +7,40 @@
 /* Provenance: the AI 3D postcards keep this badge exactly (top-left, ink chip; captain decision 1). Every other cover's
    chip carries [data-chip] (Badges.tsx) and takes the look below it. */
 .ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
-/* The chip (N22): bottom-left, 13 px, wraps, never cut; with the ♡ the only overlay. */
-.ui-provenance[data-chip] { top:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:normal; text-overflow:clip; }
-.ui-hero-card[data-overlay] .ui-provenance[data-chip] { top:var(--sp-2); bottom:auto; }
-/* Cover ≤ 120px: a tighter chip; a dated ①② chip shows only its edition (Badges.tsx) and still wraps, never cut. */
+/* The label (N22, R2-03): one chip, bottom-left in the picture at every size, one line, ≤ 75% wide. Hidden only while the
+   client decodes its picture ([data-pending], R2-18): prerendered or script-less pages keep it (DECISIONS 23). 13 px
+   ≤ 200 px, 12 px ≤ 160 px. (.ui-cover> outranks the area sheets' older rules.) */
+.ui-cover>.ui-provenance[data-chip] { top:auto; right:auto; bottom:var(--sp-2); left:var(--sp-2); max-width:75%; padding:var(--sp-1) var(--sp-2); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); white-space:nowrap; text-overflow:ellipsis; transition:opacity var(--dur-3) var(--ease-out); }
+.ui-cover[data-pending]>.ui-provenance[data-chip] { opacity:0; }
 .ui-cover { container-name:ui-cover; container-type:inline-size; }
-@container ui-cover (max-width:120px) {
-  .ui-provenance[data-chip] { bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); }
-  .ui-provenance[data-chip] .ui-provenance__lead { display:none; }
+/* The short words (data-short; the text stays the full words) where those cannot fit: ≤ 160 px, and ≤ 200 px for long
+   words ([data-long]); cover-labels.ts. */
+@container ui-cover (max-width:200px) {
+  .ui-cover>.ui-provenance[data-chip] { bottom:var(--sp-1); left:var(--sp-1); padding:0 var(--sp-1); font-size:var(--fs-label-thumb); }
+  .ui-cover>[data-chip][data-long] { font-size:0; }
+  .ui-cover>[data-chip][data-long]::after { content:attr(data-short); content:attr(data-short) / ""; font-size:var(--fs-label-thumb); }
+}
+@container ui-cover (max-width:160px) {
+  .ui-cover>.ui-provenance[data-chip] { max-width:calc(100% - var(--sp-1)); font-size:var(--fs-label-tiny); }
+  .ui-cover>[data-chip][data-short] { font-size:0; }
+  .ui-cover>[data-chip][data-short]::after { content:attr(data-short); content:attr(data-short) / ""; font-size:var(--fs-label-tiny); }
 }
 
 /* Stickers: facts printed on a member's photo (community posts only; listing covers carry none). */
-.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:var(--lh-ui); font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .ui-stickers { position:absolute; left:var(--sp-2); right:var(--sp-2); bottom:var(--sp-2); z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-2); pointer-events:none; }
 .ui-stickers>:only-child[data-slot=end] { margin-left:auto; }
 
-/* The one status map (Badges.tsx statusLook): one look per status, 14 px, wraps; no amber, no indigo. */
+/* The one status map (Status.tsx statusLook, N08): one look per status, 14 px, wraps; no amber, no indigo; solid red is for
+   errors only. 免费 and 部分免费 are one lime family (a price is plain text); a deadline is ink words after a small red dot
+   (OD11: 今天/明天截止 and 售罄 on a muted terracotta tint); 已开业 is deep-green words with no ✓ (only the ✓ line has one). */
 .ui-status { display:inline-flex; align-items:center; gap:var(--sp-1); max-width:100%; padding:0 var(--sp-2); border:1px solid transparent; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:400; white-space:normal; overflow-wrap:anywhere; }
 .ui-status[data-tone=free] { background:var(--color-highlight); color:var(--color-brand-deep); }
-.ui-status[data-tone=partial] { border-color:var(--color-brand); background:var(--color-surface); color:var(--color-brand-deep); }
-.ui-status[data-tone=soon] { border-color:var(--color-danger); background:var(--color-surface); color:var(--color-danger); }
-.ui-status[data-tone=urgent] { background:var(--color-danger); color:var(--color-surface); }
-/* 已开业: ✓ and deep-green words, no fill (N08). */
+.ui-status[data-tone=partial] { background:rgb(var(--color-highlight-rgb) / .45); color:var(--color-brand-deep); }
+.ui-status[data-tone=soon] { background:var(--color-surface); color:var(--color-ink); }
+.ui-status[data-tone=urgent] { background:var(--color-danger-tint); color:var(--color-ink); }
+.ui-status:is([data-tone=soon],[data-tone=urgent])::before { content:""; flex:none; width:.375rem; height:.375rem; border-radius:var(--r-circle); background:var(--color-danger); }
 .ui-status[data-tone=open] { padding-inline-start:0; background:transparent; color:var(--color-brand-deep); }
-.ui-status[data-tone=open]::before { content:"✓"; color:var(--color-brand); }
 .ui-status[data-tone=ended] { color:var(--color-ink-3); }
 
 /* Covers. One ratio per feed: 3:2 by default (captain decision 20), a ratio a caller sets stays. */
@@ -44,33 +54,24 @@
 .ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }
 .ui-cover__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
-/* Poster: the whole flyer at its own shape on a solid board, an even white mat and e1; never blurred, never cropped. It
-   fills the board's width or height (a size container; CoverImage sets --ui-img-ratio); no ratio (a stock cover): auto.
-   width:100% + object-fit:contain first: without cq units (iOS 15, Firefox < 110) the flyer fills the board's width, whole. */
-.ui-cover[data-fit=contain] { container-type:size; display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); place-items:center; padding:var(--sp-3) var(--sp-3) var(--sp-6); background:var(--color-surface-2); }
-.ui-cover[data-fit=contain] .ui-cover__img { position:static; width:100%; width:min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2))); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
-
-/* A tall flyer on a small board (a phone pick, an 88 px row thumbnail at 特大) keeps at least 4.5rem of width, 64 px of picture
-   inside its mat, and gives up its bottom edge instead (UI9-IMG-A1b review: "每张卡恰好一张看得见的 img（宽 ≥ 64 px）"). With
-   cq units the width above is the flyer's own shape, so the crop only happens where that floor applies. */
-@supports (width:1cqh) {
-  .ui-cover[data-fit=contain] .ui-cover__img { width:max(min(100%, 4.5rem), min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2)))); object-fit:cover; object-position:50% 0; }
-}
+/* Poster (DECISIONS 32 OD1, R2-01): one full-bleed frame, no mat, keyline or shadow; the flyer whole on a blurred copy of the
+   decoded file (--ui-backdrop = its currentSrc: no request more). */
+.ui-cover[data-fit=contain] .ui-cover__img { object-fit:contain; }
+.ui-cover[data-fit=contain]::before { content:""; position:absolute; inset:-12%; background:var(--ui-backdrop, none) 50% 50% / cover no-repeat; filter:blur(18px) saturate(1.25) brightness(.94); opacity:0; transition:opacity var(--dur-3) var(--ease-out); }
+.ui-cover[data-fit=contain][data-loaded]::before { opacity:1; }
 /* The plate (BayBay's [n] tags and citation chips). */
 .ui-plate { display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:0 var(--sp-2); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); outline:1px solid var(--color-surface); outline-offset:calc(-1 * var(--sp-1)); font-variant-numeric:lining-nums tabular-nums; }
 /* A row thumbnail keeps its own corners. */
 .ui-row-card__thumb .ui-cover { border-radius:var(--r-md); }
 
-/* The 2-line card meta (G18; Card.tsx, HeroCard.tsx): line 1 when, line 2 status and venue (wraps, never cut). */
-.ui-card-when { margin:0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); font-variant-numeric:tabular-nums; }
-.ui-hero-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+/* The card meta (G18, R2-11; Card.tsx, HeroCard.tsx): line 1 when, line 2 status · place (cards.css: one line), then the ✓
+   line; one-line UI text, so the body ladder's --lh-ui (N05), not the card titles' --lh-snug. */
+.ui-card-when { margin:0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.ui-hero-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__when { font-size:var(--fs-body); }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__when { font-size:var(--fs-body); } }
-/* A row's thumbnail drops its chip; the same words sit in the row as a 13 px line. */
+/* A row's 13 px source line (Card.tsx `credit`: the boards' ✓ line); the picture's label stays on its thumbnail (R2-03). */
 .ui-row-card__credit { margin:0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-snug); }
-/* A ①② thumbnail's badge words move into the row's 13 px line (Card.tsx `credit`); a ③ 示意图 / ④ AI 示意图 badge stays on
-   the picture in every size and mode (UI9-IMAGES DECISIONS 23), at 12 px so the short English fits 88 px. */
-.ui-row-card:has(.ui-row-card__credit) .ui-row-card__thumb .ui-provenance[data-chip]:not([data-tier=stock],[data-tier=ai]) { display:none; }
 /* 简洁 / 家人版: list rows drop the ♡, saving is on the detail page (decision 16); not 我的收藏 (#saved), where it
    removes the item; calendar rows keep 加入这天计划. */
 [data-simple] .ui-row-card__trailing:not(#saved *) :is(.ui-save,.planner-heart) { display:none; }

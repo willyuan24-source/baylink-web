@@ -84,6 +84,11 @@
      below) it is the size the rule had before tokens v2, so no elder text is smaller than it was. */
   --fs-keep-13:.8125rem; --fs-keep-14:.875rem; --fs-keep-18:1.125rem; --fs-keep-20:1.25rem; --fs-keep-24:1.5rem;
   --fs-keep-28:1.75rem; --fs-keep-32:2rem;
+  /* A picture's label on a picture ≤ 200 px wide (R2-03, covers.css): its size follows the picture, not Aa — 13px, and 12px
+     on a picture ≤ 160 px (an 88 px row thumbnail; critic-r2 §4: 12–13 px) — at every reading size (px on purpose: the
+     root's Aa growth must not reach it) and in 简洁显示 (badges are the exception to its 16px floor, followup 14).
+     Larger pictures' labels read --fs-badge and grow with Aa. */
+  --fs-label-thumb:13px; --fs-label-tiny:12px;
   /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, the lead / pick card titles, the primary button and the one
      key value of a fact block; 500 (medium) for feed and row card titles (D3: a feed is not half bold). */
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
@@ -117,7 +122,7 @@
   /* Aa scales the root (html[data-reading] below), so every rem grows together. --reading-scale stays pinned at 1 for
      older calc() forms: multiplying a rem by it again would turn 特大 into 125% x 1.25 = 156%. */
   --reading-scale:1; --fluid-scale:1; --text-floor:0px; --control-height:2.75rem;
-  --text-caption:var(--fs-badge); --text-fact:var(--fs-meta);
+  --text-caption:var(--fs-meta); --text-fact:var(--fs-meta);
   --text-body:var(--fs-body); --text-reading:var(--fs-reading);
   --text-card:var(--fs-card);
   /* Type scale (SV-06, design.md §4.3): one spec per heading level on every page, weight 600 and letter-spacing 0 (CJK
@@ -150,13 +155,16 @@
   --page-gutter:32px; --grid-gutter:24px; --section-gap:var(--sp-8);
   --fs-card-lg:1.25rem; --fs-section:1.5rem; --fs-title:2rem; --fs-display:2.75rem;
 } }
-/* N04 / J1 P18: on a desktop no caption is below 14px: --text-caption reads the meta step. 13px stays for what --fs-badge
-   names directly (photo provenance badges, image and legal credits), and the two caption users below that are badges and
-   credits keep it. (html:root outranks the :root alias.) */
-@media(min-width:1024px) { html:root { --text-caption:var(--fs-meta); } }
+/* N04 / J1 P18 / followup 14 (UI9-R2-FOUNDATION): no caption is below 14px on a phone or a desktop — --text-caption reads
+   the meta step. 13px stays only for what --fs-badge names directly (photo provenance badges, image and legal credits),
+   for the two caption users that are badges and credits, and inside the 3D postcard blocks on phones, where they had it
+   (DECISIONS 1: pixel-identical). */
 :where(.ui-provenance,.ui-cover-credit) { --text-caption:var(--fs-badge); }
+@media(max-width:1023px) { :where(.home-3d,.home-3d-strip,.xp-3d,.gd-opus) { --text-caption:var(--fs-badge); } }
 /* Latin line heights and measure on English pages (N05). */
-:root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:66ch; }
+/* --measure: 50ch keeps an English line at ≤ 75 characters (N05). A ch is the width of "0", about 1.4 average Latin
+   letters in the system UI fonts: 62ch let the /guides lede run to 89 characters on one line; 50ch wraps it at ~71. */
+:root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:50ch; }
 /* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
    heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). No page writes them today; they
    stay as the design system's contract (tests/type-scale.test.ts). */
@@ -240,9 +248,9 @@ html[data-reading=extra-large][data-simple] { --fs-body:1.15rem; }
 .site-app svg.lucide[stroke-width="2"],
 :where(body>[role=dialog],body>.site-toast) svg.lucide[stroke-width="2"] { stroke-width:1.75; }
 :where(p,li,dd) { text-wrap:pretty; }
-/* N06 (UI9-R1): Chinese pages inherit the pretty wrap everywhere (spans, labels, card meta and fact values too, not only
-   p / li / dd). A longhand, so a component's nowrap or balance still wins. */
-:root:lang(zh) { text-wrap-style:pretty; }
+/* N06 (UI9-R1; N05 UI9-R2-FOUNDATION: every language): every page inherits the pretty wrap (spans, labels, card meta and
+   fact values too, not only p / li / dd), so no short last line. A longhand, so a component's nowrap or balance still wins. */
+:root { text-wrap-style:pretty; }
 :where(h1,h2,h3,h4) { line-break:strict; word-break:auto-phrase; }
 /* The 3D world keeps its own HUD geometry at every text size (D26). reading-init.js already skips /opus-bay and /play;
    this covers a stale attribute. */
@@ -253,7 +261,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 :root { --feed-cols:2; }
 @media(max-width:767px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) { --feed-cols:1; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.home-destinations,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
 }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
@@ -321,41 +329,28 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .planner-place h3 { font-size:var(--text-card); line-height:var(--lh-card); text-wrap:balance; }
 .bl-guide-checklist { font-size:var(--text-reading); line-height:var(--lh-read); color:var(--color-ink); }
 .bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:var(--lh-read); }
-/* Extend the same reading preferences to practical tools and publishing. */
-.site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:var(--lh-read); }
-.site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:var(--lh-ui); }
-.site-app :is(.attraction-page,.life-tools) button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
-.site-app :is(.attraction-page,.life-tools) :is(input,select,textarea) { font-size:var(--text-body); }
-.life-tools :is(.tools-picker-card small,.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
-.life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
-.life-tools :is(.tool-swap,.tool-icon-button) { width:var(--control-height); height:var(--control-height); }
-.life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
-.life-tools .tool-converter-row { grid-template-columns:minmax(0,1fr) var(--control-height) minmax(0,1fr); }
+/* Extend the same reading preferences to publishing. (The /tools page is .tools-page: tools.css; no page carries
+   .life-tools any more.) */
 .member-compose-dialog :is(p,small,label) { font-size:var(--text-fact); line-height:var(--lh-read); }
 .member-compose-dialog button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
 .member-compose-dialog :is(input,select,textarea) { font-size:var(--text-body); }
 .member-compose-dialog [class*="text-[0.6875rem]"] { font-size:var(--text-fact); }
-.member-compose-dialog .member-compose-close { width:var(--control-height); height:var(--control-height); }
 .member-compose-dialog .member-compose-type>div:last-of-type { font-size:var(--text-fact); line-height:var(--lh-ui); }
 /* Authentication portals share the reading size, including utility-sized safety copy. */
 .member-auth-dialog :is(p,small,label,[role=alert]) { font-size:var(--text-fact); line-height:var(--lh-read); }
 .member-auth-dialog :is(button,a,select) { min-height:var(--control-height); font-size:var(--text-fact); }
 .member-auth-dialog :is(input:not([type=checkbox]):not([type=radio]),select) { font-size:var(--text-body); }
-@media(max-width:639px) {
-  .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
-}
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
 }
-@media(prefers-reduced-motion:reduce) { .reading-dialog,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
+@media(prefers-reduced-motion:reduce) { .reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .event-participation-note,.editorial-share-actions>p { font-size:var(--text-caption); color:var(--color-ink-3); }
 .event-participation-buttons button,.editorial-share-buttons button { min-height:var(--control-height); font-size:var(--text-fact); }
 .guide-image-kind,.bl-freebie-picture>figcaption { font-size:var(--text-caption); }
 .planner-page .planner-editor.is-empty { align-self:start; }
 .planner-page .planner-empty p { font-size:var(--text-body); color:var(--color-ink-2); }
-.planner-page .planner-empty .planner-primary { min-height:var(--control-height); gap:8px; }
 @media(max-width:760px) {
   .planner-workspace>.planner-editor.is-empty { order:1; }
   .planner-workspace>.planner-editor.has-stops { order:-1; }

@@ -188,7 +188,7 @@ test('a day with several start times lists each session; cards read the starts (
   assert.deepEqual(filoli.sessions?.filter(session => session.date === '2026-11-24').map(session => `${session.start}–${session.end}`), ['10:00–12:00', '14:00–16:00']);
   assert.equal(eventTimeLabel(filoli, '2026-11-24', false), '10:00、14:00');
   assert.equal(eventTimeLabel(filoli, '2026-11-24', true), '10am, 2pm');
-  assert.equal(eventTimeLabel(filoli, '2026-11-23', false), '14–16 点', 'a one-session day keeps its span');
+  assert.equal(eventTimeLabel(filoli, '2026-11-23', false), '14:00–16:00', 'a one-session day keeps its span');
   const event = MONTHLY_EVENTS.find(item => item.id === 'concord-trick-or-treat-trail-2026')!;
   const lint = (sessions: MonthlyEvent['sessions']) => lintEditorial(input({ events: [{ ...event, sessions }], offers: [], openings: [] })).filter(issue => issue.rule === 'sessions').map(issue => issue.detail);
   const day = event.sessions![0].date;
