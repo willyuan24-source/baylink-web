@@ -4,11 +4,12 @@ import { guides, type Guide } from '../src/data/guides';
 import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
 import { coverInCurrentLanguage, guideRecordOf, guideStockPool, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
 import { getBayAreaToday } from '../src/lib/monthly';
-import type { GuideCovers, GuideIndexFileCard, GuideRecord, GuidesIndex, GuidesIndexFile } from '../src/features/guides/guide-records';
+import type { GuideCovers, GuideIndexFileCard, GuideIndexFileCovers, GuideRecord, GuidesIndex, GuidesIndexFile } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
 import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
 import { answeredHookFields } from '../src/lib/guide-hook-highlight';
 import { slimListingImage } from '../src/lib/listing-image';
+import { homeImageRungs } from '../src/lib/home-image-rungs';
 
 /**
  * The guide routes' data split (WEB-DATA-SPLIT, ENGSEC-01, FA-01): a slim index for /guides (cards: title, topic inputs,
@@ -98,7 +99,18 @@ export async function buildGuideData(): Promise<GuideData> {
     if (shared) images[src] ??= own;
     return withHook({ ...rest, ...(shared ? { coverSrc: src } : { covers: own }), ...(stock && second.has(card.slug) ? { stockSrc: stock['zh-Hans'].src } : {}) });
   };
-  const guidesCards = cards.map(indexCard);
+  // Each ladder srcset ships as its rungs (one digit), the way the home catalog writes it (UI9-IMG-B2, lib/home-image-rungs.ts):
+  // only where the digit rebuilds the srcset character for character; expandGuidesIndex writes the srcset back (the /guides
+  // route budget after the B2 photos).
+  const compact = (covers: Omit<GuideCovers, 'stock'>): GuideIndexFileCovers => Object.fromEntries(Object.entries(covers).map(([key, image]) => {
+    const rungs = homeImageRungs(image as GuideImage);
+    if (rungs === undefined) return [key, image];
+    const { srcSet, ...rest } = image as GuideImage;
+    void srcSet;
+    return [key, { ...rest, rungs }];
+  })) as GuideIndexFileCovers;
+  const guidesCards = cards.map(indexCard).map(card => card.covers ? { ...card, covers: compact(card.covers) } : card);
+  for (const [src, covers] of Object.entries(images)) images[src] = compact(covers);
   return { index: { ...index, guides: guidesCards, images }, records: guides.map(guide => distinctRelated(guideRecordOf(guide, coversOf))).map(record => ({ ...record, related: record.related.map(withHook) })) };
 }
 

@@ -1,5 +1,6 @@
 import type { Guide, GuideCategory } from '../../data/guides';
 import type { GuideImage } from '../../data/guide-media';
+import { homeImageSrcSet } from '../../lib/home-image-rungs';
 import type { GuideEditorial } from '../../data/guide-editorial';
 import type { PlacedDiagram } from './guide-diagrams';
 import type { PageMetadata } from '../../lib/seo';
@@ -69,7 +70,7 @@ export type GuidesIndex = {
  */
 export type GuideIndexFileCard = Omit<GuideIndexCard, 'covers'> & {
   /** Its own cover, when no other card ships the same picture record. */
-  covers?: Omit<GuideCovers, 'stock'>;
+  covers?: GuideIndexFileCovers;
   /** The file of its own cover in `images`, when other cards show the same picture. */
   coverSrc?: string;
   /**
@@ -80,8 +81,15 @@ export type GuideIndexFileCard = Omit<GuideIndexCard, 'covers'> & {
   stockSrc?: string;
 };
 
+/**
+ * A card's pictures as the file ships them: a ladder srcset as its rungs (one digit, lib/home-image-rungs.ts) where that
+ * rebuilds it exactly; expandGuidesIndex writes the srcset back.
+ */
+type GuideIndexFileImage = GuideImage & { rungs?: number };
+export type GuideIndexFileCovers = { 'zh-Hans': GuideIndexFileImage; 'zh-Hant'?: GuideIndexFileImage; en?: GuideIndexFileImage };
+
 /** guides-index.json: the cards, and the pictures more than one card shows, once each by file (3 languages per entry). */
-export type GuidesIndexFile = Omit<GuidesIndex, 'guides'> & { guides: GuideIndexFileCard[]; images: Record<string, Omit<GuideCovers, 'stock'>> };
+export type GuidesIndexFile = Omit<GuidesIndex, 'guides'> & { guides: GuideIndexFileCard[]; images: Record<string, GuideIndexFileCovers> };
 
 /** One inline picture of the article and where it goes (getGuideMedia's `inline`), already filtered by keepInlineImage. */
 export type GuideInlineImage = { afterHeading: number; image: GuideImage };
@@ -125,13 +133,21 @@ export function relatedForToday(related: readonly GuideCard[], today: string, co
 /** The index's cards with their pictures back on `covers` (own) and `covers.stock` (second): the file ships each shared one once. */
 export function expandGuidesIndex(file: GuidesIndexFile): GuidesIndex {
   const { images, guides, ...rest } = file;
+  const expanded = new Map<GuideIndexFileCovers, Omit<GuideCovers, 'stock'>>();
+  const full = (covers: GuideIndexFileCovers) => {
+    if (!expanded.has(covers)) expanded.set(covers, Object.fromEntries(Object.entries(covers).map(([key, image]) => {
+      const { rungs, ...picture } = image as GuideIndexFileImage;
+      return [key, rungs === undefined ? picture : { ...picture, srcSet: homeImageSrcSet(picture, rungs) }];
+    })) as Omit<GuideCovers, 'stock'>);
+    return expanded.get(covers)!;
+  };
   const picture = (slug: string, src: string) => {
     const covers = images[src];
     if (!covers) throw new Error(`guides-index.json: ${slug} names ${src}, which its images do not ship`);
-    return covers;
+    return full(covers);
   };
   return { ...rest, guides: guides.map(({ covers, coverSrc, stockSrc, ...card }) => {
-    const own = covers ?? picture(card.slug, coverSrc ?? '');
+    const own = covers ? full(covers) : picture(card.slug, coverSrc ?? '');
     return { ...card, covers: stockSrc ? { ...own, stock: picture(card.slug, stockSrc) } : own };
   }) };
 }

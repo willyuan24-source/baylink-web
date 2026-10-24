@@ -219,6 +219,24 @@ test('the slim home catalog carries the same ladder srcset and placeholder colou
   for (const guide of home.guides) if (guide.imageKey) assert.ok(Object.hasOwn(home.images, guide.imageKey), `${guide.slug}: its cover ships with the catalog`);
 });
 
+test('the /guides index ships each ladder srcset as its rungs and expandGuidesIndex writes back the registry srcset', async () => {
+  const { expandGuidesIndex } = await import('../src/features/guides/guide-records');
+  const raw = readFileSync(new URL('../src/data/generated/guides-index.json', import.meta.url), 'utf8');
+  assert.equal(raw.includes('"srcSet":'), false, 'no srcset string left in the index file (lib/home-image-rungs.ts rebuilds each one)');
+  const bySrc = new Map(Object.values(GUIDE_IMAGES).map(image => [image.src, image]));
+  let checked = 0;
+  for (const card of expandGuidesIndex(JSON.parse(raw)).guides) {
+    for (const covers of [card.covers, card.covers.stock]) for (const image of Object.values(covers ?? {})) {
+      if (!image || typeof image !== 'object' || !('src' in image)) continue;
+      const expected = bySrc.get(image.src)?.srcSet ?? manifest.images[image.src]?.srcset.join(', ');
+      assert.ok(expected, `${card.slug}: ${image.src} is a registry image or has a ladder in the manifest`);
+      assert.equal(image.srcSet, expected, `${card.slug}: ${image.src}`);
+      checked++;
+    }
+  }
+  assert.ok(checked >= 145, `${checked} guide card pictures checked`);
+});
+
 test('editorial images under /guides are WebP; the old PNG guide posters are gone', () => {
   for (const guide of guides) if (guide.cover) assert.match(guide.cover, /\.webp$/, guide.slug);
   assert.equal(existsSync(new URL('../public/guides/san-francisco-guide.png', import.meta.url)), false);
