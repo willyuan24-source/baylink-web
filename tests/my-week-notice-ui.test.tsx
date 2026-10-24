@@ -304,7 +304,7 @@ test('a plan 加入这天计划 named reads in the page’s language; a title th
 const STRIP = '这周可以先排进去的活动';
 const eventHrefs = (root: HTMLElement) => [...root.querySelectorAll<HTMLAnchorElement>('a[href^="/events/"]')].map(link => link.getAttribute('href')!.split('?')[0]);
 
-test('no day planned: 行程 leads with four picture cards, none of them a 这周可以去 row', async t => {
+test('no day planned: 行程 shows four picture cards, none of them a 这周可以去 row', async t => {
   t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
   const view = render(page(null));
   const strip = await view.findByRole('list', { name: STRIP });
@@ -312,10 +312,9 @@ test('no day planned: 行程 leads with four picture cards, none of them a 这�
   assert.equal(cards.length, 4);
   assert.equal(rows.length, 6);
   assert.deepEqual(cards.filter(href => rows.includes(href)), [], 'no event shows twice');
-  assert.equal(view.queryByTestId('my-week-suggest-skeleton'), null);
 });
 
-test('with a day planned the strip never shows: while the plans load 行程 keeps its place with skeleton cards, then the timeline', async t => {
+test('a member with a day planned: the same strip is there while the plans load and stays under the timeline (nothing moves)', async t => {
   localStorage.setItem('currentUser', JSON.stringify(user));
   const plan = { id: 'planned', title: '已经排好的一天', date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), version: 1 };
   let answer: (value: unknown) => void = () => {};
@@ -329,12 +328,16 @@ test('with a day planned the strip never shows: while the plans load 行程 keep
   });
   const view = render(page());
   await act(async () => { await Promise.resolve(); });
-  assert.ok(view.getByTestId('my-week-suggest-skeleton'), 'the strip\'s place is held while the plans load');
-  assert.equal(view.queryByRole('list', { name: STRIP }), null, 'no strip on a guess');
+  const loading = view.getByRole('list', { name: STRIP });
+  const before = eventHrefs(loading);
+  assert.equal(before.length, 4, 'the strip is on the first frame, while the plans load');
   await act(async () => { answer({ ...structuredClone(EMPTY_LIBRARY), plans: [plan] }); await planner; });
   await view.findByRole('heading', { name: plan.title });
-  assert.equal(view.queryByRole('list', { name: STRIP }), null);
-  assert.equal(view.queryByTestId('my-week-suggest-skeleton'), null);
+  const strip = view.getByRole('list', { name: STRIP });
+  assert.ok(strip === loading && strip.isConnected, 'the same strip node: not removed and drawn again');
+  assert.deepEqual(eventHrefs(strip), before);
+  const plans = view.getByTestId('my-week-plans');
+  assert.ok(plans.contains(strip) && (view.getByRole('heading', { name: plan.title }).compareDocumentPosition(strip) & 4), 'under the timeline (4: following), in 行程');
 });
 
 test('N06: a 这周可以去 meta line glues every separator to the word before it, so no wrapped line starts with ·', async t => {

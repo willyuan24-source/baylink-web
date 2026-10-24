@@ -107,9 +107,9 @@ function WeekEvents({ events, today, coverPage, english }: { events: { event: Mo
 }
 
 /**
- * 这周可以先排进去 (R2-15: /my-week's empty 行程 was text only): with no day planned yet, four more of this week's events
- * (the ones after 这周可以去's six) as picture cards (the site's feed grid and card: cover, line 1 the visit day, line 2 the
- * place, the source line, ♡ on the cover), so the empty state shows what a plan could hold. No event shows twice, and the
+ * 这周可以先排进去 (R2-15: /my-week's empty 行程 was text only): four more of this week's events (the ones after 这周可以去's
+ * six) as picture cards under the plans or the empty line (the site's feed grid and card: cover, line 1 the visit day, line
+ * 2 the place, the source line, ♡ on the cover), so 行程 shows what a plan could hold. No event shows twice, and the
  * page's de-duplication keeps their pictures apart from the rows'.
  */
 function SuggestedEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
@@ -152,14 +152,12 @@ export default function MyWeekPage() {
   const upcoming = useMemo(() => MONTHLY_EVENTS.filter(event => (!preferences.regions.length || preferences.regions.includes(event.region)) && (!preferences.interests.length || preferences.interests.includes(event.category)))
     .flatMap(event => { const date = nextConfirmedEventDate(event, today); return date && date <= weekEnd ? [{ event, date }] : []; })
     .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 10), [preferences.regions, preferences.interests, today, weekEnd]);
-  // 这周可以去 lists the first six with their actions (加入这天计划, 提醒这一天). Once the plans are known and no day is
-  // planned, the next four lead 行程 as picture cards. Never on a guess while the plans load: a member with a plan would see
-  // them and then lose them. While they load, 行程 keeps the strip's place with skeleton cards (the shape the week shell
-  // draws), so the usual first visit (nothing planned) goes skeleton → strip without moving; with a plan, the timeline
-  // takes the skeleton's place.
+  // 这周可以去 lists the first six with their actions (加入这天计划, 提醒这一天); the next four sit in 行程 as picture cards
+  // (这周可以先排进去), whether or not a day is planned. They are there from the first frame, while the plans load, and stay
+  // when the plans answer, so nothing below moves: an empty-only strip would leave under a member's timeline (review round
+  // 1 measured CLS 0.107 desktop / 0.220 phone), and holding its place with skeletons moved a member's page instead.
   const thisWeek = upcoming.slice(0, 6);
-  const plansKnown = !library.loading && (library.ready || !library.error);
-  const suggested = plansKnown && !nextPlans.length ? upcoming.slice(6, 10) : [];
+  const suggested = upcoming.slice(6, 10);
   const deletePlan = async (plan: SavedPlan) => {
     if (!await confirmDialog({ message: t('删除这份已保存计划？', 'Delete this saved plan?'), confirmText: t('删除', 'Delete'), cancelText: t('取消', 'Cancel'), danger: true })) return;
     if (await library.deletePlan(plan)) setStatus(t('计划已删除。', 'Plan deleted.'));
@@ -177,7 +175,7 @@ export default function MyWeekPage() {
 
     <section id="plans" className="my-week__section" aria-labelledby="my-week-plans-title" data-testid="my-week-plans">
       <div className="my-week__head"><h2 id="my-week-plans-title"><CalendarDays aria-hidden="true" strokeWidth={1.75} />{t('行程', 'Plans')}</h2><Button variant="text" to="/plan">{t('再排一天', 'Plan another day')}</Button></div>
-      {library.loading ? <><SkeletonFeed rows count={1} />{upcoming.length > 6 && <div className="my-week__suggest" data-testid="my-week-suggest-skeleton"><span className="ui-skeleton my-week__suggest-title-skeleton" aria-hidden="true" /><SkeletonFeed count={Math.min(4, upcoming.length - 6)} /></div>}</>
+      {library.loading ? <SkeletonFeed rows count={2} />
         : !library.ready && library.error ? <ErrorState headingLevel="h3" homeTo={null} onRetry={() => void library.refresh()} title={t('暂时读不到你的行程', 'Your plans didn’t load')}
           body={online ? t('可能是网络不稳或服务繁忙。已保存的计划不会因此消失。', 'The connection or our service may be busy. Your saved plans are not lost.') : t('联网后再试一次。', 'Try again once you are back online.')} />
           : nextPlans.length ? <PlanTimeline plans={nextPlans} english={english} busy={disabled} onDelete={plan => void deletePlan(plan)} />
