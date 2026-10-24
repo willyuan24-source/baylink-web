@@ -106,7 +106,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     dateLabel: '长期福利 · 先查可预约日期', availability: 'ongoing', kind: 'reservation',
     requirement: 'SF 居民持 SFPL 图书证，通过 Discover & Go 预约；具体年龄、人数与入场凭证按所选场馆条款。',
     description: '九月下半月和整个十月都可查询可用日期，不保证每一天都有票。先登录选场馆，再确认人数与是否须打印，图书馆也可协助打印。',
-    imageKey: 'library', sourceUrl: 'https://sfpl.org/discover-and-go', sourceLabel: 'SFPL Discover & Go 资格与入口',
+    imageKey: 'venue-sf-main-library', sourceUrl: 'https://sfpl.org/discover-and-go', sourceLabel: 'SFPL Discover & Go 资格与入口',
   },
   {
     id: 'smcl-discover-go', brand: 'SAN MATEO COUNTY LIBRARIES', title: '半岛图书证，先核对卡号再借门票',

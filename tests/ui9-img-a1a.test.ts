@@ -6,7 +6,7 @@ import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { buildCanLead, getBuildWeekend } from '../src/lib/home-weekend-build';
 import { getCover, coverItemFor, type CoverKind } from '../src/lib/cover';
 import { leadsWithPicture } from '../src/lib/lead-rule';
-import { CLOSE_UP_FACE_IMAGES } from '../src/lib/close-up-faces';
+import { CLOSE_UP_FACE_IMAGES, NOT_FOR_LEAD, WEAK_LEAD_SCENE_IMAGES } from '../src/lib/close-up-faces';
 import { venuesFor, type CandidateRecord } from '../src/lib/cover-candidates';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
@@ -77,14 +77,20 @@ test('the lead rule refuses a close-up face, a poster, AI and an information car
   // pages; DECISIONS 32 (round 2) keeps every one of them out of the lead slots, so the list holds the five still on the site
   // (UI9-IMG-B2 replaced LumaFest's posed volunteer photo with the festival's altar photo).
   assert.equal(CLOSE_UP_FACE_IMAGES.size, 5);
-  const lumaFest = { id: 'x', imageKey: 'official-sausalito-goblin-jamboree-2026' };
-  assert.equal(leadsWithPicture(lumaFest, context), false, 'a released close-up still never leads');
-  assert.equal(leadsWithPicture(lumaFest, context, new Set()), true, 'off the list, the photo would lead');
+  const closeUp = { id: 'x', imageKey: 'official-sausalito-goblin-jamboree-2026' };
+  assert.equal(leadsWithPicture(closeUp, context), false, 'a released close-up still never leads');
+  assert.equal(leadsWithPicture(closeUp, context, new Set()), true, 'off the list, the photo would lead');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend' }, context), false, 'an AI illustration never leads');
   assert.equal(leadsWithPicture({ id: 'x' }, context), false, 'an information card never leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'venue-sap-center'] }, context), true, 'a venue photo leads');
   // The Chase Center corner photo (half sky) is a weak lead scene (UI9-IMG-B2): fine on a card, never a lead.
-  assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), false, 'a weak venue scene never leads');
+  // So are the three "cards and rows only" venue photos of the B2 approval (items 31–33: Brisbane, Atherton, Calabazas).
+  assert.deepEqual([...WEAK_LEAD_SCENE_IMAGES].sort(), ['roundup-chase-center', 'venue-sjpl-calabazas-library', 'venue-smcl-atherton-library', 'venue-smcl-brisbane-library']);
+  for (const key of WEAK_LEAD_SCENE_IMAGES) {
+    assert.equal(GUIDE_IMAGES[key]?.kind, 'photo', `${key}: a registered photo`);
+    assert.ok(NOT_FOR_LEAD.has(key), `${key}: on the lead skip list`);
+    assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', key] }, context), false, `${key}: a weak venue scene never leads`);
+  }
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-mcm-halloween-spectacular-20261031' }, context), false, 'a poster never leads (DECISIONS 32)');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-oakland-omca-dia-muertos-2026' }, context), true, 'an official photo leads');
 });

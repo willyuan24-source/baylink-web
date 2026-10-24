@@ -47,6 +47,10 @@ const POSED_GROUPS = [
  */
 const WEAK_LEAD_SCENES = [
   'roundup-chase-center', // Chase Center: a corner of the building and half sky; reads as neither the arena nor a game
+  // B2 approval items 31–33, "cards and rows only":
+  'venue-smcl-brisbane-library', // Brisbane Library: 1250 × 598, too small for a lead
+  'venue-smcl-atherton-library', // Atherton Library: the entrance lettering is the subject
+  'venue-sjpl-calabazas-library', // Calabazas Branch: 1024 × 768, a wall of cast names fills a third of it
 ];
 
 /** Every flagged close-up, released or not: none of them takes a lead slot (DECISIONS 32). */
@@ -55,12 +59,12 @@ export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set(FLAGGED_CLOSE_U
 export const RELEASED_CLOSE_UPS: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS.filter(key => OWNER_RELEASED.has(key)));
 /** Posed group portraits that fill the frame. */
 export const POSED_GROUP_IMAGES: ReadonlySet<string> = new Set(POSED_GROUPS);
+/** Venue photos too weak to lead (WEAK_LEAD_SCENES; tests read it). */
+export const WEAK_LEAD_SCENE_IMAGES: ReadonlySet<string> = new Set(WEAK_LEAD_SCENES);
 /**
  * The pictures no lead slot shows (close-ups, posed groups and weak venue scenes). Posters, flyers and AI pictures are kept off a lead by
  * their kind in cover.ts (a lead takes only a photographic ① or ②), so they are not listed here.
  */
-/** Venue photos too weak to lead (WEAK_LEAD_SCENES). */
-export const WEAK_LEAD_SCENE_IMAGES: ReadonlySet<string> = new Set(WEAK_LEAD_SCENES);
 export const NOT_FOR_LEAD: ReadonlySet<string> = new Set([...FLAGGED_CLOSE_UPS, ...POSED_GROUPS, ...WEAK_LEAD_SCENES]);
 
 /**

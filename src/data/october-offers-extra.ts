@@ -36,7 +36,7 @@ export const additionalOctoberOffers: VerifiedExtraOffer[] = [
     availability: 'ongoing', kind: 'reservation',
     requirement: '持 SFPL 图书证借用，可在线预约；设备先到先得，最长借期 21 天，用后须归还。',
     description: '图书馆 2026 年新增的家用设备服务，所有分馆均可办理，归还可到任一分馆。先查馆藏与预约队列，免费的是借用设备。',
-    imageKey: 'library', imageNote: 'SFPL 馆舍资料照片，非探测器或现有库存', sourceUrl: 'https://sfpl.org/releases/2026/07/15/free-radon-detector-loan-program-promote-home-safety',
+    imageKey: 'venue-sf-main-library', imageNote: 'SFPL 馆舍资料照片，非探测器或现有库存', sourceUrl: 'https://sfpl.org/releases/2026/07/15/free-radon-detector-loan-program-promote-home-safety',
     sourceLabel: 'SFPL 免费设备借用公告', verifiedAt: '2026-09-15',
   },
   {

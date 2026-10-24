@@ -354,12 +354,12 @@
     "eventId": "danville-scarecrow-stroll-2026",
     "src": "/guides/official-events/danville-scarecrow-stroll-2026-scarecrow.webp",
     "width": 1080,
-    "height": 1350,
+    "height": 720,
     "kind": "photo",
     "artwork": "photo",
     "focal": [
-      50,
-      35
+      40,
+      20
     ],
     "alt": "Danville 街边坐在南瓜和干草旁的稻草人",
     "caption": "Danville 镇政府活动页上的稻草人活动官方照片；具体展出以当日为准。",
@@ -503,12 +503,12 @@
     "eventId": "r2-petaluma-lumafest-20261024",
     "src": "/guides/official-events/r2-petaluma-lumafest-20261024-altar.webp",
     "width": 1280,
-    "height": 1393,
+    "height": 853,
     "kind": "photo",
     "artwork": "photo",
     "focal": [
       50,
-      55
+      50
     ],
     "alt": "LumaFest 往届的亡灵节祭坛，摆满花、骷髅糖和彩纸",
     "caption": "2025 往届 LumaFest 亡灵节祭坛的活动官方照片；不是 2026 年现场，节目以官方页面为准。",
@@ -1756,7 +1756,7 @@
       30
     ],
     "alt": "Fruitvale 街头的大型 La Catrina 装置",
-    "caption": "La Catrina 装置的活动官方照片，Unity Council 在 2026 年 9 月布置时所拍；不是节日当天。",
+    "caption": "Unity Council 官网 2026 年 9 月发布的 La Catrina 装置活动官方照片；不是节日当天。",
     "credit": "The Unity Council 官方活动图片",
     "creditUrl": "https://unitycouncil.org/lacatrina/",
     "rights": {

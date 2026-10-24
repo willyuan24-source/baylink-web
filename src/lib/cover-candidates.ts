@@ -11,8 +11,9 @@ import type { CoverKind } from './cover';
  * tables are arguments with the reviewed files as defaults.
  *   ① the record's own image (`imageKey`)
  *   ② its venue's approved photos (src/data/venue-photos.json, approved once per venue)
- *   ③ the stock pictures pinned to this very record (src/data/record-photo-pins.json), then its photo category's stock
- *     pictures (src/data/category-photos.json), starting at a spot fixed by the record id
+ *   ③ the stock pictures pinned to this very record (src/data/record-photo-pins.json `pins`), then its photo category's
+ *     stock pictures (src/data/category-photos.json) less the ones dropped for this record (`drops`), starting at a spot
+ *     fixed by the record id
  *   ④ AI illustrations the owner approved for this record or its category (src/data/ai-cover-approvals.json `for`)
  * Whether each candidate may be shown (rights, age, page de-duplication) is still cover.ts getCover's call.
  */
@@ -31,6 +32,8 @@ export type CoverTables = {
   ai: readonly { key: string; for?: readonly string[] }[];
   /** ③ pictures pinned to one record ('<kind>:<id>'), shown before its category's pool (UI9-IMG-B2). */
   pins?: Readonly<Record<string, readonly string[]>>;
+  /** Pool pictures one record ('<kind>:<id>') never takes (UI9-IMG-B2 review: a reviewed fallback order that drops some). */
+  drops?: Readonly<Record<string, readonly string[]>>;
 };
 
 export const COVER_TABLES: CoverTables = {
@@ -38,6 +41,7 @@ export const COVER_TABLES: CoverTables = {
   categories: (categoryPhotoFile as { categories: Partial<Record<PhotoCategoryId, string[]>> }).categories,
   ai: (aiCoverApprovalFile as { approvals: { key: string; for?: string[] }[] }).approvals,
   pins: (recordPhotoPinFile as { pins: Record<string, string[]> }).pins,
+  drops: (recordPhotoPinFile as { drops: Record<string, string[]> }).drops,
 };
 
 /** The fields the candidates read: the record's id and own image, and the text that names its venue. */
@@ -59,7 +63,7 @@ export function venuesFor(kind: CoverKind, record: CandidateRecord, venues: Cove
 }
 
 /** Stock pictures over the image budgets' rungs (verify:images: 800 w ≤ 90 KB, 1200 w ≤ 150 KB): every other picture first. */
-export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5', 'stock-winter-holidays-8']);
+export const HEAVY_STOCK: ReadonlySet<string> = new Set(['stock-halloween-5']);
 
 /**
  * Macro and texture stock (UI9-R2, round-2 judge B P15 and owner material #2): a pattern or a close-up detail with no scene
@@ -140,9 +144,11 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const ownIsAi = !!record.imageKey && tables.ai.some(approval => approval.key === record.imageKey);
   if (!ownIsAi) add(record.imageKey);
   for (const venue of venuesFor(kind, record, tables.venues)) venue.imageKeys.forEach(add);
-  tables.pins?.[`${kind}:${record.id}`]?.forEach(add);
+  const ref = `${kind}:${record.id}`;
+  tables.pins?.[ref]?.forEach(add);
   const category = photoCategoryOf(kind, record);
-  const pool = category ? tables.categories[category] ?? [] : [];
+  const dropped = tables.drops?.[ref];
+  const pool = (category ? tables.categories[category] ?? [] : []).filter(key => !dropped?.includes(key));
   const start = (limits.start ?? idSpot(record.id, pool.length)) % (pool.length || 1);
   // A pool picture whose files miss the 800 w / 1200 w size targets goes after the others (B1b review: stock-halloween-5).
   const rotated = pool.map((_, i) => pool[(start + i) % pool.length]);
@@ -152,7 +158,7 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   // A capped list (what a route ships) carries ④ only for a record whose category has no ③ picture.
   if (shown && stock !== Infinity) return keys;
   if (ownIsAi) add(record.imageKey);
-  const refs = [`${kind}:${record.id}`, ...(category ? [`category:${category}`] : [])];
+  const refs = [ref, ...(category ? [`category:${category}`] : [])];
   for (const approval of tables.ai) if (approval.for?.some(ref => refs.includes(ref))) add(approval.key);
   return keys;
 }

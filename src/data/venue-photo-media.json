@@ -336,15 +336,15 @@
     "key": "venue-acl-castro-valley-library",
     "src": "/guides/venues/venue-acl-castro-valley-library.webp",
     "width": 1280,
-    "height": 960,
+    "height": 763,
     "focal": [
       50,
-      50
+      45
     ],
     "kind": "photo",
     "subject": "venue",
     "coverOk": true,
-    "alt": "Castro Valley 图书馆的入口和斑马线",
+    "alt": "Castro Valley 图书馆的玻璃雨棚入口",
     "caption": "Castro Valley 图书馆外观，2026 年资料照片；不是活动现场。",
     "credit": "BriefEdits / Wikimedia Commons · CC BY-SA 4.0 · 已缩放压缩，按版面裁切",
     "creditUrl": "https://commons.wikimedia.org/wiki/File:Castro_Valley_Library,_exterior_(September_2026)_01.jpg",
@@ -360,10 +360,10 @@
     "key": "venue-opl-dimond-library",
     "src": "/guides/venues/venue-opl-dimond-library.webp",
     "width": 1280,
-    "height": 960,
+    "height": 667,
     "focal": [
-      45,
-      55
+      50,
+      50
     ],
     "kind": "photo",
     "subject": "venue",
