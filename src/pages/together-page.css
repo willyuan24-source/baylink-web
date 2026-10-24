@@ -11,7 +11,8 @@
    no longer match anything (listed for R2-INT). */
 .together-page .outing-discovery { margin:0 0 var(--sp-5); }
 .together-page .outing-discovery-bar { display:grid; grid-template-columns:minmax(0, 1fr) auto; align-items:center; gap:var(--sp-3); }
-.together-page .outing-search-field { gap:0; }
+/* (0,3,0): outings.css still spans .outing-search-field across its old filter grid below 900px. */
+.together-page .outing-discovery-bar>.outing-search-field { grid-column:auto; gap:0; }
 .together-page .outing-filter-chip { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; line-height:1.25; white-space:nowrap; }
 .together-page .outing-filter-chip>svg { width:1em; height:1em; flex:none; }
 .together-page .outing-filter-chip[data-active] { border-color:var(--selected-line); }
