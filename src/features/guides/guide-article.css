@@ -92,10 +92,11 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
    height and their labels one line; at 大 / 特大 / 简洁 the cells grow past 56 px to hold the otter and the label, and the
    bar's height token holds the otter (1.5rem), one line of --fs-meta and the cells' and the bar's 4 px paddings. */
 html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell [data-label] { white-space:nowrap; }
-/* At 特大 (and 家人版) a 1-800 number (data-long), and in English 家人版 any number, needs the row's last ~30 px: there the ask
-   cell reads BayBay beside the otter, its short name (DECISIONS 18: 问 BayBay wherever there is room; its accessible name
-   stays 问 BayBay 这一页 / Ask BayBay about this page), so the number keeps one line inside its button. */
-@media (max-width:1023px) {
+/* In the one-row phone bar from 390 to 429 px, at 特大 (and 家人版) a 1-800 number (data-long), and in English 家人版 any number,
+   needs the row's last ~30 px: there the ask cell reads BayBay beside the otter, its short name (DECISIONS 18: 问 BayBay
+   wherever there is room; its accessible name stays 问 BayBay 这一页 / Ask BayBay about this page), so the number keeps one
+   line inside its button. From 430 px the row holds 问 BayBay and the number; below 390 px the call has its own row. */
+@media (min-width:390px) and (max-width:429px) {
   html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=long],
   html[data-reading=extra-large][data-simple]:lang(en) .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call) .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
   html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=tight],
@@ -140,13 +141,31 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
   .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
 }
 /* The rail card (desktop): three bordered cells with 4 px paddings and one height; in the 4-column rail (≥ 296 px) every
-   label keeps one line, 问 BayBay / Ask BayBay included, at every reading size. The cells grow to hold the otter and the
+   label keeps one line inside its cell at every reading size (the ask cell's name shortens where it would not fit, below). The cells grow to hold the otter and the
    label inside their borders (no fixed 56 px), and the row stretches 收藏 (its cell and save control are grids, so the ♡
    button fills them) and 发家人 to the same box, so the three borders line up. */
 @media (min-width:1024px) {
   .gd-rail .site-detail-actions.detail-actions.gd-bar { align-items:stretch; }
   .gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save],.gd-rail .site-detail-actions.detail-actions.gd-bar>.detail-actions__cell[data-cell=save]>.saves-control { display:grid; align-items:stretch; }
   .gd-rail .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding:var(--sp-1); line-height:var(--lh-tight); }
+  /* The rail's cells are equal grid tracks (DETAIL), so the ask cell can be a size container: where its content box is
+     narrower than 问 BayBay (4.66em) / Ask BayBay (5.27em; 5.1em in 家人版) at its own size (the 304 px rail at 1024 px in 特大, 家人版, and in
+     English also 大 / 简洁), it reads BayBay, its short name (DECISIONS 18: 问 BayBay wherever there is room); the label keeps
+     ≥ 4 px inside the cell's border either way. */
+  .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] { container:gd-ask / inline-size; }
+}
+@container gd-ask (max-width:4.66em) {
+  html:not(:lang(en)) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
+  html:not(:lang(en)) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
+}
+@container gd-ask (max-width:5.27em) {
+  html:lang(en):not([data-reading=extra-large][data-simple]) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
+  html:lang(en):not([data-reading=extra-large][data-simple]) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
+}
+/* 家人版's 20 px English label is relatively narrower (5.14em), so the 1280 px rail keeps Ask BayBay there. */
+@container gd-ask (max-width:5.1em) {
+  html[data-reading=extra-large][data-simple]:lang(en) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
+  html[data-reading=extra-large][data-simple]:lang(en) .gd-rail .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
 }
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-actions__status:empty { display:none; }
@@ -531,7 +550,8 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-credits ul { display:flex; flex-direction:column; gap:var(--sp-3); margin:0; padding:0 0 var(--sp-2); list-style:none; }
 .gd-credits li { display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); font-size:var(--fs-meta); }
 .gd-credits__kind { color:var(--color-ink); font-weight:400; }
-.gd-credits__caption { flex-basis:100%; }
+/* The caption keeps its own line and the 30em caption measure (N05): the padding takes what the line has past 30em. */
+.gd-credits__caption { box-sizing:border-box; flex-basis:100%; padding-inline-end:max(0px, 100% - 30em); }
 .gd-credits a { display:inline-flex; align-items:center; gap:var(--sp-1); color:var(--color-brand); }
 .gd-article>.bl-guide-return { align-self:flex-start; margin-top:var(--sp-4); }
 
@@ -594,15 +614,17 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   .gd-title__head { font-size:var(--fs-display); line-height:var(--lh-display); }
   .gd-lead:not([data-scene3d]) .gd-cover.ui-cover { --ui-cover-ratio:16 / 7; }
   .gd-lead[data-scene3d] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--grid-gutter); align-items:start; }
+  .gd-lead[data-scene3d]>.gd-lead__story { grid-column:1 / -1; }
   /* The slides: one fixed-height row under 30 秒看懂 — two across (three from 1200 px), on the frame's gutter so each slide is
      whole grid columns — as tall as the tallest slide (at least 22.5rem): no 3:4 tower beside a long 30 秒看懂. */
   .gd-lead__story .ui-carousel__track { gap:var(--grid-gutter); margin:0; padding:0; scroll-padding-inline:0; }
   .gd-lead__story .ui-carousel__slide { flex:0 0 calc((100% - var(--grid-gutter)) / 2); }
   .gd-lead__story .gd-slide { min-height:22.5rem; }
-  /* In the one-height row a slide shorter than the tallest shares its spare height in two: above its content (under the
-     kicker) and above the source line, so no slide is half empty at its foot or, as the stretched cover was (follow-up 4),
-     at its top. The phone's 3:4 poster keeps its layout. */
+  /* In the one-height row a slide shorter than the tallest shares its spare height in three: above its content (under the
+     kicker), above the source line and after it, so no slide is half empty at its foot or, as the stretched cover was
+     (follow-up 4), at its top. The phone's 3:4 poster keeps its layout. */
   .gd-lead__story .gd-slide>.gd-slide__top+* { margin-top:auto; }
+  .gd-lead__story .gd-slide::after { content:""; margin-top:auto; }
 }
 @media (max-width:1023px) {
   .gd-to-top { bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); }
@@ -645,6 +667,11 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   html[data-simple] .gd-related__grid { display:none; }
   .gd-related__grid .ui-feed-grid { --ui-feed-ratio:3 / 2; }
   .gd-to-top { right:var(--sp-6); bottom:var(--sp-6); }
+}
+/* Up to ~1360 px 回到顶部 (bottom-right, 24 px in) sits over the rail column: the sticky stack ends 32 px above it, so the
+   button has a free corner under the 目录 (the 目录 scrolls inside the stack sooner). */
+@media (min-width:1024px) and (max-width:1365px) {
+  .gd-rail__inner { max-height:calc(100vh - var(--chrome-header-height, 4rem) - 3rem - var(--sp-6) * 3); }
 }
 @media (min-width:1200px) {
   .gd-lead__story .ui-carousel__slide { flex-basis:calc((100% - 2 * var(--grid-gutter)) / 3); }

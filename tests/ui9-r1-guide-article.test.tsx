@@ -124,6 +124,11 @@ test('N18 / N25 / J2 P14: one-row bar from 390 px in every mode, primary last, �
   const family = 'html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar';
   assert.equal(value(family, 'padding-inline', '(min-width:390px) and (max-width:1023px)'), 'var(--sp-1)');
   assert.equal(value(`${family}:has(.gd-bar__call[data-long])`, 'padding-inline', '(min-width:390px) and (max-width:1023px)'), '0');
+  // The short name BayBay in the phone bar only where one row has no room for 问 BayBay beside the number (390–429 px): not
+  // on the two-row bar below 390 px, not from 430 px or on a tablet (R2-GUIDE round 3: by room, not by mode).
+  const shortAt = new Set<string>();
+  article.walkDecls('display', d => { const rule = d.parent as Rule; if (d.value === 'inline' && /\[data-cell=ask\] \[data-label=tight\]/.test(rule.selector) && !/gd-rail/.test(rule.selector)) shortAt.add((rule.parent as AtRule).params); });
+  assert.deepEqual([...shortAt], ['(min-width:390px) and (max-width:429px)']);
 });
 
 test('Desktop rail: the three cells share one height and hold 问 BayBay / Ask BayBay on one line inside', () => {
@@ -137,6 +142,15 @@ test('Desktop rail: the three cells share one height and hold 问 BayBay / Ask B
   assert.equal(value(`${rail}>.detail-actions__cell[data-cell=save]>.saves-control`, 'display', desk), 'grid', 'the ♡ button fills its stretched cell');
   assert.equal(value(`${rail}>.detail-actions__cell[data-cell=save]>.saves-control`, 'align-items', desk), 'stretch', 'saves.css centres the ♡; the rail stretches it');
   assert.equal(value(`${rail} .detail-actions__cell[data-cell=ask] [data-label=long]`, 'white-space', desk), undefined, 'the rail lets no label wrap');
+  // R2-GUIDE round 3: the ask cell (an equal grid track) is a size container; where its content box is narrower than its
+  // label at its own size (4.66em 问 BayBay, 5.27em Ask BayBay: the 304 px rail at 1024 px in the large modes) it reads BayBay.
+  assert.equal(value(`${rail} .detail-actions__cell[data-cell=ask]`, 'container', desk), 'gd-ask / inline-size');
+  for (const [query, lang] of [['gd-ask (max-width:4.66em)', 'html:not(:lang(en))'], ['gd-ask (max-width:5.27em)', 'html:lang(en):not([data-reading=extra-large][data-simple])'], ['gd-ask (max-width:5.1em)', 'html[data-reading=extra-large][data-simple]:lang(en)']]) {
+    assert.equal(value(`${lang} ${rail} .detail-actions__cell[data-cell=ask] [data-label=long]`, 'display', query), 'none', query);
+    assert.equal(value(`${lang} ${rail} .detail-actions__cell[data-cell=ask] [data-label=tight]`, 'display', query), 'inline', query);
+  }
+  // Up to ~1360 px 回到顶部 sits over the rail column: the sticky stack ends above it.
+  assert.match(value('.gd-rail__inner', 'max-height', '(min-width:1024px) and (max-width:1365px)') ?? '', /- 3rem - var\(--sp-6\) \* 3\)$/);
   // The rail is the only place outside the elder modes and English phones where the cells give up DETAIL's fixed height.
   const heightAuto: string[] = [];
   article.walkDecls('height', d => { if (d.value === 'auto' && /detail-actions__cell/.test((d.parent as Rule).selector)) heightAuto.push(`${(d.parent!.parent as AtRule).params}`); });
