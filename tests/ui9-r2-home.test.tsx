@@ -14,7 +14,7 @@ const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
 const { ShareStrip } = await import('../src/features/home/ShareStrip');
 
 /** UI9-R2-HOME (round-2 cold review fix list): the home's tiles, desktop top grid, share strip, 3D tile, heading order,
- * tablet lead, phone first screen, 特大 ♡ and its text colours. The pixel and layout measures are in the lane's PR. */
+ * tablet lead, phone first screen, 大 / 特大 row ♡ (DECISIONS 44) and its text colours. The pixel and layout measures are in the lane's PR. */
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[]; feed: string[] }>;
 const today = Object.keys(snapshots).sort().find(day => snapshots[day].ids.length === 3 && snapshots[day].feed.length >= 4)!;
 const home = () => new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
@@ -129,9 +129,25 @@ test('N18 / R2-06 A P3: the phone lead\'s place and ✓ share a line; a portrait
   assert.equal(decls(`${lead} .ui-feed-card__save`, tablet)['grid-area'], '1 / 1 / 2 / 2', 'the ♡ stays on the picture\'s corner');
 });
 
-test('A1 / DECISIONS 20, 32: at 大 / 特大 a home row\'s ♡ sits on its thumbnail\'s top-right corner, FOUNDATION\'s one circle', () => {
+test('DECISIONS 44: at 大 / 特大 a home row\'s ♡ leaves the 112 px thumbnail for the row\'s edge under it; standard keeps A1, 简洁 none', () => {
   const rows = 'html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)';
-  assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { 'grid-area': '1 / 1 / 2 / 2', top: 'var(--sp-1)', right: 'var(--sp-1)' });
+  // Under the thumbnail: in the flow (not absolute over the picture), the picture's column, the row after the picture's five.
+  assert.deepEqual(decls(`${rows} .ui-feed-card__save`), { position: 'static', 'grid-area': '6 / 1 / 7 / 2', 'justify-self': 'start', 'margin-top': 'var(--sp-1)' });
+  assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media')['grid-area'], '1 / 1 / span 5', 'the picture spans rows 1-5 only, so row 6 is clear of it (0% covered)');
+  assert.equal(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card')['grid-template-columns'], '112px minmax(0, 1fr)', 'the ♡\'s column is the 112 px thumbnail\'s: the words keep the row\'s width');
+  // No top / right offsets left at 大 / 特大 (they would only apply to an absolute ♡ on the picture).
+  postcss.parse(CSS).walkRules(rule => {
+    if (/data-reading\$=large/.test(rule.selector) && /\.ui-feed-card__save/.test(rule.selector)) rule.walkDecls(d => assert.ok(!['top', 'right'].includes(d.prop), `${rule.selector} sets ${d.prop}`));
+  });
+  // Standard size: the A1 corner of cards.css (absolute, top-right of the picture); 简洁: no ♡ on the home picks.
+  const cards = fs.readFileSync('src/components/ui/cards.css', 'utf8');
+  assert.match(cards, /\.ui-feed-card__save \{ position:absolute; top:var\(--sp-1\); right:var\(--sp-1\); z-index:3; \}/);
+  assert.equal(decls('html[data-simple] .home-picks .ui-feed-card__save').display, 'none');
+  // The target is FOUNDATION's one circle: --control-height, ≥ 44 px at every size (55 at 特大).
+  assert.match(fs.readFileSync('src/features/saves/saves.css', 'utf8'), /\.ui-row-card__save\) \.saves-control \.saves-toggle \{[^}]*width:var\(--control-height\)!important;/);
+});
+
+test('A1 / DECISIONS 20, 32: the home rows\' ♡ is FOUNDATION\'s one circle (no home size)', () => {
   assert.deepEqual(decls(':is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media'), { 'grid-area': '1 / 1 / span 5', margin: '0' });
   // No home size, ring or row height for it: the circle is saves.css's (--control-height: 44 px, 55 at 特大), the row as tall as its words or its picture.
   assert.doesNotMatch(CSS, /saves-toggle|min-height:calc\(112px/);

@@ -98,7 +98,8 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a ro
   const home = readFileSync('src/components/home-discovery.css', 'utf8');
   // The A1 contract (DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), as on the /events rows. Its size is
   // UI9-R2-FOUNDATION's one circle (saves.css, --control-height): UI9-R2-HOME dropped the home's 36 px circle and its 44 px ring.
-  assert.match(home, /\.ui-feed-card__save \{ grid-area:1 \/ 1 \/ 2 \/ 2; top:var\(--sp-1\); right:var\(--sp-1\); \}/, 'home 大 / 特大 rows: ♡ on the thumbnail');
+  // DECISIONS 44 (owner, 10-23): at 大 / 特大 the ♡ leaves the 112 px thumbnail and sits under it (0% of the picture covered).
+  assert.match(home, /\.ui-feed-card__save \{ position:static; grid-area:6 \/ 1 \/ 7 \/ 2; justify-self:start; margin-top:var\(--sp-1\); \}/, 'home 大 / 特大 rows: ♡ under the thumbnail');
   assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');
   assert.doesNotMatch(home, /36px|saves-toggle/, 'no home size for the ♡');
   const events = readFileSync('src/features/events/events.css', 'utf8');

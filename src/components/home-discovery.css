@@ -224,16 +224,16 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 }
 
 /* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
-   guides — a 112 px thumbnail, the text beside it, ♡ on the thumbnail (not in 简洁, decision 16). */
+   guides — a 112 px thumbnail, the text beside it, ♡ under the thumbnail (not in 简洁, decision 16). */
 :is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
-/* 大 / 特大 rows: the ♡ sits on the 112 px thumbnail's top-right corner, as on every card and on the /events rows (the A1
-   contract, DECISIONS 20 / 32: on the picture only the ♡ top-right and one label), never over the title, which keeps the
-   row's width. Its size is UI9-R2-FOUNDATION's one circle (saves.css: --control-height, 44 px; 55 px at 特大), so no
-   home size is left here (N22: at 特大 it covers 19% of the 112 px picture; UI9-R2-HOME's PR measures the options). The
-   row is a grid, so the ♡ takes the picture's grid area as its containing block. */
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 2 / 2; top:var(--sp-1); right:var(--sp-1); }
+/* 大 / 特大 rows (DECISIONS 44): the ♡ leaves the 112 px thumbnail and sits under it, at the row's start edge, so none of
+   the picture is covered and the words keep the row's width — as on the /events rows. Its size is UI9-R2-FOUNDATION's one
+   circle (saves.css: --control-height, 44 px; 55 px at 特大), so no home size is left here. The thumbnail spans the five
+   word rows, so the ♡ takes the sixth row of the picture's column (a grid item: in the flow, still above the card link). The
+   standard size keeps it on the picture's top-right corner (A1); 简洁 has none (decision 16). */
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { position:static; grid-area:6 / 1 / 7 / 2; justify-self:start; margin-top:var(--sp-1); }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
 html[data-simple] .home-picks .ui-feed-card__save { display:none; }
