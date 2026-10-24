@@ -116,7 +116,9 @@ test('N18 / R2-06 A P3: the phone lead\'s place and ✓ share a line; a portrait
   const phone = '(max-width:767px)';
   const lead = 'html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child';
   assert.equal(decls(`${lead} .ui-feed-card`, phone)['flex-flow'], 'row wrap');
-  assert.deepEqual(decls(`${lead} .ui-feed-card>.ui-feed-card__meta`, phone), { flex: '0 1 auto', 'max-width': 'calc(100% - 11rem)' });
+  // Every other line is a full line; the place and the ✓ keep the initial flex (0 1 auto) and share one.
+  assert.equal(decls(`${lead} .ui-feed-card>:not(.ui-feed-card__meta,.ui-feed-card__trust)`, phone).flex, '0 0 100%');
+  assert.deepEqual(decls(`${lead} .ui-feed-card>.ui-feed-card__meta`, phone), { 'max-width': 'calc(100% - 11rem)' });
   assert.equal(decls(`${lead} .ui-feed-card>.ui-feed-card__media`, phone)['flex-basis'], 'calc(100% + 32px)', 'the lead stays full-bleed');
   const tablet = '(min-width:768px) and (max-width:1023px)';
   assert.equal(decls(`${lead} .ui-feed-card`, tablet)['grid-template-columns'], 'minmax(0, 7fr) minmax(0, 5fr)');
