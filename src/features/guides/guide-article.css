@@ -9,6 +9,9 @@
    on 9–12 (the action card and the 目录, one sticky stack to the end of the sources); related and credits on 1–12 again. At
    1440 the body is 112–915 and the rail 938–1328. */
 .gd-article.bl-guide-article { box-sizing:content-box; display:flex; flex-direction:column; max-width:var(--container-wide); margin:0 auto; padding:var(--sp-3) var(--page-gutter) var(--sp-6); }
+/* N05 (UI9-R2-GUIDE): an article's Chinese reading measure is 32em — a Chinese line ≤ 32 characters and a mixed one (Latin
+   names are about half an em) ≤ 40; English keeps the site's 50ch. */
+.gd-article.bl-guide-article:not(:lang(en)) { --measure:32em; }
 .gd-article>* { min-width:0; }
 .gd-page.bl-guide-detail { padding-bottom:0; }
 /* N13: three icon sizes on an article — 1rem beside text (links, chips, meta), 1.25rem in buttons and controls, 1.5rem in the
@@ -50,7 +53,8 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 .gd-cover-figure { margin:0; }
 /* G13 / N04: one credit line under a guide photo — credit · licence (never on a 3D postcard), at the caption step. */
 .gd-credit { display:flex; flex-wrap:wrap; margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-ui); }
-.gd-credit>span+span::before { content:"·"; padding-inline:var(--sp-1); }
+/* N06: the "·" ends the item before it, so a wrapped credit line never starts with one. */
+.gd-credit>span:not(:last-child)::after { content:"·"; padding-inline:var(--sp-1); }
 .gd-credit a { color:inherit; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-summary p { margin:0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); }
 .gd-summary .gd-summary__audience { margin-top:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -88,6 +92,13 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
    height and their labels one line; at 大 / 特大 / 简洁 the cells grow past 56 px to hold the otter and the label, and the
    bar's height token holds the otter (1.5rem), one line of --fs-meta and the cells' and the bar's 4 px paddings. */
 html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell [data-label] { white-space:nowrap; }
+/* At 特大 (and 家人版) a 1-800 number (data-long) needs the row's last ~30 px: there the ask cell reads BayBay beside the
+   otter, its short name (DECISIONS 18: 问 BayBay wherever there is room; its accessible name stays 问 BayBay 这一页), so the
+   number keeps one line inside its button. */
+@media (max-width:1023px) {
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=long] { display:none; }
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar:has(.gd-bar__call[data-long]) .detail-actions__cell[data-cell=ask] [data-label=tight] { display:inline; }
+}
 @media (min-width:390px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { height:auto; min-height:56px; padding-block:var(--sp-1); line-height:var(--lh-tight); }
 }
@@ -198,12 +209,14 @@ html:not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]
 .gd-slide__phone-number { font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:400; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-section); }
 .gd-slide__source { margin:auto 0 0; padding-top:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+/* A wider slide (tablet and desktop rows): the titles take the section step, the body the reading step. N01: the cover title
+   and a big number stay on the section step too (no 32 px step beside the 44 px H1), and the key fact under the title keeps
+   the card step, so the title still leads. */
 @container (min-width:23rem) {
-  .gd-slide__cover-title { font-size:var(--fs-title); }
-  .gd-answer { font-size:var(--fs-section); }
+  .gd-slide__cover-title { font-size:var(--fs-section); }
   .gd-slide__title { font-size:var(--fs-section); }
   .gd-slide__body { font-size:var(--fs-reading); }
-  .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-title); }
+  .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-section); }
 }
 /* H67 (GR-12): 48px previous / next buttons on touch phones too, not only swipe. J2 P19: on every screen they sit under the
    slide beside the dots and the counter, never over the slide's corner. */
@@ -566,6 +579,10 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) :is(.gd-step__more,.gd-step>.bl-guide-prose) { margin-left:0; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-step__head { flex-direction:column; gap:var(--sp-2); }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-step__head h2 { margin-top:0; }
+  /* 家人版: the step heading reads at the section step (30 px, as 特大's) instead of the kept 24 step (35 px), so a 20-character
+     heading keeps two lines at 390 px; it is still 1.33× the step's conclusion (22.5 px, N02) and larger than any line in
+     the step until its original text is unfolded. */
+  html[data-reading=extra-large][data-simple] .gd-article .gd-step__head h2 { font-size:var(--fs-section); }
 }
 
 @media (min-width:768px) {
