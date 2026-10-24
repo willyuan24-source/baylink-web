@@ -54,11 +54,12 @@ function OfferMeta({ offer, today }: { offer: IndexOffer; today: string }) {
   // The brand's own " · " ("Muir Woods · Marin") is glued too, so no wrapped line starts with "·" (N06).
   const brand = glueSeparators(offerBrandLine(offer.brand, locale));
   const chip = offerChip(offer, today);
-  // The brand and its separator are one element (.ui-meta-place): on a card's one-line meta it gives way with "…" and steps
-  // aside where fewer than about 4 characters would show (events.css), so a card never ends in "· T…".
+  // Two pieces on a card's one-line meta (events.css): the chip with what the offer asks of you (.ui-meta-lead), which
+  // stays on the line and ends in "…" only when it alone is too long, so the condition is never hidden; then the brand
+  // and its separator (.ui-meta-place), which gives way with "…" and steps aside where fewer than about 4 characters
+  // would show, so a card never ends in "· T…".
   return <>
-    {chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}
-    {pick(offerCondition(offer))}
+    <span className="ui-meta-lead">{chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}{pick(offerCondition(offer))}</span>
     {brand && <span className="ui-meta-place">{SEP}<span translate="no">{brand}</span></span>}
   </>;
 }

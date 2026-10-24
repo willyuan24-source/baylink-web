@@ -1,5 +1,5 @@
 import { Suspense, useDeferredValue, useEffect, useRef, useState, type ReactNode } from 'react';
-import { carryHeight, takeCarriedHeight, useViewHold } from './view-hold';
+import { carryHeight, useCarriedHeight, useViewHold } from './view-hold';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { PageContainer, SegmentedTabs, SkeletonFeed } from '../../components/ui';
 import { MoreLink } from '../../components/ui/TextLink';
@@ -112,7 +112,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   // N24 across the two routes (/calendar ↔ /events): a click in the column records its body's height (before a link
   // navigates: the next page renders before this one unmounts), and a frame that mounts a moment later holds that height
   // under its loading skeleton while its board loads (the Suspense fallback below), so the page does not drop to 550 px.
-  const [carried] = useState(takeCarriedHeight);
+  const carried = useCarriedHeight();
   let body: ReactNode;
   if (shown === 'list') body = list?.({ today, filters, defaultWhen }) ?? null;
   else if (shown === 'calendar') body = calendar!(today);

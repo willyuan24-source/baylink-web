@@ -126,9 +126,12 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-page .ui-row-card__
 .ev-rail::-webkit-scrollbar { display:none; }
 /* UI9-R2 R2-12: on a standard phone the filters are ONE sideways row — the regions join it as 整个湾区 ▾ (the 筛选 sheet
    holds them, as at 大 / 特大), rail 2 steps aside — and the row's right edge fades, so a chip running out of view says the
-   row goes on (the end padding lets the last chip clear the fade). The calendar's cities and the boards' conditions too. */
-@media (max-width:767px) {
+   row goes on (the end padding lets the last chip clear the fade). The calendar's cities and the boards' conditions too,
+   and on a tablet, where the rail still scrolls (it wraps from 1024px). */
+@media (max-width:1023px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page :is(.ev-rail,.ev-cities,.fb-kinds) { padding-inline-end:var(--sp-7); mask-image:linear-gradient(90deg, rgb(0 0 0) calc(100% - var(--sp-7)), transparent); }
+}
+@media (max-width:767px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page .ev-regions { display:none; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-page .ev-region-chip { display:inline-flex; }
 }
@@ -171,6 +174,9 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
    the place). The line keeps its one-line height. */
 .ev-page .ui-feed-card__meta { display:flex; flex-wrap:wrap; align-items:baseline; max-height:calc(var(--lh-ui) * 1em); }
 .ev-page .ui-feed-card__meta>.ui-meta-place { flex:1 1 4.5em; min-width:4.5em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* The piece before it (an offer's chip and what the offer asks, OfferMeta; an event's price words) is placed at most the
+   line's width, so it never wraps away with the place: it ends in "…" only when it alone is too long. */
+.ev-page .ui-feed-card__meta>:is(.ui-meta-lead,.ui-meta-price) { flex:0 1 auto; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* The feed: 3:2 covers on /events and /calendar, 3-up at span 4 on desktop (FeedGrid's defaults stay for other pages);
    the date lists group the cards under day subheads. The boards' own "没有照片的条目…" line is said once in 本页图片来源. */
@@ -333,8 +339,9 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
    meta, so no control sits on a picture; a day with one event shows its card phone-wide at 2:1. From 768px the lead takes
    the full width on a tablet (16:9, at most 40% of the window tall: R2-02) and span 6 beside the first four rows on
    desktop (3:2), its pill beside the title; the other cards are restyled as rows (a 112px 4:3 thumbnail, the title and
-   the 3 lines, the pill at the row's end), two columns of rows. 12 at a time after the lead. */
-.ev-calendar__cards .ui-feed-card__save { position:static; align-self:flex-start; margin-top:var(--sp-1); }
+   the 3 lines, the pill at the row's end), two columns of rows. 12 at a time after the lead. A past day has no 加入: its
+   cards keep ♡ on the picture's top-right corner (A1), a row's on its thumbnail (the save slot takes the media area). */
+.ev-calendar__cards .ev-card--action>.ui-feed-card__save { position:static; align-self:flex-start; margin-top:var(--sp-1); }
 @media (max-width:767px) {
   .ev-calendar__cards { margin:0 0 var(--sp-2); }
   /* Two up on every phone, 360 px too (the feed grid's one-column rule below a 340 px container would leave no whole card
@@ -347,13 +354,14 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
   .ev-calendar__cards .ui-feed-grid>li:first-child { grid-column:1 / -1; margin-bottom:var(--sp-3); }
   /* The lead: its pill at the caption's trailing end, beside the title and line 1. */
   .ev-calendar__cards .ui-feed-grid>li:first-child>.ui-feed-card { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"media media" "title add" "when add" "meta meta" "trust trust"; column-gap:var(--sp-3); row-gap:var(--sp-1); align-items:start; }
-  .ev-calendar__cards .ui-feed-grid>li:first-child>.ui-feed-card>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
+  .ev-calendar__cards .ui-feed-grid>li:first-child>.ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
   /* The rows: the same card, a 112px 4:3 thumbnail on the left, the pill at the row's end. */
   .ev-calendar__cards .ui-feed-grid>li+li { --ui-feed-ratio:4 / 3; }
   .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card { display:grid; grid-template-columns:7rem minmax(0, 1fr) auto; grid-template-areas:"media title add" "media when add" "media meta add" "media trust add"; grid-template-rows:auto auto auto 1fr; column-gap:var(--sp-3); row-gap:var(--sp-1); align-items:start; padding:var(--sp-3) 0; border-bottom:1px solid var(--color-line); }
   .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card>.ui-feed-card__media { width:7rem; margin:0; border-radius:var(--r-md); }
   .ev-calendar__cards .ui-feed-grid>li+li .ui-cover { border-radius:var(--r-md); }
-  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; margin:0; }
+  .ev-calendar__cards .ui-feed-grid>li+li>.ui-feed-card:not(.ev-card--action)>.ui-feed-card__save { grid-area:media; }
   .ev-calendar__cards .ui-feed-grid>li+li .ui-card-link::after { inset:0; border-radius:var(--r-md); }
   .ev-calendar__cards .ui-feed-card>.ui-feed-card__media { grid-area:media; }
   .ev-calendar__cards .ui-feed-card>.ui-feed-card__title { grid-area:title; }

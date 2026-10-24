@@ -41,8 +41,20 @@ let carried = { height: 0, at: 0 };
 export function carryHeight(body: HTMLElement | null) {
   carried = { height: body?.offsetHeight ?? 0, at: Date.now() };
 }
-export function takeCarriedHeight(): number {
+/** The carried height, or 0 once CARRY_MS has passed (a later visit, or no click in the column). */
+export function peekCarriedHeight(): number {
   const { height, at } = carried;
-  carried = { height: 0, at: 0 };
   return height && Date.now() - at < CARRY_MS ? height : 0;
+}
+export function dropCarriedHeight() {
+  carried = { height: 0, at: 0 };
+}
+/**
+ * The height a frame that mounts now holds under its loading skeleton (0: none). It is read in render without changing
+ * anything (StrictMode may render twice) and dropped after the frame mounts, so the next route starts fresh.
+ */
+export function useCarriedHeight(): number {
+  const [height] = useState(peekCarriedHeight);
+  useEffect(() => { dropCarriedHeight(); }, []);
+  return height;
 }

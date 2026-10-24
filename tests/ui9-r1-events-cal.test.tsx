@@ -66,7 +66,7 @@ test('the calendar\'s 加入这天计划 is one 加入 pill on every listed even
   assert.match(pill, /border-color:transparent/);
   assert.match(pill, /min-width:var\(--control-height\); min-height:var\(--control-height\)/);
   assert.doesNotMatch(css, /saves-add-day__word \{ display:none; \}/);
-  assert.match(rule('.ev-calendar__cards .ui-feed-card__save'), /position:static;/);
+  assert.match(rule('.ev-calendar__cards .ev-card--action>.ui-feed-card__save'), /position:static;/);
   assert.match(rule('.ev-calendar__rows>.ui-row-card.ev-card--action'), /grid-template-areas:"thumb body" "thumb trailing";/);
   assert.doesNotMatch(css, /width:36px/, 'no 36 px control left on the calendar (INT10: 36 × 36 加入 on phone rows)');
   assert.doesNotMatch(css, /\.ev-calendar \.ev-add-day \.saves-add-day \{/, 'the old outline-pill override is gone');
