@@ -28,7 +28,10 @@
 .nf-link-icon>svg{width:1.25rem;height:1.25rem}
 .nf-links strong{display:block;font-size:var(--fs-body);line-height:var(--lh-snug);font-weight:var(--fw-regular)}
 .nf-links small{display:block;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-snug)}
-.nf-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--section-gap) 0 var(--sp-2)}
+.nf-help{margin-top:var(--section-gap)}
+.nf-help>h2{margin:0;color:var(--color-ink);font-size:var(--fs-card);line-height:var(--lh-snug);font-weight:var(--fw-strong);letter-spacing:0}
+.nf-help>p{margin:var(--sp-1) 0 0;color:var(--color-ink-2);font-size:var(--fs-body);line-height:var(--lh-ui)}
+.nf-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--sp-4) 0 var(--sp-2)}
 /* 反馈与报错 is a lazy link (LazyFeedbackLink, nothing in the prerender): its 44px row is held from the first paint, so on a
    phone, where the page is taller than the window, the footer does not drop 42px when the link arrives (UI9-R1 polish). */
 .nf-feedback{display:flex;min-height:var(--control-height)}
@@ -37,3 +40,11 @@
 /* Desktop: the four places are the page's main content, so their cards get room (88 tall, 2 x 2 in columns 1-8); that also
    fills a 1440 x 900 window down to 64 above the footer instead of leaving the chrome's blank there (N15). */
 @media(min-width:1024px){.nf-page{padding-top:var(--sp-6)}.nf-hero h1{font-size:var(--fs-title)}.nf-links a{min-height:5.5rem}}
+/* Desktop: the 12-column frame — the search and the four places in columns 1-8, 还是没找到？ as the side card in 9-12 (the
+   /about aside's look: sunken ground, the panel inset, the large corner), level with the H1. */
+@media(min-width:1024px){
+  .nf-page{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gutter);align-items:start}
+  .nf-page>*{max-width:none}
+  .nf-hero,.nf-links{grid-column:1 / span 8}
+  .nf-help{grid-column:9 / span 4;grid-row:1 / span 2;margin-top:0;padding:var(--inset-panel);border-radius:var(--r-lg);background:var(--color-surface-2)}
+}

@@ -11,7 +11,8 @@ import '../components/not-found.css';
 /**
  * A friendly 404 in three languages (WEB-SECONDARY-B; UI9-NAV content arrangement §9): on the 1216 frame at x = 112, left
  * aligned in columns 1-8 — "404" as a 14px caption, the H1, one help line, a search, the four places people usually want
- * (2 x 2 on a desktop), 回到首页 / 问 BayBay, 反馈与报错. No illustration (P32).
+ * (2 x 2 on a desktop) — and 还是没找到？ with 回到首页 / 问 BayBay and 反馈与报错 as a side card in columns 9-12 on a desktop
+ * (UI9-R2-ACCOUNT-UTILITY), below the four on a phone. No illustration (P32).
  * The event, offer, opening and guide pages render it for a missing id, so it stays inside their budgeted JS graphs: its
  * only primitive is the site Button (UI9-R1 N12), which those pages already load; not-found.css draws the rest with tokens.
  */
@@ -51,11 +52,17 @@ export default function NotFoundPage() {
         {links.map(({ to, icon: Icon, label, note }) => <li key={to}><Link to={to}><span className="nf-link-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span><span><strong>{label}</strong><small>{note}</small></span></Link></li>)}
       </ul>
     </nav>
-    <div className="nf-actions">
-      <Button to="/">{t('回到首页', 'Back to home')}</Button>
-      {app?.openBayBay && <Button onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button>}
-    </div>
-    {/* A broken link someone followed is exactly what we want to hear about. */}
-    <div className="nf-feedback"><LazyFeedbackLink /></div>
+    {/* The way on when none of the four fits: a side card in columns 9-12 on a desktop, level with the H1 (R2-15: the page
+        no longer leaves the right 40% blank), under the four places on a phone. */}
+    <aside className="nf-help" aria-labelledby="nf-help-title">
+      <h2 id="nf-help-title">{t('还是没找到？', 'Still not finding it?')}</h2>
+      <p>{t('可以问 BayBay，或回到首页重新找。', 'Ask BayBay, or start again from the home page.')}</p>
+      <div className="nf-actions">
+        <Button to="/">{t('回到首页', 'Back to home')}</Button>
+        {app?.openBayBay && <Button onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button>}
+      </div>
+      {/* A broken link someone followed is exactly what we want to hear about. */}
+      <div className="nf-feedback"><LazyFeedbackLink /></div>
+    </aside>
   </div>;
 }

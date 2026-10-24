@@ -1,13 +1,15 @@
 /* About and 我们怎么核对 (/about; UI9-NAV, content arrangement §8): the 1216 frame (content at x = 112 in a 1440 window),
-   the reading column in grid columns 1-8 at the measure (36em CJK, 66ch Latin), 联系与反馈 as an aside in columns 9-12
-   level with the H1; sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. The page ends 32px (phone) / 40px
+   the H1 block in grid columns 1-8, 联系与反馈 as an aside in columns 9-12 level with the H1; below them the sections span
+   the frame on a desktop (UI9-R2-ACCOUNT-UTILITY: 我们怎么核对 and the image labels in two columns, 能帮你做什么 in three,
+   so the page no longer reads as one narrow column beside 40% blank; every text line stays at the measure); sections 40 apart on a phone and 64 on a desktop, 16 / 24 inside. The page ends 32px (phone) / 40px
    (desktop) above the footer, so the blank above it reads 55-61 / 54-58 with the chrome's 12px footer step (UI9-R1 N15,
    CHROME's 52-64 band; 32 left the desktop at 46-50). Links read the underline tokens (N13). Tokens only. */
 .about-page{padding-block:var(--sp-5) var(--sp-6);color:var(--color-ink);overflow-wrap:anywhere}
 .about-page .ui-page-header{margin-bottom:0}
 .about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline var(--underline-thickness);text-decoration-color:var(--color-line-strong);text-underline-offset:var(--underline-offset);text-decoration-skip-ink:none}
 .about-layout{display:grid;gap:var(--section-gap)}
-.about-main{display:grid;gap:var(--section-gap);min-width:0}
+.about-head,.about-main{min-width:0}
+.about-main{display:grid;gap:var(--section-gap)}
 .about-section>h2{margin:0 0 var(--stack-head);color:var(--color-ink);font-size:var(--fs-keep-20);line-height:var(--lh-tight);font-weight:var(--fw-strong);letter-spacing:0;text-wrap:balance}
 .about-section>p{max-width:var(--measure);margin:var(--sp-3) 0 0;color:var(--color-ink-2);font-size:var(--fs-body);line-height:var(--lh-ui)}
 .about-list{margin:0;padding:0;list-style:none}
@@ -38,7 +40,15 @@ html[data-simple] .about-more{display:none}
 @media(min-width:1024px){
   .about-page{padding-block:var(--sp-6) calc(var(--sp-6) + var(--sp-2))}
   .about-layout{grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--grid-gutter);align-items:start}
-  .about-main{grid-column:1 / span 8;grid-row:1}
+  .about-head{grid-column:1 / span 8;grid-row:1}
+  .about-main{grid-column:1 / -1;grid-row:2}
+  /* Columns of rows: each row keeps its top rule (an editorial column head), none under the last row. */
+  .about-list[data-columns]{display:grid;grid-template-columns:repeat(var(--about-cols),minmax(0,1fr));column-gap:var(--grid-gutter)}
+  .about-list[data-columns="2"]{--about-cols:2}
+  .about-list[data-columns="3"]{--about-cols:3}
+  .about-list[data-columns]>li:last-child{border-bottom:0}
+  .about-list[data-columns]>li{padding-block:var(--sp-4)}
+  .about-labels{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--grid-gutter);row-gap:var(--sp-4);max-width:none}
   /* Level with the H1: the breadcrumb line above it is the aside's top margin. */
   .about-aside{grid-column:9 / span 4;grid-row:1;margin-top:calc(var(--fs-badge) * 1.385 + var(--sp-2));padding:var(--inset-panel);border-radius:var(--r-lg);background:var(--color-surface-2)}
   .about-section>h2{font-size:var(--fs-section)}

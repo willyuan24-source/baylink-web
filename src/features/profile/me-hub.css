@@ -132,11 +132,34 @@ html[data-simple] .me-language button { min-height:3.75rem; }
   .me-guest-card>:not(.ui-button) { grid-column:1; }
   .me-guest-card>.ui-button { grid-column:2; grid-row:1 / span 2; }
 }
-/* The account pages' first paint (components/AccountShell.tsx: /me, /me/bookings, /my-week, /messages, /together). It is
-   prerendered for /me, so account-shell.html links this stylesheet (UI9-R1 J1 P21 / J3 P23): a title bar above its
-   skeleton rows, and the window's height, so the footer stays below the fold until the page arrives. */
+/* The account pages' first paint (components/AccountShell.tsx; one prerendered file per shape, src/app/account-shell.ts,
+   each rendered for /me, so every shell links this stylesheet; UI9-R1 J1 P21 / J3 P23): placeholders shaped like the page
+   that arrives (DECISIONS 41: /me's band, head and four tiles; /my-week's sections and picture strip; /together's band,
+   head and search row; the list pages' rows), on the pages' frame and at their sizes, and the window's height, so the
+   footer stays below the fold until the page arrives. The shimmer is ui.css .ui-skeleton (none under reduced motion). */
 .account-shell { min-height:100svh; padding-block:var(--sp-5); }
-.account-shell::before { content:""; display:block; width:min(14rem, 60%); height:calc(var(--text-title) * 1.25); margin-bottom:var(--sp-4); border-radius:var(--r-sm); background:var(--color-surface-2); }
 @media (min-width:768px) { .account-shell { padding-top:var(--sp-6); } }
+.account-shell__block { margin-bottom:var(--sp-4); }
+.account-shell__block[data-block=band] { aspect-ratio:3 / 1; border-radius:var(--r-lg); margin-bottom:var(--sp-5); }
+@media (min-width:768px) { .account-shell__block[data-block=band] { aspect-ratio:6 / 1; } }
+.account-shell__block[data-block=title] { width:min(14rem, 60%); height:calc(var(--text-title) * 1.25); margin-bottom:var(--sp-2); }
+.account-shell__block[data-block=line] { width:min(22rem, 80%); height:var(--text-fact); }
+.account-shell__block[data-block=lede] { width:min(36rem, 100%); height:calc(var(--text-body) * 3.25); }
+.account-shell__block:is([data-block=notice],[data-block=empty]) { height:calc(var(--text-body) * 1.625 + 2 * var(--sp-4)); border-radius:var(--r-md); }
+.account-shell__block[data-block=section] { width:min(10rem, 50%); height:calc(var(--text-section) * 1.25); margin-top:var(--section-gap); margin-bottom:var(--sp-3); }
+.account-shell__block[data-block=list] { height:calc(3 * 3.75rem); border-radius:var(--r-lg); }
+.account-shell__block[data-block=state] { height:20rem; border-radius:var(--r-lg); }
+.account-shell__head { display:grid; grid-template-columns:auto minmax(0, 1fr); align-items:center; gap:var(--sp-4); margin-bottom:var(--sp-5); }
+.account-shell__head .account-shell__block[data-block=title] { margin-top:0; }
+.account-shell__head .account-shell__block[data-block=line] { margin-bottom:0; }
+.account-shell__block[data-block=avatar] { width:4.5rem; height:4.5rem; margin:0; border-radius:var(--r-circle); }
+.account-shell__tiles { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3); }
+.account-shell__tiles>.account-shell__block { height:7.5rem; margin:0; border-radius:var(--r-lg); }
+.account-shell__bar { display:grid; grid-template-columns:minmax(0, 1fr) 6rem; gap:var(--sp-3); margin:var(--sp-5) 0; }
+.account-shell__bar>.account-shell__block { height:var(--control-height); margin:0; border-radius:var(--r-md); }
+.account-shell__bar>[data-block=chip] { border-radius:var(--r-pill); }
+.account-shell__feed { margin-top:var(--sp-4); }
+@media (min-width:768px) { .account-shell__tiles { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
+@media (min-width:1024px) { .account-shell__tiles { column-gap:var(--grid-gutter); } }
 /* Large Aa on a phone: one tile per row, so the labels never squeeze (D9). */
 @media (max-width:767px) { html:is([data-reading=extra-large],[data-simple]) .me-tiles { grid-template-columns:minmax(0, 1fr); } }

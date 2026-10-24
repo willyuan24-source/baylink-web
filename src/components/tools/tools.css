@@ -4,20 +4,24 @@
    this file only lays them out (UI9-R1-TOOLS). */
 .tools-page{padding-block:24px 48px;color:var(--color-ink)}
 .tools-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
-/* Two-up on a phone; one column at 大 / 特大 / 简洁显示 on a phone (--feed-cols, tokens.css, D9), where a tile reads as a row. */
-.tools-picker ul{display:grid;grid-template-columns:repeat(var(--feed-cols),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
-.tools-picker-item{display:flex;flex-direction:column;align-items:flex-start;gap:8px;height:100%;min-height:4rem;padding:12px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
-.tools-picker-icon{display:grid;place-items:center;flex:none;width:2.25rem;height:2.25rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
+/* Phone and tablet (UI9-R2-ACCOUNT-UTILITY, R2-15: the 2-up tiles read pale and generic): one grouped list, the /me
+   settings list's look (one card, rows on a hairline), each row the tool's 40px icon in its tinted circle beside its two
+   lines (name, what it does), in every reading mode. A desktop keeps the side list (below). */
+.tools-picker ul{display:grid;grid-template-columns:minmax(0,1fr);gap:0;margin:0;padding:0;list-style:none;border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface);overflow:hidden}
+.tools-picker li+li{border-top:1px solid var(--color-line)}
+.tools-picker-item{display:flex;flex-direction:row;align-items:center;gap:12px;height:100%;min-height:4.5rem;padding:12px 16px;color:var(--color-ink);text-decoration:none}
+.tools-picker-icon{display:grid;place-items:center;flex:none;width:2.5rem;height:2.5rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 /* The open tool is the one selected look site-wide (--selected-*: ink fill, white text). A phone at rest (no ?tool=) has
    no open tool: ToolsHub sets data-rest and no aria-current, and the workspace waits below until a tile is tapped. */
 .tools-picker-item[aria-current=page]{border-color:var(--selected-line);background:var(--selected-bg);color:var(--selected-fg)}
 .tools-picker-item[aria-current=page] .tools-picker-icon{background:var(--color-surface)}
 .tools-picker-item[aria-current=page] .tools-picker-text :is(small,.tools-picker-tag){color:var(--selected-fg)}
-@media (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current]):hover{border-color:var(--color-line-strong)}}
-.tools-picker-icon>svg{width:1.25rem;height:1.25rem}
+@media (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current]):hover{background:var(--color-surface-2)}}
+.tools-picker-item:active{background:var(--color-surface-2)}
+.tools-picker-icon>svg{width:1.375rem;height:1.375rem}
 .tools-picker-text{display:flex;flex-direction:column;gap:4px;min-width:0}
 .tools-picker-text strong{font-size:var(--text-body);line-height:1.4;font-weight:600}
-.tools-picker-text small{color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.5}
+.tools-picker-text small{color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5}
 .tools-picker-tag{display:none;color:var(--color-ink-3);font-size:var(--text-fact);line-height:var(--lh-ui)}
 .tool-workspace{scroll-margin-top:16px;overflow:hidden;border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
 .tool-workspace-header{display:flex;align-items:flex-start;gap:12px;padding:24px 24px 16px;border-bottom:1px solid var(--color-line)}
@@ -105,8 +109,9 @@
 @media(min-width:1024px){
   .tools-layout{grid-template-columns:17rem minmax(0,1fr);gap:32px}
   .tools-picker{position:sticky;top:5.5rem}
-  .tools-picker ul{grid-template-columns:minmax(0,1fr);gap:4px}
-  .tools-picker-item{flex-direction:row;align-items:center;gap:12px;min-height:3.5rem;padding:12px 12px;border-color:transparent;background:none}
+  .tools-picker ul{gap:4px;border:0;border-radius:0;background:none;overflow:visible}
+  .tools-picker li+li{border-top:0}
+  .tools-picker-item{min-height:3.5rem;padding:12px 12px;border:1px solid transparent;border-radius:var(--r-md);background:none}
   /* A desktop always shows a tool beside the list: at rest the first one is open, so it takes the selected look too. */
   .tools-layout[data-rest] .tools-picker-item[data-open]{border-color:var(--selected-line);background:var(--selected-bg);color:var(--selected-fg)}
   .tools-layout[data-rest] .tools-picker-item[data-open] .tools-picker-icon{background:var(--color-surface)}
@@ -118,7 +123,6 @@
 }
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current],[data-open]):hover{border-color:transparent;background:var(--color-surface-2)}}
 @media(max-width:1023px){.tools-layout[data-rest] .tool-workspace{display:none}}
-@media(max-width:767px){html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item{flex-direction:row;align-items:center;gap:12px}}
 @media(max-width:639px){
   .tools-page{padding-top:16px}
   .tool-grid{grid-template-columns:1fr;gap:16px}
