@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button, EmptyState, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -63,7 +62,7 @@ export default function OpeningsView({ today, region }: { today: string; region:
     })}</div> : <EmptyState headingLevel="h3" title={t('这个地区暂时没有新店', 'No new shops here yet')} body={t('换个地区再看看。', 'Try another region.')}
       actions={<Button variant="primary" onClick={() => setRegion('all')}>{t(`看整个湾区的新店（${INDEX_OPENINGS.length}）`, `Show the whole Bay Area (${INDEX_OPENINGS.length})`)}</Button>} />}
     <NextCard label={t('新店指南', 'New shop guide')}>
-      <NextRow icon={<BookOpen strokeWidth={1.75} />} words={t('新店手册：去之前先确认开门', 'New shop guide: check they are open first')} link={inner => <Link className="ev-end__item" to={OPENINGS_GUIDE}>{inner}</Link>} />
+      <NextRow glyph="guide" words={t('新店手册：去之前先确认开门', 'New shop guide: check they are open first')} link={inner => <Link className="ev-end__item" to={OPENINGS_GUIDE}>{inner}</Link>} />
     </NextCard>
     <ImageCredits covers={[...covers.values()]} />
   </div>;

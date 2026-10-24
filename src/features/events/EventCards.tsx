@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
 import { translateText } from '../../i18n/locale';
 import { EventCover, EventWhen, FeedCard, HeroCard, RowCard, COVER_SIZES, useRowCredit } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -146,7 +145,8 @@ export function EventRowCard({ event, cover, today, day, oneDay, action, save = 
 /**
  * The page end of the events views (UI9-R2 C P20): one 接下来 card of 1–3 icon rows instead of a cloud of links — a row that
  * is one link (存成一张图, 订阅到手机日历, a guide) is that link from edge to edge with a chevron; a row of related lists
- * names them as 44px links after its label (也看看：免费与优惠 · 新店 …). `rows` are NextRow / NextLinks.
+ * names them as 44px links after its label (也看看：免费与优惠 · 新店 …). `rows` are NextRow / NextLinks. Their icons and the
+ * chevron are lucide's paths drawn by events.css (`.ev-glyph`, `glyph` names one), so they ship no JS (route budgets).
  */
 export function NextCard({ label, children }: { label: string; children: ReactNode }) {
   const { t } = useUiCopy();
@@ -156,13 +156,13 @@ export function NextCard({ label, children }: { label: string; children: ReactNo
   </nav>;
 }
 /** One row that is one link: its icon, its words and a chevron; `link` renders the anchor (a or Link) around them. */
-export function NextRow({ icon, words, link, simpleHide }: { icon: ReactNode; words: string; link: (inner: ReactNode) => ReactNode; simpleHide?: boolean }) {
-  return <li className="ev-end__row" data-simple={simpleHide ? 'hide' : undefined}>{link(<><span className="ev-end__icon" aria-hidden="true">{icon}</span>
-    <span className="ev-end__words">{words}</span><ChevronRight className="ev-end__chevron" aria-hidden="true" strokeWidth={1.75} /></>)}</li>;
+export function NextRow({ glyph, words, link, simpleHide }: { glyph: string; words: string; link: (inner: ReactNode) => ReactNode; simpleHide?: boolean }) {
+  return <li className="ev-end__row" data-simple={simpleHide ? 'hide' : undefined}>{link(<><span className="ev-end__icon" aria-hidden="true"><span className="ev-glyph" data-glyph={glyph} /></span>
+    <span className="ev-end__words">{words}</span><span className="ev-glyph ev-end__chevron" data-glyph="chevron" aria-hidden="true" /></>)}</li>;
 }
 /** A row of related lists: its icon and label, then the links (each a 44px .ev-end__item). */
-export function NextLinks({ icon, label, children, simpleHide }: { icon: ReactNode; label: string; children: ReactNode; simpleHide?: boolean }) {
-  return <li className="ev-end__row ev-end__row--links" data-simple={simpleHide ? 'hide' : undefined}><span className="ev-end__icon" aria-hidden="true">{icon}</span>
+export function NextLinks({ glyph, label, children, simpleHide }: { glyph: string; label: string; children: ReactNode; simpleHide?: boolean }) {
+  return <li className="ev-end__row ev-end__row--links" data-simple={simpleHide ? 'hide' : undefined}><span className="ev-end__icon" aria-hidden="true"><span className="ev-glyph" data-glyph={glyph} /></span>
     <div className="ev-end__group"><span className="ev-end__label">{label}</span><ul className="ev-end__links">{children}</ul></div></li>;
 }
 

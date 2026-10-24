@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { BookOpen, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -102,10 +101,10 @@ export default function PerksView({ today, region }: { today: string; region: Mo
     })}</div> : <EmptyState headingLevel="h3" title={t('这个条件下暂时没有优惠', 'No offers match this yet')} body={t('换个条件或地区再看看。', 'Try another condition or region.')} actions={widen} />}
     {/* The page end (UI9-R2 C P20): one 接下来 card — the weekend's free events, then the offer guides in one row. */}
     <NextCard label={t('优惠指南', 'Offer guides')}>
-      {!mode.simple && freeEvents > 0 && <NextRow icon={<CalendarDays strokeWidth={1.75} />} words={t(`本周末 ${freeEvents} 场免费活动`, `${freeEvents} free ${freeEvents === 1 ? 'event' : 'events'} this weekend`)}
+      {!mode.simple && freeEvents > 0 && <NextRow glyph="free" words={t(`本周末 ${freeEvents} 场免费活动`, `${freeEvents} free ${freeEvents === 1 ? 'event' : 'events'} this weekend`)}
         link={inner => <Link className="ev-end__item" to="/events?cost=free">{inner}</Link>} />}
-      {mode.simple ? <NextRow icon={<BookOpen strokeWidth={1.75} />} words={t('这一期的优惠怎么领', 'How to claim this month’s offers')} link={inner => <Link className="ev-end__item" to={DEALS_GUIDE}>{inner}</Link>} />
-        : <NextLinks icon={<BookOpen strokeWidth={1.75} />} label={t('优惠指南', 'Offer guides')}>
+      {mode.simple ? <NextRow glyph="guide" words={t('这一期的优惠怎么领', 'How to claim this month’s offers')} link={inner => <Link className="ev-end__item" to={DEALS_GUIDE}>{inner}</Link>} />
+        : <NextLinks glyph="guide" label={t('优惠指南', 'Offer guides')}>
           <li><Link className="ev-end__item" to={DEALS_GUIDE}>{t('这一期的优惠怎么领', 'How to claim this month’s offers')}</Link></li>
           <li><Link className="ev-end__item" to={RETAIL_GUIDE}>{t('按品牌查门店赠品', 'Store freebies by brand')}</Link></li>
           <li><Link className="ev-end__item" to={EVERYDAY_GUIDE}>{t('长期有效的免费福利', 'Free perks that last')}</Link></li>

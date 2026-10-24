@@ -1,6 +1,6 @@
 import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarPlus, ChevronDown, Compass, ImageDown, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SkeletonFeed, SkeletonRow, useFeedLayout } from '../../components/ui';
 import { DayChips } from '../../components/ui/Segmented';
 import { Disclosure } from '../../components/ui/Disclosure';
@@ -253,7 +253,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       {/* 简洁显示 (D6, filters on two rows at most): 整个湾区 ▾ steps aside until a region is chosen (筛选 holds the regions). */}
       <FilterChip className="ev-region-chip" data-simple={filters.region === 'all' ? 'hide' : undefined} selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>{pick(regionLabel(filters.region))}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
       <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
-        icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
+        icon={<span className="ev-glyph" data-glyph="filters" aria-hidden="true" />}>{t('筛选', 'Filters')}</FilterChip>
     </div>
   </div>;
 
@@ -391,13 +391,12 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
  */
 export function EventsPageEnd({ region, today, weekend = true }: { region: EventsFilters['region']; today: string; weekend?: boolean }) {
   const { t } = useUiCopy();
-  const icon = (Icon: typeof Compass) => <Icon strokeWidth={1.75} />;
   return <NextCard label={t('更多活动入口', 'More from Events')}>
-    {weekend && <NextRow icon={icon(ImageDown)} words={t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}
+    {weekend && <NextRow glyph="image" words={t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}
       link={inner => <a className="ev-end__item" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{inner}</a>} />}
-    <NextRow icon={icon(CalendarPlus)} words={t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}
+    <NextRow glyph="calendar" words={t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}
       link={inner => <a className="ev-end__item" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{inner}</a>} />
-    <NextLinks icon={icon(Compass)} label={t('也看看', 'See also')} simpleHide>
+    <NextLinks glyph="compass" label={t('也看看', 'See also')} simpleHide>
       <li><Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link></li>
       <li><Link className="ev-end__item" to="/events?view=openings">{t('新店', 'New shops')}</Link></li>
       <li><Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link></li>

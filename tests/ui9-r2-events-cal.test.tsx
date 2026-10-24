@@ -102,7 +102,7 @@ test('the page end is one 接下来 card of icon rows: save, subscribe, the rela
   assert.equal(end.querySelector('h2')!.textContent, '接下来');
   const rows = [...end.querySelectorAll(':scope .ev-end__rows > li')];
   assert.equal(rows.length, 3);
-  assert.ok(rows.every(row => row.querySelector('.ev-end__icon svg')), 'each row has its icon');
+  assert.ok(rows.every(row => row.querySelector('.ev-end__icon>.ev-glyph[data-glyph]')), 'each row has its icon (drawn by events.css)');
   assert.deepEqual([...rows[2].querySelectorAll('a.ev-end__item')].map(link => link.textContent), ['免费与优惠', '新店', '半日慢游去处', '出门前读一篇指南']);
   assert.equal(rows[2].getAttribute('data-simple'), 'hide', '简洁显示 keeps the first two rows');
 });
