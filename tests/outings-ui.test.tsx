@@ -469,6 +469,30 @@ test('StrictMode public listing completes a fresh request instead of turning its
   assert.ok(signals.some(signal => signal?.aborted)); assert.ok(signals.some(signal => !signal?.aborted));
 });
 
+test('显示小队 hands focus back to the same 筛选 chip (the bar is not remounted), and 清除筛选 empties the search field', async t => {
+  signIn(user);
+  t.mock.method(api, 'request', async (path: string) => new URL(path, 'https://example.test').pathname === '/outings' ? { outings: [outing()], nextCursor: null } : { outing: outing() });
+  const view = render(hub(user, '/together?q=museum')); await view.findByRole('link', { name: initial.title });
+  const chip = view.getByRole('button', { name: /^筛选/ }), search = view.getByRole('textbox', { name: '搜索小队' }) as HTMLInputElement;
+  assert.equal(search.value, 'museum');
+  // jsdom lays nothing out; the modal only hands focus back to an element with a box (ui/Modal.tsx restoreFocus).
+  t.mock.method(window.HTMLElement.prototype, 'getClientRects', () => [{ width: 1, height: 1 }]);
+  chip.focus(); // a keyboard user is on the chip when it opens the sheet
+  const sheet = await openFilters(view);
+  fireEvent.change(sheet.getByRole('textbox', { name: '城市（可选）' }), { target: { value: 'Fremont' } });
+  await showOutings(view); await view.findByRole('link', { name: initial.title });
+  assert.equal(view.queryByRole('dialog', { name: '筛选小队' }), null);
+  assert.ok(chip.isConnected, 'the same chip node is still on the page');
+  // The sheet leaves after its exit (useExit, 200 ms), then hands focus back. (assert.ok, not assert.equal: a failed equal
+  // on two DOM nodes makes node:assert walk the whole jsdom graph.)
+  for (let wait = 0; wait < 20 && document.activeElement !== chip; wait++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+  assert.ok(document.activeElement === chip, `focus returns to the 筛选 chip (WCAG 2.4.3), not to ${document.activeElement?.tagName}`);
+  assert.equal(chip.getAttribute('aria-label'), '筛选，已选 1 项');
+  assert.equal(search.value, 'museum', 'the search is kept with the sheet\'s filters');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除筛选' })); }); await act(async () => {});
+  assert.equal(search.value, '', '清除筛选 empties the search field too');
+});
+
 test('date and city filters reach the API and survive opening a detail and returning to the list', async t => {
   signIn(user); const filters: URLSearchParams[] = [];
   t.mock.method(api, 'request', async (path: string) => {
