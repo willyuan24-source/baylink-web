@@ -85,16 +85,16 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   assert.match(decls(UI, '.ui-button[data-variant=quiet]').padding, /^var\(--sp-2\) /);
   assert.equal(decls(UI, '.ui-button[data-variant=secondary]').border, decls(UI, '.ui-icon-button').border);
   assert.match(decls('src/features/saves/saves.css', '.saves-control .saves-toggle,.saves-day .saves-add-day').padding, /^var\(--sp-2\) /);
-  // The detail action bar's primary (家人版 / 特大 at 360 and 390 px wraps 加入这天计划, How to claim, Add to a plan): the
-  // narrow-cell rule only changes the sides, and two wrapped lines at a 1.1 pitch keep the pill inside the 64 / 76 px bar.
+  // The detail action bar's primary: the narrow-cell rule only changes the sides. At 特大 and in 家人版 (R2-08 / OD6,
+  // UI9-R2-DETAIL) the primary is one line in its short words (加入计划, 领取入口, Add to day), so it no longer wraps there.
   const DETAIL = 'src/components/local-discovery-detail.css', PRIMARY = ':is(.detail-action--primary,.detail-actions__primary .saves-add-day)';
   assert.match(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`).padding, /^var\(--sp-2\) /);
   const narrow = decls(DETAIL, '.site-detail-actions.detail-actions .detail-actions__primary .saves-add-day', 'detail-primary (max-width:9.5em)');
   assert.equal(narrow.padding, undefined);
   assert.equal(narrow['padding-inline'], 'var(--sp-2)');
-  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.2');
-  assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
-  // 特大 (not 家人版): the detail bar is 72 px, so the 1.2-pitch two-line pill (66 px) keeps room to the bar's edges
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['white-space'], 'nowrap');
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], undefined);
+  // 特大 (not 家人版): the detail bar stays 72 px, a larger target for the larger words
   assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions.detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
