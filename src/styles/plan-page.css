@@ -110,15 +110,17 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 .planner-place-when { margin:0 0 4px 6.25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
 .planner-place-summary { margin:0 0 8px 6.25rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-place .planner-stop-offers { margin-left:6.25rem; }
-.planner-place-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:6.25rem; }
-.planner-place-links { display:flex; flex-wrap:wrap; gap:4px 16px; margin:4px 0 0 6.25rem; font-size:var(--text-caption); }
-.planner-place-links>a { display:inline-flex; align-items:center; min-height:2.75rem; text-decoration:underline; text-underline-offset:var(--underline-offset); }
+/* R2-10: 以这里为起点 and the two map links sit in one 更多操作 menu (PlannerCatalogCard), so a row shows one text link at most. */
+.planner-place-menu { margin:0 0 0 6.25rem; font-size:var(--text-fact); }
+.planner-place-menu>summary { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); }
+.planner-place-menu>div { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; padding-bottom:4px; }
+.planner-place-menu a { display:inline-flex; align-items:center; min-height:var(--control-height); text-decoration:underline; text-underline-offset:var(--underline-offset); }
 .planner-place .planner-outing-preview { margin-left:6.25rem; width:auto; }
 .planner-place .planner-small-note { margin-left:6.25rem; }
 @media (max-width:420px) {
-  :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+  :is(.planner-place-when,.planner-place-summary,.planner-place-menu,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-menu,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 .planner-catalog-more { margin-top:16px; }
 /* Follow-up 3 (#60 live check): the measure left one-word tails (「…存好后 / 发给家人。」, 「加入这天计 / 划」) at 1440, 720
    and on phones. At every width the head copy and the empty 已排的日子 balance their lines and break CJK only between

@@ -140,7 +140,7 @@ test('follow-up 8 (R2-03): a dated ①② label draws its short words (2025 往�
 });
 
 test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
-  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)');
+  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body,.planner-editor>p,.planner-empty>p)');
   assert.equal(rule['text-wrap'], 'balance');
   assert.equal(rule['word-break'], 'keep-all');
 });
@@ -155,7 +155,7 @@ test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balan
   const plan = read('src/styles/plan-page.css');
   assert.equal(decls('src/styles/plan-page.css', '.plan-weekend .ui-feed-grid', '(min-width:700px)')['--ui-feed-cols'], '4');
   assert.doesNotMatch(plan, /\(min-width:768px\) \{ \.plan-weekend \.ui-feed-grid \{/);
-  assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)')['word-break'], 'keep-all');
+  assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body,.planner-editor>p,.planner-empty>p)')['word-break'], 'keep-all');
   // card-press is no longer a static import of the card modules (route JS budgets): Card.tsx loads it dynamically, and
   // HeroCard.tsx has no module-level effect, so the barrel can still drop it from routes that never render one.
   const card = read('src/components/ui/Card.tsx'), hero = read('src/components/ui/HeroCard.tsx');
