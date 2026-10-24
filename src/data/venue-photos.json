@@ -75,6 +75,10 @@
         "SF Main Library",
         "San Francisco Main Library"
       ],
+      "records": [
+        "offer:sfpl-discover-go",
+        "offer:sfpl-radon-detector-loan"
+      ],
       "imageKeys": [
         "venue-sf-main-library"
       ],
