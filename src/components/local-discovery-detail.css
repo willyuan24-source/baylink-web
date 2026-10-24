@@ -189,7 +189,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
    or a screen under 820 px tall, e.g. a 768 px laptop) the facts scroll away and the actions stay in view to the end of the
    body; where it fits (标准 from 820 px tall), the whole aside, facts included, stays in view, as before. */
 @media (min-width:1024px) {
-  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
+  .local-discovery-detail { --detail-measure:42.5rem; box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
   .local-discovery-detail .detail-back { margin-bottom:var(--sp-2); }
   .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr auto; column-gap:var(--grid-gutter); align-items:start; }
@@ -203,7 +203,6 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .detail-aside-end>.detail-rail--side .ui-more { margin-top:var(--sp-1); }
   /* B P04: the body reads at the reading step on a 680 px measure (40 CJK characters, N05); English keeps --measure
      (≤ 75 Latin characters). The facts card and the column keep their 14 / 16 px. */
-  .local-discovery-detail { --detail-measure:42.5rem; }
   .local-discovery-detail:lang(en) { --detail-measure:var(--measure); }
   .local-discovery-detail :is(.detail-summary,.detail-prose,.detail-plan,.detail-conditions,.detail-steps,.detail-rail__note) { max-width:var(--detail-measure); }
   .local-discovery-detail :is(.detail-summary,.detail-prose),.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { font-size:var(--fs-reading); }

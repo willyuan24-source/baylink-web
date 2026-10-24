@@ -4,6 +4,7 @@ import type { MonthlyEvent } from '../../data/monthly-types';
 import { EVENT_DATE_OVERRIDES } from '../../data/event-calendar-dates';
 import { GUIDE_IMAGES } from '../../data/guide-media';
 import { getDiscoveryMetadata } from '../../lib/discovery-metadata';
+import { getBayAreaToday } from '../../lib/monthly';
 import { placeFor } from '../../lib/planner';
 import { coverItemFor, getCover, type CoverAsset, type CoverKind } from '../../lib/cover';
 import { COVER_TABLES, coverCandidates, type CandidateRecord, type CoverTables } from '../../lib/cover-candidates';
@@ -18,6 +19,12 @@ import { detailKey, detailShare, nextEventDay, type DetailRecord, type RailEvent
 
 /** Listings whose date is unknown to the build keep every candidate the edition still lists. */
 const cutoff = MONTHLY_EDITION.checkedAt;
+/**
+ * The rails' first day: the build's Pacific day once it is past the edition's check (the home catalog and the events index
+ * read it too), so a rail's eight candidates are the next ones from the day the page is published, not from the edition's
+ * check two weeks earlier (an offer's nearby row kept 1 of 8 on 10-21).
+ */
+const railDay = [cutoff, getBayAreaToday()].sort()[1];
 /**
  * Candidates kept per record: three same-category cards (live page) or four "接下来可以去" cards (ended page), and the desktop
  * column's three "附近还有" rows, with spares. An offer or an opening keeps its own eight: the page's closing photo row
@@ -79,11 +86,11 @@ const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') =
 function railFor(event: { id: string; category?: MonthlyEvent['category'] }, region: string | undefined, city: string, events: readonly MonthlyEvent[], claimed: Set<string> = new Set()): RailEvent[] {
   const anywhere = !region && !city;
   const candidates = [...new Map(events.map(candidate => [candidate.id, withOverrides(candidate)])).values()]
-    .filter(candidate => candidate.id !== event.id && candidate.endDate >= cutoff && candidate.occurrenceDates?.length !== 0
+    .filter(candidate => candidate.id !== event.id && candidate.endDate >= railDay && candidate.occurrenceDates?.length !== 0 && nextEventDay(candidate, railDay) !== null
       && (anywhere || (!!region && candidate.region === region) || sameText(candidate.city, city)));
   const rank = (candidate: MonthlyEvent) => (candidate.category === event.category ? 0 : 2) + (sameText(candidate.city, city) ? 0 : 1);
   // Same-category candidates for the live page's rail, then other nearby events for the ended page's "接下来可以去".
-  const next = (candidate: MonthlyEvent) => nextEventDay(candidate, cutoff) ?? candidate.startDate;
+  const next = (candidate: MonthlyEvent) => nextEventDay(candidate, railDay) ?? candidate.startDate;
   const sorted = candidates.sort((a, b) => rank(a) - rank(b) || next(a).localeCompare(next(b)) || a.id.localeCompare(b.id));
   const same = sorted.filter(candidate => candidate.category === event.category).slice(0, RAIL_SAME);
   const others = sorted.filter(candidate => candidate.category !== event.category).slice(0, RAIL_SIZE - same.length);
