@@ -18,7 +18,7 @@ const read = <T>(file: string) => JSON.parse(readFileSync(file, 'utf8')) as T;
 const tiles = read<Record<string, { key: string; spares: string[] }>>('src/data/home-tile-photos.json');
 const records = read<{ key: string; src: string }[]>('src/data/home-tile-stock-photos.json');
 const english = read<Record<string, string>>('src/data/home-tile-stock-photos-en.json');
-const downloads = read<Record<string, { pageUrl: string; sha256: string; license: string; approval: string; tile: string; approvalId: string; replaces?: string }>>('scripts/data/home-tile-photos-downloads.json');
+const downloads = read<Record<string, { pageUrl: string; sha256: string; license: string; approval: string; tile: string; approvalId: string; replaces?: string; pageSays?: { location?: string } }>>('scripts/data/home-tile-photos-downloads.json');
 const photos = Object.values(tiles).flatMap(({ key, spares }) => [key, ...spares]);
 
 test('the eight home entries each have one tile photo, in the order the home lists them, and the spares are registered', () => {
@@ -30,8 +30,14 @@ test('the eight home entries each have one tile photo, in the order the home lis
     for (const photo of [key, ...spares]) {
       assert.ok(photo.startsWith(`tile-${tile}-`), `${photo} belongs to ${tile}`);
       assert.equal(downloads[photo]?.tile, tile, `${photo}: download record`);
-      // The 2026-10-21 batch (owner 「圖片都過，沒問題」) or the four brighter tile photos of DECISIONS 46 (owner rule DECISIONS 33).
-      assert.match(downloads[photo].approval, /圖片都過，沒問題|^DECISIONS 46 .*只要你分析過後，覺得合適，更好，就可以通過/);
+      // The 2026-10-21 batch (owner 「圖片都過，沒問題」), or the four brighter tile photos of DECISIONS 46 (owner rule DECISIONS 33),
+      // which cover only UI9-IMG-TILES-A candidates (approval id tilesA:<tile>#n).
+      if (downloads[photo].approvalId.startsWith('tilesA:')) {
+        assert.match(downloads[photo].approval, /^DECISIONS 46 .*只要你分析過後，覺得合適，更好，就可以通過/, photo);
+      } else {
+        assert.match(downloads[photo].approvalId, new RegExp(`^tile:${tile}#\\d$`), photo);
+        assert.match(downloads[photo].approval, /圖片都過，沒問題/, photo);
+      }
       assert.match(downloads[photo].sha256, /^[0-9a-f]{64}$/);
     }
   }
@@ -92,6 +98,9 @@ test('DECISIONS 46: free, kids, seniors and rainy day show the four brighter pho
     assert.equal(GUIDE_IMAGES[key].creditUrl, `https://unsplash.com/photos/${photoId}`);
     assert.match(downloads[key].approvalId, new RegExp(`^tilesA:${tile}#\\d$`));
   }
+  // The free tile's alt names the park; the photo page's location line, kept in the download record, says so.
+  assert.match(GUIDE_IMAGES['tile-free-4'].alt, /Dolores/);
+  assert.match(downloads['tile-free-4'].pageSays?.location ?? '', /^Dolores Park .*San Francisco, CA, USA$/);
   // The seniors couple is framed from the top so both heads stay in the 16:9 and 4:3 crops.
   assert.deepEqual(GUIDE_IMAGES['tile-seniors-3'].focal, [50, 20]);
   for (const [old, key] of [['tile-free-3', 'tile-free-4'], ['tile-kids-2', 'tile-kids-4'], ['tile-seniors-2', 'tile-seniors-3'], ['tile-rainy-day-2', 'tile-rainy-day-3']]) {

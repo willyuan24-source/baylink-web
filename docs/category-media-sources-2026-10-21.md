@@ -374,6 +374,9 @@ object-position = the photo's focal point. The goal is L* ≥ 55 at both crops.
 - **Checked before download**: each photo page read as a guest in a headless Chrome, 03:59:51–04:00:02 PT: `og:title` "Photo by
   <the listed photographer> on Unsplash", the listed profile on the page, "Free to use under the Unsplash License" (not Unsplash+),
   the page shows the approved file, no AI label.
+- **Place names in alt text**: only the free tile's alt names a place (Dolores 公园 / Dolores Park). It comes from the location
+  line on the photo page ("Dolores Park West Pathway, San Francisco, CA, USA"), kept as `pageSays.location` in the download
+  record. The other three pages give no location, so their alts name none.
 - **Downloads**: 04:00:24–04:00:29 PT, one at a time, the approved CDN original (`imageUrl` as listed) of each page.
 - **Processing**: the same as the second batch above. Resized to at most 1280 px wide (never upscaled, never cropped), WebP q78
   → `public/guides/home-tiles/`. Each 480 w file compressed on its own at the first quality from 72 down to 40 that fits 15 KB.
